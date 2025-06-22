@@ -107,15 +107,36 @@
             filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
             transform-style: preserve-3d;
             animation: playerFloat 3s ease-in-out infinite;
+            backdrop-filter: blur(5px);
+        }
+
+        #player::after {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: radial-gradient(circle, rgba(155, 89, 182, 0.3), transparent);
+            border-radius: 50%;
+            z-index: -1;
+            animation: playerAura 2s ease-in-out infinite;
+        }
+
+        @keyframes playerAura {
+            0%, 100% { transform: scale(1); opacity: 0.3; }
+            50% { transform: scale(1.2); opacity: 0.6; }
         }
 
         @keyframes playerFloat {
-            0%, 100% { transform: translateY(0px) rotateY(0deg); }
-            50% { transform: translateY(-3px) rotateY(5deg); }
+            0%, 100% { transform: translateY(0px) rotateY(0deg) translateZ(0px); }
+            25% { transform: translateY(-2px) rotateY(5deg) translateZ(5px); }
+            50% { transform: translateY(-3px) rotateY(0deg) translateZ(10px); }
+            75% { transform: translateY(-2px) rotateY(-5deg) translateZ(5px); }
         }
 
         #player:hover {
-            transform: scale(1.1) rotateY(10deg);
+            transform: scale(1.1) rotateY(10deg) translateZ(15px);
             box-shadow: 
                 0 12px 24px rgba(0,0,0,0.4),
                 0 0 30px rgba(155, 89, 182, 0.8),
@@ -998,6 +1019,134 @@
         .soundToggle:hover {
             background: rgba(255, 107, 107, 0.3);
             transform: scale(1.05);
+        }
+
+        /* Advanced 3D Effects and Particle System */
+        .game-container {
+            perspective: 1000px;
+            transform-style: preserve-3d;
+        }
+
+        .particle-system {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 25;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 20;
+            animation: particleExplode 1.5s ease-out forwards;
+        }
+
+        .particle.gold {
+            background: radial-gradient(circle, #FFD700, #FFA500);
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
+        }
+
+        .particle.red {
+            background: radial-gradient(circle, #FF4444, #CC0000);
+            box-shadow: 0 0 8px rgba(255, 68, 68, 0.8);
+        }
+
+        .particle.blue {
+            background: radial-gradient(circle, #4169E1, #1E90FF);
+            box-shadow: 0 0 8px rgba(65, 105, 225, 0.8);
+        }
+
+        .particle.green {
+            background: radial-gradient(circle, #32CD32, #00FF00);
+            box-shadow: 0 0 8px rgba(50, 205, 50, 0.8);
+        }
+
+        @keyframes particleExplode {
+            0% { 
+                transform: scale(0) rotate(0deg) translateZ(0px); 
+                opacity: 1; 
+            }
+            25% { 
+                transform: scale(1.2) rotate(90deg) translateZ(10px); 
+                opacity: 0.9; 
+            }
+            50% { 
+                transform: scale(1) rotate(180deg) translateZ(20px); 
+                opacity: 0.7; 
+            }
+            75% { 
+                transform: scale(0.8) rotate(270deg) translateZ(10px); 
+                opacity: 0.4; 
+            }
+            100% { 
+                transform: scale(0) rotate(360deg) translateZ(0px); 
+                opacity: 0; 
+            }
+        }
+
+        /* Enhanced 3D Character Effects */
+        #player {
+            position: absolute;
+            bottom: 20px;
+            width: min(8vw, 60px);
+            height: min(8vw, 60px);
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            border-radius: 50%;
+            border: 4px solid #7d3c98;
+            box-shadow: 
+                0 8px 16px rgba(0,0,0,0.3),
+                0 0 20px rgba(155, 89, 182, 0.6),
+                inset 0 2px 4px rgba(255,255,255,0.3);
+            z-index: 10;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: min(5vw, 30px);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+            transform-style: preserve-3d;
+            animation: playerFloat 3s ease-in-out infinite;
+            backdrop-filter: blur(5px);
+        }
+
+        #player::after {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: radial-gradient(circle, rgba(155, 89, 182, 0.3), transparent);
+            border-radius: 50%;
+            z-index: -1;
+            animation: playerAura 2s ease-in-out infinite;
+        }
+
+        @keyframes playerAura {
+            0%, 100% { transform: scale(1); opacity: 0.3; }
+            50% { transform: scale(1.2); opacity: 0.6; }
+        }
+
+        @keyframes playerFloat {
+            0%, 100% { transform: translateY(0px) rotateY(0deg) translateZ(0px); }
+            25% { transform: translateY(-2px) rotateY(5deg) translateZ(5px); }
+            50% { transform: translateY(-3px) rotateY(0deg) translateZ(10px); }
+            75% { transform: translateY(-2px) rotateY(-5deg) translateZ(5px); }
+        }
+
+        #player:hover {
+            transform: scale(1.1) rotateY(10deg) translateZ(15px);
+            box-shadow: 
+                0 12px 24px rgba(0,0,0,0.4),
+                0 0 30px rgba(155, 89, 182, 0.8),
+                inset 0 2px 4px rgba(255,255,255,0.3);
         }
     </style>
 </head>

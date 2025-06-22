@@ -1,0 +1,145 @@
+/* Main Game Styles - Kaden & Adelynn Adventures */
+
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Game Container */
+#gameContainer {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
+    overflow: hidden;
+    perspective: 1000px;
+    transform-style: preserve-3d;
+}
+
+/* Space Background Animation */
+@keyframes starFloat {
+    0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+}
+
+.star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: white;
+    border-radius: 50%;
+    animation: starFloat 8s linear infinite;
+    z-index: 1;
+}
+
+/* UI Elements */
+#score, #timer, #pauseBtn, #soundToggle {
+    position: absolute;
+    font-size: min(4vw, 24px);
+    font-weight: bold;
+    color: #FFFFFF;
+    background: rgba(0, 0, 0, 0.7);
+    padding: min(2vw, 10px) min(3vw, 15px);
+    border-radius: 15px;
+    border: 3px solid #FF6B6B;
+    z-index: 15;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+#score {
+    top: 20px;
+    left: 20px;
+}
+
+#timer {
+    top: 20px;
+    right: 20px;
+}
+
+#pauseBtn {
+    top: 20px;
+    right: 140px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+#pauseBtn:hover {
+    background: rgba(255, 107, 107, 0.3);
+    transform: scale(1.05);
+}
+
+#soundToggle {
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+#soundToggle:hover {
+    background: rgba(255, 107, 107, 0.3);
+    transform: translateX(-50%) scale(1.05);
+}
+
+/* Power-up Indicator */
+.powerupIndicator {
+    position: absolute;
+    top: 80px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 10px;
+    border-radius: 10px;
+    color: white;
+    font-size: 14px;
+    z-index: 15;
+    display: none;
+    backdrop-filter: blur(10px);
+    border: 2px solid #FF6B6B;
+}
+
+.powerupIndicator.active {
+    display: block;
+}
+
+.powerupIndicator .powerupItem {
+    margin: 5px 0;
+    padding: 5px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    #score, #timer, #pauseBtn, #soundToggle {
+        font-size: 16px;
+        padding: 8px 12px;
+    }
+    
+    #pauseBtn {
+        right: 120px;
+    }
+}
+
+@media (max-width: 480px) {
+    #pauseBtn {
+        right: 100px;
+    }
+} 
