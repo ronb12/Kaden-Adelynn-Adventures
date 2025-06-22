@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaden & Adelynn Coin Catcher - Fun Game for Kids!</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #000428, #004e92);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, #eee, transparent),
+                radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+                radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+                radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.6), transparent),
+                radial-gradient(2px 2px at 160px 30px, #ddd, transparent);
+            background-repeat: repeat;
+            background-size: 200px 100px;
+            animation: twinkle 4s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        #gameContainer {
+            position: relative;
+            width: min(95vw, 800px);
+            height: min(90vh, 600px);
+            background: linear-gradient(to bottom, #000428 0%, #004e92 50%, #000428 100%);
+            border: 4px solid #FF6B6B;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        #gameContainer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(1px 1px at 50px 50px, #fff, transparent),
+                radial-gradient(1px 1px at 150px 100px, rgba(255,255,255,0.8), transparent),
+                radial-gradient(1px 1px at 250px 150px, #fff, transparent),
+                radial-gradient(1px 1px at 350px 200px, rgba(255,255,255,0.6), transparent),
+                radial-gradient(1px 1px at 450px 250px, #fff, transparent);
+            background-repeat: repeat;
+            background-size: 500px 300px;
+            animation: spaceFloat 20s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes spaceFloat {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-300px); }
+        }
+
+        #player {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(8vw, 60px);
+            height: min(8vw, 60px);
+            background: #4169E1;
+            border-radius: 50%;
+            border: 4px solid #1E90FF;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            transition: left 0.1s ease;
+            z-index: 10;
+        }
+
+        #player::before {
+            content: var(--character-emoji, '🚀');
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: min(4vw, 30px);
+        }
+
+        .coin {
+            position: absolute;
+            width: min(6vw, 40px);
+            height: min(6vw, 40px);
+            background: #FFD700;
+            border-radius: 50%;
+            border: 3px solid #FFA500;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            animation: spin 1s linear infinite;
+            z-index: 5;
+        }
+
+        .coin::before {
+            content: '💰';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: min(3vw, 20px);
+        }
+
+        .shark {
+            position: absolute;
+            width: min(6vw, 40px);
+            height: min(6vw, 40px);
+            background: #FF4444;
+            border-radius: 50%;
+            border: 3px solid #CC0000;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            animation: sharkSwim 0.8s ease-in-out infinite;
+            z-index: 5;
+        }
+
+        .shark::before {
+            content: '🦈';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: min(3vw, 20px);
+        }
+
+        @keyframes spin {
+            0% { transform: rotateY(0deg); }
+            100% { transform: rotateY(360deg); }
+        }
+
+        @keyframes sharkSwim {
+            0%, 100% { transform: translateX(0px) rotate(0deg); }
+            25% { transform: translateX(-2px) rotate(-5deg); }
+            75% { transform: translateX(2px) rotate(5deg); }
+        }
+
+        @keyframes sharkBite {
+            0% { transform: scale(1) rotate(0deg); opacity: 1; }
+            50% { transform: scale(1.5) rotate(180deg); opacity: 0.8; }
+            100% { transform: scale(2) rotate(360deg); opacity: 0; }
+        }
+
+        @keyframes explosion {
+            0% { transform: scale(0) rotate(0deg); opacity: 1; }
+            50% { transform: scale(1.5) rotate(180deg); opacity: 0.8; }
+            100% { transform: scale(2) rotate(360deg); opacity: 0; }
+        }
+
+        #score {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: min(4vw, 24px);
+            font-weight: bold;
+            color: #FFFFFF;
+            background: rgba(0, 0, 0, 0.7);
+            padding: min(2vw, 10px) min(3vw, 15px);
+            border-radius: 15px;
+            border: 3px solid #FF6B6B;
+            z-index: 15;
+        }
+
+        #timer {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: min(4vw, 24px);
+            font-weight: bold;
+            color: #FFFFFF;
+            background: rgba(0, 0, 0, 0.7);
+            padding: min(2vw, 10px) min(3vw, 15px);
+            border-radius: 15px;
+            border: 3px solid #FF6B6B;
+            z-index: 15;
+        }
+
+        #pauseBtn {
+            position: absolute;
+            top: 20px;
+            right: 140px;
+            font-size: min(3.5vw, 20px);
+            font-weight: bold;
+            color: #FFFFFF;
+            background: rgba(0, 0, 0, 0.7);
+            padding: min(2vw, 8px) min(3vw, 12px);
+            border-radius: 15px;
+            border: 3px solid #FF6B6B;
+            z-index: 15;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        #pauseBtn:hover {
+            background: rgba(255, 107, 107, 0.3);
+            transform: scale(1.05);
+        }
+
+        #pauseMenu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: min(6vw, 30px);
+            border-radius: 20px;
+            text-align: center;
+            border: 4px solid #FF6B6B;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 35;
+            display: none;
+            width: min(90vw, 400px);
+        }
+
+        #pauseMenu h2 {
+            color: #FF6B6B;
+            font-size: min(5vw, 28px);
+            margin-bottom: 20px;
+        }
+
+        .pauseBtn {
+            background: #4ECDC4;
+            color: white;
+            border: none;
+            padding: min(3vw, 12px) min(6vw, 24px);
+            font-size: min(3.5vw, 18px);
+            border-radius: 15px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.3s;
+            margin: 5px;
+            min-width: 120px;
+        }
+
+        .pauseBtn:hover {
+            background: #45B7AA;
+        }
+
+        .pauseBtn.quit {
+            background: #FF6B6B;
+        }
+
+        .pauseBtn.quit:hover {
+            background: #FF4757;
+        }
+
+        .saveInfo {
+            color: #2C3E50;
+            font-size: min(3vw, 16px);
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(78, 205, 196, 0.1);
+            border-radius: 10px;
+        }
+
+        #startScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: min(6vw, 30px);
+            border-radius: 20px;
+            text-align: center;
+            border: 4px solid #FF6B6B;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 25;
+            width: min(95vw, 500px);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        #startScreen h1 {
+            color: #FF6B6B;
+            font-size: min(6vw, 36px);
+            margin-bottom: 15px;
+        }
+
+        #startScreen p {
+            color: #2C3E50;
+            font-size: min(3vw, 16px);
+            margin-bottom: 20px;
+        }
+
+        #loadSavedGame {
+            background: #FFD700;
+            color: #2C3E50;
+            border: none;
+            padding: min(3vw, 12px) min(6vw, 24px);
+            font-size: min(3.5vw, 18px);
+            border-radius: 15px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.3s;
+            margin: 10px;
+            display: none;
+        }
+
+        #loadSavedGame:hover {
+            background: #FFA500;
+        }
+
+        .savedGameInfo {
+            color: #2C3E50;
+            font-size: min(2.5vw, 14px);
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 8px;
+            display: none;
+        }
+
+        #characterSelection {
+            margin-bottom: 20px;
+        }
+
+        #characterSelection h3 {
+            color: #2C3E50;
+            font-size: min(3.5vw, 18px);
+            margin-bottom: 10px;
+        }
+
+        .characterGrid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .characterOption {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: min(2vw, 8px);
+            border: 2px solid #FF6B6B;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .characterOption:hover {
+            transform: scale(1.05);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+
+        .characterOption.selected {
+            background: #4ECDC4;
+            border-color: #45B7AA;
+            color: white;
+        }
+
+        .characterOption .characterEmoji {
+            font-size: min(4vw, 24px);
+            margin-bottom: 4px;
+        }
+
+        .characterOption .characterName {
+            font-size: min(2vw, 10px);
+            font-weight: bold;
+            text-align: center;
+        }
+
+        #startBtn {
+            background: #4ECDC4;
+            color: white;
+            border: none;
+            padding: min(3vw, 12px) min(6vw, 24px);
+            font-size: min(3.5vw, 18px);
+            border-radius: 15px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.3s;
+        }
+
+        #startBtn:hover {
+            background: #45B7AA;
+        }
+
+        #startBtn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: min(6vw, 30px);
+            border-radius: 20px;
+            text-align: center;
+            border: 4px solid #FF6B6B;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 20;
+            display: none;
+            width: min(90vw, 400px);
+        }
+
+        #gameOver h2 {
+            color: #FF6B6B;
+            font-size: min(5vw, 28px);
+            margin-bottom: 15px;
+        }
+
+        #gameOver p {
+            color: #2C3E50;
+            font-size: min(3.5vw, 18px);
+            margin-bottom: 15px;
+        }
+
+        #restartBtn {
+            background: #4ECDC4;
+            color: white;
+            border: none;
+            padding: min(3vw, 12px) min(6vw, 24px);
+            font-size: min(3.5vw, 18px);
+            border-radius: 15px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.3s;
+        }
+
+        #restartBtn:hover {
+            background: #45B7AA;
+        }
+
+        #achievement {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: white;
+            padding: min(4vw, 20px) min(6vw, 30px);
+            border-radius: 15px;
+            text-align: center;
+            border: 4px solid #FF6B6B;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 30;
+            display: none;
+            animation: achievementPop 2s ease-out;
+            width: min(80vw, 300px);
+        }
+
+        #achievement h3 {
+            font-size: min(4vw, 24px);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        #achievement p {
+            font-size: min(3vw, 16px);
+            margin-bottom: 10px;
+        }
+
+        #achievement .achievementEmoji {
+            font-size: min(5vw, 32px);
+            margin-bottom: 10px;
+        }
+
+        @keyframes achievementPop {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            20% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+        }
+
+        /* Character-specific animations */
+        @keyframes carDrive {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-2px); }
+        }
+
+        @keyframes spaceshipFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            25% { transform: translateY(-3px) rotate(1deg); }
+            75% { transform: translateY(-1px) rotate(-1deg); }
+        }
+
+        @keyframes armyMarch {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-1px); }
+        }
+
+        @keyframes barbieTwirl {
+            0% { transform: rotateY(0deg); }
+            100% { transform: rotateY(360deg); }
+        }
+
+        /* Apply character-specific animations */
+        #player[data-character="car"] {
+            animation: carDrive 0.5s ease-in-out infinite;
+        }
+
+        #player[data-character="spaceship"] {
+            animation: spaceshipFloat 2s ease-in-out infinite;
+        }
+
+        #player[data-character="army"] {
+            animation: armyMarch 0.8s ease-in-out infinite;
+        }
+
+        #player[data-character="barbie"] {
+            animation: barbieTwirl 3s linear infinite;
+        }
+
+        /* Responsive design */
+        @media (max-width: 600px) {
+            #startScreen {
+                padding: 20px;
+                width: 95vw;
+            }
+            
+            #startScreen h1 {
+                font-size: 28px;
+            }
+            
+            #startScreen p {
+                font-size: 14px;
+            }
+            
+            .characterGrid {
+                gap: 6px;
+            }
+            
+            .characterOption {
+                padding: 6px;
+            }
+            
+            .characterOption .characterEmoji {
+                font-size: 20px;
+            }
+            
+            .characterOption .characterName {
+                font-size: 8px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            #startScreen h1 {
+                font-size: 24px;
+            }
+            
+            #startScreen p {
+                font-size: 12px;
+            }
+            
+            .characterOption .characterEmoji {
+                font-size: 18px;
+            }
+            
+            .characterOption .characterName {
+                font-size: 7px;
+            }
+        }
+
+        /* Landscape orientation for mobile */
+        @media (max-height: 500px) and (orientation: landscape) {
+            #startScreen {
+                padding: 15px;
+                max-height: 85vh;
+            }
+            
+            #startScreen h1 {
+                font-size: 20px;
+                margin-bottom: 10px;
+            }
+            
+            #startScreen p {
+                font-size: 12px;
+                margin-bottom: 10px;
+            }
+            
+            .characterGrid {
+                gap: 4px;
+            }
+            
+            .characterOption {
+                padding: 4px;
+            }
+            
+            .characterOption .characterEmoji {
+                font-size: 16px;
+            }
+            
+            .characterOption .characterName {
+                font-size: 6px;
+            }
+        }
+
+        .missile {
+            position: absolute;
+            width: 8px;
+            height: 20px;
+            background: linear-gradient(to bottom, #FFD700, #FFA500);
+            border-radius: 4px;
+            box-shadow: 0 0 10px #FFD700;
+            z-index: 7;
+            animation: missileTrail 0.1s ease-out;
+        }
+
+        .missile::before {
+            content: '🔥';
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+        }
+
+        @keyframes missileTrail {
+            0% { box-shadow: 0 0 5px #FFD700; }
+            100% { box-shadow: 0 0 15px #FFD700; }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="startScreen">
+            <h1>🪙 Kaden & Adelynn Coin Catcher 🪙</h1>
+            <p>Use the arrow keys to move and catch falling coins!</p>
+            <p>Press SPACEBAR to shoot missiles at coins and sharks!</p>
+            <p>You have 60 seconds to get the highest score!</p>
+            <div id="characterSelection">
+                <h3>Choose Your Character:</h3>
+                <div class="characterGrid">
+                    <div class="characterOption" data-character="boy">
+                        <div class="characterEmoji">👦</div>
+                        <div class="characterName">Boy</div>
+                    </div>
+                    <div class="characterOption" data-character="girl">
+                        <div class="characterEmoji">👧</div>
+                        <div class="characterName">Girl</div>
+                    </div>
+                    <div class="characterOption" data-character="car">
+                        <div class="characterEmoji">🚗</div>
+                        <div class="characterName">Car</div>
+                    </div>
+                    <div class="characterOption" data-character="spaceship">
+                        <div class="characterEmoji">🚀</div>
+                        <div class="characterName">Spaceship</div>
+                    </div>
+                    <div class="characterOption" data-character="army">
+                        <div class="characterEmoji">🪖</div>
+                        <div class="characterName">Army Man</div>
+                    </div>
+                    <div class="characterOption" data-character="barbie">
+                        <div class="characterEmoji">👸</div>
+                        <div class="characterName">Barbie</div>
+                    </div>
+                </div>
+            </div>
+            <button id="startBtn">Start Game</button>
+            <button id="loadSavedGame">💾 Load Saved Game</button>
+            <div class="savedGameInfo" id="savedGameInfo">
+                <p>Saved Score: <span id="savedScore">0</span></p>
+                <p>Saved Time: <span id="savedTime">60</span>s</p>
+            </div>
+        </div>
+        
+        <div id="player"></div>
+        <div id="score">Score: 0</div>
+        <div id="timer">Time: 60</div>
+        <div id="pauseBtn">⏸️ Pause</div>
+        
+        <div id="gameOver">
+            <h2>🎉 Game Over! 🎉</h2>
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <button id="restartBtn">Play Again</button>
+        </div>
+        
+        <div id="achievement">
+            <div class="achievementEmoji">🏆</div>
+            <h3>Achievement Unlocked!</h3>
+            <p id="achievementText">Great job!</p>
+        </div>
+    </div>
+
+    <div id="pauseMenu">
+        <h2>⏸️ Game Paused</h2>
+        <div class="saveInfo">
+            <p>Current Score: <span id="pauseScore">0</span></p>
+            <p>Time Left: <span id="pauseTime">60</span>s</p>
+        </div>
+        <button class="pauseBtn" id="saveBtn">💾 Save Game</button>
+        <button class="pauseBtn" id="resumeBtn">▶️ Resume</button>
+        <button class="pauseBtn quit" id="quitBtn">❌ Quit Game</button>
+    </div>
+
+    <script>
+        // Game variables
+        let player = document.getElementById('player');
+        let gameContainer = document.getElementById('gameContainer');
+        let scoreElement = document.getElementById('score');
+        let timerElement = document.getElementById('timer');
+        let gameOverScreen = document.getElementById('gameOver');
+        let startScreen = document.getElementById('startScreen');
+        let finalScoreElement = document.getElementById('finalScore');
+        
+        let score = 0;
+        let timeLeft = 60;
+        let gameRunning = false;
+        let playerX = 370;
+        let coins = [];
+        let sharks = [];
+        let missiles = [];
+        let gameInterval;
+        let coinInterval;
+        let sharkInterval;
+        let missileInterval;
+        let timerInterval;
+        let selectedCharacter = 'spaceship';
+        let achievements = [];
+        let gamePaused = false;
+        let savedGame = null;
+        
+        // Game constants
+        const PLAYER_SPEED = 35;
+        const COIN_SPEED = 3;
+        const SHARK_SPEED = 4;
+        const MISSILE_SPEED = 8;
+        let GAME_WIDTH = 800;
+        let GAME_HEIGHT = 600;
+        const PLAYER_WIDTH = 60;
+        const COIN_WIDTH = 40;
+        const SHARK_WIDTH = 40;
+        const MISSILE_WIDTH = 8;
+        const MISSILE_HEIGHT = 20;
+        
+        // Update game dimensions based on actual container size
+        function updateGameDimensions() {
+            const container = document.getElementById('gameContainer');
+            GAME_WIDTH = container.offsetWidth;
+            GAME_HEIGHT = container.offsetHeight;
+        }
+        
+        // Achievement definitions
+        const ACHIEVEMENTS = [
+            { coins: 5, title: "Coin Collector", emoji: "🪙", message: "You collected 5 coins!" },
+            { coins: 10, title: "Coin Master", emoji: "💰", message: "You collected 10 coins!" },
+            { coins: 20, title: "Coin Champion", emoji: "🏆", message: "You collected 20 coins!" },
+            { coins: 30, title: "Coin Legend", emoji: "👑", message: "You collected 30 coins!" },
+            { coins: 50, title: "Coin God", emoji: "⭐", message: "You collected 50 coins!" }
+        ];
+        
+        // Save game data to localStorage
+        function saveGame() {
+            const gameData = {
+                score: score,
+                timeLeft: timeLeft,
+                playerX: playerX,
+                selectedCharacter: selectedCharacter,
+                achievements: achievements,
+                timestamp: Date.now()
+            };
+            
+            localStorage.setItem('kaydenAdelynnCoinCatcher', JSON.stringify(gameData));
+            
+            // Show save confirmation
+            const saveBtn = document.getElementById('saveBtn');
+            const originalText = saveBtn.textContent;
+            saveBtn.textContent = '✅ Saved!';
+            saveBtn.style.background = '#4CAF50';
+            
+            setTimeout(() => {
+                saveBtn.textContent = originalText;
+                saveBtn.style.background = '#4ECDC4';
+            }, 2000);
+        }
+        
+        // Load saved game data
+        function loadSavedGame() {
+            const saved = localStorage.getItem('kaydenAdelynnCoinCatcher');
+            if (saved) {
+                try {
+                    savedGame = JSON.parse(saved);
+                    return true;
+                } catch (e) {
+                    console.error('Error loading saved game:', e);
+                }
+            }
+            return false;
+        }
+        
+        // Check if there's a saved game
+        function hasSavedGame() {
+            return loadSavedGame();
+        }
+        
+        // Initialize game
+        function initGame() {
+            score = 0;
+            timeLeft = 60;
+            playerX = 370;
+            coins = [];
+            sharks = [];
+            missiles = [];
+            achievements = [];
+            gamePaused = false;
+            
+            // Load saved game if available
+            if (savedGame) {
+                score = savedGame.score;
+                timeLeft = savedGame.timeLeft;
+                playerX = savedGame.playerX;
+                selectedCharacter = savedGame.selectedCharacter;
+                achievements = savedGame.achievements;
+                savedGame = null; // Clear saved game after loading
+            }
+            
+            updateGameDimensions();
+            
+            document.querySelectorAll('.coin').forEach(coin => coin.remove());
+            document.querySelectorAll('.shark').forEach(shark => shark.remove());
+            document.querySelectorAll('.missile').forEach(missile => missile.remove());
+            
+            scoreElement.textContent = `Score: ${score}`;
+            timerElement.textContent = `Time: ${timeLeft}`;
+            
+            updatePlayerCharacter();
+            
+            player.style.left = playerX + 'px';
+            
+            gameOverScreen.style.display = 'none';
+            startScreen.style.display = 'none';
+            document.getElementById('pauseMenu').style.display = 'none';
+            
+            gameRunning = true;
+        }
+        
+        // Update player character appearance
+        function updatePlayerCharacter() {
+            let characterEmoji, backgroundColor, borderColor;
+            
+            switch(selectedCharacter) {
+                case 'boy':
+                    characterEmoji = '👦';
+                    backgroundColor = '#FF6B6B';
+                    borderColor = '#FF4757';
+                    break;
+                case 'girl':
+                    characterEmoji = '👧';
+                    backgroundColor = '#FF69B4';
+                    borderColor = '#FF1493';
+                    break;
+                case 'car':
+                    characterEmoji = '🚗';
+                    backgroundColor = '#FF4500';
+                    borderColor = '#FF6347';
+                    break;
+                case 'spaceship':
+                    characterEmoji = '🚀';
+                    backgroundColor = '#4169E1';
+                    borderColor = '#1E90FF';
+                    break;
+                case 'army':
+                    characterEmoji = '🪖';
+                    backgroundColor = '#228B22';
+                    borderColor = '#32CD32';
+                    break;
+                case 'barbie':
+                    characterEmoji = '👸';
+                    backgroundColor = '#FFB6C1';
+                    borderColor = '#FF69B4';
+                    break;
+                default:
+                    characterEmoji = '👦';
+                    backgroundColor = '#FF6B6B';
+                    borderColor = '#FF4757';
+            }
+            
+            player.style.setProperty('--character-emoji', `"${characterEmoji}"`);
+            player.style.backgroundColor = backgroundColor;
+            player.style.borderColor = borderColor;
+            player.setAttribute('data-character', selectedCharacter);
+        }
+        
+        // Start game
+        function startGame() {
+            initGame();
+            
+            gameInterval = setInterval(gameLoop, 16);
+            coinInterval = setInterval(spawnCoin, 1000);
+            sharkInterval = setInterval(spawnShark, 3000);
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+        
+        // Game loop
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            updateCoins();
+            updateSharks();
+            updateMissiles();
+            checkCollisions();
+        }
+        
+        // Spawn a new coin
+        function spawnCoin() {
+            if (!gameRunning) return;
+            
+            const coin = document.createElement('div');
+            coin.className = 'coin';
+            coin.style.left = Math.random() * (GAME_WIDTH - COIN_WIDTH) + 'px';
+            coin.style.top = '-40px';
+            gameContainer.appendChild(coin);
+            
+            coins.push({
+                element: coin,
+                x: parseInt(coin.style.left),
+                y: -40
+            });
+        }
+        
+        // Spawn a new shark
+        function spawnShark() {
+            if (!gameRunning) return;
+            
+            const shark = document.createElement('div');
+            shark.className = 'shark';
+            shark.style.left = Math.random() * (GAME_WIDTH - SHARK_WIDTH) + 'px';
+            shark.style.top = '-40px';
+            gameContainer.appendChild(shark);
+            
+            sharks.push({
+                element: shark,
+                x: parseInt(shark.style.left),
+                y: -40
+            });
+        }
+        
+        // Shoot missile
+        function shootMissile() {
+            if (!gameRunning) return;
+            
+            const missile = document.createElement('div');
+            missile.className = 'missile';
+            missile.style.left = (playerX + PLAYER_WIDTH/2 - MISSILE_WIDTH/2) + 'px';
+            missile.style.top = (GAME_HEIGHT - 80) + 'px';
+            gameContainer.appendChild(missile);
+            
+            missiles.push({
+                element: missile,
+                x: playerX + PLAYER_WIDTH/2 - MISSILE_WIDTH/2,
+                y: GAME_HEIGHT - 80
+            });
+        }
+        
+        // Update missile positions
+        function updateMissiles() {
+            for (let i = missiles.length - 1; i >= 0; i--) {
+                const missile = missiles[i];
+                missile.y -= MISSILE_SPEED;
+                missile.element.style.top = missile.y + 'px';
+                
+                if (missile.y < -MISSILE_HEIGHT) {
+                    missile.element.remove();
+                    missiles.splice(i, 1);
+                }
+            }
+        }
+        
+        // Update coin positions
+        function updateCoins() {
+            for (let i = coins.length - 1; i >= 0; i--) {
+                const coin = coins[i];
+                coin.y += COIN_SPEED;
+                coin.element.style.top = coin.y + 'px';
+                
+                if (coin.y > GAME_HEIGHT) {
+                    coin.element.remove();
+                    coins.splice(i, 1);
+                }
+            }
+        }
+        
+        // Update shark positions
+        function updateSharks() {
+            for (let i = sharks.length - 1; i >= 0; i--) {
+                const shark = sharks[i];
+                shark.y += SHARK_SPEED;
+                shark.element.style.top = shark.y + 'px';
+                
+                if (shark.y > GAME_HEIGHT) {
+                    shark.element.remove();
+                    sharks.splice(i, 1);
+                }
+            }
+        }
+        
+        // Check for collisions
+        function checkCollisions() {
+            const playerRect = {
+                left: playerX,
+                right: playerX + PLAYER_WIDTH,
+                top: GAME_HEIGHT - 80,
+                bottom: GAME_HEIGHT - 20
+            };
+            
+            // Check coin collisions with player
+            for (let i = coins.length - 1; i >= 0; i--) {
+                const coin = coins[i];
+                const coinRect = {
+                    left: coin.x,
+                    right: coin.x + COIN_WIDTH,
+                    top: coin.y,
+                    bottom: coin.y + COIN_WIDTH
+                };
+                
+                if (playerRect.left < coinRect.right &&
+                    playerRect.right > coinRect.left &&
+                    playerRect.top < coinRect.bottom &&
+                    playerRect.bottom > coinRect.top) {
+                    
+                    coin.element.remove();
+                    coins.splice(i, 1);
+                    score += 10;
+                    scoreElement.textContent = `Score: ${score}`;
+                    
+                    addSparkle(coin.x, coin.y);
+                    checkAchievements();
+                }
+            }
+            
+            // Check missile collisions with coins
+            for (let i = missiles.length - 1; i >= 0; i--) {
+                const missile = missiles[i];
+                const missileRect = {
+                    left: missile.x,
+                    right: missile.x + MISSILE_WIDTH,
+                    top: missile.y,
+                    bottom: missile.y + MISSILE_HEIGHT
+                };
+                
+                // Check missile vs coins
+                for (let j = coins.length - 1; j >= 0; j--) {
+                    const coin = coins[j];
+                    const coinRect = {
+                        left: coin.x,
+                        right: coin.x + COIN_WIDTH,
+                        top: coin.y,
+                        bottom: coin.y + COIN_WIDTH
+                    };
+                    
+                    if (missileRect.left < coinRect.right &&
+                        missileRect.right > coinRect.left &&
+                        missileRect.top < coinRect.bottom &&
+                        missileRect.bottom > coinRect.top) {
+                        
+                        // Missile hit coin!
+                        coin.element.remove();
+                        coins.splice(j, 1);
+                        missile.element.remove();
+                        missiles.splice(i, 1);
+                        score += 15; // Bonus points for shooting
+                        scoreElement.textContent = `Score: ${score}`;
+                        
+                        addExplosion(coin.x, coin.y);
+                        checkAchievements();
+                        break;
+                    }
+                }
+                
+                // Check missile vs sharks
+                for (let k = sharks.length - 1; k >= 0; k--) {
+                    const shark = sharks[k];
+                    const sharkRect = {
+                        left: shark.x,
+                        right: shark.x + SHARK_WIDTH,
+                        top: shark.y,
+                        bottom: shark.y + SHARK_WIDTH
+                    };
+                    
+                    if (missileRect.left < sharkRect.right &&
+                        missileRect.right > sharkRect.left &&
+                        missileRect.top < sharkRect.bottom &&
+                        missileRect.bottom > sharkRect.top) {
+                        
+                        // Missile hit shark!
+                        shark.element.remove();
+                        sharks.splice(k, 1);
+                        missile.element.remove();
+                        missiles.splice(i, 1);
+                        score += 20; // Bonus points for shooting shark
+                        scoreElement.textContent = `Score: ${score}`;
+                        
+                        addExplosion(shark.x, shark.y);
+                        break;
+                    }
+                }
+            }
+            
+            // Check shark collisions with player
+            for (let i = sharks.length - 1; i >= 0; i--) {
+                const shark = sharks[i];
+                const sharkRect = {
+                    left: shark.x,
+                    right: shark.x + SHARK_WIDTH,
+                    top: shark.y,
+                    bottom: shark.y + SHARK_WIDTH
+                };
+                
+                if (playerRect.left < sharkRect.right &&
+                    playerRect.right > sharkRect.left &&
+                    playerRect.top < sharkRect.bottom &&
+                    playerRect.bottom > sharkRect.top) {
+                    
+                    // Shark collision - game over!
+                    shark.element.remove();
+                    sharks.splice(i, 1);
+                    
+                    addSharkBite(shark.x, shark.y);
+                    endGame();
+                    return;
+                }
+            }
+        }
+        
+        // Add sparkle effect when coin is collected
+        function addSparkle(x, y) {
+            const sparkle = document.createElement('div');
+            sparkle.style.position = 'absolute';
+            sparkle.style.left = x + 'px';
+            sparkle.style.top = y + 'px';
+            sparkle.style.fontSize = '30px';
+            sparkle.style.color = '#FFD700';
+            sparkle.style.zIndex = '8';
+            sparkle.textContent = '✨';
+            sparkle.style.animation = 'sparkle 0.5s ease-out forwards';
+            gameContainer.appendChild(sparkle);
+            
+            setTimeout(() => sparkle.remove(), 500);
+        }
+        
+        // Add shark bite effect when player hits shark
+        function addSharkBite(x, y) {
+            const bite = document.createElement('div');
+            bite.style.position = 'absolute';
+            bite.style.left = x + 'px';
+            bite.style.top = y + 'px';
+            bite.style.fontSize = '40px';
+            bite.style.color = '#FF0000';
+            bite.style.zIndex = '8';
+            bite.textContent = '🦈';
+            bite.style.animation = 'sharkBite 1s ease-out forwards';
+            gameContainer.appendChild(bite);
+            
+            setTimeout(() => bite.remove(), 1000);
+        }
+        
+        // Add explosion effect when missile hits target
+        function addExplosion(x, y) {
+            const explosion = document.createElement('div');
+            explosion.style.position = 'absolute';
+            explosion.style.left = x + 'px';
+            explosion.style.top = y + 'px';
+            explosion.style.fontSize = '30px';
+            explosion.style.color = '#FF4500';
+            explosion.style.zIndex = '8';
+            explosion.textContent = '💥';
+            explosion.style.animation = 'explosion 0.5s ease-out forwards';
+            gameContainer.appendChild(explosion);
+            
+            setTimeout(() => explosion.remove(), 500);
+        }
+        
+        // Check for achievements
+        function checkAchievements() {
+            const coinsCollected = Math.floor(score / 10);
+            
+            ACHIEVEMENTS.forEach(achievement => {
+                if (coinsCollected >= achievement.coins && !achievements.includes(achievement.title)) {
+                    achievements.push(achievement.title);
+                    showAchievement(achievement);
+                }
+            });
+        }
+        
+        // Show achievement notification
+        function showAchievement(achievement) {
+            const achievementElement = document.getElementById('achievement');
+            const achievementEmoji = achievementElement.querySelector('.achievementEmoji');
+            const achievementText = document.getElementById('achievementText');
+            
+            achievementEmoji.textContent = achievement.emoji;
+            achievementText.textContent = achievement.message;
+            
+            achievementElement.style.display = 'block';
+            
+            setTimeout(() => {
+                achievementElement.style.display = 'none';
+            }, 2000);
+        }
+        
+        // Update timer
+        function updateTimer() {
+            if (!gameRunning) return;
+            
+            timeLeft--;
+            timerElement.textContent = `Time: ${timeLeft}`;
+            
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+        
+        // End game
+        function endGame() {
+            gameRunning = false;
+            clearInterval(gameInterval);
+            clearInterval(coinInterval);
+            clearInterval(sharkInterval);
+            clearInterval(timerInterval);
+            
+            finalScoreElement.textContent = score;
+            gameOverScreen.style.display = 'block';
+        }
+        
+        // Resume game
+        function resumeGame() {
+            gamePaused = false;
+            document.getElementById('pauseMenu').style.display = 'none';
+            
+            gameInterval = setInterval(gameLoop, 16);
+            coinInterval = setInterval(spawnCoin, 1000);
+            sharkInterval = setInterval(spawnShark, 3000);
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+        
+        // Pause game
+        function pauseGame() {
+            if (!gameRunning) return;
+            
+            gamePaused = true;
+            gameRunning = false;
+            clearInterval(gameInterval);
+            clearInterval(coinInterval);
+            clearInterval(sharkInterval);
+            clearInterval(timerInterval);
+            
+            // Update pause menu info
+            document.getElementById('pauseScore').textContent = score;
+            document.getElementById('pauseTime').textContent = timeLeft;
+            
+            document.getElementById('pauseMenu').style.display = 'block';
+        }
+        
+        // Quit game
+        function quitGame() {
+            gameRunning = false;
+            gamePaused = false;
+            clearInterval(gameInterval);
+            clearInterval(coinInterval);
+            clearInterval(sharkInterval);
+            clearInterval(timerInterval);
+            
+            // Clear saved game
+            localStorage.removeItem('kaydenAdelynnCoinCatcher');
+            
+            gameOverScreen.style.display = 'none';
+            startScreen.style.display = 'block';
+            document.getElementById('pauseMenu').style.display = 'none';
+            
+            // Reset game state
+            score = 0;
+            timeLeft = 60;
+            playerX = 370;
+            coins = [];
+            sharks = [];
+            missiles = [];
+            achievements = [];
+            
+            scoreElement.textContent = `Score: ${score}`;
+            timerElement.textContent = `Time: ${timeLeft}`;
+            player.style.left = playerX + 'px';
+            
+            // Clear coins, sharks, and missiles
+            document.querySelectorAll('.coin').forEach(coin => coin.remove());
+            document.querySelectorAll('.shark').forEach(shark => shark.remove());
+            document.querySelectorAll('.missile').forEach(missile => missile.remove());
+        }
+        
+        // Handle keyboard input
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning) return;
+            
+            switch(e.key) {
+                case 'ArrowLeft':
+                    playerX = Math.max(0, playerX - PLAYER_SPEED);
+                    player.style.left = playerX + 'px';
+                    break;
+                case 'ArrowRight':
+                    playerX = Math.min(GAME_WIDTH - PLAYER_WIDTH, playerX + PLAYER_SPEED);
+                    player.style.left = playerX + 'px';
+                    break;
+                case 'Space':
+                    shootMissile();
+                    break;
+            }
+        });
+        
+        // Touch/mouse controls for mobile
+        let isDragging = false;
+        
+        gameContainer.addEventListener('mousedown', (e) => {
+            if (!gameRunning) return;
+            isDragging = true;
+            handleTouch(e);
+        });
+        
+        gameContainer.addEventListener('mousemove', (e) => {
+            if (!gameRunning || !isDragging) return;
+            handleTouch(e);
+        });
+        
+        gameContainer.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+        
+        gameContainer.addEventListener('touchstart', (e) => {
+            if (!gameRunning) return;
+            e.preventDefault();
+            handleTouch(e.touches[0]);
+        });
+        
+        gameContainer.addEventListener('touchmove', (e) => {
+            if (!gameRunning) return;
+            e.preventDefault();
+            handleTouch(e.touches[0]);
+        });
+        
+        function handleTouch(e) {
+            const rect = gameContainer.getBoundingClientRect();
+            const touchX = e.clientX - rect.left;
+            playerX = Math.max(0, Math.min(GAME_WIDTH - PLAYER_WIDTH, touchX - PLAYER_WIDTH/2));
+            player.style.left = playerX + 'px';
+        }
+        
+        // Character selection
+        document.querySelectorAll('.characterOption').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.characterOption').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                
+                option.classList.add('selected');
+                selectedCharacter = option.getAttribute('data-character');
+                document.getElementById('startBtn').disabled = false;
+            });
+        });
+        
+        // Initialize with spaceship character selected
+        document.querySelector('.characterOption[data-character="spaceship"]').classList.add('selected');
+        document.getElementById('startBtn').disabled = false;
+        
+        // Button event listeners
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('restartBtn').addEventListener('click', startGame);
+        
+        // Pause button event listener
+        document.getElementById('pauseBtn').addEventListener('click', pauseGame);
+        
+        // Pause menu event listeners
+        document.getElementById('saveBtn').addEventListener('click', saveGame);
+        document.getElementById('resumeBtn').addEventListener('click', resumeGame);
+        document.getElementById('quitBtn').addEventListener('click', quitGame);
+        
+        // Load saved game button
+        document.getElementById('loadSavedGame').addEventListener('click', () => {
+            if (hasSavedGame()) {
+                loadSavedGame();
+                startGame();
+            }
+        });
+        
+        // Check for saved game on page load
+        function checkForSavedGame() {
+            if (hasSavedGame()) {
+                document.getElementById('loadSavedGame').style.display = 'inline-block';
+                document.getElementById('savedGameInfo').style.display = 'block';
+                document.getElementById('savedScore').textContent = savedGame.score;
+                document.getElementById('savedTime').textContent = savedGame.timeLeft;
+            }
+        }
+        
+        // Initialize saved game check
+        checkForSavedGame();
+        
+        // Prevent context menu on right click
+        gameContainer.addEventListener('contextmenu', (e) => e.preventDefault());
+        
+        // Add sparkle animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes sparkle {
+                0% { transform: scale(0) rotate(0deg); opacity: 1; }
+                50% { transform: scale(1.5) rotate(180deg); opacity: 0.8; }
+                100% { transform: scale(2) rotate(360deg); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html> 
