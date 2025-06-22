@@ -1,6 +1,6 @@
-# 🚀 Kaden & Adelynn Coin Catcher - Fortnite Edition 🚀
+# 🚀 Kaden & Adelynn Adventures 🚀
 
-A fun, action-packed coin catching game designed specifically for kids aged 6-8, featuring Fortnite-style characters, 3D effects, and realistic animations!
+A fun, action-packed adventure game designed specifically for kids aged 6-8, featuring Fortnite-style characters, 3D effects, and realistic animations!
 
 ## 🎮 Game Features
 
@@ -82,7 +82,7 @@ Choose from 6 unique Fortnite-style characters:
 ### Option 1: Play Online
 1. Open `coin_catcher.html` in any modern web browser
 2. Click "Start Game" to begin
-3. Enjoy the Fortnite-style action!
+3. Enjoy the adventure!
 
 ### Option 2: Local Development
 1. Clone or download this repository
@@ -132,8 +132,8 @@ This project is open source and available under the MIT License.
 
 ## 🎉 Credits
 
-Created with ❤️ for Kaden & Adelynn - the best gamers ever!
+Created with ❤️ for Kaden & Adelynn - the best adventurers ever!
 
 ---
 
-**🎮 Ready to play? Open `coin_catcher.html` and start your Fortnite-style adventure! 🚀** 
+**🎮 Ready to play? Open `coin_catcher.html` and start your adventure! 🚀** 
