@@ -3,7 +3,7 @@
         let gameContainer = document.getElementById('gameContainer');
         let scoreElement = document.getElementById('score');
         let timerElement = document.getElementById('timer');
-        let gameOverScreen = document.getElementById('gameOver');
+        let gameOverScreen = document.getElementById('gameOverScreen');
         let startScreen = document.getElementById('startScreen');
         let finalScoreElement = document.getElementById('finalScore');
         
@@ -157,14 +157,16 @@
             
             // Show save confirmation
             const saveBtn = document.getElementById('saveBtn');
-            const originalText = saveBtn.textContent;
-            saveBtn.textContent = '✅ Saved!';
-            saveBtn.style.background = '#4CAF50';
-            
-            setTimeout(() => {
-                saveBtn.textContent = originalText;
-                saveBtn.style.background = '#4ECDC4';
-            }, 2000);
+            if (saveBtn) {
+                const originalText = saveBtn.textContent;
+                saveBtn.textContent = '✅ Saved!';
+                saveBtn.style.background = '#4CAF50';
+                
+                setTimeout(() => {
+                    saveBtn.textContent = originalText;
+                    saveBtn.style.background = '#4ECDC4';
+                }, 2000);
+            }
         }
         
         // Load saved game data
@@ -608,17 +610,21 @@
         // Show achievement notification
         function showAchievement(achievement) {
             const achievementElement = document.getElementById('achievement');
-            const achievementEmoji = achievementElement.querySelector('.achievementEmoji');
-            const achievementText = document.getElementById('achievementText');
-            
-            achievementEmoji.textContent = achievement.emoji;
-            achievementText.textContent = achievement.message;
-            
-            achievementElement.style.display = 'block';
-            
-            setTimeout(() => {
-                achievementElement.style.display = 'none';
-            }, 2000);
+            if (achievementElement) {
+                const achievementEmoji = achievementElement.querySelector('.achievementEmoji');
+                const achievementText = document.getElementById('achievementText');
+                
+                if (achievementEmoji && achievementText) {
+                    achievementEmoji.textContent = achievement.emoji;
+                    achievementText.textContent = achievement.message;
+                    
+                    achievementElement.style.display = 'block';
+                    
+                    setTimeout(() => {
+                        achievementElement.style.display = 'none';
+                    }, 2000);
+                }
+            }
         }
         
         // Update timer
@@ -671,8 +677,10 @@
             clearInterval(timerInterval);
             
             // Update pause menu info
-            document.getElementById('pauseScore').textContent = score;
-            document.getElementById('pauseTime').textContent = timeLeft;
+            const pauseScore = document.getElementById('pauseScore');
+            const pauseTime = document.getElementById('pauseTime');
+            if (pauseScore) pauseScore.textContent = score;
+            if (pauseTime) pauseTime.textContent = timeLeft;
             
             document.getElementById('pauseMenu').style.display = 'block';
         }
@@ -712,6 +720,17 @@
             document.querySelectorAll('.missile').forEach(missile => missile.remove());
         }
         
+        // Restart game
+        function restartGame() {
+            startGame();
+        }
+        
+        // Show start screen
+        function showStartScreen() {
+            gameOverScreen.style.display = 'none';
+            startScreen.style.display = 'block';
+        }
+        
         // Handle keyboard input
         document.addEventListener('keydown', (e) => {
             if (!gameRunning) return;
@@ -725,8 +744,13 @@
                     playerX = Math.min(GAME_WIDTH - PLAYER_WIDTH, playerX + PLAYER_SPEED);
                     player.style.left = playerX + 'px';
                     break;
-                case 'Space':
+                case ' ':
+                    e.preventDefault();
                     fireMissile();
+                    break;
+                case 'p':
+                case 'P':
+                    togglePause();
                     break;
             }
         });
@@ -734,32 +758,34 @@
         // Touch/mouse controls for mobile
         let isDragging = false;
         
-        gameContainer.addEventListener('mousedown', (e) => {
-            if (!gameRunning) return;
-            isDragging = true;
-            handleTouch(e);
-        });
-        
-        gameContainer.addEventListener('mousemove', (e) => {
-            if (!gameRunning || !isDragging) return;
-            handleTouch(e);
-        });
-        
-        gameContainer.addEventListener('mouseup', () => {
-            isDragging = false;
-        });
-        
-        gameContainer.addEventListener('touchstart', (e) => {
-            if (!gameRunning) return;
-            e.preventDefault();
-            handleTouch(e.touches[0]);
-        });
-        
-        gameContainer.addEventListener('touchmove', (e) => {
-            if (!gameRunning) return;
-            e.preventDefault();
-            handleTouch(e.touches[0]);
-        });
+        if (gameContainer) {
+            gameContainer.addEventListener('mousedown', (e) => {
+                if (!gameRunning) return;
+                isDragging = true;
+                handleTouch(e);
+            });
+            
+            gameContainer.addEventListener('mousemove', (e) => {
+                if (!gameRunning || !isDragging) return;
+                handleTouch(e);
+            });
+            
+            gameContainer.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+            
+            gameContainer.addEventListener('touchstart', (e) => {
+                if (!gameRunning) return;
+                e.preventDefault();
+                handleTouch(e.touches[0]);
+            });
+            
+            gameContainer.addEventListener('touchmove', (e) => {
+                if (!gameRunning) return;
+                e.preventDefault();
+                handleTouch(e.touches[0]);
+            });
+        }
         
         function handleTouch(e) {
             const rect = gameContainer.getBoundingClientRect();
@@ -769,67 +795,44 @@
         }
         
         // Character selection
-        document.querySelectorAll('.character').forEach(char => {
-            char.addEventListener('click', function() {
-                document.querySelectorAll('.character').forEach(c => c.classList.remove('selected'));
-                this.classList.add('selected');
-                selectedCharacter = this.getAttribute('data-char');
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.character-option').forEach(char => {
+                char.addEventListener('click', function() {
+                    document.querySelectorAll('.character-option').forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedCharacter = this.getAttribute('data-character');
+                    updatePlayerCharacter();
+                });
             });
+
+            // Pause button event listener
+            const pauseBtn = document.getElementById('pauseBtn');
+            if (pauseBtn) {
+                pauseBtn.addEventListener('click', togglePause);
+            }
+
+            // Sound toggle event listener
+            const soundToggle = document.getElementById('soundToggle');
+            if (soundToggle) {
+                soundToggle.addEventListener('click', toggleSound);
+            }
+
+            // Prevent context menu on right click
+            if (gameContainer) {
+                gameContainer.addEventListener('contextmenu', (e) => e.preventDefault());
+            }
+
+            // Add sparkle animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes sparkle {
+                    0% { transform: scale(0) rotate(0deg); opacity: 1; }
+                    50% { transform: scale(1.5) rotate(180deg); opacity: 0.8; }
+                    100% { transform: scale(2) rotate(360deg); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
         });
-        
-        // Initialize with spaceship character selected
-        document.querySelector('.character[data-char="spaceship"]').classList.add('selected');
-        document.getElementById('startBtn').disabled = false;
-        
-        // Button event listeners
-        document.getElementById('startBtn').addEventListener('click', startGame);
-        document.getElementById('restartBtn').addEventListener('click', startGame);
-        
-        // Pause button event listener
-        document.getElementById('pauseBtn').addEventListener('click', togglePause);
-        
-        // Sound toggle event listener
-        document.getElementById('soundToggle').addEventListener('click', toggleSound);
-        
-        // Pause menu event listeners
-        document.getElementById('resumeBtn').addEventListener('click', togglePause);
-        document.getElementById('saveBtn').addEventListener('click', saveGame);
-        document.getElementById('quitBtn').addEventListener('click', quitGame);
-        
-        // Load saved game button
-        document.getElementById('loadSavedGame').addEventListener('click', () => {
-            if (hasSavedGame()) {
-                loadSavedGame();
-                startGame();
-            }
-        });
-        
-        // Check for saved game on page load
-        function checkForSavedGame() {
-            if (hasSavedGame()) {
-                document.getElementById('loadSavedGame').style.display = 'inline-block';
-                document.getElementById('savedGameInfo').style.display = 'block';
-                document.getElementById('savedScore').textContent = savedGame.score;
-                document.getElementById('savedTime').textContent = savedGame.timeLeft;
-            }
-        }
-        
-        // Initialize saved game check
-        checkForSavedGame();
-        
-        // Prevent context menu on right click
-        gameContainer.addEventListener('contextmenu', (e) => e.preventDefault());
-        
-        // Add sparkle animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes sparkle {
-                0% { transform: scale(0) rotate(0deg); opacity: 1; }
-                50% { transform: scale(1.5) rotate(180deg); opacity: 0.8; }
-                100% { transform: scale(2) rotate(360deg); opacity: 0; }
-            }
-        `;
-        document.head.appendChild(style);
 
         // Spawn a power-up
         function spawnPowerup() {
@@ -901,18 +904,22 @@
         // Update power-up indicator
         function updatePowerupIndicator() {
             const indicator = document.getElementById('powerupIndicator');
-            const list = document.getElementById('powerupList');
-            
-            const activeList = Object.keys(activePowerUps).filter(key => activePowerUps[key]);
-            
-            if (activeList.length > 0) {
-                indicator.classList.add('active');
-                list.innerHTML = activeList.map(type => {
-                    const powerup = POWERUP_TYPES.find(p => p.type === type);
-                    return `<div class="powerupItem">${powerup.emoji} ${powerup.name}</div>`;
-                }).join('');
-            } else {
-                indicator.classList.remove('active');
+            if (indicator) {
+                const list = document.getElementById('powerupList');
+                
+                const activeList = Object.keys(activePowerUps).filter(key => activePowerUps[key]);
+                
+                if (activeList.length > 0) {
+                    indicator.classList.add('active');
+                    if (list) {
+                        list.innerHTML = activeList.map(type => {
+                            const powerup = POWERUP_TYPES.find(p => p.type === type);
+                            return `<div class="powerupItem">${powerup.emoji} ${powerup.name}</div>`;
+                        }).join('');
+                    }
+                } else {
+                    indicator.classList.remove('active');
+                }
             }
         }
 
@@ -920,7 +927,9 @@
         function toggleSound() {
             soundEnabled = !soundEnabled;
             const soundToggle = document.getElementById('soundToggle');
-            soundToggle.textContent = soundEnabled ? '🔊 Sound' : '🔇 Sound';
+            if (soundToggle) {
+                soundToggle.textContent = soundEnabled ? '🔊 Sound' : '🔇 Sound';
+            }
         }
         
         // Game over
@@ -938,8 +947,12 @@
             
             playSound('sharkBite');
             
-            document.getElementById('finalScore').textContent = score;
-            gameOverScreen.style.display = 'flex';
+            if (finalScoreElement) {
+                finalScoreElement.textContent = score;
+            }
+            if (gameOverScreen) {
+                gameOverScreen.style.display = 'flex';
+            }
         }
 
         // Pause/Resume game
@@ -951,10 +964,10 @@
             const pauseMenu = document.getElementById('pauseMenu');
             
             if (gamePaused) {
-                pauseBtn.textContent = '▶️ Resume';
-                pauseMenu.style.display = 'flex';
+                if (pauseBtn) pauseBtn.textContent = '▶️ Resume';
+                if (pauseMenu) pauseMenu.style.display = 'flex';
             } else {
-                pauseBtn.textContent = '⏸️ Pause';
-                pauseMenu.style.display = 'none';
+                if (pauseBtn) pauseBtn.textContent = '⏸️ Pause';
+                if (pauseMenu) pauseMenu.style.display = 'none';
             }
         }

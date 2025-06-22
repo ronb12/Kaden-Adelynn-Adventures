@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kaden & Adelynn Adventures - Fun Game for Kids!</title>
     <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/effects.css">
+    <link rel="stylesheet" href="styles/characters.css">
 </head>
 <body>
     <div id="gameContainer">
@@ -18,10 +20,17 @@
             <div id="score">Score: 0</div>
             <div id="timer">Time: 60</div>
             <button id="pauseBtn">⏸️ Pause</button>
+            <div id="soundToggle">🔊 Sound</div>
             <div id="combo" style="display: none;">Combo: 0x</div>
             <div id="level">Level: 1</div>
             <div id="experience">XP: 0</div>
             <div id="bossHealth" style="display: none;">Boss: None</div>
+            
+            <!-- Power-up Indicator -->
+            <div id="powerupIndicator" class="powerupIndicator">
+                <h4>Active Power-ups:</h4>
+                <div id="powerupList"></div>
+            </div>
             
             <!-- Instructions -->
             <div class="instructions">
@@ -57,6 +66,13 @@
             🎯 Auto-Aim: Missiles track sharks</p>
             
             <button class="btn" onclick="startGame()">🚀 Start Game!</button>
+            
+            <!-- Saved Game Info -->
+            <div id="savedGameInfo" style="display: none;">
+                <h3>💾 Saved Game Found!</h3>
+                <p>Score: <span id="savedScore">0</span> | Time: <span id="savedTime">60</span>s</p>
+                <button class="btn" id="loadSavedGame">📂 Load Saved Game</button>
+            </div>
         </div>
         
         <!-- Game Over Screen -->
@@ -77,6 +93,13 @@
             <button class="btn" onclick="saveGame()">💾 Save Game</button>
             <button class="btn" onclick="resumeGame()">▶️ Resume</button>
             <button class="btn" onclick="quitGame()">❌ Quit Game</button>
+        </div>
+        
+        <!-- Achievement Popup -->
+        <div id="achievement">
+            <div class="achievementEmoji">🏆</div>
+            <h3>Achievement Unlocked!</h3>
+            <p id="achievementText">Great job!</p>
         </div>
     </div>
 
