@@ -1148,6 +1148,606 @@
                 0 0 30px rgba(155, 89, 182, 0.8),
                 inset 0 2px 4px rgba(255,255,255,0.3);
         }
+
+        // Spawn a boss
+        function spawnBoss() {
+            if (!gameRunning || bossActive) return;
+            
+            const bossType = BOSS_TYPES[Math.floor(Math.random() * BOSS_TYPES.length)];
+            const boss = document.createElement('div');
+            boss.className = 'boss';
+            boss.style.left = Math.random() * (GAME_WIDTH - BOSS_WIDTH) + 'px';
+            boss.style.top = '-80px';
+            boss.style.background = `linear-gradient(135deg, ${bossType.color} 0%, ${bossType.color}dd 100%)`;
+            boss.style.borderColor = bossType.color;
+            gameContainer.appendChild(boss);
+            
+            // Add boss emoji
+            const bossEmoji = document.createElement('div');
+            bossEmoji.className = 'boss-emoji';
+            bossEmoji.textContent = bossType.emoji;
+            boss.appendChild(bossEmoji);
+            
+            // Add boss health bar
+            const healthBar = document.createElement('div');
+            healthBar.className = 'boss-health-bar';
+            const healthFill = document.createElement('div');
+            healthFill.className = 'boss-health-fill';
+            healthBar.appendChild(healthFill);
+            boss.appendChild(healthBar);
+            
+            bosses.push({
+                element: boss,
+                x: parseInt(boss.style.left),
+                y: -80,
+                type: bossType.type,
+                name: bossType.name,
+                health: bossType.health,
+                maxHealth: bossType.health,
+                speed: bossType.speed,
+                emoji: bossType.emoji,
+                color: bossType.color
+            });
+            
+            bossActive = true;
+            playSound('bossSpawn');
+            showBossAlert(bossType.name);
+        }
+        
+        // Update boss positions and behavior
+        function updateBosses() {
+            for (let i = bosses.length - 1; i >= 0; i--) {
+                const boss = bosses[i];
+                boss.y += BOSS_SPEED * boss.speed;
+                boss.element.style.top = boss.y + 'px';
+                
+                // Boss attacks - shoot projectiles
+                if (Math.random() < 0.02) { // 2% chance per frame
+                    spawnBossProjectile(boss);
+                }
+                
+                if (boss.y > GAME_HEIGHT) {
+                    boss.element.remove();
+                    bosses.splice(i, 1);
+                    bossActive = false;
+                    // Player loses health when boss reaches bottom
+                    gameOver();
+                }
+            }
+        }
+        
+        // Spawn boss projectile
+        function spawnBossProjectile(boss) {
+            const projectile = document.createElement('div');
+            projectile.className = 'boss-projectile';
+            projectile.style.left = (boss.x + BOSS_WIDTH/2) + 'px';
+            projectile.style.top = (boss.y + BOSS_WIDTH) + 'px';
+            gameContainer.appendChild(projectile);
+            
+            // Add projectile to game state
+            if (!bossProjectiles) bossProjectiles = [];
+            bossProjectiles.push({
+                element: projectile,
+                x: boss.x + BOSS_WIDTH/2,
+                y: boss.y + BOSS_WIDTH,
+                speed: 3
+            });
+        }
+        
+        // Show boss alert
+        function showBossAlert(bossName) {
+            const alert = document.createElement('div');
+            alert.className = 'boss-alert';
+            alert.innerHTML = `
+                <h2>🚨 BOSS ALERT! 🚨</h2>
+                <p>${bossName} has appeared!</p>
+                <p>Defeat it before it reaches you!</p>
+            `;
+            gameContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 3000);
+        }
+        
+        // Damage boss
+        function damageBoss(boss, damage = 20) {
+            boss.health -= damage;
+            const healthPercent = (boss.health / boss.maxHealth) * 100;
+            const healthFill = boss.element.querySelector('.boss-health-fill');
+            healthFill.style.width = healthPercent + '%';
+            
+            // Visual feedback
+            boss.element.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                boss.element.style.transform = 'scale(1)';
+            }, 100);
+            
+            if (boss.health <= 0) {
+                // Boss defeated!
+                boss.element.remove();
+                bosses.splice(bosses.indexOf(boss), 1);
+                bossActive = false;
+                
+                // Bonus points and experience
+                const bonusPoints = boss.maxHealth * 2;
+                score += bonusPoints;
+                experience += 50;
+                scoreElement.textContent = `Score: ${score}`;
+                
+                playSound('bossDefeat');
+                showBossDefeatAlert(boss.name, bonusPoints);
+                checkAchievements();
+            }
+        }
+        
+        // Show boss defeat alert
+        function showBossDefeatAlert(bossName, points) {
+            const alert = document.createElement('div');
+            alert.className = 'boss-defeat-alert';
+            alert.innerHTML = `
+                <h2>🎉 BOSS DEFEATED! 🎉</h2>
+                <p>You defeated ${bossName}!</p>
+                <p>+${points} points!</p>
+                <p>+50 XP!</p>
+            `;
+            gameContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 3000);
+        }
+
+        // Combo system
+        function updateCombo() {
+            const currentTime = Date.now();
+            if (currentTime - lastCoinTime > comboTimeout) {
+                // Combo broken
+                if (comboCount > 1) {
+                    showComboBreak();
+                }
+                comboCount = 0;
+                comboMultiplier = 1;
+            }
+            lastCoinTime = currentTime;
+            
+            comboCount++;
+            comboMultiplier = Math.min(comboCount, 10); // Max 10x multiplier
+            
+            // Show combo indicator
+            showComboIndicator();
+            
+            // Check combo achievements
+            checkComboAchievements();
+        }
+        
+        // Show combo indicator
+        function showComboIndicator() {
+            if (comboCount > 1) {
+                const comboIndicator = document.createElement('div');
+                comboIndicator.className = 'combo-indicator';
+                comboIndicator.innerHTML = `
+                    <div class="combo-text">${comboCount}x COMBO!</div>
+                    <div class="combo-multiplier">${comboMultiplier}x Points</div>
+                `;
+                comboIndicator.style.left = (playerX + PLAYER_WIDTH/2) + 'px';
+                comboIndicator.style.top = (GAME_HEIGHT - 100) + 'px';
+                gameContainer.appendChild(comboIndicator);
+                
+                setTimeout(() => {
+                    comboIndicator.remove();
+                }, 1000);
+            }
+        }
+        
+        // Show combo break
+        function showComboBreak() {
+            const comboBreak = document.createElement('div');
+            comboBreak.className = 'combo-break';
+            comboBreak.textContent = 'Combo Broken!';
+            comboBreak.style.left = (playerX + PLAYER_WIDTH/2) + 'px';
+            comboBreak.style.top = (GAME_HEIGHT - 120) + 'px';
+            gameContainer.appendChild(comboBreak);
+            
+            setTimeout(() => {
+                comboBreak.remove();
+            }, 1500);
+        }
+        
+        // Check combo achievements
+        function checkComboAchievements() {
+            ACHIEVEMENTS.forEach(achievement => {
+                if (achievement.combo && comboCount >= achievement.combo && !achievements.includes(achievement.title)) {
+                    achievements.push(achievement.title);
+                    showAchievement(achievement);
+                    playSound('achievement');
+                    experience += achievement.xp;
+                }
+            });
+        }
+        
+        // Enhanced collision detection
+        function checkCollisions() {
+            const playerRect = player.getBoundingClientRect();
+            
+            // Check coin collisions with combo system
+            for (let i = coins.length - 1; i >= 0; i--) {
+                const coin = coins[i];
+                const coinRect = coin.element.getBoundingClientRect();
+                
+                if (playerRect.left < coinRect.right && 
+                    playerRect.right > coinRect.left && 
+                    playerRect.top < coinRect.bottom && 
+                    playerRect.bottom > coinRect.top) {
+                    
+                    coin.element.remove();
+                    coins.splice(i, 1);
+                    
+                    // Combo system
+                    updateCombo();
+                    
+                    // Score with combo multiplier
+                    const basePoints = 10;
+                    const comboPoints = basePoints * comboMultiplier;
+                    score += comboPoints;
+                    scoreElement.textContent = `Score: ${score}`;
+                    
+                    playSound('coin');
+                    checkAchievements();
+                    
+                    // Show points gained
+                    showPointsGained(comboPoints, coin.x, coin.y);
+                }
+            }
+            
+            // Check power-up collisions
+            for (let i = powerUps.length - 1; i >= 0; i--) {
+                const powerup = powerUps[i];
+                const powerupRect = powerup.element.getBoundingClientRect();
+                
+                if (playerRect.left < powerupRect.right && 
+                    playerRect.right > powerupRect.left && 
+                    playerRect.top < powerupRect.bottom && 
+                    playerRect.bottom > powerupRect.top) {
+                    
+                    powerup.element.remove();
+                    powerUps.splice(i, 1);
+                    activatePowerup(powerup);
+                }
+            }
+            
+            // Check boss collisions
+            for (let i = bosses.length - 1; i >= 0; i--) {
+                const boss = bosses[i];
+                const bossRect = boss.element.getBoundingClientRect();
+                
+                if (playerRect.left < bossRect.right && 
+                    playerRect.right > bossRect.left && 
+                    playerRect.top < bossRect.bottom && 
+                    playerRect.bottom > bossRect.top) {
+                    
+                    // Player hits boss - damage boss
+                    damageBoss(boss, 30);
+                    playSound('bossHit');
+                }
+            }
+            
+            // Check missile collisions with bosses
+            for (let i = missiles.length - 1; i >= 0; i--) {
+                const missile = missiles[i];
+                const missileRect = missile.element.getBoundingClientRect();
+                
+                // Check missile vs bosses
+                for (let j = bosses.length - 1; j >= 0; j--) {
+                    const boss = bosses[j];
+                    const bossRect = boss.element.getBoundingClientRect();
+                    
+                    if (missileRect.left < bossRect.right && 
+                        missileRect.right > bossRect.left && 
+                        missileRect.top < bossRect.bottom && 
+                        missileRect.bottom > bossRect.top) {
+                        
+                        missile.element.remove();
+                        missiles.splice(i, 1);
+                        damageBoss(boss, 20);
+                        playSound('missileHit');
+                        break;
+                    }
+                }
+                
+                // Check missile vs sharks
+                for (let k = sharks.length - 1; k >= 0; k--) {
+                    const shark = sharks[k];
+                    const sharkRect = shark.element.getBoundingClientRect();
+                    
+                    if (missileRect.left < sharkRect.right && 
+                        missileRect.right > sharkRect.left && 
+                        missileRect.top < sharkRect.bottom && 
+                        missileRect.bottom > sharkRect.top) {
+                        
+                        missile.element.remove();
+                        missiles.splice(i, 1);
+                        shark.element.remove();
+                        sharks.splice(k, 1);
+                        
+                        playSound('explosion');
+                        addExplosion(shark.x, shark.y);
+                        score += 20;
+                        scoreElement.textContent = `Score: ${score}`;
+                        break;
+                    }
+                }
+            }
+            
+            // Check shark collisions (unless shield is active)
+            if (!activePowerUps.shield && !activePowerUps.megaShield) {
+                for (let i = sharks.length - 1; i >= 0; i--) {
+                    const shark = sharks[i];
+                    const sharkRect = shark.element.getBoundingClientRect();
+                    
+                    if (playerRect.left < sharkRect.right && 
+                        playerRect.right > sharkRect.left && 
+                        playerRect.top < sharkRect.bottom && 
+                        playerRect.bottom > sharkRect.top) {
+                        
+                        playSound('sharkBite');
+                        gameOver();
+                        return;
+                    }
+                }
+            }
+        }
+        
+        // Show points gained
+        function showPointsGained(points, x, y) {
+            const pointsIndicator = document.createElement('div');
+            pointsIndicator.className = 'points-indicator';
+            pointsIndicator.textContent = `+${points}`;
+            pointsIndicator.style.left = x + 'px';
+            pointsIndicator.style.top = y + 'px';
+            gameContainer.appendChild(pointsIndicator);
+            
+            setTimeout(() => {
+                pointsIndicator.remove();
+            }, 1000);
+        }
+
+        /* Boss Battle Styles */
+        .boss {
+            position: absolute;
+            width: min(12vw, 80px);
+            height: min(12vw, 80px);
+            border-radius: 50%;
+            border: 4px solid;
+            box-shadow: 
+                0 8px 16px rgba(0,0,0,0.4),
+                0 0 20px rgba(255, 0, 0, 0.6),
+                inset 0 2px 4px rgba(255,255,255,0.2);
+            z-index: 7;
+            transform-style: preserve-3d;
+            animation: bossFloat 2s ease-in-out infinite;
+        }
+
+        .boss-emoji {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: min(6vw, 40px);
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.8));
+        }
+
+        .boss-health-bar {
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 8px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .boss-health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FF0000, #FF6B6B);
+            width: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .boss-projectile {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #FF0000;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+            z-index: 6;
+            animation: bossProjectileMove 2s linear forwards;
+        }
+
+        @keyframes bossFloat {
+            0%, 100% { transform: translateY(0px) rotateY(0deg); }
+            50% { transform: translateY(-5px) rotateY(10deg); }
+        }
+
+        @keyframes bossProjectileMove {
+            to { transform: translateY(100vh); }
+        }
+
+        /* Boss Alert Styles */
+        .boss-alert {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #FF0000, #8B0000);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            border: 4px solid #FFD700;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
+            z-index: 50;
+            animation: bossAlertPulse 0.5s ease-in-out infinite alternate;
+        }
+
+        .boss-defeat-alert {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #2C3E50;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            border: 4px solid #FF8C00;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+            z-index: 50;
+            animation: victoryPulse 0.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes bossAlertPulse {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            100% { transform: translate(-50%, -50%) scale(1.05); }
+        }
+
+        @keyframes victoryPulse {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            100% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        /* Combo System Styles */
+        .combo-indicator {
+            position: absolute;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #2C3E50;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 18px;
+            text-align: center;
+            border: 3px solid #FF8C00;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            z-index: 30;
+            animation: comboFloat 1s ease-out forwards;
+            pointer-events: none;
+        }
+
+        .combo-text {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .combo-multiplier {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .combo-break {
+            position: absolute;
+            background: linear-gradient(135deg, #FF6B6B, #FF4757);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 14px;
+            border: 2px solid #FF3838;
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.6);
+            z-index: 30;
+            animation: comboBreak 1.5s ease-out forwards;
+            pointer-events: none;
+        }
+
+        .points-indicator {
+            position: absolute;
+            color: #FFD700;
+            font-weight: bold;
+            font-size: 16px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            z-index: 25;
+            animation: pointsFloat 1s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes comboFloat {
+            0% { transform: translateY(0px) scale(0.8); opacity: 0; }
+            50% { transform: translateY(-20px) scale(1.2); opacity: 1; }
+            100% { transform: translateY(-40px) scale(1); opacity: 0; }
+        }
+
+        @keyframes comboBreak {
+            0% { transform: translateY(0px) scale(1); opacity: 1; }
+            50% { transform: translateY(-15px) scale(1.1); opacity: 0.8; }
+            100% { transform: translateY(-30px) scale(0.9); opacity: 0; }
+        }
+
+        @keyframes pointsFloat {
+            0% { transform: translateY(0px) scale(1); opacity: 1; }
+            100% { transform: translateY(-30px) scale(1.2); opacity: 0; }
+        }
+
+        /* Enhanced UI Elements */
+        #combo {
+            position: absolute;
+            top: 80px;
+            left: 20px;
+            font-size: min(3.5vw, 20px);
+            font-weight: bold;
+            color: #FFFFFF;
+            background: rgba(0, 0, 0, 0.7);
+            padding: min(2vw, 8px) min(3vw, 12px);
+            border-radius: 15px;
+            border: 3px solid #FFD700;
+            z-index: 15;
+            display: none;
+        }
+
+        #level {
+            position: absolute;
+            top: 120px;
+            left: 20px;
+            font-size: min(3.5vw, 18px);
+            font-weight: bold;
+            color: #FFFFFF;
+            background: rgba(0, 0, 0, 0.7);
+            padding: min(2vw, 8px) min(3vw, 12px);
+            border-radius: 15px;
+            border: 3px solid #4ECDC4;
+            z-index: 15;
+        }
+
+        #experience {
+            position: absolute;
+            top: 160px;
+            left: 20px;
+            font-size: min(3vw, 16px);
+            font-weight: bold;
+            color: #FFFFFF;
+            background: rgba(0, 0, 0, 0.7);
+            padding: min(2vw, 8px) min(3vw, 12px);
+            border-radius: 15px;
+            border: 3px solid #9B59B6;
+            z-index: 15;
+        }
+
+        #bossHealth {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: min(3.5vw, 20px);
+            font-weight: bold;
+            color: #FFFFFF;
+            background: rgba(0, 0, 0, 0.7);
+            padding: min(2vw, 8px) min(3vw, 12px);
+            border-radius: 15px;
+            border: 3px solid #FF0000;
+            z-index: 15;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -1191,6 +1791,10 @@
         <div id="timer">Time: 60</div>
         <div id="pauseBtn">⏸️ Pause</div>
         <div id="soundToggle">🔊 Sound</div>
+        <div id="combo" style="display: none;">Combo: 0x</div>
+        <div id="level">Level: 1</div>
+        <div id="experience">XP: 0</div>
+        <div id="bossHealth" style="display: none;">Boss: None</div>
         
         <div id="powerupIndicator" class="powerupIndicator">
             <h4>Active Power-ups:</h4>
@@ -1222,37 +1826,41 @@
     </div>
 
     <script>
-        // Game variables
-        let player = document.getElementById('player');
-        let gameContainer = document.getElementById('gameContainer');
-        let scoreElement = document.getElementById('score');
-        let timerElement = document.getElementById('timer');
-        let gameOverScreen = document.getElementById('gameOver');
-        let startScreen = document.getElementById('startScreen');
-        let finalScoreElement = document.getElementById('finalScore');
-        
+        // Game state variables
         let score = 0;
         let timeLeft = 60;
-        let gameRunning = false;
         let playerX = 370;
-        let coins = [];
-        let sharks = [];
-        let missiles = [];
+        let gameRunning = false;
         let gameInterval;
         let coinInterval;
         let sharkInterval;
-        let missileInterval;
         let timerInterval;
+        let bossInterval;
+        let comboCount = 0;
+        let comboMultiplier = 1;
+        let level = 1;
+        let experience = 0;
+        let highScore = localStorage.getItem('highScore') || 0;
         let selectedCharacter = 'spaceship';
         let achievements = [];
         let gamePaused = false;
         let savedGame = null;
+        let bossActive = false;
+        let bossHealth = 100;
+        let bossType = '';
+        let dailyChallenge = null;
+        let characterLevels = {
+            boy: 1, girl: 1, car: 1, spaceship: 1, army: 1, barbie: 1
+        };
+        let unlockedSkins = ['default'];
+        let currentSkin = 'default';
         
         // Audio system
         let audioContext;
         let sounds = {};
         let backgroundMusic;
         let soundEnabled = true;
+        let musicEnabled = true;
         
         // Power-ups system
         let powerUps = [];
@@ -1261,9 +1869,20 @@
             shield: false,
             multiShot: false,
             timeFreeze: false,
-            autoAim: false
+            autoAim: false,
+            doublePoints: false,
+            megaShield: false,
+            timeWarp: false
         };
         let powerUpTimers = {};
+        
+        // Boss system
+        let bosses = [];
+        let bossSpawnTime = 30000; // 30 seconds
+        
+        // Combo system
+        let lastCoinTime = 0;
+        let comboTimeout = 2000; // 2 seconds between coins for combo
         
         // Game constants
         const PLAYER_SPEED = 35;
@@ -1271,6 +1890,7 @@
         const SHARK_SPEED = 4;
         const MISSILE_SPEED = 8;
         const POWERUP_SPEED = 2;
+        const BOSS_SPEED = 2;
         let GAME_WIDTH = 800;
         let GAME_HEIGHT = 600;
         const PLAYER_WIDTH = 60;
@@ -1279,6 +1899,7 @@
         const MISSILE_WIDTH = 8;
         const MISSILE_HEIGHT = 20;
         const POWERUP_WIDTH = 40;
+        const BOSS_WIDTH = 80;
         
         // Update game dimensions based on actual container size
         function updateGameDimensions() {
@@ -1348,22 +1969,37 @@
             }
         }
         
-        // Achievement definitions
+        // Achievement definitions with enhanced rewards
         const ACHIEVEMENTS = [
-            { coins: 5, title: "Coin Collector", emoji: "🪙", message: "You collected 5 coins!" },
-            { coins: 10, title: "Coin Master", emoji: "💰", message: "You collected 10 coins!" },
-            { coins: 20, title: "Coin Champion", emoji: "🏆", message: "You collected 20 coins!" },
-            { coins: 30, title: "Coin Legend", emoji: "👑", message: "You collected 30 coins!" },
-            { coins: 50, title: "Coin God", emoji: "⭐", message: "You collected 50 coins!" }
+            { coins: 5, title: "Coin Collector", emoji: "🪙", message: "You collected 5 coins!", xp: 10, reward: "Speed Boost Unlocked" },
+            { coins: 10, title: "Coin Master", emoji: "💰", message: "You collected 10 coins!", xp: 25, reward: "Shield Power-up" },
+            { coins: 20, title: "Coin Champion", emoji: "🏆", message: "You collected 20 coins!", xp: 50, reward: "Multi-Shot Unlocked" },
+            { coins: 30, title: "Coin Legend", emoji: "👑", message: "You collected 30 coins!", xp: 100, reward: "Time Freeze Power-up" },
+            { coins: 50, title: "Coin God", emoji: "⭐", message: "You collected 50 coins!", xp: 200, reward: "Auto-Aim Unlocked" },
+            { coins: 100, title: "Coin Emperor", emoji: "👑", message: "You collected 100 coins!", xp: 500, reward: "Double Points Power-up" },
+            { coins: 200, title: "Coin Supreme", emoji: "🌟", message: "You collected 200 coins!", xp: 1000, reward: "Mega Shield Unlocked" },
+            { combo: 5, title: "Combo Master", emoji: "🔥", message: "5x Combo achieved!", xp: 75, reward: "Combo Bonus" },
+            { combo: 10, title: "Combo Legend", emoji: "⚡", message: "10x Combo achieved!", xp: 150, reward: "Time Warp Power-up" },
+            { boss: 1, title: "Boss Slayer", emoji: "💀", message: "You defeated a boss!", xp: 300, reward: "Boss Hunter Badge" },
+            { boss: 5, title: "Boss Destroyer", emoji: "👹", message: "You defeated 5 bosses!", xp: 750, reward: "Boss Slayer Title" }
         ];
         
-        // Power-up definitions
-        const POWERUP_TYPES = [
-            { type: 'speed', name: 'Speed Boost', duration: 10000, emoji: '⚡' },
-            { type: 'shield', name: 'Shield', duration: 8000, emoji: '🛡️' },
-            { type: 'multishot', name: 'Multi-Shot', duration: 12000, emoji: '🎯' },
-            { type: 'timefreeze', name: 'Time Freeze', duration: 6000, emoji: '⏰' },
-            { type: 'autoaim', name: 'Auto-Aim', duration: 15000, emoji: '🎯' }
+        // Boss definitions
+        const BOSS_TYPES = [
+            { type: 'alien', name: 'Alien Invader', health: 100, speed: 2, emoji: '👽', color: '#8B4513' },
+            { type: 'robot', name: 'Robot Destroyer', health: 150, speed: 1.5, emoji: '🤖', color: '#696969' },
+            { type: 'dragon', name: 'Space Dragon', health: 200, speed: 1, emoji: '🐉', color: '#FF4500' },
+            { type: 'ghost', name: 'Phantom Ghost', health: 80, speed: 3, emoji: '👻', color: '#9370DB' },
+            { type: 'cyborg', name: 'Cyber Boss', health: 120, speed: 2.5, emoji: '🤖', color: '#00CED1' }
+        ];
+        
+        // Daily challenges
+        const DAILY_CHALLENGES = [
+            { id: 'speed', title: 'Speed Demon', description: 'Collect 20 coins in 30 seconds', reward: 100, type: 'speed' },
+            { id: 'combo', title: 'Combo Master', description: 'Achieve a 10x combo', reward: 150, type: 'combo' },
+            { id: 'boss', title: 'Boss Hunter', description: 'Defeat 3 bosses', reward: 200, type: 'boss' },
+            { id: 'survival', title: 'Survivor', description: 'Survive for 90 seconds', reward: 120, type: 'survival' },
+            { id: 'powerup', title: 'Power Collector', description: 'Collect 8 power-ups', reward: 80, type: 'powerup' }
         ];
         
         // Save game data to localStorage
@@ -1519,7 +2155,19 @@
             coinInterval = setInterval(spawnCoin, 1000);
             sharkInterval = setInterval(spawnShark, 3000);
             setInterval(spawnPowerup, 8000); // Spawn power-ups every 8 seconds
+            setInterval(spawnBoss, 30000); // Spawn boss every 30 seconds
             timerInterval = setInterval(updateTimer, 1000);
+            
+            // Initialize UI elements
+            const comboElement = document.getElementById('combo');
+            const levelElement = document.getElementById('level');
+            const experienceElement = document.getElementById('experience');
+            const bossHealthElement = document.getElementById('bossHealth');
+            
+            if (comboElement) comboElement.style.display = 'none';
+            if (levelElement) levelElement.textContent = `Level: ${level}`;
+            if (experienceElement) experienceElement.textContent = `XP: ${experience}`;
+            if (bossHealthElement) bossHealthElement.style.display = 'none';
         }
         
         // Game loop
@@ -1530,7 +2178,44 @@
             updateSharks();
             updateMissiles();
             updatePowerups();
+            updateBosses();
             checkCollisions();
+            
+            // Update combo display
+            if (comboCount > 1) {
+                const comboElement = document.getElementById('combo');
+                if (comboElement) {
+                    comboElement.style.display = 'block';
+                    comboElement.textContent = `${comboCount}x Combo! (${comboMultiplier}x Points)`;
+                }
+            } else {
+                const comboElement = document.getElementById('combo');
+                if (comboElement) {
+                    comboElement.style.display = 'none';
+                }
+            }
+            
+            // Update boss health display
+            if (bossActive && bosses.length > 0) {
+                const bossHealthElement = document.getElementById('bossHealth');
+                if (bossHealthElement) {
+                    bossHealthElement.style.display = 'block';
+                    const boss = bosses[0];
+                    const healthPercent = Math.round((boss.health / boss.maxHealth) * 100);
+                    bossHealthElement.textContent = `Boss: ${boss.name} - ${healthPercent}%`;
+                }
+            } else {
+                const bossHealthElement = document.getElementById('bossHealth');
+                if (bossHealthElement) {
+                    bossHealthElement.style.display = 'none';
+                }
+            }
+            
+            // Update level and experience
+            const levelElement = document.getElementById('level');
+            const experienceElement = document.getElementById('experience');
+            if (levelElement) levelElement.textContent = `Level: ${level}`;
+            if (experienceElement) experienceElement.textContent = `XP: ${experience}`;
         }
         
         // Spawn a new coin
@@ -1681,7 +2366,7 @@
         function checkCollisions() {
             const playerRect = player.getBoundingClientRect();
             
-            // Check coin collisions
+            // Check coin collisions with combo system
             for (let i = coins.length - 1; i >= 0; i--) {
                 const coin = coins[i];
                 const coinRect = coin.element.getBoundingClientRect();
@@ -1693,10 +2378,21 @@
                     
                     coin.element.remove();
                     coins.splice(i, 1);
-                    score += 10;
+                    
+                    // Combo system
+                    updateCombo();
+                    
+                    // Score with combo multiplier
+                    const basePoints = 10;
+                    const comboPoints = basePoints * comboMultiplier;
+                    score += comboPoints;
                     scoreElement.textContent = `Score: ${score}`;
+                    
                     playSound('coin');
                     checkAchievements();
+                    
+                    // Show points gained
+                    showPointsGained(comboPoints, coin.x, coin.y);
                 }
             }
             
@@ -1716,8 +2412,71 @@
                 }
             }
             
+            // Check boss collisions
+            for (let i = bosses.length - 1; i >= 0; i--) {
+                const boss = bosses[i];
+                const bossRect = boss.element.getBoundingClientRect();
+                
+                if (playerRect.left < bossRect.right && 
+                    playerRect.right > bossRect.left && 
+                    playerRect.top < bossRect.bottom && 
+                    playerRect.bottom > bossRect.top) {
+                    
+                    // Player hits boss - damage boss
+                    damageBoss(boss, 30);
+                    playSound('bossHit');
+                }
+            }
+            
+            // Check missile collisions with bosses
+            for (let i = missiles.length - 1; i >= 0; i--) {
+                const missile = missiles[i];
+                const missileRect = missile.element.getBoundingClientRect();
+                
+                // Check missile vs bosses
+                for (let j = bosses.length - 1; j >= 0; j--) {
+                    const boss = bosses[j];
+                    const bossRect = boss.element.getBoundingClientRect();
+                    
+                    if (missileRect.left < bossRect.right && 
+                        missileRect.right > bossRect.left && 
+                        missileRect.top < bossRect.bottom && 
+                        missileRect.bottom > bossRect.top) {
+                        
+                        missile.element.remove();
+                        missiles.splice(i, 1);
+                        damageBoss(boss, 20);
+                        playSound('missileHit');
+                        break;
+                    }
+                }
+                
+                // Check missile vs sharks
+                for (let k = sharks.length - 1; k >= 0; k--) {
+                    const shark = sharks[k];
+                    const sharkRect = shark.element.getBoundingClientRect();
+                    
+                    if (missileRect.left < sharkRect.right && 
+                        missileRect.right > sharkRect.left && 
+                        missileRect.top < sharkRect.bottom && 
+                        missileRect.bottom > sharkRect.top) {
+                        
+                        missile.element.remove();
+                        missiles.splice(i, 1);
+                        shark.element.remove();
+                        sharks.splice(k, 1);
+                        
+                        playSound('explosion');
+                        addExplosion(shark.x, shark.y);
+                        score += 20;
+                        scoreElement.textContent = `Score: ${score}`;
+                        break;
+                    }
+                }
+            }
+            
             // Check shark collisions (unless shield is active)
-            if (!activePowerUps.shield) {
+            if (!activePowerUps.shield && !activePowerUps.megaShield) {
                 for (let i = sharks.length - 1; i >= 0; i--) {
                     const shark = sharks[i];
                     const sharkRect = shark.element.getBoundingClientRect();
@@ -1730,35 +2489,6 @@
                         playSound('sharkBite');
                         gameOver();
                         return;
-                    }
-                }
-            }
-            
-            // Check missile collisions with sharks
-            for (let i = missiles.length - 1; i >= 0; i--) {
-                const missile = missiles[i];
-                const missileRect = missile.element.getBoundingClientRect();
-                
-                for (let j = sharks.length - 1; j >= 0; j--) {
-                    const shark = sharks[j];
-                    const sharkRect = shark.element.getBoundingClientRect();
-                    
-                    if (missileRect.left < sharkRect.right && 
-                        missileRect.right > sharkRect.left && 
-                        missileRect.top < sharkRect.bottom && 
-                        missileRect.bottom > sharkRect.top) {
-                        
-                        // Remove missile and shark
-                        missile.element.remove();
-                        missiles.splice(i, 1);
-                        shark.element.remove();
-                        sharks.splice(j, 1);
-                        
-                        playSound('explosion');
-                        addExplosion(shark.x, shark.y);
-                        score += 20;
-                        scoreElement.textContent = `Score: ${score}`;
-                        break;
                     }
                 }
             }
