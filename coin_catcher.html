@@ -88,37 +88,132 @@
         #player {
             position: absolute;
             bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
             width: min(8vw, 60px);
             height: min(8vw, 60px);
-            background: #4169E1;
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
             border-radius: 50%;
-            border: 4px solid #1E90FF;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            transition: left 0.1s ease;
+            border: 4px solid #7d3c98;
+            box-shadow: 
+                0 8px 16px rgba(0,0,0,0.3),
+                0 0 20px rgba(155, 89, 182, 0.6),
+                inset 0 2px 4px rgba(255,255,255,0.3);
             z-index: 10;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: min(5vw, 30px);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+            transform-style: preserve-3d;
+            animation: playerFloat 3s ease-in-out infinite;
         }
 
-        #player::before {
-            content: var(--character-emoji, '🚀');
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: min(4vw, 30px);
+        @keyframes playerFloat {
+            0%, 100% { transform: translateY(0px) rotateY(0deg); }
+            50% { transform: translateY(-3px) rotateY(5deg); }
+        }
+
+        #player:hover {
+            transform: scale(1.1) rotateY(10deg);
+            box-shadow: 
+                0 12px 24px rgba(0,0,0,0.4),
+                0 0 30px rgba(155, 89, 182, 0.8),
+                inset 0 2px 4px rgba(255,255,255,0.3);
+        }
+
+        #player.boy {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            border-color: #2c3e50;
+            box-shadow: 
+                0 8px 16px rgba(0,0,0,0.3),
+                0 0 20px rgba(52, 152, 219, 0.6),
+                inset 0 2px 4px rgba(255,255,255,0.3);
+        }
+
+        #player.boy::before {
+            content: '👨‍🎮';
+        }
+
+        #player.girl {
+            background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);
+            border-color: #ad1457;
+            box-shadow: 
+                0 8px 16px rgba(0,0,0,0.3),
+                0 0 20px rgba(233, 30, 99, 0.6),
+                inset 0 2px 4px rgba(255,255,255,0.3);
+        }
+
+        #player.girl::before {
+            content: '👩‍🎮';
+        }
+
+        #player.car {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            border-color: #d35400;
+            box-shadow: 
+                0 8px 16px rgba(0,0,0,0.3),
+                0 0 20px rgba(243, 156, 18, 0.6),
+                inset 0 2px 4px rgba(255,255,255,0.3);
+        }
+
+        #player.car::before {
+            content: '🏎️';
+        }
+
+        #player.spaceship {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            border-color: #7d3c98;
+            box-shadow: 
+                0 8px 16px rgba(0,0,0,0.3),
+                0 0 20px rgba(155, 89, 182, 0.6),
+                inset 0 2px 4px rgba(255,255,255,0.3);
+        }
+
+        #player.spaceship::before {
+            content: '🚀';
+        }
+
+        #player.army {
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            border-color: #1e8449;
+            box-shadow: 
+                0 8px 16px rgba(0,0,0,0.3),
+                0 0 20px rgba(39, 174, 96, 0.6),
+                inset 0 2px 4px rgba(255,255,255,0.3);
+        }
+
+        #player.army::before {
+            content: '🪖';
+        }
+
+        #player.barbie {
+            background: linear-gradient(135deg, #ff69b4 0%, #ff1493 100%);
+            border-color: #ff0080;
+            box-shadow: 
+                0 8px 16px rgba(0,0,0,0.3),
+                0 0 20px rgba(255, 105, 180, 0.6),
+                inset 0 2px 4px rgba(255,255,255,0.3);
+        }
+
+        #player.barbie::before {
+            content: '👸';
         }
 
         .coin {
             position: absolute;
             width: min(6vw, 40px);
             height: min(6vw, 40px);
-            background: #FFD700;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
             border-radius: 50%;
-            border: 3px solid #FFA500;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            animation: spin 1s linear infinite;
+            border: 3px solid #FF8C00;
+            box-shadow: 
+                0 6px 12px rgba(0,0,0,0.3),
+                0 0 15px rgba(255, 215, 0, 0.6),
+                inset 0 2px 4px rgba(255,255,255,0.3);
+            animation: coinSpin 2s linear infinite;
             z-index: 5;
+            transform-style: preserve-3d;
         }
 
         .coin::before {
@@ -128,18 +223,23 @@
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: min(3vw, 20px);
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
         }
 
         .shark {
             position: absolute;
             width: min(6vw, 40px);
             height: min(6vw, 40px);
-            background: #FF4444;
+            background: linear-gradient(135deg, #FF4444 0%, #CC0000 100%);
             border-radius: 50%;
-            border: 3px solid #CC0000;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            animation: sharkSwim 0.8s ease-in-out infinite;
+            border: 3px solid #8B0000;
+            box-shadow: 
+                0 6px 12px rgba(0,0,0,0.3),
+                0 0 15px rgba(255, 68, 68, 0.6),
+                inset 0 2px 4px rgba(255,255,255,0.2);
+            animation: sharkSwim 1.2s ease-in-out infinite;
             z-index: 5;
+            transform-style: preserve-3d;
         }
 
         .shark::before {
@@ -149,17 +249,24 @@
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: min(3vw, 20px);
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
+        }
+
+        @keyframes coinSpin {
+            0% { transform: rotateY(0deg) translateZ(0px); }
+            50% { transform: rotateY(180deg) translateZ(5px); }
+            100% { transform: rotateY(360deg) translateZ(0px); }
+        }
+
+        @keyframes sharkSwim {
+            0%, 100% { transform: translateX(0px) rotateY(0deg) scale(1); }
+            25% { transform: translateX(-3px) rotateY(-10deg) scale(1.05); }
+            75% { transform: translateX(3px) rotateY(10deg) scale(1.05); }
         }
 
         @keyframes spin {
             0% { transform: rotateY(0deg); }
             100% { transform: rotateY(360deg); }
-        }
-
-        @keyframes sharkSwim {
-            0%, 100% { transform: translateX(0px) rotate(0deg); }
-            25% { transform: translateX(-2px) rotate(-5deg); }
-            75% { transform: translateX(2px) rotate(5deg); }
         }
 
         @keyframes sharkBite {
@@ -355,38 +462,135 @@
             margin: 0 auto;
         }
 
-        .characterOption {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: min(2vw, 8px);
-            border: 2px solid #FF6B6B;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-            background: white;
-        }
-
-        .characterOption:hover {
-            transform: scale(1.05);
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-        }
-
-        .characterOption.selected {
-            background: #4ECDC4;
-            border-color: #45B7AA;
+        .character {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 3px solid #4a90e2;
+            border-radius: 15px;
             color: white;
-        }
-
-        .characterOption .characterEmoji {
-            font-size: min(4vw, 24px);
-            margin-bottom: 4px;
-        }
-
-        .characterOption .characterName {
-            font-size: min(2vw, 10px);
             font-weight: bold;
-            text-align: center;
+            font-size: min(3.5vw, 18px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .character::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .character:hover::before {
+            left: 100%;
+        }
+
+        .character:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.4);
+            border-color: #ffd700;
+        }
+
+        .character.selected {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            border-color: #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+            transform: scale(1.1);
+        }
+
+        /* Fortnite-style character designs */
+        .character[data-char="boy"] {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            border-color: #2c3e50;
+            box-shadow: 0 8px 16px rgba(52, 152, 219, 0.4);
+        }
+
+        .character[data-char="boy"]::after {
+            content: '👨‍🎮';
+            font-size: min(4vw, 24px);
+            display: block;
+            margin-top: 5px;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
+        }
+
+        .character[data-char="girl"] {
+            background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);
+            border-color: #ad1457;
+            box-shadow: 0 8px 16px rgba(233, 30, 99, 0.4);
+        }
+
+        .character[data-char="girl"]::after {
+            content: '👩‍🎮';
+            font-size: min(4vw, 24px);
+            display: block;
+            margin-top: 5px;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
+        }
+
+        .character[data-char="car"] {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            border-color: #d35400;
+            box-shadow: 0 8px 16px rgba(243, 156, 18, 0.4);
+        }
+
+        .character[data-char="car"]::after {
+            content: '🏎️';
+            font-size: min(4vw, 24px);
+            display: block;
+            margin-top: 5px;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
+        }
+
+        .character[data-char="spaceship"] {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            border-color: #7d3c98;
+            box-shadow: 0 8px 16px rgba(155, 89, 182, 0.4);
+        }
+
+        .character[data-char="spaceship"]::after {
+            content: '🚀';
+            font-size: min(4vw, 24px);
+            display: block;
+            margin-top: 5px;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
+        }
+
+        .character[data-char="army"] {
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            border-color: #1e8449;
+            box-shadow: 0 8px 16px rgba(39, 174, 96, 0.4);
+        }
+
+        .character[data-char="army"]::after {
+            content: '🪖';
+            font-size: min(4vw, 24px);
+            display: block;
+            margin-top: 5px;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
+        }
+
+        .character[data-char="barbie"] {
+            background: linear-gradient(135deg, #ff69b4 0%, #ff1493 100%);
+            border-color: #ff0080;
+            box-shadow: 0 8px 16px rgba(255, 105, 180, 0.4);
+        }
+
+        .character[data-char="barbie"]::after {
+            content: '👸';
+            font-size: min(4vw, 24px);
+            display: block;
+            margin-top: 5px;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
         }
 
         #startBtn {
@@ -620,78 +824,229 @@
 
         .missile {
             position: absolute;
-            width: 8px;
-            height: 20px;
-            background: linear-gradient(to bottom, #FFD700, #FFA500);
-            border-radius: 4px;
-            box-shadow: 0 0 10px #FFD700;
-            z-index: 7;
-            animation: missileTrail 0.1s ease-out;
+            width: min(1.5vw, 8px);
+            height: min(3vw, 20px);
+            background: linear-gradient(180deg, #FF6B6B 0%, #FF4757 50%, #FF3838 100%);
+            border-radius: 50% 50% 0 0;
+            border: 2px solid #FF3838;
+            box-shadow: 
+                0 0 10px rgba(255, 107, 107, 0.8),
+                0 0 20px rgba(255, 71, 87, 0.6);
+            z-index: 8;
+            transform-style: preserve-3d;
+            animation: missileTrail 0.1s linear infinite;
         }
 
         .missile::before {
             content: '🔥';
             position: absolute;
-            top: -5px;
+            bottom: -5px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 12px;
+            font-size: min(2vw, 12px);
+            animation: flameFlicker 0.2s ease-in-out infinite alternate;
         }
 
         @keyframes missileTrail {
-            0% { box-shadow: 0 0 5px #FFD700; }
-            100% { box-shadow: 0 0 15px #FFD700; }
+            0% { box-shadow: 0 0 10px rgba(255, 107, 107, 0.8), 0 0 20px rgba(255, 71, 87, 0.6); }
+            50% { box-shadow: 0 0 15px rgba(255, 107, 107, 1), 0 0 25px rgba(255, 71, 87, 0.8); }
+            100% { box-shadow: 0 0 10px rgba(255, 107, 107, 0.8), 0 0 20px rgba(255, 71, 87, 0.6); }
+        }
+
+        @keyframes flameFlicker {
+            0% { transform: translateX(-50%) scale(1); opacity: 1; }
+            100% { transform: translateX(-50%) scale(1.2); opacity: 0.8; }
+        }
+
+        /* Particle effects for explosions */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #FFD700;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 20;
+            animation: particleExplode 1s ease-out forwards;
+        }
+
+        @keyframes particleExplode {
+            0% { 
+                transform: scale(0) rotate(0deg); 
+                opacity: 1; 
+            }
+            50% { 
+                transform: scale(1) rotate(180deg); 
+                opacity: 0.8; 
+            }
+            100% { 
+                transform: scale(0) rotate(360deg); 
+                opacity: 0; 
+            }
+        }
+
+        .powerup {
+            position: absolute;
+            width: min(6vw, 40px);
+            height: min(6vw, 40px);
+            border-radius: 50%;
+            border: 3px solid;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            animation: powerupFloat 2s ease-in-out infinite;
+            z-index: 6;
+        }
+
+        .powerup::before {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: min(3vw, 20px);
+        }
+
+        .powerup.speed {
+            background: #FFD700;
+            border-color: #FFA500;
+        }
+
+        .powerup.speed::before {
+            content: '⚡';
+        }
+
+        .powerup.shield {
+            background: #4169E1;
+            border-color: #1E90FF;
+        }
+
+        .powerup.shield::before {
+            content: '🛡️';
+        }
+
+        .powerup.multishot {
+            background: #FF4500;
+            border-color: #FF6347;
+        }
+
+        .powerup.multishot::before {
+            content: '🎯';
+        }
+
+        .powerup.timefreeze {
+            background: #9370DB;
+            border-color: #8A2BE2;
+        }
+
+        .powerup.timefreeze::before {
+            content: '⏰';
+        }
+
+        .powerup.autoaim {
+            background: #32CD32;
+            border-color: #00FF00;
+        }
+
+        .powerup.autoaim::before {
+            content: '🎯';
+        }
+
+        @keyframes powerupFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-5px) rotate(180deg); }
+        }
+
+        .powerupIndicator {
+            position: absolute;
+            top: 80px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            z-index: 15;
+            display: none;
+        }
+
+        .powerupIndicator.active {
+            display: block;
+        }
+
+        .powerupIndicator .powerupItem {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .soundToggle {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: min(3.5vw, 20px);
+            font-weight: bold;
+            color: #FFFFFF;
+            background: rgba(0, 0, 0, 0.7);
+            padding: min(2vw, 8px) min(3vw, 12px);
+            border-radius: 15px;
+            border: 3px solid #FF6B6B;
+            z-index: 15;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .soundToggle:hover {
+            background: rgba(255, 107, 107, 0.3);
+            transform: scale(1.05);
         }
     </style>
 </head>
 <body>
     <div id="gameContainer">
         <div id="startScreen">
-            <h1>🪙 Kaden & Adelynn Coin Catcher 🪙</h1>
-            <p>Use the arrow keys to move and catch falling coins!</p>
-            <p>Press SPACEBAR to shoot missiles at coins and sharks!</p>
-            <p>You have 60 seconds to get the highest score!</p>
-            <div id="characterSelection">
+            <h1>🚀 Kaden & Adelynn Coin Catcher 🚀</h1>
+            <p>Collect coins, avoid sharks, and use power-ups!</p>
+            
+            <div class="character-selection">
                 <h3>Choose Your Character:</h3>
-                <div class="characterGrid">
-                    <div class="characterOption" data-character="boy">
-                        <div class="characterEmoji">👦</div>
-                        <div class="characterName">Boy</div>
-                    </div>
-                    <div class="characterOption" data-character="girl">
-                        <div class="characterEmoji">👧</div>
-                        <div class="characterName">Girl</div>
-                    </div>
-                    <div class="characterOption" data-character="car">
-                        <div class="characterEmoji">🚗</div>
-                        <div class="characterName">Car</div>
-                    </div>
-                    <div class="characterOption" data-character="spaceship">
-                        <div class="characterEmoji">🚀</div>
-                        <div class="characterName">Spaceship</div>
-                    </div>
-                    <div class="characterOption" data-character="army">
-                        <div class="characterEmoji">🪖</div>
-                        <div class="characterName">Army Man</div>
-                    </div>
-                    <div class="characterOption" data-character="barbie">
-                        <div class="characterEmoji">👸</div>
-                        <div class="characterName">Barbie</div>
-                    </div>
+                <div class="characters">
+                    <div class="character" data-char="boy">👦 Boy</div>
+                    <div class="character" data-char="girl">👧 Girl</div>
+                    <div class="character" data-char="car">🚗 Car</div>
+                    <div class="character" data-char="spaceship">🚀 Spaceship</div>
+                    <div class="character" data-char="army">🪖 Army Man</div>
+                    <div class="character" data-char="barbie">👸 Barbie</div>
                 </div>
             </div>
-            <button id="startBtn">Start Game</button>
-            <button id="loadSavedGame">💾 Load Saved Game</button>
-            <div class="savedGameInfo" id="savedGameInfo">
-                <p>Saved Score: <span id="savedScore">0</span></p>
-                <p>Saved Time: <span id="savedTime">60</span>s</p>
+            
+            <div class="instructions">
+                <h3>🎮 Controls:</h3>
+                <p>← → Arrow Keys: Move</p>
+                <p>Spacebar: Shoot missiles</p>
+                <p>P: Pause game</p>
+                <p>🔊: Toggle sound</p>
+                
+                <h3>⚡ Power-ups:</h3>
+                <p>⚡ Speed Boost: Move faster</p>
+                <p>🛡️ Shield: Protection from sharks</p>
+                <p>🎯 Multi-Shot: Fire 3 missiles</p>
+                <p>⏰ Time Freeze: Stop the timer</p>
+                <p>🎯 Auto-Aim: Missiles track sharks</p>
             </div>
+            
+            <button id="startBtn">🚀 Start Game!</button>
         </div>
         
         <div id="player"></div>
         <div id="score">Score: 0</div>
         <div id="timer">Time: 60</div>
         <div id="pauseBtn">⏸️ Pause</div>
+        <div id="soundToggle">🔊 Sound</div>
+        
+        <div id="powerupIndicator" class="powerupIndicator">
+            <h4>Active Power-ups:</h4>
+            <div id="powerupList"></div>
+        </div>
         
         <div id="gameOver">
             <h2>🎉 Game Over! 🎉</h2>
@@ -744,11 +1099,29 @@
         let gamePaused = false;
         let savedGame = null;
         
+        // Audio system
+        let audioContext;
+        let sounds = {};
+        let backgroundMusic;
+        let soundEnabled = true;
+        
+        // Power-ups system
+        let powerUps = [];
+        let activePowerUps = {
+            speedBoost: false,
+            shield: false,
+            multiShot: false,
+            timeFreeze: false,
+            autoAim: false
+        };
+        let powerUpTimers = {};
+        
         // Game constants
         const PLAYER_SPEED = 35;
         const COIN_SPEED = 3;
         const SHARK_SPEED = 4;
         const MISSILE_SPEED = 8;
+        const POWERUP_SPEED = 2;
         let GAME_WIDTH = 800;
         let GAME_HEIGHT = 600;
         const PLAYER_WIDTH = 60;
@@ -756,12 +1129,74 @@
         const SHARK_WIDTH = 40;
         const MISSILE_WIDTH = 8;
         const MISSILE_HEIGHT = 20;
+        const POWERUP_WIDTH = 40;
         
         // Update game dimensions based on actual container size
         function updateGameDimensions() {
             const container = document.getElementById('gameContainer');
             GAME_WIDTH = container.offsetWidth;
             GAME_HEIGHT = container.offsetHeight;
+        }
+        
+        // Initialize audio system
+        function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                createSounds();
+            } catch (e) {
+                console.log('Audio not supported');
+                soundEnabled = false;
+            }
+        }
+        
+        // Create sound effects
+        function createSounds() {
+            // Coin collection sound
+            sounds.coin = createTone(800, 0.1, 'sine');
+            
+            // Missile firing sound
+            sounds.missile = createTone(400, 0.05, 'square');
+            
+            // Explosion sound
+            sounds.explosion = createTone(200, 0.2, 'sawtooth');
+            
+            // Power-up sound
+            sounds.powerup = createTone(600, 0.15, 'triangle');
+            
+            // Achievement sound
+            sounds.achievement = createTone(1000, 0.3, 'sine');
+            
+            // Shark bite sound
+            sounds.sharkBite = createTone(150, 0.4, 'sawtooth');
+        }
+        
+        // Create a simple tone
+        function createTone(frequency, duration, type) {
+            return function() {
+                if (!soundEnabled || !audioContext) return;
+                
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = frequency;
+                oscillator.type = type;
+                
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + duration);
+            };
+        }
+        
+        // Play sound effect
+        function playSound(soundName) {
+            if (sounds[soundName]) {
+                sounds[soundName]();
+            }
         }
         
         // Achievement definitions
@@ -771,6 +1206,15 @@
             { coins: 20, title: "Coin Champion", emoji: "🏆", message: "You collected 20 coins!" },
             { coins: 30, title: "Coin Legend", emoji: "👑", message: "You collected 30 coins!" },
             { coins: 50, title: "Coin God", emoji: "⭐", message: "You collected 50 coins!" }
+        ];
+        
+        // Power-up definitions
+        const POWERUP_TYPES = [
+            { type: 'speed', name: 'Speed Boost', duration: 10000, emoji: '⚡' },
+            { type: 'shield', name: 'Shield', duration: 8000, emoji: '🛡️' },
+            { type: 'multishot', name: 'Multi-Shot', duration: 12000, emoji: '🎯' },
+            { type: 'timefreeze', name: 'Time Freeze', duration: 6000, emoji: '⏰' },
+            { type: 'autoaim', name: 'Auto-Aim', duration: 15000, emoji: '🎯' }
         ];
         
         // Save game data to localStorage
@@ -825,8 +1269,18 @@
             coins = [];
             sharks = [];
             missiles = [];
+            powerUps = [];
             achievements = [];
             gamePaused = false;
+            
+            // Reset power-ups
+            Object.keys(activePowerUps).forEach(key => {
+                activePowerUps[key] = false;
+                if (powerUpTimers[key]) {
+                    clearTimeout(powerUpTimers[key]);
+                    delete powerUpTimers[key];
+                }
+            });
             
             // Load saved game if available
             if (savedGame) {
@@ -843,11 +1297,13 @@
             document.querySelectorAll('.coin').forEach(coin => coin.remove());
             document.querySelectorAll('.shark').forEach(shark => shark.remove());
             document.querySelectorAll('.missile').forEach(missile => missile.remove());
+            document.querySelectorAll('.powerup').forEach(powerup => powerup.remove());
             
             scoreElement.textContent = `Score: ${score}`;
             timerElement.textContent = `Time: ${timeLeft}`;
             
             updatePlayerCharacter();
+            updatePowerupIndicator();
             
             player.style.left = playerX + 'px';
             
@@ -908,10 +1364,12 @@
         // Start game
         function startGame() {
             initGame();
+            initAudio();
             
             gameInterval = setInterval(gameLoop, 16);
             coinInterval = setInterval(spawnCoin, 1000);
             sharkInterval = setInterval(spawnShark, 3000);
+            setInterval(spawnPowerup, 8000); // Spawn power-ups every 8 seconds
             timerInterval = setInterval(updateTimer, 1000);
         }
         
@@ -922,6 +1380,7 @@
             updateCoins();
             updateSharks();
             updateMissiles();
+            updatePowerups();
             checkCollisions();
         }
         
@@ -959,20 +1418,36 @@
             });
         }
         
-        // Shoot missile
-        function shootMissile() {
-            if (!gameRunning) return;
+        // Fire missile
+        function fireMissile() {
+            if (!gameRunning || gamePaused) return;
             
+            playSound('missile');
+            
+            // Multi-shot power-up
+            if (activePowerUps.multishot) {
+                // Fire 3 missiles in a spread pattern
+                for (let i = -1; i <= 1; i++) {
+                    createMissile(playerX + PLAYER_WIDTH/2 + (i * 10), GAME_HEIGHT - 80, i * 0.3);
+                }
+            } else {
+                createMissile(playerX + PLAYER_WIDTH/2, GAME_HEIGHT - 80, 0);
+            }
+        }
+        
+        // Create missile
+        function createMissile(x, y, angleOffset = 0) {
             const missile = document.createElement('div');
             missile.className = 'missile';
-            missile.style.left = (playerX + PLAYER_WIDTH/2 - MISSILE_WIDTH/2) + 'px';
-            missile.style.top = (GAME_HEIGHT - 80) + 'px';
+            missile.style.left = x + 'px';
+            missile.style.top = y + 'px';
             gameContainer.appendChild(missile);
             
             missiles.push({
                 element: missile,
-                x: playerX + PLAYER_WIDTH/2 - MISSILE_WIDTH/2,
-                y: GAME_HEIGHT - 80
+                x: x,
+                y: y,
+                angleOffset: angleOffset
             });
         }
         
@@ -980,14 +1455,49 @@
         function updateMissiles() {
             for (let i = missiles.length - 1; i >= 0; i--) {
                 const missile = missiles[i];
-                missile.y -= MISSILE_SPEED;
+                
+                // Auto-aim power-up: missiles track nearest shark
+                if (activePowerUps.autoaim && sharks.length > 0) {
+                    const nearestShark = findNearestShark(missile.x, missile.y);
+                    if (nearestShark) {
+                        const dx = nearestShark.x - missile.x;
+                        const dy = nearestShark.y - missile.y;
+                        const angle = Math.atan2(dy, dx);
+                        missile.x += Math.cos(angle) * MISSILE_SPEED;
+                        missile.y += Math.sin(angle) * MISSILE_SPEED;
+                    } else {
+                        missile.y -= MISSILE_SPEED;
+                    }
+                } else {
+                    // Normal missile movement with angle offset
+                    missile.x += missile.angleOffset * MISSILE_SPEED;
+                    missile.y -= MISSILE_SPEED;
+                }
+                
+                missile.element.style.left = missile.x + 'px';
                 missile.element.style.top = missile.y + 'px';
                 
-                if (missile.y < -MISSILE_HEIGHT) {
+                if (missile.y < -MISSILE_HEIGHT || missile.x < -MISSILE_WIDTH || missile.x > GAME_WIDTH) {
                     missile.element.remove();
                     missiles.splice(i, 1);
                 }
             }
+        }
+        
+        // Find nearest shark for auto-aim
+        function findNearestShark(missileX, missileY) {
+            let nearest = null;
+            let minDistance = Infinity;
+            
+            sharks.forEach(shark => {
+                const distance = Math.sqrt((shark.x - missileX) ** 2 + (shark.y - missileY) ** 2);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearest = shark;
+                }
+            });
+            
+            return nearest;
         }
         
         // Update coin positions
@@ -1018,130 +1528,89 @@
             }
         }
         
-        // Check for collisions
+        // Check collisions
         function checkCollisions() {
-            const playerRect = {
-                left: playerX,
-                right: playerX + PLAYER_WIDTH,
-                top: GAME_HEIGHT - 80,
-                bottom: GAME_HEIGHT - 20
-            };
+            const playerRect = player.getBoundingClientRect();
             
-            // Check coin collisions with player
+            // Check coin collisions
             for (let i = coins.length - 1; i >= 0; i--) {
                 const coin = coins[i];
-                const coinRect = {
-                    left: coin.x,
-                    right: coin.x + COIN_WIDTH,
-                    top: coin.y,
-                    bottom: coin.y + COIN_WIDTH
-                };
+                const coinRect = coin.element.getBoundingClientRect();
                 
-                if (playerRect.left < coinRect.right &&
-                    playerRect.right > coinRect.left &&
-                    playerRect.top < coinRect.bottom &&
+                if (playerRect.left < coinRect.right && 
+                    playerRect.right > coinRect.left && 
+                    playerRect.top < coinRect.bottom && 
                     playerRect.bottom > coinRect.top) {
                     
                     coin.element.remove();
                     coins.splice(i, 1);
                     score += 10;
                     scoreElement.textContent = `Score: ${score}`;
-                    
-                    addSparkle(coin.x, coin.y);
+                    playSound('coin');
                     checkAchievements();
                 }
             }
             
-            // Check missile collisions with coins
-            for (let i = missiles.length - 1; i >= 0; i--) {
-                const missile = missiles[i];
-                const missileRect = {
-                    left: missile.x,
-                    right: missile.x + MISSILE_WIDTH,
-                    top: missile.y,
-                    bottom: missile.y + MISSILE_HEIGHT
-                };
+            // Check power-up collisions
+            for (let i = powerUps.length - 1; i >= 0; i--) {
+                const powerup = powerUps[i];
+                const powerupRect = powerup.element.getBoundingClientRect();
                 
-                // Check missile vs coins
-                for (let j = coins.length - 1; j >= 0; j--) {
-                    const coin = coins[j];
-                    const coinRect = {
-                        left: coin.x,
-                        right: coin.x + COIN_WIDTH,
-                        top: coin.y,
-                        bottom: coin.y + COIN_WIDTH
-                    };
+                if (playerRect.left < powerupRect.right && 
+                    playerRect.right > powerupRect.left && 
+                    playerRect.top < powerupRect.bottom && 
+                    playerRect.bottom > powerupRect.top) {
                     
-                    if (missileRect.left < coinRect.right &&
-                        missileRect.right > coinRect.left &&
-                        missileRect.top < coinRect.bottom &&
-                        missileRect.bottom > coinRect.top) {
-                        
-                        // Missile hit coin!
-                        coin.element.remove();
-                        coins.splice(j, 1);
-                        missile.element.remove();
-                        missiles.splice(i, 1);
-                        score += 15; // Bonus points for shooting
-                        scoreElement.textContent = `Score: ${score}`;
-                        
-                        addExplosion(coin.x, coin.y);
-                        checkAchievements();
-                        break;
-                    }
+                    powerup.element.remove();
+                    powerUps.splice(i, 1);
+                    activatePowerup(powerup);
                 }
-                
-                // Check missile vs sharks
-                for (let k = sharks.length - 1; k >= 0; k--) {
-                    const shark = sharks[k];
-                    const sharkRect = {
-                        left: shark.x,
-                        right: shark.x + SHARK_WIDTH,
-                        top: shark.y,
-                        bottom: shark.y + SHARK_WIDTH
-                    };
+            }
+            
+            // Check shark collisions (unless shield is active)
+            if (!activePowerUps.shield) {
+                for (let i = sharks.length - 1; i >= 0; i--) {
+                    const shark = sharks[i];
+                    const sharkRect = shark.element.getBoundingClientRect();
                     
-                    if (missileRect.left < sharkRect.right &&
-                        missileRect.right > sharkRect.left &&
-                        missileRect.top < sharkRect.bottom &&
-                        missileRect.bottom > sharkRect.top) {
+                    if (playerRect.left < sharkRect.right && 
+                        playerRect.right > sharkRect.left && 
+                        playerRect.top < sharkRect.bottom && 
+                        playerRect.bottom > sharkRect.top) {
                         
-                        // Missile hit shark!
-                        shark.element.remove();
-                        sharks.splice(k, 1);
-                        missile.element.remove();
-                        missiles.splice(i, 1);
-                        score += 20; // Bonus points for shooting shark
-                        scoreElement.textContent = `Score: ${score}`;
-                        
-                        addExplosion(shark.x, shark.y);
-                        break;
+                        playSound('sharkBite');
+                        gameOver();
+                        return;
                     }
                 }
             }
             
-            // Check shark collisions with player
-            for (let i = sharks.length - 1; i >= 0; i--) {
-                const shark = sharks[i];
-                const sharkRect = {
-                    left: shark.x,
-                    right: shark.x + SHARK_WIDTH,
-                    top: shark.y,
-                    bottom: shark.y + SHARK_WIDTH
-                };
+            // Check missile collisions with sharks
+            for (let i = missiles.length - 1; i >= 0; i--) {
+                const missile = missiles[i];
+                const missileRect = missile.element.getBoundingClientRect();
                 
-                if (playerRect.left < sharkRect.right &&
-                    playerRect.right > sharkRect.left &&
-                    playerRect.top < sharkRect.bottom &&
-                    playerRect.bottom > sharkRect.top) {
+                for (let j = sharks.length - 1; j >= 0; j--) {
+                    const shark = sharks[j];
+                    const sharkRect = shark.element.getBoundingClientRect();
                     
-                    // Shark collision - game over!
-                    shark.element.remove();
-                    sharks.splice(i, 1);
-                    
-                    addSharkBite(shark.x, shark.y);
-                    endGame();
-                    return;
+                    if (missileRect.left < sharkRect.right && 
+                        missileRect.right > sharkRect.left && 
+                        missileRect.top < sharkRect.bottom && 
+                        missileRect.bottom > sharkRect.top) {
+                        
+                        // Remove missile and shark
+                        missile.element.remove();
+                        missiles.splice(i, 1);
+                        shark.element.remove();
+                        sharks.splice(j, 1);
+                        
+                        playSound('explosion');
+                        addExplosion(shark.x, shark.y);
+                        score += 20;
+                        scoreElement.textContent = `Score: ${score}`;
+                        break;
+                    }
                 }
             }
         }
@@ -1178,30 +1647,35 @@
             setTimeout(() => bite.remove(), 1000);
         }
         
-        // Add explosion effect when missile hits target
+        // Create particle explosion effect
+        function createExplosion(x, y, color = '#FFD700') {
+            for (let i = 0; i < 8; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+                particle.style.background = color;
+                particle.style.transform = `translate(${Math.random() * 40 - 20}px, ${Math.random() * 40 - 20}px)`;
+                gameContainer.appendChild(particle);
+                
+                setTimeout(() => {
+                    particle.remove();
+                }, 1000);
+            }
+        }
+        
+        // Enhanced explosion effect
         function addExplosion(x, y) {
-            const explosion = document.createElement('div');
-            explosion.style.position = 'absolute';
-            explosion.style.left = x + 'px';
-            explosion.style.top = y + 'px';
-            explosion.style.fontSize = '30px';
-            explosion.style.color = '#FF4500';
-            explosion.style.zIndex = '8';
-            explosion.textContent = '💥';
-            explosion.style.animation = 'explosion 0.5s ease-out forwards';
-            gameContainer.appendChild(explosion);
-            
-            setTimeout(() => explosion.remove(), 500);
+            createExplosion(x, y, '#FF6B6B');
         }
         
         // Check for achievements
         function checkAchievements() {
-            const coinsCollected = Math.floor(score / 10);
-            
             ACHIEVEMENTS.forEach(achievement => {
-                if (coinsCollected >= achievement.coins && !achievements.includes(achievement.title)) {
+                if (score >= achievement.coins * 10 && !achievements.includes(achievement.title)) {
                     achievements.push(achievement.title);
                     showAchievement(achievement);
+                    playSound('achievement');
                 }
             });
         }
@@ -1224,13 +1698,16 @@
         
         // Update timer
         function updateTimer() {
-            if (!gameRunning) return;
+            if (!gameRunning || gamePaused) return;
             
-            timeLeft--;
-            timerElement.textContent = `Time: ${timeLeft}`;
-            
-            if (timeLeft <= 0) {
-                endGame();
+            // Time freeze power-up stops the timer
+            if (!activePowerUps.timefreeze) {
+                timeLeft--;
+                timerElement.textContent = `Time: ${timeLeft}`;
+                
+                if (timeLeft <= 0) {
+                    gameOver();
+                }
             }
         }
         
@@ -1324,7 +1801,7 @@
                     player.style.left = playerX + 'px';
                     break;
                 case 'Space':
-                    shootMissile();
+                    fireMissile();
                     break;
             }
         });
@@ -1367,20 +1844,16 @@
         }
         
         // Character selection
-        document.querySelectorAll('.characterOption').forEach(option => {
-            option.addEventListener('click', () => {
-                document.querySelectorAll('.characterOption').forEach(opt => {
-                    opt.classList.remove('selected');
-                });
-                
-                option.classList.add('selected');
-                selectedCharacter = option.getAttribute('data-character');
-                document.getElementById('startBtn').disabled = false;
+        document.querySelectorAll('.character').forEach(char => {
+            char.addEventListener('click', function() {
+                document.querySelectorAll('.character').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedCharacter = this.getAttribute('data-char');
             });
         });
         
         // Initialize with spaceship character selected
-        document.querySelector('.characterOption[data-character="spaceship"]').classList.add('selected');
+        document.querySelector('.character[data-char="spaceship"]').classList.add('selected');
         document.getElementById('startBtn').disabled = false;
         
         // Button event listeners
@@ -1388,11 +1861,14 @@
         document.getElementById('restartBtn').addEventListener('click', startGame);
         
         // Pause button event listener
-        document.getElementById('pauseBtn').addEventListener('click', pauseGame);
+        document.getElementById('pauseBtn').addEventListener('click', togglePause);
+        
+        // Sound toggle event listener
+        document.getElementById('soundToggle').addEventListener('click', toggleSound);
         
         // Pause menu event listeners
+        document.getElementById('resumeBtn').addEventListener('click', togglePause);
         document.getElementById('saveBtn').addEventListener('click', saveGame);
-        document.getElementById('resumeBtn').addEventListener('click', resumeGame);
         document.getElementById('quitBtn').addEventListener('click', quitGame);
         
         // Load saved game button
@@ -1429,6 +1905,134 @@
             }
         `;
         document.head.appendChild(style);
+
+        // Spawn a power-up
+        function spawnPowerup() {
+            if (!gameRunning) return;
+            
+            const powerupType = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
+            const powerup = document.createElement('div');
+            powerup.className = `powerup ${powerupType.type}`;
+            powerup.style.left = Math.random() * (GAME_WIDTH - POWERUP_WIDTH) + 'px';
+            powerup.style.top = '-40px';
+            gameContainer.appendChild(powerup);
+            
+            powerUps.push({
+                element: powerup,
+                x: parseInt(powerup.style.left),
+                y: -40,
+                type: powerupType.type,
+                name: powerupType.name,
+                duration: powerupType.duration,
+                emoji: powerupType.emoji
+            });
+        }
+        
+        // Update power-up positions
+        function updatePowerups() {
+            for (let i = powerUps.length - 1; i >= 0; i--) {
+                const powerup = powerUps[i];
+                powerup.y += POWERUP_SPEED;
+                powerup.element.style.top = powerup.y + 'px';
+                
+                if (powerup.y > GAME_HEIGHT) {
+                    powerup.element.remove();
+                    powerUps.splice(i, 1);
+                }
+            }
+        }
+        
+        // Activate power-up
+        function activatePowerup(powerup) {
+            const type = powerup.type;
+            const duration = powerup.duration;
+            
+            activePowerUps[type] = true;
+            powerUpTimers[type] = setTimeout(() => {
+                deactivatePowerup(type);
+            }, duration);
+            
+            playSound('powerup');
+            updatePowerupIndicator();
+            
+            // Visual effect for shield
+            if (type === 'shield') {
+                player.style.boxShadow = '0 0 20px #4169E1';
+            }
+        }
+        
+        // Deactivate power-up
+        function deactivatePowerup(type) {
+            activePowerUps[type] = false;
+            delete powerUpTimers[type];
+            
+            if (type === 'shield') {
+                player.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
+            }
+            
+            updatePowerupIndicator();
+        }
+        
+        // Update power-up indicator
+        function updatePowerupIndicator() {
+            const indicator = document.getElementById('powerupIndicator');
+            const list = document.getElementById('powerupList');
+            
+            const activeList = Object.keys(activePowerUps).filter(key => activePowerUps[key]);
+            
+            if (activeList.length > 0) {
+                indicator.classList.add('active');
+                list.innerHTML = activeList.map(type => {
+                    const powerup = POWERUP_TYPES.find(p => p.type === type);
+                    return `<div class="powerupItem">${powerup.emoji} ${powerup.name}</div>`;
+                }).join('');
+            } else {
+                indicator.classList.remove('active');
+            }
+        }
+
+        // Toggle sound
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const soundToggle = document.getElementById('soundToggle');
+            soundToggle.textContent = soundEnabled ? '🔊 Sound' : '🔇 Sound';
+        }
+        
+        // Game over
+        function gameOver() {
+            gameRunning = false;
+            clearInterval(gameInterval);
+            clearInterval(coinInterval);
+            clearInterval(sharkInterval);
+            clearInterval(timerInterval);
+            
+            // Clear all power-up timers
+            Object.keys(powerUpTimers).forEach(key => {
+                clearTimeout(powerUpTimers[key]);
+            });
+            
+            playSound('sharkBite');
+            
+            document.getElementById('finalScore').textContent = score;
+            gameOverScreen.style.display = 'flex';
+        }
+
+        // Pause/Resume game
+        function togglePause() {
+            if (!gameRunning) return;
+            
+            gamePaused = !gamePaused;
+            const pauseBtn = document.getElementById('pauseBtn');
+            const pauseMenu = document.getElementById('pauseMenu');
+            
+            if (gamePaused) {
+                pauseBtn.textContent = '▶️ Resume';
+                pauseMenu.style.display = 'flex';
+            } else {
+                pauseBtn.textContent = '⏸️ Pause';
+                pauseMenu.style.display = 'none';
+            }
+        }
     </script>
 </body>
 </html> 
