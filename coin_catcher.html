@@ -475,30 +475,60 @@
             margin-bottom: 10px;
         }
 
-        .characterGrid {
+        .character-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            max-width: 300px;
-            margin: 0 auto;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
         }
-
-        .character {
-            display: inline-block;
-            margin: 10px;
-            padding: 15px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: 3px solid #4a90e2;
-            border-radius: 15px;
-            color: white;
-            font-weight: bold;
-            font-size: min(3.5vw, 18px);
+        .character-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            transition: all 0.3s;
+            background: #fff;
+        }
+        .character-option:hover {
+            border-color: #3498db;
+            transform: scale(1.05);
+        }
+        .character-option.selected {
+            border-color: #e74c3c;
+            background: #fdf2f2;
+        }
+        .character-preview {
+            width: 40px;
+            height: 75px;
             position: relative;
-            overflow: hidden;
+            margin-bottom: 5px;
+        }
+        .character-preview .head {
+            width: 24px; height: 24px;
+            top: 0; left: 8px;
+        }
+        .character-preview .body {
+            width: 12px; height: 28px;
+            top: 24px; left: 14px;
+        }
+        .character-preview .arm {
+            width: 8px; height: 22px;
+            top: 28px;
+        }
+        .character-preview .leg {
+            width: 8px; height: 24px;
+            top: 50px;
+        }
+        .character-name {
+            font-size: 10px;
+            text-align: center;
+            font-weight: bold;
+            color: #333;
         }
 
         .character::before {
@@ -774,7 +804,7 @@
                 font-size: 14px;
             }
             
-            .characterGrid {
+            .character-grid {
                 gap: 6px;
             }
             
@@ -826,7 +856,7 @@
                 margin-bottom: 10px;
             }
             
-            .characterGrid {
+            .character-grid {
                 gap: 4px;
             }
             
@@ -1148,6 +1178,117 @@
                 0 0 30px rgba(155, 89, 182, 0.8),
                 inset 0 2px 4px rgba(255,255,255,0.3);
         }
+
+        /* Character Base Styles */
+        .character {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 48px;
+            height: 90px;
+            z-index: 10;
+        }
+        .head {
+            width: 32px; height: 32px;
+            background: #fcd7b6;
+            border-radius: 50%;
+            position: absolute; top: 0; left: 8px;
+            border: 2px solid #b97a56;
+        }
+        .body {
+            width: 16px; height: 36px;
+            background: #3498db;
+            position: absolute; top: 32px; left: 16px;
+            border-radius: 8px;
+        }
+        .arm {
+            width: 10px; height: 28px;
+            background: #fcd7b6;
+            position: absolute; top: 36px;
+            border-radius: 5px;
+        }
+        .arm.left { left: 0; transform: rotate(-20deg); }
+        .arm.right { right: 0; transform: rotate(20deg); }
+        .leg {
+            width: 10px; height: 30px;
+            background: #b97a56;
+            position: absolute; top: 66px;
+            border-radius: 5px;
+        }
+        .leg.left { left: 8px; transform: rotate(-10deg); }
+        .leg.right { right: 8px; transform: rotate(10deg); }
+
+        /* 30 Unique Character Styles */
+        
+        /* 1. Boy */
+        .character.boy .head { background: #fcd7b6; border-color: #b97a56; }
+        .character.boy .body { background: #3498db; }
+        .character.boy .arm, .character.boy .leg { background: #fcd7b6; }
+
+        /* 2. Girl */
+        .character.girl .head { background: #ffe0e6; border-color: #e57399; }
+        .character.girl .body { background: #e91e63; }
+        .character.girl .arm, .character.girl .leg { background: #ffe0e6; }
+
+        /* 3. Superhero */
+        .character.superhero .head { background: #fcd7b6; border-color: #b97a56; }
+        .character.superhero .body { background: #ff6b35; }
+        .character.superhero .arm, .character.superhero .leg { background: #fcd7b6; }
+        .character.superhero .body::after {
+            content: 'S';
+            position: absolute;
+            top: 8px;
+            left: 4px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        /* 4. Princess */
+        .character.princess .head { background: #ffe0e6; border-color: #e57399; }
+        .character.princess .body { background: #ff69b4; }
+        .character.princess .arm, .character.princess .leg { background: #ffe0e6; }
+        .character.princess .head::after {
+            content: '👑';
+            position: absolute;
+            top: -8px;
+            left: 8px;
+            font-size: 16px;
+        }
+
+        /* 5. Ninja */
+        .character.ninja .head { background: #2c3e50; border-color: #34495e; }
+        .character.ninja .body { background: #2c3e50; }
+        .character.ninja .arm, .character.ninja .leg { background: #34495e; }
+
+        /* 6. Robot */
+        .character.robot .head { background: #95a5a6; border-color: #7f8c8d; }
+        .character.robot .body { background: #34495e; }
+        .character.robot .arm, .character.robot .leg { background: #95a5a6; }
+        .character.robot .head::after {
+            content: '🤖';
+            position: absolute;
+            top: 4px;
+            left: 8px;
+            font-size: 16px;
+        }
+
+        /* 7. Pirate */
+        .character.pirate .head { background: #fcd7b6; border-color: #b97a56; }
+        .character.pirate .body { background: #8b4513; }
+        .character.pirate .arm, .character.pirate .leg { background: #fcd7b6; }
+        .character.pirate .head::after {
+            content: '🏴‍☠️';
+            position: absolute;
+            top: -8px;
+            left: 8px;
+            font-size: 16px;
+        }
+
+        /* 8. Astronaut */
+        .character.astronaut .head { background: #fcd7b6; border-color: #b97a56; }
+        /* Add more character styles as needed */
     </style>
 </head>
 <body>
@@ -1186,7 +1327,14 @@
             <button id="startBtn">🚀 Start Game!</button>
         </div>
         
-        <div id="player"></div>
+        <div id="player" class="character boy">
+            <div class="head"></div>
+            <div class="body"></div>
+            <div class="arm left"></div>
+            <div class="arm right"></div>
+            <div class="leg left"></div>
+            <div class="leg right"></div>
+        </div>
         <div id="score">Score: 0</div>
         <div id="timer">Time: 60</div>
         <div id="pauseBtn">⏸️ Pause</div>
@@ -1219,6 +1367,16 @@
         <button class="pauseBtn" id="saveBtn">💾 Save Game</button>
         <button class="pauseBtn" id="resumeBtn">▶️ Resume</button>
         <button class="pauseBtn quit" id="quitBtn">❌ Quit Game</button>
+    </div>
+
+    <div id="characterModal" class="modal">
+        <div class="modal-content">
+            <h2>Choose Your Character!</h2>
+            <div class="character-grid" id="characterGrid">
+                <!-- Characters will be populated by JavaScript -->
+            </div>
+            <button id="startGameBtn" class="btn">Start Game!</button>
+        </div>
     </div>
 
     <script>
@@ -1411,56 +1569,19 @@
         }
         
         // Initialize game
-        function initGame() {
-            score = 0;
-            timeLeft = 60;
-            playerX = 370;
-            coins = [];
-            sharks = [];
-            missiles = [];
-            powerUps = [];
-            achievements = [];
-            gamePaused = false;
-            
-            // Reset power-ups
-            Object.keys(activePowerUps).forEach(key => {
-                activePowerUps[key] = false;
-                if (powerUpTimers[key]) {
-                    clearTimeout(powerUpTimers[key]);
-                    delete powerUpTimers[key];
-                }
-            });
-            
-            // Load saved game if available
-            if (savedGame) {
-                score = savedGame.score;
-                timeLeft = savedGame.timeLeft;
-                playerX = savedGame.playerX;
-                selectedCharacter = savedGame.selectedCharacter;
-                achievements = savedGame.achievements;
-                savedGame = null; // Clear saved game after loading
-            }
-            
-            updateGameDimensions();
-            
-            document.querySelectorAll('.coin').forEach(coin => coin.remove());
-            document.querySelectorAll('.shark').forEach(shark => shark.remove());
-            document.querySelectorAll('.missile').forEach(missile => missile.remove());
-            document.querySelectorAll('.powerup').forEach(powerup => powerup.remove());
-            
-            scoreElement.textContent = `Score: ${score}`;
-            timerElement.textContent = `Time: ${timeLeft}`;
-            
+        function init() {
+            populateCharacterGrid();
+            selectedCharacter = characters[0]; // Default to Boy
             updatePlayerCharacter();
-            updatePowerupIndicator();
             
-            player.style.left = playerX + 'px';
+            // Set default character as selected
+            setTimeout(() => {
+                const firstOption = document.querySelector('.character-option');
+                if (firstOption) firstOption.classList.add('selected');
+            }, 100);
             
-            gameOverScreen.style.display = 'none';
-            startScreen.style.display = 'none';
-            document.getElementById('pauseMenu').style.display = 'none';
-            
-            gameRunning = true;
+            // Show character selection modal
+            document.getElementById('characterModal').style.display = 'flex';
         }
         
         // Update player character appearance
@@ -2006,8 +2127,14 @@
         document.getElementById('startBtn').disabled = false;
         
         // Button event listeners
-        document.getElementById('startBtn').addEventListener('click', startGame);
-        document.getElementById('restartBtn').addEventListener('click', startGame);
+        document.getElementById('startBtn').addEventListener('click', () => {
+            startScreen.style.display = 'none';
+            init();
+        });
+        document.getElementById('restartBtn').addEventListener('click', () => {
+            gameOverScreen.style.display = 'none';
+            init();
+        });
         
         // Pause button event listener
         document.getElementById('pauseBtn').addEventListener('click', togglePause);
@@ -2181,6 +2308,146 @@
                 pauseBtn.textContent = '⏸️ Pause';
                 pauseMenu.style.display = 'none';
             }
+        }
+
+        // Character selection
+        const characters = [
+            { name: 'Boy', class: 'boy' },
+            { name: 'Girl', class: 'girl' },
+            { name: 'Superhero', class: 'superhero' },
+            { name: 'Princess', class: 'princess' },
+            { name: 'Ninja', class: 'ninja' },
+            { name: 'Robot', class: 'robot' },
+            { name: 'Pirate', class: 'pirate' },
+            { name: 'Astronaut', class: 'astronaut' },
+            { name: 'Doctor', class: 'doctor' },
+            { name: 'Firefighter', class: 'firefighter' },
+            { name: 'Police Officer', class: 'police' },
+            { name: 'Chef', class: 'chef' },
+            { name: 'Artist', class: 'artist' },
+            { name: 'Musician', class: 'musician' },
+            { name: 'Scientist', class: 'scientist' },
+            { name: 'Wizard', class: 'wizard' },
+            { name: 'Knight', class: 'knight' },
+            { name: 'Cowboy', class: 'cowboy' },
+            { name: 'Mermaid', class: 'mermaid' },
+            { name: 'Fairy', class: 'fairy' },
+            { name: 'Vampire', class: 'vampire' },
+            { name: 'Ghost', class: 'ghost' },
+            { name: 'Alien', class: 'alien' },
+            { name: 'Dinosaur', class: 'dinosaur' },
+            { name: 'Unicorn', class: 'unicorn' },
+            { name: 'Dragon', class: 'dragon' },
+            { name: 'Cat', class: 'cat' },
+            { name: 'Dog', class: 'dog' },
+            { name: 'Penguin', class: 'penguin' },
+            { name: 'Panda', class: 'panda' }
+        ];
+
+        // Populate character grid
+        function populateCharacterGrid() {
+            const grid = document.getElementById('characterGrid');
+            grid.innerHTML = '';
+            
+            characters.forEach((char, index) => {
+                const option = document.createElement('div');
+                option.className = 'character-option';
+                option.onclick = () => selectCharacter(index);
+                
+                option.innerHTML = `
+                    <div class="character-preview character ${char.class}">
+                        <div class="head"></div>
+                        <div class="body"></div>
+                        <div class="arm left"></div>
+                        <div class="arm right"></div>
+                        <div class="leg left"></div>
+                        <div class="leg right"></div>
+                    </div>
+                    <div class="character-name">${char.name}</div>
+                `;
+                
+                grid.appendChild(option);
+            });
+        }
+
+        // Select character
+        function selectCharacter(index) {
+            // Remove previous selection
+            document.querySelectorAll('.character-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Add selection to clicked option
+            event.currentTarget.classList.add('selected');
+            
+            // Update player character
+            selectedCharacter = characters[index];
+            updatePlayerCharacter();
+        }
+
+        // Update player character appearance
+        function updatePlayerCharacter() {
+            const player = document.getElementById('player');
+            player.className = `character ${selectedCharacter.class}`;
+        }
+
+        // Start game button
+        document.getElementById('startGameBtn').addEventListener('click', () => {
+            document.getElementById('characterModal').style.display = 'none';
+            initGame();
+        });
+
+        // Initialize game
+        function initGame() {
+            score = 0;
+            timeLeft = 60;
+            playerX = 370;
+            coins = [];
+            sharks = [];
+            missiles = [];
+            powerUps = [];
+            achievements = [];
+            gamePaused = false;
+            
+            // Reset power-ups
+            Object.keys(activePowerUps).forEach(key => {
+                activePowerUps[key] = false;
+                if (powerUpTimers[key]) {
+                    clearTimeout(powerUpTimers[key]);
+                    delete powerUpTimers[key];
+                }
+            });
+            
+            // Load saved game if available
+            if (savedGame) {
+                score = savedGame.score;
+                timeLeft = savedGame.timeLeft;
+                playerX = savedGame.playerX;
+                selectedCharacter = savedGame.selectedCharacter;
+                achievements = savedGame.achievements;
+                savedGame = null; // Clear saved game after loading
+            }
+            
+            updateGameDimensions();
+            
+            document.querySelectorAll('.coin').forEach(coin => coin.remove());
+            document.querySelectorAll('.shark').forEach(shark => shark.remove());
+            document.querySelectorAll('.missile').forEach(missile => missile.remove());
+            document.querySelectorAll('.powerup').forEach(powerup => powerup.remove());
+            
+            scoreElement.textContent = `Score: ${score}`;
+            timerElement.textContent = `Time: ${timeLeft}`;
+            
+            updatePlayerCharacter();
+            updatePowerupIndicator();
+            
+            player.style.left = playerX + 'px';
+            
+            gameOverScreen.style.display = 'none';
+            startScreen.style.display = 'none';
+            document.getElementById('pauseMenu').style.display = 'none';
+            
+            gameRunning = true;
         }
     </script>
 </body>
