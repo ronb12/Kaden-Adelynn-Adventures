@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Kaden & Adelynn Adventures - Enhanced!</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #000428, #004e92);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            touch-action: none;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: min(95vw, 800px);
+            height: min(90vh, 600px);
+            background: linear-gradient(to bottom, #000428 0%, #004e92 50%, #000428 100%);
+            border: 4px solid #FF6B6B;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        #player {
+            position: absolute;
+            bottom: 20px;
+            width: min(8vw, 60px);
+            height: min(8vw, 60px);
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            border-radius: 50%;
+            border: 4px solid #2c3e50;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3), 0 0 20px rgba(52, 152, 219, 0.6);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: min(5vw, 30px);
+            transition: all 0.3s ease;
+        }
+
+        #player::before { content: '👨‍🎮'; }
+
+        .coin {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border-radius: 50%;
+            border: 3px solid #FF8C00;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3), 0 0 15px rgba(255, 215, 0, 0.6);
+            z-index: 5;
+            animation: coinSpin 2s linear infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .coin::before { content: '💰'; }
+
+        @keyframes coinSpin {
+            0% { transform: rotateY(0deg); }
+            100% { transform: rotateY(360deg); }
+        }
+
+        .shark {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            border-radius: 10px;
+            border: 3px solid #1a252f;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4), 0 0 15px rgba(52, 73, 94, 0.6);
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 25px;
+        }
+
+        .shark::before { content: '🦈'; }
+
+        .powerup {
+            position: absolute;
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            border: 3px solid;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3), 0 0 20px currentColor;
+            z-index: 5;
+            animation: powerupPulse 2s ease-in-out infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .powerup.speed {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            border-color: #a93226;
+            color: #e74c3c;
+        }
+
+        .powerup.speed::before { content: '⚡'; }
+
+        .powerup.shield {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border-color: #2c3e50;
+            color: #3498db;
+        }
+
+        .powerup.shield::before { content: '🛡️'; }
+
+        @keyframes powerupPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            z-index: 20;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .ui-panel {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #FF6B6B;
+            border-radius: 10px;
+            padding: 10px;
+            color: white;
+            font-size: 14px;
+            backdrop-filter: blur(5px);
+        }
+
+        .ui-panel h3 {
+            margin: 0 0 5px 0;
+            color: #FF6B6B;
+            font-size: 16px;
+        }
+
+        #score {
+            font-size: 18px;
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        #timer {
+            font-size: 18px;
+            font-weight: bold;
+            color: #FF6B6B;
+        }
+
+        #health {
+            display: flex;
+            gap: 5px;
+        }
+
+        .heart {
+            color: #e74c3c;
+            font-size: 20px;
+        }
+
+        #mobileControls {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            z-index: 20;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mobile-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #FF6B6B;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .mobile-btn:active {
+            transform: scale(0.9);
+            background: rgba(255, 107, 107, 0.3);
+        }
+
+        #gameOverScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 30;
+            backdrop-filter: blur(5px);
+        }
+
+        .game-over-content {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            border: 4px solid #FF6B6B;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            color: white;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #FF6B6B, #ee5a52);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 24px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            #mobileControls { display: flex; }
+            .ui-panel { font-size: 12px; padding: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="ui">
+            <div class="ui-panel">
+                <h3>Score</h3>
+                <div id="score">0</div>
+                <div id="highScore">High: 0</div>
+            </div>
+            
+            <div class="ui-panel">
+                <h3>Time</h3>
+                <div id="timer">60</div>
+            </div>
+            
+            <div class="ui-panel">
+                <h3>Health</h3>
+                <div id="health">
+                    <span class="heart">❤️</span>
+                    <span class="heart">❤️</span>
+                    <span class="heart">❤️</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="player"></div>
+
+        <div id="mobileControls">
+            <div class="mobile-btn" id="leftBtn">⬅️</div>
+            <div class="mobile-btn" id="fireBtn">🔥</div>
+            <div class="mobile-btn" id="rightBtn">➡️</div>
+        </div>
+    </div>
+
+    <div id="gameOverScreen">
+        <div class="game-over-content">
+            <h2>Game Over!</h2>
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <p>High Score: <span id="finalHighScore">0</span></p>
+            <p>Coins Collected: <span id="finalCoins">0</span></p>
+            <button class="btn" onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let gameState = {
+            score: 0,
+            highScore: 0,
+            health: 3,
+            timeLeft: 60,
+            gameRunning: false,
+            playerX: 50,
+            coins: [],
+            sharks: [],
+            powerups: [],
+            activePowerups: { speed: false, shield: false },
+            powerupTimers: {},
+            coinsCollected: 0
+        };
+
+        // DOM elements
+        const player = document.getElementById('player');
+        const gameContainer = document.getElementById('gameContainer');
+        const scoreElement = document.getElementById('score');
+        const timerElement = document.getElementById('timer');
+        const healthElement = document.getElementById('health');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+
+        // Load saved data
+        function loadGameData() {
+            const saved = localStorage.getItem('kadenAdelynnGame');
+            if (saved) {
+                const data = JSON.parse(saved);
+                gameState.highScore = data.highScore || 0;
+            }
+            updateHighScore();
+        }
+
+        // Save game data
+        function saveGameData() {
+            const data = { highScore: gameState.highScore };
+            localStorage.setItem('kadenAdelynnGame', JSON.stringify(data));
+        }
+
+        // Initialize game
+        function initGame() {
+            loadGameData();
+            setupEventListeners();
+            startGame();
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            document.addEventListener('keydown', handleKeyDown);
+            gameContainer.addEventListener('mousedown', handleMouseDown);
+            gameContainer.addEventListener('mousemove', handleMouseMove);
+            gameContainer.addEventListener('touchstart', handleTouchStart);
+            gameContainer.addEventListener('touchmove', handleTouchMove);
+            
+            document.getElementById('leftBtn').addEventListener('touchstart', () => movePlayer(-1));
+            document.getElementById('rightBtn').addEventListener('touchstart', () => movePlayer(1));
+            document.getElementById('fireBtn').addEventListener('touchstart', fireMissile);
+            
+            gameContainer.addEventListener('contextmenu', e => e.preventDefault());
+        }
+
+        // Handle keyboard input
+        function handleKeyDown(e) {
+            if (!gameState.gameRunning) return;
+            switch(e.key) {
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    movePlayer(-1);
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    movePlayer(1);
+                    break;
+                case ' ':
+                case 'Enter':
+                    fireMissile();
+                    break;
+            }
+        }
+
+        // Handle mouse input
+        function handleMouseDown(e) {
+            if (!gameState.gameRunning) return;
+            fireMissile();
+        }
+
+        function handleMouseMove(e) {
+            if (!gameState.gameRunning) return;
+            const rect = gameContainer.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            gameState.playerX = Math.max(5, Math.min(95, x));
+            updatePlayerPosition();
+        }
+
+        // Handle touch input
+        function handleTouchStart(e) {
+            e.preventDefault();
+            if (!gameState.gameRunning) return;
+            fireMissile();
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            if (!gameState.gameRunning) return;
+            const rect = gameContainer.getBoundingClientRect();
+            const touch = e.touches[0];
+            const x = ((touch.clientX - rect.left) / rect.width) * 100;
+            gameState.playerX = Math.max(5, Math.min(95, x));
+            updatePlayerPosition();
+        }
+
+        // Move player
+        function movePlayer(direction) {
+            if (!gameState.gameRunning) return;
+            const speed = gameState.activePowerups.speed ? 10 : 5;
+            gameState.playerX += direction * speed;
+            gameState.playerX = Math.max(5, Math.min(95, gameState.playerX));
+            updatePlayerPosition();
+        }
+
+        // Update player position
+        function updatePlayerPosition() {
+            player.style.left = gameState.playerX + '%';
+        }
+
+        // Start game
+        function startGame() {
+            gameState.gameRunning = true;
+            gameState.score = 0;
+            gameState.health = 3;
+            gameState.timeLeft = 60;
+            gameState.coinsCollected = 0;
+            gameState.coins = [];
+            gameState.sharks = [];
+            gameState.powerups = [];
+            gameState.activePowerups = { speed: false, shield: false };
+            gameState.powerupTimers = {};
+
+            updateUI();
+            gameLoop();
+            spawnLoop();
+        }
+
+        // Game loop
+        function gameLoop() {
+            if (!gameState.gameRunning) return;
+            updateGame();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Update game state
+        function updateGame() {
+            if (gameState.timeLeft > 0) {
+                gameState.timeLeft -= 1/60;
+                if (gameState.timeLeft <= 0) {
+                    gameOver();
+                    return;
+                }
+            }
+
+            Object.keys(gameState.powerupTimers).forEach(powerup => {
+                gameState.powerupTimers[powerup] -= 1/60;
+                if (gameState.powerupTimers[powerup] <= 0) {
+                    deactivatePowerup(powerup);
+                }
+            });
+
+            checkCollisions();
+            updateUI();
+        }
+
+        // Spawn loop
+        function spawnLoop() {
+            if (!gameState.gameRunning) return;
+            if (Math.random() < 0.02) spawnCoin();
+            if (Math.random() < 0.005) spawnShark();
+            if (Math.random() < 0.003) spawnPowerup();
+            setTimeout(spawnLoop, 100);
+        }
+
+        // Spawn coin
+        function spawnCoin() {
+            const coin = document.createElement('div');
+            coin.className = 'coin';
+            coin.style.left = Math.random() * 90 + 5 + '%';
+            coin.style.top = '-30px';
+            gameContainer.appendChild(coin);
+
+            gameState.coins.push({
+                element: coin,
+                x: parseFloat(coin.style.left),
+                y: -30,
+                speed: 2 + Math.random() * 2
+            });
+        }
+
+        // Spawn shark
+        function spawnShark() {
+            const shark = document.createElement('div');
+            shark.className = 'shark';
+            shark.style.left = Math.random() * 90 + 5 + '%';
+            shark.style.top = '-40px';
+            gameContainer.appendChild(shark);
+
+            gameState.sharks.push({
+                element: shark,
+                x: parseFloat(shark.style.left),
+                y: -40,
+                speed: 3 + Math.random() * 2
+            });
+        }
+
+        // Spawn powerup
+        function spawnPowerup() {
+            const types = ['speed', 'shield'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            
+            const powerup = document.createElement('div');
+            powerup.className = `powerup ${type}`;
+            powerup.style.left = Math.random() * 90 + 5 + '%';
+            powerup.style.top = '-35px';
+            gameContainer.appendChild(powerup);
+
+            gameState.powerups.push({
+                element: powerup,
+                x: parseFloat(powerup.style.left),
+                y: -35,
+                speed: 1.5 + Math.random() * 1,
+                type: type
+            });
+        }
+
+        // Fire missile
+        function fireMissile() {
+            if (!gameState.gameRunning) return;
+            // Missile functionality can be added here
+        }
+
+        // Check collisions
+        function checkCollisions() {
+            const playerRect = player.getBoundingClientRect();
+
+            gameState.coins.forEach((coin, coinIndex) => {
+                coin.y += coin.speed;
+                coin.element.style.top = coin.y + 'px';
+                
+                if (coin.y > 100) {
+                    coin.element.remove();
+                    gameState.coins.splice(coinIndex, 1);
+                }
+            });
+
+            gameState.sharks.forEach((shark, sharkIndex) => {
+                shark.y += shark.speed;
+                shark.element.style.top = shark.y + 'px';
+                
+                if (shark.y > 100) {
+                    shark.element.remove();
+                    gameState.sharks.splice(sharkIndex, 1);
+                }
+            });
+
+            gameState.powerups.forEach((powerup, powerupIndex) => {
+                powerup.y += powerup.speed;
+                powerup.element.style.top = powerup.y + 'px';
+                
+                if (powerup.y > 100) {
+                    powerup.element.remove();
+                    gameState.powerups.splice(powerupIndex, 1);
+                }
+            });
+
+            gameState.coins.forEach((coin, coinIndex) => {
+                const coinRect = coin.element.getBoundingClientRect();
+                if (isColliding(playerRect, coinRect)) {
+                    collectCoin(coin, coinIndex);
+                }
+            });
+
+            gameState.sharks.forEach((shark, sharkIndex) => {
+                const sharkRect = shark.element.getBoundingClientRect();
+                if (isColliding(playerRect, sharkRect)) {
+                    hitShark(shark, sharkIndex);
+                }
+            });
+
+            gameState.powerups.forEach((powerup, powerupIndex) => {
+                const powerupRect = powerup.element.getBoundingClientRect();
+                if (isColliding(playerRect, powerupRect)) {
+                    collectPowerup(powerup, powerupIndex);
+                }
+            });
+        }
+
+        // Collision detection
+        function isColliding(rect1, rect2) {
+            return rect1.left < rect2.right &&
+                   rect1.right > rect2.left &&
+                   rect1.top < rect2.bottom &&
+                   rect1.bottom > rect2.top;
+        }
+
+        // Collect coin
+        function collectCoin(coin, index) {
+            const points = gameState.activePowerups.double ? 20 : 10;
+            gameState.score += points;
+            gameState.coinsCollected++;
+            
+            coin.element.remove();
+            gameState.coins.splice(index, 1);
+
+            if (gameState.score > gameState.highScore) {
+                gameState.highScore = gameState.score;
+                updateHighScore();
+                saveGameData();
+            }
+        }
+
+        // Hit shark
+        function hitShark(shark, index) {
+            if (gameState.activePowerups.shield) {
+                deactivatePowerup('shield');
+            } else {
+                gameState.health--;
+                if (gameState.health <= 0) {
+                    gameOver();
+                    return;
+                }
+            }
+
+            shark.element.remove();
+            gameState.sharks.splice(index, 1);
+        }
+
+        // Collect powerup
+        function collectPowerup(powerup, index) {
+            activatePowerup(powerup.type);
+            powerup.element.remove();
+            gameState.powerups.splice(index, 1);
+        }
+
+        // Activate powerup
+        function activatePowerup(type) {
+            gameState.activePowerups[type] = true;
+            gameState.powerupTimers[type] = 10;
+        }
+
+        // Deactivate powerup
+        function deactivatePowerup(type) {
+            gameState.activePowerups[type] = false;
+            delete gameState.powerupTimers[type];
+        }
+
+        // Update UI
+        function updateUI() {
+            scoreElement.textContent = gameState.score;
+            timerElement.textContent = Math.ceil(gameState.timeLeft);
+            
+            const hearts = healthElement.querySelectorAll('.heart');
+            hearts.forEach((heart, index) => {
+                heart.style.opacity = index < gameState.health ? '1' : '0.3';
+            });
+        }
+
+        // Update high score
+        function updateHighScore() {
+            document.getElementById('highScore').textContent = 'High: ' + gameState.highScore;
+        }
+
+        // Game over
+        function gameOver() {
+            gameState.gameRunning = false;
+            
+            document.getElementById('finalScore').textContent = gameState.score;
+            document.getElementById('finalHighScore').textContent = gameState.highScore;
+            document.getElementById('finalCoins').textContent = gameState.coinsCollected;
+            
+            gameOverScreen.style.display = 'flex';
+            
+            gameState.coins.forEach(coin => coin.element.remove());
+            gameState.sharks.forEach(shark => shark.element.remove());
+            gameState.powerups.forEach(powerup => powerup.element.remove());
+        }
+
+        // Restart game
+        function restartGame() {
+            gameOverScreen.style.display = 'none';
+            startGame();
+        }
+
+        // Initialize the game
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html> 
