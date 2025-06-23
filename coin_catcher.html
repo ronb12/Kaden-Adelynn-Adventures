@@ -805,19 +805,53 @@
             }
             
             .character-grid {
-                gap: 6px;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 8px;
+                max-height: 250px;
             }
             
-            .characterOption {
-                padding: 6px;
+            .character-option {
+                padding: 8px;
             }
             
-            .characterOption .characterEmoji {
-                font-size: 20px;
+            .character-preview {
+                width: 35px;
+                height: 65px;
             }
             
-            .characterOption .characterName {
+            .character-preview .head {
+                width: 20px; height: 20px;
+                top: 0; left: 7px;
+            }
+            
+            .character-preview .body {
+                width: 10px; height: 24px;
+                top: 20px; left: 12px;
+            }
+            
+            .character-preview .arm {
+                width: 6px; height: 18px;
+                top: 24px;
+            }
+            
+            .character-preview .leg {
+                width: 6px; height: 20px;
+                top: 42px;
+            }
+            
+            .character-name {
                 font-size: 8px;
+            }
+            
+            #characterModal .modal-content {
+                width: 95vw;
+                max-width: 400px;
+                padding: 20px;
+            }
+            
+            #characterModal h2 {
+                font-size: 24px;
+                margin-bottom: 15px;
             }
         }
 
@@ -830,12 +864,52 @@
                 font-size: 12px;
             }
             
-            .characterOption .characterEmoji {
-                font-size: 18px;
+            .character-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 6px;
+                max-height: 200px;
             }
             
-            .characterOption .characterName {
+            .character-option {
+                padding: 6px;
+            }
+            
+            .character-preview {
+                width: 30px;
+                height: 55px;
+            }
+            
+            .character-preview .head {
+                width: 18px; height: 18px;
+                top: 0; left: 6px;
+            }
+            
+            .character-preview .body {
+                width: 8px; height: 20px;
+                top: 18px; left: 11px;
+            }
+            
+            .character-preview .arm {
+                width: 5px; height: 15px;
+                top: 20px;
+            }
+            
+            .character-preview .leg {
+                width: 5px; height: 18px;
+                top: 36px;
+            }
+            
+            .character-name {
                 font-size: 7px;
+            }
+            
+            #characterModal .modal-content {
+                padding: 15px;
+            }
+            
+            #characterModal h2 {
+                font-size: 20px;
+                margin-bottom: 10px;
             }
         }
 
@@ -857,19 +931,288 @@
             }
             
             .character-grid {
+                grid-template-columns: repeat(6, 1fr);
                 gap: 4px;
+                max-height: 150px;
             }
             
-            .characterOption {
+            .character-option {
                 padding: 4px;
             }
             
-            .characterOption .characterEmoji {
-                font-size: 16px;
+            .character-preview {
+                width: 25px;
+                height: 45px;
             }
             
-            .characterOption .characterName {
+            .character-preview .head {
+                width: 15px; height: 15px;
+                top: 0; left: 5px;
+            }
+            
+            .character-preview .body {
+                width: 7px; height: 16px;
+                top: 15px; left: 9px;
+            }
+            
+            .character-preview .arm {
+                width: 4px; height: 12px;
+                top: 17px;
+            }
+            
+            .character-preview .leg {
+                width: 4px; height: 14px;
+                top: 29px;
+            }
+            
+            .character-name {
                 font-size: 6px;
+            }
+            
+            #characterModal .modal-content {
+                padding: 10px;
+                max-height: 90vh;
+            }
+            
+            #characterModal h2 {
+                font-size: 18px;
+                margin-bottom: 8px;
+            }
+        }
+
+        /* Tablet optimization */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .character-grid {
+                grid-template-columns: repeat(6, 1fr);
+                gap: 12px;
+                max-height: 350px;
+            }
+            
+            .character-preview {
+                width: 45px;
+                height: 85px;
+            }
+            
+            .character-preview .head {
+                width: 28px; height: 28px;
+                top: 0; left: 8px;
+            }
+            
+            .character-preview .body {
+                width: 14px; height: 32px;
+                top: 28px; left: 15px;
+            }
+            
+            .character-preview .arm {
+                width: 9px; height: 25px;
+                top: 32px;
+            }
+            
+            .character-preview .leg {
+                width: 9px; height: 27px;
+                top: 58px;
+            }
+            
+            .character-name {
+                font-size: 11px;
+            }
+        }
+
+        /* Large desktop screens */
+        @media (min-width: 1200px) {
+            .character-grid {
+                grid-template-columns: repeat(8, 1fr);
+                gap: 15px;
+                max-height: 400px;
+            }
+            
+            .character-preview {
+                width: 50px;
+                height: 95px;
+            }
+            
+            .character-preview .head {
+                width: 32px; height: 32px;
+                top: 0; left: 9px;
+            }
+            
+            .character-preview .body {
+                width: 16px; height: 36px;
+                top: 32px; left: 17px;
+            }
+            
+            .character-preview .arm {
+                width: 10px; height: 28px;
+                top: 36px;
+            }
+            
+            .character-preview .leg {
+                width: 10px; height: 30px;
+                top: 66px;
+            }
+            
+            .character-name {
+                font-size: 12px;
+            }
+        }
+
+        /* Touch device optimization */
+        @media (hover: none) and (pointer: coarse) {
+            .character-option {
+                min-height: 60px;
+                min-width: 60px;
+            }
+            
+            .character-option:hover {
+                transform: none;
+            }
+            
+            .character-option:active {
+                transform: scale(0.95);
+            }
+            
+            #pauseBtn, .pauseBtn, #startGameBtn {
+                min-height: 44px;
+                min-width: 44px;
+            }
+            
+            #player {
+                min-width: 50px;
+                min-height: 50px;
+            }
+            
+            .coin, .shark, .powerup {
+                min-width: 35px;
+                min-height: 35px;
+            }
+        }
+
+        /* High DPI displays */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .character-preview .head,
+            .character-preview .body,
+            .character-preview .arm,
+            .character-preview .leg {
+                border-width: 1px;
+            }
+            
+            #player {
+                border-width: 2px;
+            }
+            
+            .coin, .shark, .powerup {
+                border-width: 2px;
+            }
+        }
+
+        /* Smart TV and large displays */
+        @media (min-width: 1920px) {
+            #gameContainer {
+                width: 1200px;
+                height: 800px;
+            }
+            
+            .character-grid {
+                grid-template-columns: repeat(10, 1fr);
+                gap: 20px;
+                max-height: 500px;
+            }
+            
+            .character-preview {
+                width: 60px;
+                height: 110px;
+            }
+            
+            .character-preview .head {
+                width: 40px; height: 40px;
+                top: 0; left: 10px;
+            }
+            
+            .character-preview .body {
+                width: 20px; height: 45px;
+                top: 40px; left: 20px;
+            }
+            
+            .character-preview .arm {
+                width: 12px; height: 35px;
+                top: 45px;
+            }
+            
+            .character-preview .leg {
+                width: 12px; height: 38px;
+                top: 83px;
+            }
+            
+            .character-name {
+                font-size: 14px;
+            }
+            
+            #score, #timer, #pauseBtn {
+                font-size: 28px;
+                padding: 15px 20px;
+            }
+        }
+
+        /* Gaming console and controller support */
+        @media (any-pointer: coarse) and (any-hover: none) {
+            /* Optimize for touch and controller input */
+            .character-option {
+                border-width: 3px;
+            }
+            
+            .character-option:focus {
+                outline: 3px solid #ffd700;
+                outline-offset: 2px;
+            }
+            
+            #startGameBtn:focus,
+            #pauseBtn:focus,
+            .pauseBtn:focus {
+                outline: 3px solid #ffd700;
+                outline-offset: 2px;
+            }
+        }
+
+        /* Accessibility improvements */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            #startScreen,
+            #characterModal .modal-content,
+            #pauseMenu {
+                background: rgba(30, 30, 30, 0.95);
+                color: #fff;
+            }
+            
+            .character-option {
+                background: #2c2c2c;
+                border-color: #555;
+                color: #fff;
+            }
+            
+            .character-name {
+                color: #fff;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            #gameContainer {
+                display: none;
+            }
+            
+            body::after {
+                content: "Kaden & Adelynn Adventures - Fun Game for Kids!";
+                font-size: 24px;
+                text-align: center;
+                margin-top: 50px;
             }
         }
 
@@ -2448,6 +2791,135 @@
             document.getElementById('pauseMenu').style.display = 'none';
             
             gameRunning = true;
+        }
+
+        // Device detection and optimization
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        const isMobile = window.innerWidth <= 768;
+        const isTablet = window.innerWidth > 768 && window.innerWidth <= 1024;
+        const isLargeScreen = window.innerWidth >= 1920;
+
+        // Optimize for device type
+        if (isTouchDevice) {
+            document.body.classList.add('touch-device');
+        }
+        if (isMobile) {
+            document.body.classList.add('mobile-device');
+        }
+        if (isTablet) {
+            document.body.classList.add('tablet-device');
+        }
+        if (isLargeScreen) {
+            document.body.classList.add('large-screen');
+        }
+
+        // Touch controls for mobile
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            if (!gameRunning || gamePaused) return;
+            
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!gameRunning || gamePaused) return;
+            
+            e.preventDefault();
+            const touchX = e.touches[0].clientX;
+            const touchDeltaX = touchX - touchStartX;
+            
+            // Move player based on touch
+            const gameContainer = document.getElementById('gameContainer');
+            const containerRect = gameContainer.getBoundingClientRect();
+            const relativeX = touchX - containerRect.left;
+            
+            if (relativeX >= 0 && relativeX <= containerRect.width) {
+                playerX = relativeX - 30; // Center the player
+                playerX = Math.max(0, Math.min(playerX, containerRect.width - 60));
+                player.style.left = playerX + 'px';
+            }
+        });
+
+        // Keyboard navigation for character selection
+        let selectedCharacterIndex = 0;
+
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('characterModal').style.display === 'flex') {
+                const characterOptions = document.querySelectorAll('.character-option');
+                
+                switch(e.key) {
+                    case 'ArrowLeft':
+                        e.preventDefault();
+                        selectedCharacterIndex = Math.max(0, selectedCharacterIndex - 1);
+                        updateCharacterSelection();
+                        break;
+                    case 'ArrowRight':
+                        e.preventDefault();
+                        selectedCharacterIndex = Math.min(characters.length - 1, selectedCharacterIndex + 1);
+                        updateCharacterSelection();
+                        break;
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        const columns = 5;
+                        selectedCharacterIndex = Math.max(0, selectedCharacterIndex - columns);
+                        updateCharacterSelection();
+                        break;
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        const cols = 5;
+                        selectedCharacterIndex = Math.min(characters.length - 1, selectedCharacterIndex + cols);
+                        updateCharacterSelection();
+                        break;
+                    case 'Enter':
+                    case ' ':
+                        e.preventDefault();
+                        selectCharacter(selectedCharacterIndex);
+                        break;
+                }
+            }
+        });
+
+        function updateCharacterSelection() {
+            document.querySelectorAll('.character-option').forEach((option, index) => {
+                option.classList.remove('selected');
+                if (index === selectedCharacterIndex) {
+                    option.classList.add('selected');
+                    option.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            });
+        }
+
+        // Performance optimization
+        let lastFrameTime = 0;
+        const targetFPS = 60;
+        const frameInterval = 1000 / targetFPS;
+
+        function gameLoop(currentTime) {
+            if (!gameRunning) return;
+
+            const deltaTime = currentTime - lastFrameTime;
+
+            if (deltaTime >= frameInterval) {
+                updateGame();
+                lastFrameTime = currentTime - (deltaTime % frameInterval);
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Optimized update function
+        function updateGame() {
+            if (gamePaused) return;
+
+            // Update game elements
+            updateCoins();
+            updateSharks();
+            updateMissiles();
+            updatePowerUps();
+            checkCollisions();
         }
     </script>
 </body>
