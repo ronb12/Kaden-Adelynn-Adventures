@@ -18,7 +18,7 @@ class AdventureRunner {
         this.score = 0;
         this.distance = 0;
         this.highScore = localStorage.getItem('adventureRunnerHighScore') || 0;
-        this.gameSpeed = 5;
+        this.gameSpeed = 3;
         this.obstacles = [];
         this.particles = [];
         this.animationId = null;
@@ -154,7 +154,7 @@ class AdventureRunner {
         this.gameRunning = true;
         this.score = 0;
         this.distance = 0;
-        this.gameSpeed = 5;
+        this.gameSpeed = 3;
         this.obstacles = [];
         this.playerState = 'running';
         this.playerLane = 'center';
@@ -289,17 +289,19 @@ class AdventureRunner {
         const obstacle = document.createElement('div');
         obstacle.className = `obstacle ${randomObstacle.class}`;
         obstacle.innerHTML = randomObstacle.emoji;
-        obstacle.style.left = '800px';
-        obstacle.style.bottom = randomObstacle.y + 'px';
+        obstacle.style.top = '-100px';
+        obstacle.style.bottom = 'auto';
         obstacle.dataset.height = randomObstacle.height;
         obstacle.dataset.y = randomObstacle.y;
         obstacle.dataset.lane = randomLane;
         
         // Position based on lane
         if (randomLane === 'left') {
-            obstacle.style.left = '650px';
+            obstacle.style.left = '200px';
+        } else if (randomLane === 'center') {
+            obstacle.style.left = '350px';
         } else if (randomLane === 'right') {
-            obstacle.style.left = '750px';
+            obstacle.style.left = '500px';
         }
         
         this.gameArea.appendChild(obstacle);
@@ -312,10 +314,10 @@ class AdventureRunner {
     
     updateObstacles() {
         this.obstacles.forEach((obstacle, index) => {
-            const currentLeft = parseFloat(obstacle.style.left);
-            const newLeft = currentLeft - this.gameSpeed;
+            const currentTop = parseFloat(obstacle.style.top);
+            const newTop = currentTop + this.gameSpeed;
             
-            if (newLeft < -50) {
+            if (newTop > 500) {
                 obstacle.remove();
                 this.obstacles.splice(index, 1);
                 this.score += 10;
@@ -323,7 +325,7 @@ class AdventureRunner {
                 this.updateScore();
                 this.updateDistance();
             } else {
-                obstacle.style.left = newLeft + 'px';
+                obstacle.style.top = newTop + 'px';
             }
         });
     }

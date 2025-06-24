@@ -107,11 +107,13 @@ body {
 .player {
     position: absolute;
     bottom: 50px;
-    left: 100px;
+    left: 50%;
+    transform: translateX(-50%);
     font-size: 3em;
     z-index: 10;
-    transition: transform 0.1s ease;
+    transition: transform 0.2s ease;
     filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
+    animation: runForward 0.5s infinite alternate;
 }
 
 .player.jumping {
@@ -123,21 +125,28 @@ body {
 }
 
 .player.left {
-    transform: translateX(-50px);
+    transform: translateX(-50%) translateX(-80px);
 }
 
 .player.right {
-    transform: translateX(50px);
+    transform: translateX(-50%) translateX(80px);
+}
+
+@keyframes runForward {
+    0% { transform: translateX(-50%) translateY(0px); }
+    100% { transform: translateX(-50%) translateY(-5px); }
 }
 
 @keyframes jump {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-100px); }
+    0% { transform: translateX(-50%) translateY(0px); }
+    50% { transform: translateX(-50%) translateY(-120px); }
+    100% { transform: translateX(-50%) translateY(0px); }
 }
 
 @keyframes slide {
-    0%, 100% { transform: scaleY(1); }
-    50% { transform: scaleY(0.5); }
+    0% { transform: translateX(-50%) scaleY(1); }
+    50% { transform: translateX(-50%) scaleY(0.5); }
+    100% { transform: translateX(-50%) scaleY(1); }
 }
 
 .obstacle {
@@ -145,6 +154,7 @@ body {
     font-size: 2em;
     z-index: 5;
     filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
+    animation: moveForward 3s linear infinite;
 }
 
 .obstacle.tree {
@@ -160,19 +170,24 @@ body {
 .obstacle.bird {
     bottom: 150px;
     color: #FFD700;
-    animation: fly 2s linear infinite;
+    animation: fly 2s linear infinite, moveForward 3s linear infinite;
 }
 
 .obstacle.fire {
     bottom: 40px;
     color: #FF4500;
-    animation: flicker 0.5s ease-in-out infinite alternate;
+    animation: flicker 0.5s ease-in-out infinite alternate, moveForward 3s linear infinite;
 }
 
 .obstacle.pillar {
     bottom: 30px;
     color: #8B4513;
     font-size: 3em;
+}
+
+@keyframes moveForward {
+    0% { transform: translateY(-100vh); }
+    100% { transform: translateY(100vh); }
 }
 
 @keyframes fly {
