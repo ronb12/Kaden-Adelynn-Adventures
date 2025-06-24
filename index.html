@@ -340,645 +340,647 @@
         <div class="controlBtn" id="rightBtn">→</div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
-    <script>
-    // Enhanced 3D Endless Runner with Mobile Tab View
-    const LANES = [-2, 0, 2];
-    const PLAYER_SIZE = 0.4;
-    const OBSTACLE_SIZE = 0.6;
-    const COIN_SIZE = 0.2;
-    const POWERUP_SIZE = 0.3;
-    const GROUND_LENGTH = 150;
-    const GAME_SPEED_START = 0.15;
-    const JUMP_HEIGHT = 1.5;
-    const JUMP_DURATION = 0.6;
-    const SLIDE_DURATION = 0.5;
+    <!-- Remove the old Three.js script tag -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script> -->
+    <script type="module">
+      import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.module.js';
+      // Enhanced 3D Endless Runner with Mobile Tab View
+      const LANES = [-2, 0, 2];
+      const PLAYER_SIZE = 0.4;
+      const OBSTACLE_SIZE = 0.6;
+      const COIN_SIZE = 0.2;
+      const POWERUP_SIZE = 0.3;
+      const GROUND_LENGTH = 150;
+      const GAME_SPEED_START = 0.15;
+      const JUMP_HEIGHT = 1.5;
+      const JUMP_DURATION = 0.6;
+      const SLIDE_DURATION = 0.5;
 
-    let scene, camera, renderer, ground, player, playerBody, playerHead, playerArms, playerLegs;
-    let obstacles = [], coins = [], powerUps = [], particles = [];
-    let lane = 1, jumping = false, sliding = false, jumpStart = 0, slideStart = 0;
-    let speed = GAME_SPEED_START, score = 0, coinsCollected = 0, highScore = 0;
-    let running = false, lastSpawn = 0, lastCoin = 0, lastPowerUp = 0;
-    let powerUpActive = null, powerUpTimer = 0;
-    let achievements = {
-        firstCoin: false,
-        tenCoins: false,
-        fiftyCoins: false,
-        hundredScore: false,
-        fiveHundredScore: false
-    };
+      let scene, camera, renderer, ground, player, playerBody, playerHead, playerArms, playerLegs;
+      let obstacles = [], coins = [], powerUps = [], particles = [];
+      let lane = 1, jumping = false, sliding = false, jumpStart = 0, slideStart = 0;
+      let speed = GAME_SPEED_START, score = 0, coinsCollected = 0, highScore = 0;
+      let running = false, lastSpawn = 0, lastCoin = 0, lastPowerUp = 0;
+      let powerUpActive = null, powerUpTimer = 0;
+      let achievements = {
+          firstCoin: false,
+          tenCoins: false,
+          fiftyCoins: false,
+          hundredScore: false,
+          fiveHundredScore: false
+      };
 
-    // Mobile touch variables
-    let touchStartX = 0, touchStartY = 0, touchEndX = 0, touchEndY = 0;
-    let isMobile = false;
+      // Mobile touch variables
+      let touchStartX = 0, touchStartY = 0, touchEndX = 0, touchEndY = 0;
+      let isMobile = false;
 
-    // UI Elements
-    const gameContainer = document.getElementById('gameContainer');
-    const scoreEl = document.getElementById('score');
-    const coinsEl = document.getElementById('coins');
-    const highScoreEl = document.getElementById('highScore');
-    const startScreen = document.getElementById('startScreen');
-    const gameOverScreen = document.getElementById('gameOverScreen');
-    const startBtn = document.getElementById('startBtn');
-    const restartBtn = document.getElementById('restartBtn');
-    const finalScoreEl = document.getElementById('finalScore');
-    const finalCoinsEl = document.getElementById('finalCoins');
-    const newBestEl = document.getElementById('newBest');
-    const powerUpDisplay = document.getElementById('powerUpDisplay');
-    const achievementPopup = document.getElementById('achievementPopup');
-    const mobileTabView = document.getElementById('mobileTabView');
-    const swipeArea = document.getElementById('swipeArea');
-    const mobileInstructions = document.getElementById('mobileInstructions');
+      // UI Elements
+      const gameContainer = document.getElementById('gameContainer');
+      const scoreEl = document.getElementById('score');
+      const coinsEl = document.getElementById('coins');
+      const highScoreEl = document.getElementById('highScore');
+      const startScreen = document.getElementById('startScreen');
+      const gameOverScreen = document.getElementById('gameOverScreen');
+      const startBtn = document.getElementById('startBtn');
+      const restartBtn = document.getElementById('restartBtn');
+      const finalScoreEl = document.getElementById('finalScore');
+      const finalCoinsEl = document.getElementById('finalCoins');
+      const newBestEl = document.getElementById('newBest');
+      const powerUpDisplay = document.getElementById('powerUpDisplay');
+      const achievementPopup = document.getElementById('achievementPopup');
+      const mobileTabView = document.getElementById('mobileTabView');
+      const swipeArea = document.getElementById('swipeArea');
+      const mobileInstructions = document.getElementById('mobileInstructions');
 
-    // Mobile Tab Buttons
-    const playTabBtn = document.getElementById('playTabBtn');
-    const instructionsTabBtn = document.getElementById('instructionsTabBtn');
-    const settingsTabBtn = document.getElementById('settingsTabBtn');
-    const aboutTabBtn = document.getElementById('aboutTabBtn');
+      // Mobile Tab Buttons
+      const playTabBtn = document.getElementById('playTabBtn');
+      const instructionsTabBtn = document.getElementById('instructionsTabBtn');
+      const settingsTabBtn = document.getElementById('settingsTabBtn');
+      const aboutTabBtn = document.getElementById('aboutTabBtn');
 
-    function init3D() {
-        scene = new THREE.Scene();
-        scene.fog = new THREE.Fog(0xb2dfdb, 10, 50);
-        
-        camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 100);
-        renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
-        renderer.setClearColor(0x87CEEB);
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        
-        gameContainer.innerHTML = '';
-        gameContainer.appendChild(renderer.domElement);
+      function init3D() {
+          scene = new THREE.Scene();
+          scene.fog = new THREE.Fog(0xb2dfdb, 10, 50);
+          
+          camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 100);
+          renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
+          renderer.setClearColor(0x87CEEB);
+          renderer.setSize(window.innerWidth, window.innerHeight);
+          renderer.shadowMap.enabled = true;
+          renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+          
+          gameContainer.innerHTML = '';
+          gameContainer.appendChild(renderer.domElement);
 
-        // Enhanced Lighting
-        const ambient = new THREE.AmbientLight(0xffffff, 0.6);
-        scene.add(ambient);
-        
-        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        dirLight.position.set(0, 20, 10);
-        dirLight.castShadow = true;
-        dirLight.shadow.mapSize.width = 2048;
-        dirLight.shadow.mapSize.height = 2048;
-        scene.add(dirLight);
+          // Enhanced Lighting
+          const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+          scene.add(ambient);
+          
+          const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+          dirLight.position.set(0, 20, 10);
+          dirLight.castShadow = true;
+          dirLight.shadow.mapSize.width = 2048;
+          dirLight.shadow.mapSize.height = 2048;
+          scene.add(dirLight);
 
-        // Create 3D Character
-        createPlayer();
-        
-        // Enhanced Ground
-        createGround();
-        
-        // Skybox
-        createSkybox();
-    }
+          // Create 3D Character
+          createPlayer();
+          
+          // Enhanced Ground
+          createGround();
+          
+          // Skybox
+          createSkybox();
+      }
 
-    function createPlayer() {
-        // Player group
-        player = new THREE.Group();
-        
-        // Body (torso)
-        const bodyGeo = new THREE.CapsuleGeometry(PLAYER_SIZE * 0.8, PLAYER_SIZE * 1.2, 4, 8);
-        const bodyMat = new THREE.MeshLambertMaterial({color: 0x2196f3});
-        playerBody = new THREE.Mesh(bodyGeo, bodyMat);
-        playerBody.castShadow = true;
-        playerBody.position.y = PLAYER_SIZE * 0.8;
-        player.add(playerBody);
-        
-        // Head
-        const headGeo = new THREE.SphereGeometry(PLAYER_SIZE * 0.6, 16, 16);
-        const headMat = new THREE.MeshLambertMaterial({color: 0xffdbac});
-        playerHead = new THREE.Mesh(headGeo, headMat);
-        playerHead.castShadow = true;
-        playerHead.position.y = PLAYER_SIZE * 1.8;
-        player.add(playerHead);
-        
-        // Arms
-        const armGeo = new THREE.CapsuleGeometry(PLAYER_SIZE * 0.2, PLAYER_SIZE * 0.8, 4, 8);
-        const armMat = new THREE.MeshLambertMaterial({color: 0xffdbac});
-        
-        playerArms = new THREE.Group();
-        const leftArm = new THREE.Mesh(armGeo, armMat);
-        leftArm.position.set(-PLAYER_SIZE * 0.9, PLAYER_SIZE * 0.8, 0);
-        leftArm.rotation.z = 0.3;
-        playerArms.add(leftArm);
-        
-        const rightArm = new THREE.Mesh(armGeo, armMat);
-        rightArm.position.set(PLAYER_SIZE * 0.9, PLAYER_SIZE * 0.8, 0);
-        rightArm.rotation.z = -0.3;
-        playerArms.add(rightArm);
-        player.add(playerArms);
-        
-        // Legs
-        const legGeo = new THREE.CapsuleGeometry(PLAYER_SIZE * 0.25, PLAYER_SIZE * 0.8, 4, 8);
-        const legMat = new THREE.MeshLambertMaterial({color: 0x1976d2});
-        
-        playerLegs = new THREE.Group();
-        const leftLeg = new THREE.Mesh(legGeo, legMat);
-        leftLeg.position.set(-PLAYER_SIZE * 0.3, PLAYER_SIZE * 0.2, 0);
-        playerLegs.add(leftLeg);
-        
-        const rightLeg = new THREE.Mesh(legGeo, legMat);
-        rightLeg.position.set(PLAYER_SIZE * 0.3, PLAYER_SIZE * 0.2, 0);
-        playerLegs.add(rightLeg);
-        player.add(playerLegs);
-        
-        player.position.set(LANES[lane], 0, 5);
-        scene.add(player);
-    }
+      function createPlayer() {
+          // Player group
+          player = new THREE.Group();
+          
+          // Body (torso)
+          const bodyGeo = new THREE.CapsuleGeometry(PLAYER_SIZE * 0.8, PLAYER_SIZE * 1.2, 4, 8);
+          const bodyMat = new THREE.MeshLambertMaterial({color: 0x2196f3});
+          playerBody = new THREE.Mesh(bodyGeo, bodyMat);
+          playerBody.castShadow = true;
+          playerBody.position.y = PLAYER_SIZE * 0.8;
+          player.add(playerBody);
+          
+          // Head
+          const headGeo = new THREE.SphereGeometry(PLAYER_SIZE * 0.6, 16, 16);
+          const headMat = new THREE.MeshLambertMaterial({color: 0xffdbac});
+          playerHead = new THREE.Mesh(headGeo, headMat);
+          playerHead.castShadow = true;
+          playerHead.position.y = PLAYER_SIZE * 1.8;
+          player.add(playerHead);
+          
+          // Arms
+          const armGeo = new THREE.CapsuleGeometry(PLAYER_SIZE * 0.2, PLAYER_SIZE * 0.8, 4, 8);
+          const armMat = new THREE.MeshLambertMaterial({color: 0xffdbac});
+          
+          playerArms = new THREE.Group();
+          const leftArm = new THREE.Mesh(armGeo, armMat);
+          leftArm.position.set(-PLAYER_SIZE * 0.9, PLAYER_SIZE * 0.8, 0);
+          leftArm.rotation.z = 0.3;
+          playerArms.add(leftArm);
+          
+          const rightArm = new THREE.Mesh(armGeo, armMat);
+          rightArm.position.set(PLAYER_SIZE * 0.9, PLAYER_SIZE * 0.8, 0);
+          rightArm.rotation.z = -0.3;
+          playerArms.add(rightArm);
+          player.add(playerArms);
+          
+          // Legs
+          const legGeo = new THREE.CapsuleGeometry(PLAYER_SIZE * 0.25, PLAYER_SIZE * 0.8, 4, 8);
+          const legMat = new THREE.MeshLambertMaterial({color: 0x1976d2});
+          
+          playerLegs = new THREE.Group();
+          const leftLeg = new THREE.Mesh(legGeo, legMat);
+          leftLeg.position.set(-PLAYER_SIZE * 0.3, PLAYER_SIZE * 0.2, 0);
+          playerLegs.add(leftLeg);
+          
+          const rightLeg = new THREE.Mesh(legGeo, legMat);
+          rightLeg.position.set(PLAYER_SIZE * 0.3, PLAYER_SIZE * 0.2, 0);
+          playerLegs.add(rightLeg);
+          player.add(playerLegs);
+          
+          player.position.set(LANES[lane], 0, 5);
+          scene.add(player);
+      }
 
-    function createGround() {
-        // Main ground
-        const groundGeo = new THREE.BoxGeometry(8, 0.2, GROUND_LENGTH);
-        const groundMat = new THREE.MeshLambertMaterial({color: 0x8bc34a});
-        ground = new THREE.Mesh(groundGeo, groundMat);
-        ground.position.set(0, -PLAYER_SIZE, -GROUND_LENGTH/2 + 5);
-        ground.receiveShadow = true;
-        scene.add(ground);
-        
-        // Lane markers
-        for (let i = 0; i < 3; i++) {
-            const markerGeo = new THREE.BoxGeometry(0.1, 0.05, GROUND_LENGTH);
-            const markerMat = new THREE.MeshLambertMaterial({color: 0xffffff});
-            const marker = new THREE.Mesh(markerGeo, markerMat);
-            marker.position.set(LANES[i], -PLAYER_SIZE + 0.1, -GROUND_LENGTH/2 + 5);
-            scene.add(marker);
-        }
-    }
+      function createGround() {
+          // Main ground
+          const groundGeo = new THREE.BoxGeometry(8, 0.2, GROUND_LENGTH);
+          const groundMat = new THREE.MeshLambertMaterial({color: 0x8bc34a});
+          ground = new THREE.Mesh(groundGeo, groundMat);
+          ground.position.set(0, -PLAYER_SIZE, -GROUND_LENGTH/2 + 5);
+          ground.receiveShadow = true;
+          scene.add(ground);
+          
+          // Lane markers
+          for (let i = 0; i < 3; i++) {
+              const markerGeo = new THREE.BoxGeometry(0.1, 0.05, GROUND_LENGTH);
+              const markerMat = new THREE.MeshLambertMaterial({color: 0xffffff});
+              const marker = new THREE.Mesh(markerGeo, markerMat);
+              marker.position.set(LANES[i], -PLAYER_SIZE + 0.1, -GROUND_LENGTH/2 + 5);
+              scene.add(marker);
+          }
+      }
 
-    function createSkybox() {
-        const skyGeo = new THREE.SphereGeometry(100, 32, 32);
-        const skyMat = new THREE.MeshBasicMaterial({
-            color: 0x87CEEB,
-            side: THREE.BackSide
-        });
-        const sky = new THREE.Mesh(skyGeo, skyMat);
-        scene.add(sky);
-    }
+      function createSkybox() {
+          const skyGeo = new THREE.SphereGeometry(100, 32, 32);
+          const skyMat = new THREE.MeshBasicMaterial({
+              color: 0x87CEEB,
+              side: THREE.BackSide
+          });
+          const sky = new THREE.Mesh(skyGeo, skyMat);
+          scene.add(sky);
+      }
 
-    function resetGame() {
-        lane = 1;
-        jumping = false;
-        sliding = false;
-        jumpStart = 0;
-        slideStart = 0;
-        speed = GAME_SPEED_START;
-        score = 0;
-        coinsCollected = 0;
-        lastSpawn = 0;
-        lastCoin = 0;
-        lastPowerUp = 0;
-        powerUpActive = null;
-        powerUpTimer = 0;
-        
-        // Reset achievements
-        for (let key in achievements) achievements[key] = false;
-        
-        highScore = parseInt(localStorage.getItem('runner3dHighScore') || '0');
-        scoreEl.textContent = score;
-        coinsEl.textContent = coinsCollected;
-        highScoreEl.textContent = highScore;
-        
-        if (scene) {
-            // Remove old objects
-            for (let o of obstacles) scene.remove(o.mesh);
-            for (let c of coins) scene.remove(c.mesh);
-            for (let p of powerUps) scene.remove(p.mesh);
-            obstacles = [];
-            coins = [];
-            powerUps = [];
-            player.position.set(LANES[lane], 0, 5);
-            powerUpDisplay.style.display = 'none';
-        }
-    }
+      function resetGame() {
+          lane = 1;
+          jumping = false;
+          sliding = false;
+          jumpStart = 0;
+          slideStart = 0;
+          speed = GAME_SPEED_START;
+          score = 0;
+          coinsCollected = 0;
+          lastSpawn = 0;
+          lastCoin = 0;
+          lastPowerUp = 0;
+          powerUpActive = null;
+          powerUpTimer = 0;
+          
+          // Reset achievements
+          for (let key in achievements) achievements[key] = false;
+          
+          highScore = parseInt(localStorage.getItem('runner3dHighScore') || '0');
+          scoreEl.textContent = score;
+          coinsEl.textContent = coinsCollected;
+          highScoreEl.textContent = highScore;
+          
+          if (scene) {
+              // Remove old objects
+              for (let o of obstacles) scene.remove(o.mesh);
+              for (let c of coins) scene.remove(c.mesh);
+              for (let p of powerUps) scene.remove(p.mesh);
+              obstacles = [];
+              coins = [];
+              powerUps = [];
+              player.position.set(LANES[lane], 0, 5);
+              powerUpDisplay.style.display = 'none';
+          }
+      }
 
-    function startGame() {
-        resetGame();
-        running = true;
-        startScreen.classList.remove('active');
-        gameOverScreen.classList.remove('active');
-        mobileTabView.style.display = 'none';
-        animate();
-    }
+      function startGame() {
+          resetGame();
+          running = true;
+          startScreen.classList.remove('active');
+          gameOverScreen.classList.remove('active');
+          mobileTabView.style.display = 'none';
+          animate();
+      }
 
-    function endGame() {
-        running = false;
-        const newBest = score > highScore;
-        if (newBest) {
-            highScore = score;
-            localStorage.setItem('runner3dHighScore', highScore);
-            newBestEl.style.display = 'inline';
-        } else {
-            newBestEl.style.display = 'none';
-        }
-        finalScoreEl.textContent = score;
-        finalCoinsEl.textContent = coinsCollected;
-        gameOverScreen.classList.add('active');
-    }
+      function endGame() {
+          running = false;
+          const newBest = score > highScore;
+          if (newBest) {
+              highScore = score;
+              localStorage.setItem('runner3dHighScore', highScore);
+              newBestEl.style.display = 'inline';
+          } else {
+              newBestEl.style.display = 'none';
+          }
+          finalScoreEl.textContent = score;
+          finalCoinsEl.textContent = coinsCollected;
+          gameOverScreen.classList.add('active');
+      }
 
-    function animate() {
-        if (!running) return;
-        
-        // Camera follow
-        camera.position.set(0, 4, player.position.z + 8);
-        camera.lookAt(new THREE.Vector3(0, 0, player.position.z - 3));
+      function animate() {
+          if (!running) return;
+          
+          // Camera follow
+          camera.position.set(0, 4, player.position.z + 8);
+          camera.lookAt(new THREE.Vector3(0, 0, player.position.z - 3));
 
-        // Move player forward
-        player.position.z -= speed;
-        score = Math.max(0, Math.floor((5 - player.position.z) * 10));
-        scoreEl.textContent = score;
-        coinsEl.textContent = coinsCollected;
-        highScoreEl.textContent = highScore;
+          // Move player forward
+          player.position.z -= speed;
+          score = Math.max(0, Math.floor((5 - player.position.z) * 10));
+          scoreEl.textContent = score;
+          coinsEl.textContent = coinsCollected;
+          highScoreEl.textContent = highScore;
 
-        // Lane movement
-        player.position.x += (LANES[lane] - player.position.x) * 0.2;
+          // Lane movement
+          player.position.x += (LANES[lane] - player.position.x) * 0.2;
 
-        // Animate character
-        animatePlayer();
-        
-        // Jump
-        if (jumping) {
-            let t = (performance.now() - jumpStart) / (JUMP_DURATION * 1000);
-            if (t < 1) {
-                player.position.y = Math.sin(Math.PI * t) * JUMP_HEIGHT;
-            } else {
-                player.position.y = 0;
-                jumping = false;
-            }
-        }
-        
-        // Slide
-        if (sliding) {
-            let t = (performance.now() - slideStart) / (SLIDE_DURATION * 1000);
-            if (t < 1) {
-                player.scale.y = 0.6;
-                player.position.y = -0.5;
-            } else {
-                player.scale.y = 1;
-                player.position.y = 0;
-                sliding = false;
-            }
-        }
+          // Animate character
+          animatePlayer();
+          
+          // Jump
+          if (jumping) {
+              let t = (performance.now() - jumpStart) / (JUMP_DURATION * 1000);
+              if (t < 1) {
+                  player.position.y = Math.sin(Math.PI * t) * JUMP_HEIGHT;
+              } else {
+                  player.position.y = 0;
+                  jumping = false;
+              }
+          }
+          
+          // Slide
+          if (sliding) {
+              let t = (performance.now() - slideStart) / (SLIDE_DURATION * 1000);
+              if (t < 1) {
+                  player.scale.y = 0.6;
+                  player.position.y = -0.5;
+              } else {
+                  player.scale.y = 1;
+                  player.position.y = 0;
+                  sliding = false;
+              }
+          }
 
-        // Power-up timer
-        if (powerUpActive && powerUpTimer > 0) {
-            powerUpTimer--;
-            if (powerUpTimer === 0) {
-                powerUpActive = null;
-                powerUpDisplay.style.display = 'none';
-            }
-        }
+          // Power-up timer
+          if (powerUpActive && powerUpTimer > 0) {
+              powerUpTimer--;
+              if (powerUpTimer === 0) {
+                  powerUpActive = null;
+                  powerUpDisplay.style.display = 'none';
+              }
+          }
 
-        // Spawn objects
-        if (performance.now() - lastSpawn > 1000 - Math.min(score, 800)) {
-            spawnObstacle();
-            lastSpawn = performance.now();
-        }
-        if (performance.now() - lastCoin > 800) {
-            spawnCoin();
-            lastCoin = performance.now();
-        }
-        if (performance.now() - lastPowerUp > 5000) {
-            spawnPowerUp();
-            lastPowerUp = performance.now();
-        }
+          // Spawn objects
+          if (performance.now() - lastSpawn > 1000 - Math.min(score, 800)) {
+              spawnObstacle();
+              lastSpawn = performance.now();
+          }
+          if (performance.now() - lastCoin > 800) {
+              spawnCoin();
+              lastCoin = performance.now();
+          }
+          if (performance.now() - lastPowerUp > 5000) {
+              spawnPowerUp();
+              lastPowerUp = performance.now();
+          }
 
-        // Move and check collisions
-        moveObjects();
-        checkCollisions();
-        checkAchievements();
-        
-        renderer.render(scene, camera);
-        requestAnimationFrame(animate);
-    }
+          // Move and check collisions
+          moveObjects();
+          checkCollisions();
+          checkAchievements();
+          
+          renderer.render(scene, camera);
+          requestAnimationFrame(animate);
+      }
 
-    function animatePlayer() {
-        // Running animation
-        if (!jumping && !sliding) {
-            const time = performance.now() * 0.01;
-            playerLegs.children[0].rotation.x = Math.sin(time * 10) * 0.3;
-            playerLegs.children[1].rotation.x = Math.sin(time * 10 + Math.PI) * 0.3;
-            playerArms.children[0].rotation.x = Math.sin(time * 10 + Math.PI) * 0.2;
-            playerArms.children[1].rotation.x = Math.sin(time * 10) * 0.2;
-        }
-    }
+      function animatePlayer() {
+          // Running animation
+          if (!jumping && !sliding) {
+              const time = performance.now() * 0.01;
+              playerLegs.children[0].rotation.x = Math.sin(time * 10) * 0.3;
+              playerLegs.children[1].rotation.x = Math.sin(time * 10 + Math.PI) * 0.3;
+              playerArms.children[0].rotation.x = Math.sin(time * 10 + Math.PI) * 0.2;
+              playerArms.children[1].rotation.x = Math.sin(time * 10) * 0.2;
+          }
+      }
 
-    function spawnObstacle() {
-        const types = ['rock', 'tree', 'log'];
-        const type = types[Math.floor(Math.random() * types.length)];
-        const laneIdx = Math.floor(Math.random() * 3);
-        let mesh;
-        
-        if (type === 'rock') {
-            mesh = new THREE.Mesh(
-                new THREE.DodecahedronGeometry(OBSTACLE_SIZE, 0),
-                new THREE.MeshLambertMaterial({color: 0x795548})
-            );
-            mesh.position.y = PLAYER_SIZE;
-        } else if (type === 'tree') {
-            // Tree trunk
-            const trunk = new THREE.Mesh(
-                new THREE.CylinderGeometry(0.2, 0.3, 1.5, 8),
-                new THREE.MeshLambertMaterial({color: 0x8d6e63})
-            );
-            trunk.position.y = 0.75;
-            
-            // Tree leaves
-            const leaves = new THREE.Mesh(
-                new THREE.SphereGeometry(0.8, 8, 8),
-                new THREE.MeshLambertMaterial({color: 0x4caf50})
-            );
-            leaves.position.y = 1.5;
-            
-            mesh = new THREE.Group();
-            mesh.add(trunk);
-            mesh.add(leaves);
-            mesh.position.y = PLAYER_SIZE;
-        } else { // log
-            mesh = new THREE.Mesh(
-                new THREE.CylinderGeometry(0.3, 0.3, 1.2, 8),
-                new THREE.MeshLambertMaterial({color: 0x8d6e63})
-            );
-            mesh.rotation.z = Math.PI / 2;
-            mesh.position.y = PLAYER_SIZE * 0.5;
-        }
-        
-        mesh.castShadow = true;
-        mesh.position.x = LANES[laneIdx];
-        mesh.position.z = player.position.z - 20;
-        scene.add(mesh);
-        obstacles.push({mesh, type, lane: laneIdx});
-    }
+      function spawnObstacle() {
+          const types = ['rock', 'tree', 'log'];
+          const type = types[Math.floor(Math.random() * types.length)];
+          const laneIdx = Math.floor(Math.random() * 3);
+          let mesh;
+          
+          if (type === 'rock') {
+              mesh = new THREE.Mesh(
+                  new THREE.DodecahedronGeometry(OBSTACLE_SIZE, 0),
+                  new THREE.MeshLambertMaterial({color: 0x795548})
+              );
+              mesh.position.y = PLAYER_SIZE;
+          } else if (type === 'tree') {
+              // Tree trunk
+              const trunk = new THREE.Mesh(
+                  new THREE.CylinderGeometry(0.2, 0.3, 1.5, 8),
+                  new THREE.MeshLambertMaterial({color: 0x8d6e63})
+              );
+              trunk.position.y = 0.75;
+              
+              // Tree leaves
+              const leaves = new THREE.Mesh(
+                  new THREE.SphereGeometry(0.8, 8, 8),
+                  new THREE.MeshLambertMaterial({color: 0x4caf50})
+              );
+              leaves.position.y = 1.5;
+              
+              mesh = new THREE.Group();
+              mesh.add(trunk);
+              mesh.add(leaves);
+              mesh.position.y = PLAYER_SIZE;
+          } else { // log
+              mesh = new THREE.Mesh(
+                  new THREE.CylinderGeometry(0.3, 0.3, 1.2, 8),
+                  new THREE.MeshLambertMaterial({color: 0x8d6e63})
+              );
+              mesh.rotation.z = Math.PI / 2;
+              mesh.position.y = PLAYER_SIZE * 0.5;
+          }
+          
+          mesh.castShadow = true;
+          mesh.position.x = LANES[laneIdx];
+          mesh.position.z = player.position.z - 20;
+          scene.add(mesh);
+          obstacles.push({mesh, type, lane: laneIdx});
+      }
 
-    function spawnCoin() {
-        const laneIdx = Math.floor(Math.random() * 3);
-        const mesh = new THREE.Mesh(
-            new THREE.TorusGeometry(COIN_SIZE, 0.05, 8, 16),
-            new THREE.MeshLambertMaterial({color: 0xffd600, emissive: 0xfff59d})
-        );
-        mesh.position.x = LANES[laneIdx];
-        mesh.position.y = PLAYER_SIZE + 0.5;
-        mesh.position.z = player.position.z - 20;
-        scene.add(mesh);
-        coins.push({mesh, lane: laneIdx});
-    }
+      function spawnCoin() {
+          const laneIdx = Math.floor(Math.random() * 3);
+          const mesh = new THREE.Mesh(
+              new THREE.TorusGeometry(COIN_SIZE, 0.05, 8, 16),
+              new THREE.MeshLambertMaterial({color: 0xffd600, emissive: 0xfff59d})
+          );
+          mesh.position.x = LANES[laneIdx];
+          mesh.position.y = PLAYER_SIZE + 0.5;
+          mesh.position.z = player.position.z - 20;
+          scene.add(mesh);
+          coins.push({mesh, lane: laneIdx});
+      }
 
-    function spawnPowerUp() {
-        const types = ['magnet', 'shield', 'speed'];
-        const type = types[Math.floor(Math.random() * types.length)];
-        const laneIdx = Math.floor(Math.random() * 3);
-        let mesh;
-        
-        if (type === 'magnet') {
-            mesh = new THREE.Mesh(
-                new THREE.BoxGeometry(POWERUP_SIZE, POWERUP_SIZE, POWERUP_SIZE),
-                new THREE.MeshLambertMaterial({color: 0x2196f3, emissive: 0x64b5f6})
-            );
-        } else if (type === 'shield') {
-            mesh = new THREE.Mesh(
-                new THREE.SphereGeometry(POWERUP_SIZE, 8, 8),
-                new THREE.MeshLambertMaterial({color: 0x4caf50, emissive: 0x81c784})
-            );
-        } else { // speed
-            mesh = new THREE.Mesh(
-                new THREE.ConeGeometry(POWERUP_SIZE, POWERUP_SIZE * 2, 8),
-                new THREE.MeshLambertMaterial({color: 0xff5722, emissive: 0xff8a65})
-            );
-        }
-        
-        mesh.position.x = LANES[laneIdx];
-        mesh.position.y = PLAYER_SIZE + 0.5;
-        mesh.position.z = player.position.z - 20;
-        scene.add(mesh);
-        powerUps.push({mesh, type, lane: laneIdx});
-    }
+      function spawnPowerUp() {
+          const types = ['magnet', 'shield', 'speed'];
+          const type = types[Math.floor(Math.random() * types.length)];
+          const laneIdx = Math.floor(Math.random() * 3);
+          let mesh;
+          
+          if (type === 'magnet') {
+              mesh = new THREE.Mesh(
+                  new THREE.BoxGeometry(POWERUP_SIZE, POWERUP_SIZE, POWERUP_SIZE),
+                  new THREE.MeshLambertMaterial({color: 0x2196f3, emissive: 0x64b5f6})
+              );
+          } else if (type === 'shield') {
+              mesh = new THREE.Mesh(
+                  new THREE.SphereGeometry(POWERUP_SIZE, 8, 8),
+                  new THREE.MeshLambertMaterial({color: 0x4caf50, emissive: 0x81c784})
+              );
+          } else { // speed
+              mesh = new THREE.Mesh(
+                  new THREE.ConeGeometry(POWERUP_SIZE, POWERUP_SIZE * 2, 8),
+                  new THREE.MeshLambertMaterial({color: 0xff5722, emissive: 0xff8a65})
+              );
+          }
+          
+          mesh.position.x = LANES[laneIdx];
+          mesh.position.y = PLAYER_SIZE + 0.5;
+          mesh.position.z = player.position.z - 20;
+          scene.add(mesh);
+          powerUps.push({mesh, type, lane: laneIdx});
+      }
 
-    function moveObjects() {
-        // Move obstacles
-        for (let i = obstacles.length - 1; i >= 0; i--) {
-            let o = obstacles[i];
-            o.mesh.position.z -= speed;
-            if (o.mesh.position.z < player.position.z - 3) {
-                scene.remove(o.mesh);
-                obstacles.splice(i, 1);
-            }
-        }
-        
-        // Move coins
-        for (let i = coins.length - 1; i >= 0; i--) {
-            let c = coins[i];
-            c.mesh.position.z -= speed;
-            c.mesh.rotation.y += 0.1; // Spin coins
-            if (c.mesh.position.z < player.position.z - 3) {
-                scene.remove(c.mesh);
-                coins.splice(i, 1);
-            }
-        }
-        
-        // Move power-ups
-        for (let i = powerUps.length - 1; i >= 0; i--) {
-            let p = powerUps[i];
-            p.mesh.position.z -= speed;
-            p.mesh.rotation.y += 0.05;
-            if (p.mesh.position.z < player.position.z - 3) {
-                scene.remove(p.mesh);
-                powerUps.splice(i, 1);
-            }
-        }
-    }
+      function moveObjects() {
+          // Move obstacles
+          for (let i = obstacles.length - 1; i >= 0; i--) {
+              let o = obstacles[i];
+              o.mesh.position.z -= speed;
+              if (o.mesh.position.z < player.position.z - 3) {
+                  scene.remove(o.mesh);
+                  obstacles.splice(i, 1);
+              }
+          }
+          
+          // Move coins
+          for (let i = coins.length - 1; i >= 0; i--) {
+              let c = coins[i];
+              c.mesh.position.z -= speed;
+              c.mesh.rotation.y += 0.1; // Spin coins
+              if (c.mesh.position.z < player.position.z - 3) {
+                  scene.remove(c.mesh);
+                  coins.splice(i, 1);
+              }
+          }
+          
+          // Move power-ups
+          for (let i = powerUps.length - 1; i >= 0; i--) {
+              let p = powerUps[i];
+              p.mesh.position.z -= speed;
+              p.mesh.rotation.y += 0.05;
+              if (p.mesh.position.z < player.position.z - 3) {
+                  scene.remove(p.mesh);
+                  powerUps.splice(i, 1);
+              }
+          }
+      }
 
-    function checkCollisions() {
-        // Obstacles
-        for (let i = obstacles.length - 1; i >= 0; i--) {
-            let o = obstacles[i];
-            if (Math.abs(o.mesh.position.z - player.position.z) < 0.8 &&
-                Math.abs(o.mesh.position.x - player.position.x) < 0.8) {
-                if (o.type === 'rock' && !jumping) return endGame();
-                if (o.type === 'tree' && !sliding) return endGame();
-                if (o.type === 'log' && !jumping) return endGame();
-            }
-        }
-        
-        // Coins
-        for (let i = coins.length - 1; i >= 0; i--) {
-            let c = coins[i];
-            if (Math.abs(c.mesh.position.z - player.position.z) < 0.8 &&
-                Math.abs(c.mesh.position.x - player.position.x) < 0.8) {
-                scene.remove(c.mesh);
-                coins.splice(i, 1);
-                coinsCollected++;
-                createCoinParticles(c.mesh.position);
-            }
-        }
-        
-        // Power-ups
-        for (let i = powerUps.length - 1; i >= 0; i--) {
-            let p = powerUps[i];
-            if (Math.abs(p.mesh.position.z - player.position.z) < 0.8 &&
-                Math.abs(p.mesh.position.x - player.position.x) < 0.8) {
-                scene.remove(p.mesh);
-                powerUps.splice(i, 1);
-                activatePowerUp(p.type);
-            }
-        }
-    }
+      function checkCollisions() {
+          // Obstacles
+          for (let i = obstacles.length - 1; i >= 0; i--) {
+              let o = obstacles[i];
+              if (Math.abs(o.mesh.position.z - player.position.z) < 0.8 &&
+                  Math.abs(o.mesh.position.x - player.position.x) < 0.8) {
+                  if (o.type === 'rock' && !jumping) return endGame();
+                  if (o.type === 'tree' && !sliding) return endGame();
+                  if (o.type === 'log' && !jumping) return endGame();
+              }
+          }
+          
+          // Coins
+          for (let i = coins.length - 1; i >= 0; i--) {
+              let c = coins[i];
+              if (Math.abs(c.mesh.position.z - player.position.z) < 0.8 &&
+                  Math.abs(c.mesh.position.x - player.position.x) < 0.8) {
+                  scene.remove(c.mesh);
+                  coins.splice(i, 1);
+                  coinsCollected++;
+                  createCoinParticles(c.mesh.position);
+              }
+          }
+          
+          // Power-ups
+          for (let i = powerUps.length - 1; i >= 0; i--) {
+              let p = powerUps[i];
+              if (Math.abs(p.mesh.position.z - player.position.z) < 0.8 &&
+                  Math.abs(p.mesh.position.x - player.position.x) < 0.8) {
+                  scene.remove(p.mesh);
+                  powerUps.splice(i, 1);
+                  activatePowerUp(p.type);
+              }
+          }
+      }
 
-    function createCoinParticles(position) {
-        for (let i = 0; i < 5; i++) {
-            const particle = new THREE.Mesh(
-                new THREE.SphereGeometry(0.05, 4, 4),
-                new THREE.MeshBasicMaterial({color: 0xffd600})
-            );
-            particle.position.copy(position);
-            particle.velocity = new THREE.Vector3(
-                (Math.random() - 0.5) * 0.1,
-                Math.random() * 0.1,
-                (Math.random() - 0.5) * 0.1
-            );
-            scene.add(particle);
-            particles.push(particle);
-            
-            setTimeout(() => {
-                scene.remove(particle);
-                particles.splice(particles.indexOf(particle), 1);
-            }, 1000);
-        }
-    }
+      function createCoinParticles(position) {
+          for (let i = 0; i < 5; i++) {
+              const particle = new THREE.Mesh(
+                  new THREE.SphereGeometry(0.05, 4, 4),
+                  new THREE.MeshBasicMaterial({color: 0xffd600})
+              );
+              particle.position.copy(position);
+              particle.velocity = new THREE.Vector3(
+                  (Math.random() - 0.5) * 0.1,
+                  Math.random() * 0.1,
+                  (Math.random() - 0.5) * 0.1
+              );
+              scene.add(particle);
+              particles.push(particle);
+              
+              setTimeout(() => {
+                  scene.remove(particle);
+                  particles.splice(particles.indexOf(particle), 1);
+              }, 1000);
+          }
+      }
 
-    function activatePowerUp(type) {
-        powerUpActive = type;
-        powerUpTimer = 300; // 5 seconds at 60fps
-        
-        let text = '';
-        if (type === 'magnet') text = '🧲 MAGNET!';
-        else if (type === 'shield') text = '🛡️ SHIELD!';
-        else if (type === 'speed') text = '⚡ SPEED!';
-        
-        powerUpDisplay.textContent = text;
-        powerUpDisplay.style.display = 'block';
-    }
+      function activatePowerUp(type) {
+          powerUpActive = type;
+          powerUpTimer = 300; // 5 seconds at 60fps
+          
+          let text = '';
+          if (type === 'magnet') text = '🧲 MAGNET!';
+          else if (type === 'shield') text = '🛡️ SHIELD!';
+          else if (type === 'speed') text = '⚡ SPEED!';
+          
+          powerUpDisplay.textContent = text;
+          powerUpDisplay.style.display = 'block';
+      }
 
-    function checkAchievements() {
-        if (!achievements.firstCoin && coinsCollected >= 1) {
-            showAchievement('First Coin! 🪙');
-            achievements.firstCoin = true;
-        }
-        if (!achievements.tenCoins && coinsCollected >= 10) {
-            showAchievement('Coin Collector! 💰');
-            achievements.tenCoins = true;
-        }
-        if (!achievements.fiftyCoins && coinsCollected >= 50) {
-            showAchievement('Coin Master! 💎');
-            achievements.fiftyCoins = true;
-        }
-        if (!achievements.hundredScore && score >= 100) {
-            showAchievement('100 Points! 🏆');
-            achievements.hundredScore = true;
-        }
-        if (!achievements.fiveHundredScore && score >= 500) {
-            showAchievement('500 Points! 🌟');
-            achievements.fiveHundredScore = true;
-        }
-    }
+      function checkAchievements() {
+          if (!achievements.firstCoin && coinsCollected >= 1) {
+              showAchievement('First Coin! 🪙');
+              achievements.firstCoin = true;
+          }
+          if (!achievements.tenCoins && coinsCollected >= 10) {
+              showAchievement('Coin Collector! 💰');
+              achievements.tenCoins = true;
+          }
+          if (!achievements.fiftyCoins && coinsCollected >= 50) {
+              showAchievement('Coin Master! 💎');
+              achievements.fiftyCoins = true;
+          }
+          if (!achievements.hundredScore && score >= 100) {
+              showAchievement('100 Points! 🏆');
+              achievements.hundredScore = true;
+          }
+          if (!achievements.fiveHundredScore && score >= 500) {
+              showAchievement('500 Points! 🌟');
+              achievements.fiveHundredScore = true;
+          }
+      }
 
-    function showAchievement(text) {
-        achievementPopup.textContent = text;
-        achievementPopup.style.display = 'block';
-        setTimeout(() => {
-            achievementPopup.style.display = 'none';
-        }, 3000);
-    }
+      function showAchievement(text) {
+          achievementPopup.textContent = text;
+          achievementPopup.style.display = 'block';
+          setTimeout(() => {
+              achievementPopup.style.display = 'none';
+          }, 3000);
+      }
 
-    // Mobile Touch Controls
-    function setupMobileControls() {
-        isMobile = 'ontouchstart' in window;
-        
-        if (isMobile) {
-            // Touch controls
-            document.addEventListener('touchstart', handleTouchStart, false);
-            document.addEventListener('touchend', handleTouchEnd, false);
-            
-            // Swipe detection
-            swipeArea.addEventListener('touchstart', handleSwipeStart, false);
-            swipeArea.addEventListener('touchend', handleSwipeEnd, false);
-        }
-    }
+      // Mobile Touch Controls
+      function setupMobileControls() {
+          isMobile = 'ontouchstart' in window;
+          
+          if (isMobile) {
+              // Touch controls
+              document.addEventListener('touchstart', handleTouchStart, false);
+              document.addEventListener('touchend', handleTouchEnd, false);
+              
+              // Swipe detection
+              swipeArea.addEventListener('touchstart', handleSwipeStart, false);
+              swipeArea.addEventListener('touchend', handleSwipeEnd, false);
+          }
+      }
 
-    function handleTouchStart(event) {
-        touchStartX = event.changedTouches[0].screenX;
-        touchStartY = event.changedTouches[0].screenY;
-    }
+      function handleTouchStart(event) {
+          touchStartX = event.changedTouches[0].screenX;
+          touchStartY = event.changedTouches[0].screenY;
+      }
 
-    function handleTouchEnd(event) {
-        touchEndX = event.changedTouches[0].screenX;
-        touchEndY = event.changedTouches[0].screenY;
-        handleGesture();
-    }
+      function handleTouchEnd(event) {
+          touchEndX = event.changedTouches[0].screenX;
+          touchEndY = event.changedTouches[0].screenY;
+          handleGesture();
+      }
 
-    function handleGesture() {
-        const diffX = touchStartX - touchEndX;
-        const diffY = touchStartY - touchEndY;
-        
-        if (Math.abs(diffX) > Math.abs(diffY)) {
-            // Horizontal swipe
-            if (diffX > 50) {
-                // Swipe left
-                if (running) lane = Math.max(0, lane - 1);
-            } else if (diffX < -50) {
-                // Swipe right
-                if (running) lane = Math.min(2, lane + 1);
-            }
-        } else {
-            // Vertical swipe
-            if (diffY > 50) {
-                // Swipe up
-                if (running && !jumping && !sliding) {
-                    jumping = true;
-                    jumpStart = performance.now();
-                }
-            } else if (diffY < -50) {
-                // Swipe down
-                if (running && !sliding && !jumping) {
-                    sliding = true;
-                    slideStart = performance.now();
-                }
-            }
-        }
-    }
+      function handleGesture() {
+          const diffX = touchStartX - touchEndX;
+          const diffY = touchStartY - touchEndY;
+          
+          if (Math.abs(diffX) > Math.abs(diffY)) {
+              // Horizontal swipe
+              if (diffX > 50) {
+                  // Swipe left
+                  if (running) lane = Math.max(0, lane - 1);
+              } else if (diffX < -50) {
+                  // Swipe right
+                  if (running) lane = Math.min(2, lane + 1);
+              }
+          } else {
+              // Vertical swipe
+              if (diffY > 50) {
+                  // Swipe up
+                  if (running && !jumping && !sliding) {
+                      jumping = true;
+                      jumpStart = performance.now();
+                  }
+              } else if (diffY < -50) {
+                  // Swipe down
+                  if (running && !sliding && !jumping) {
+                      sliding = true;
+                      slideStart = performance.now();
+                  }
+              }
+          }
+      }
 
-    function handleSwipeStart(event) {
-        if (!running) return;
-        touchStartX = event.changedTouches[0].screenX;
-        touchStartY = event.changedTouches[0].screenY;
-    }
+      function handleSwipeStart(event) {
+          if (!running) return;
+          touchStartX = event.changedTouches[0].screenX;
+          touchStartY = event.changedTouches[0].screenY;
+      }
 
-    function handleSwipeEnd(event) {
-        if (!running) return;
-        touchEndX = event.changedTouches[0].screenX;
-        touchEndY = event.changedTouches[0].screenY;
-        handleGesture();
-    }
+      function handleSwipeEnd(event) {
+          if (!running) return;
+          touchEndX = event.changedTouches[0].screenX;
+          touchEndY = event.changedTouches[0].screenY;
+          handleGesture();
+      }
 
-    // Mobile Tab View Functions
-    function showMobileTabView() {
-        mobileTabView.style.display = 'flex';
-        if (running) {
-            running = false;
-        }
-    }
+      // Mobile Tab View Functions
+      function showMobileTabView() {
+          mobileTabView.style.display = 'flex';
+          if (running) {
+              running = false;
+          }
+      }
 
-    function hideMobileTabView() {
-        mobileTabView.style.display = 'none';
-    }
+      function hideMobileTabView() {
+          mobileTabView.style.display = 'none';
+      }
 
-    // Tab Button Functions
-    playTabBtn.addEventListener('click', () => {
-        hideMobileTabView();
-        if (!running) {
-            startGame();
-        }
-    });
+      // Tab Button Functions
+      playTabBtn.addEventListener('click', () => {
+          hideMobileTabView();
+          if (!running) {
+              startGame();
+          }
+      });
 
-    instructionsTabBtn.addEventListener('click', () => {
-        alert(`🏛️ How to Play Kaden & Adelynn Adventures:
+      instructionsTabBtn.addEventListener('click', () => {
+          alert(`🏛️ How to Play Kaden & Adelynn Adventures:
 
 🎮 CONTROLS:
 • Swipe Left/Right = Move between lanes
@@ -1002,10 +1004,10 @@
 • Build up your combo by collecting coins
 • Try to beat your high score!
 • Have fun exploring the temple! 🏃‍♂️✨`);
-    });
+      });
 
-    settingsTabBtn.addEventListener('click', () => {
-        alert(`⚙️ Game Settings:
+      settingsTabBtn.addEventListener('click', () => {
+          alert(`⚙️ Game Settings:
 
 🎮 Controls: Touch/Swipe
 🎵 Sound: Coming Soon
@@ -1013,10 +1015,10 @@
 📱 Mobile Optimized: Yes
 
 More settings coming soon! 🚀`);
-    });
+      });
 
-    aboutTabBtn.addEventListener('click', () => {
-        alert(`ℹ️ About Kaden & Adelynn Adventures:
+      aboutTabBtn.addEventListener('click', () => {
+          alert(`ℹ️ About Kaden & Adelynn Adventures:
 
 🏛️ A fun 3D endless runner game created especially for Kaden and Adelynn!
 
@@ -1033,62 +1035,62 @@ Version: 3D Enhanced
 Made with: HTML5, CSS3, JavaScript, Three.js
 
 Enjoy the adventure! 🏛️✨`);
-    });
+      });
 
-    // Controls
-    window.addEventListener('keydown', e => {
-        if (!running) return;
-        if (e.code === 'ArrowLeft') lane = Math.max(0, lane - 1);
-        if (e.code === 'ArrowRight') lane = Math.min(2, lane + 1);
-        if (e.code === 'ArrowUp' && !jumping && !sliding) {
-            jumping = true;
-            jumpStart = performance.now();
-        }
-        if (e.code === 'ArrowDown' && !sliding && !jumping) {
-            sliding = true;
-            slideStart = performance.now();
-        }
-    });
+      // Controls
+      window.addEventListener('keydown', e => {
+          if (!running) return;
+          if (e.code === 'ArrowLeft') lane = Math.max(0, lane - 1);
+          if (e.code === 'ArrowRight') lane = Math.min(2, lane + 1);
+          if (e.code === 'ArrowUp' && !jumping && !sliding) {
+              jumping = true;
+              jumpStart = performance.now();
+          }
+          if (e.code === 'ArrowDown' && !sliding && !jumping) {
+              sliding = true;
+              slideStart = performance.now();
+          }
+      });
 
-    // Mobile control buttons
-    document.getElementById('leftBtn').onclick = () => { if (running) lane = Math.max(0, lane - 1); };
-    document.getElementById('rightBtn').onclick = () => { if (running) lane = Math.min(2, lane + 1); };
-    document.getElementById('jumpBtn').onclick = () => { 
-        if (running && !jumping && !sliding) {
-            jumping = true;
-            jumpStart = performance.now();
-        }
-    };
-    document.getElementById('slideBtn').onclick = () => { 
-        if (running && !sliding && !jumping) {
-            sliding = true;
-            slideStart = performance.now();
-        }
-    };
+      // Mobile control buttons
+      document.getElementById('leftBtn').onclick = () => { if (running) lane = Math.max(0, lane - 1); };
+      document.getElementById('rightBtn').onclick = () => { if (running) lane = Math.min(2, lane + 1); };
+      document.getElementById('jumpBtn').onclick = () => { 
+          if (running && !jumping && !sliding) {
+              jumping = true;
+              jumpStart = performance.now();
+          }
+      };
+      document.getElementById('slideBtn').onclick = () => { 
+          if (running && !sliding && !jumping) {
+              sliding = true;
+              slideStart = performance.now();
+          }
+      };
 
-    // Window resize
-    window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-    });
+      // Window resize
+      window.addEventListener('resize', () => {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+      });
 
-    startBtn.onclick = startGame;
-    restartBtn.onclick = startGame;
+      startBtn.onclick = startGame;
+      restartBtn.onclick = startGame;
 
-    // Initialize
-    window.onload = () => {
-        init3D();
-        resetGame();
-        setupMobileControls();
-        
-        // Show mobile tab view on mobile devices
-        if (isMobile) {
-            showMobileTabView();
-        } else {
-            startScreen.classList.add('active');
-        }
-    };
+      // Initialize
+      window.onload = () => {
+          init3D();
+          resetGame();
+          setupMobileControls();
+          
+          // Show mobile tab view on mobile devices
+          if (isMobile) {
+              showMobileTabView();
+          } else {
+              startScreen.classList.add('active');
+          }
+      };
     </script>
 </body>
 </html>
