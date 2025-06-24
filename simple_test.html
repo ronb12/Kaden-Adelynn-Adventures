@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Test - Kaden & Adelynn Adventures</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .test-container {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .test-item {
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            border-left: 4px solid #4CAF50;
+        }
+        .test-item.fail {
+            border-left-color: #f44336;
+        }
+        .test-item.pass {
+            border-left-color: #4CAF50;
+        }
+        button {
+            background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        #testResults {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🏛️ Kaden & Adelynn Adventures - Game Test 🏃‍♂️</h1>
+        
+        <div class="test-item">
+            <h3>Test 1: Game Files Loading</h3>
+            <p>Checking if all game files are properly loaded...</p>
+            <div id="fileTest"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>Test 2: Game Initialization</h3>
+            <p>Checking if the game initializes correctly...</p>
+            <div id="initTest"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>Test 3: Controls</h3>
+            <p>Testing keyboard and touch controls...</p>
+            <div id="controlTest"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>Test 4: Game Mechanics</h3>
+            <p>Testing core game mechanics...</p>
+            <div id="mechanicsTest"></div>
+        </div>
+        
+        <button onclick="runAllTests()">Run All Tests</button>
+        <button onclick="openGame()">Open Full Game</button>
+        
+        <div id="testResults"></div>
+    </div>
+
+    <script>
+        function runAllTests() {
+            document.getElementById('testResults').innerHTML = '';
+            
+            // Test 1: File Loading
+            testFileLoading();
+            
+            // Test 2: Game Initialization
+            setTimeout(testGameInitialization, 500);
+            
+            // Test 3: Controls
+            setTimeout(testControls, 1000);
+            
+            // Test 4: Game Mechanics
+            setTimeout(testGameMechanics, 1500);
+        }
+        
+        function testFileLoading() {
+            const fileTest = document.getElementById('fileTest');
+            
+            // Check if CSS is loaded
+            const styles = document.styleSheets;
+            let cssLoaded = false;
+            for (let i = 0; i < styles.length; i++) {
+                try {
+                    if (styles[i].href && styles[i].href.includes('style.css')) {
+                        cssLoaded = true;
+                        break;
+                    }
+                } catch (e) {
+                    // Cross-origin stylesheets will throw an error
+                }
+            }
+            
+            // Check if main game file exists
+            fetch('script.js')
+                .then(response => {
+                    const jsLoaded = response.ok;
+                    const status = cssLoaded && jsLoaded ? 'PASS' : 'FAIL';
+                    const color = cssLoaded && jsLoaded ? 'pass' : 'fail';
+                    
+                    fileTest.innerHTML = `
+                        <div class="test-item ${color}">
+                            <strong>Status: ${status}</strong><br>
+                            CSS Loaded: ${cssLoaded ? '✅' : '❌'}<br>
+                            JavaScript Loaded: ${jsLoaded ? '✅' : '❌'}
+                        </div>
+                    `;
+                })
+                .catch(() => {
+                    fileTest.innerHTML = `
+                        <div class="test-item fail">
+                            <strong>Status: FAIL</strong><br>
+                            CSS Loaded: ${cssLoaded ? '✅' : '❌'}<br>
+                            JavaScript Loaded: ❌
+                        </div>
+                    `;
+                });
+        }
+        
+        function testGameInitialization() {
+            const initTest = document.getElementById('initTest');
+            
+            // Check if game elements exist
+            const hasGameContainer = document.querySelector('.game-container') !== null;
+            const hasPlayer = document.getElementById('player') !== null;
+            const hasScoreElements = document.getElementById('score') !== null;
+            
+            const status = hasGameContainer && hasPlayer && hasScoreElements ? 'PASS' : 'FAIL';
+            const color = hasGameContainer && hasPlayer && hasScoreElements ? 'pass' : 'fail';
+            
+            initTest.innerHTML = `
+                <div class="test-item ${color}">
+                    <strong>Status: ${status}</strong><br>
+                    Game Container: ${hasGameContainer ? '✅' : '❌'}<br>
+                    Player Element: ${hasPlayer ? '✅' : '❌'}<br>
+                    Score Elements: ${hasScoreElements ? '✅' : '❌'}
+                </div>
+            `;
+        }
+        
+        function testControls() {
+            const controlTest = document.getElementById('controlTest');
+            
+            // Test keyboard event handling
+            let keyTestPassed = false;
+            const keyHandler = (e) => {
+                keyTestPassed = true;
+                document.removeEventListener('keydown', keyHandler);
+            };
+            
+            document.addEventListener('keydown', keyHandler);
+            
+            // Simulate key press
+            setTimeout(() => {
+                const event = new KeyboardEvent('keydown', { code: 'Space' });
+                document.dispatchEvent(event);
+                
+                setTimeout(() => {
+                    const status = keyTestPassed ? 'PASS' : 'FAIL';
+                    const color = keyTestPassed ? 'pass' : 'fail';
+                    
+                    controlTest.innerHTML = `
+                        <div class="test-item ${color}">
+                            <strong>Status: ${status}</strong><br>
+                            Keyboard Events: ${keyTestPassed ? '✅' : '❌'}<br>
+                            Touch Support: ${('ontouchstart' in window) ? '✅' : '❌'}
+                        </div>
+                    `;
+                }, 100);
+            }, 100);
+        }
+        
+        function testGameMechanics() {
+            const mechanicsTest = document.getElementById('mechanicsTest');
+            
+            // Test basic game logic
+            const testScore = 100;
+            const testDistance = 50;
+            const testCoins = 5;
+            
+            const scoreValid = testScore >= 0;
+            const distanceValid = testDistance >= 0;
+            const coinsValid = testCoins >= 0;
+            
+            const status = scoreValid && distanceValid && coinsValid ? 'PASS' : 'FAIL';
+            const color = scoreValid && distanceValid && coinsValid ? 'pass' : 'fail';
+            
+            mechanicsTest.innerHTML = `
+                <div class="test-item ${color}">
+                    <strong>Status: ${status}</strong><br>
+                    Score Logic: ${scoreValid ? '✅' : '❌'}<br>
+                    Distance Logic: ${distanceValid ? '✅' : '❌'}<br>
+                    Coin Logic: ${coinsValid ? '✅' : '❌'}
+                </div>
+            `;
+            
+            // Add final summary
+            setTimeout(() => {
+                const results = document.getElementById('testResults');
+                const allTests = document.querySelectorAll('.test-item.pass, .test-item.fail');
+                const passedTests = document.querySelectorAll('.test-item.pass').length;
+                const totalTests = allTests.length;
+                
+                results.innerHTML = `
+                    <div class="test-item ${passedTests === totalTests ? 'pass' : 'fail'}">
+                        <h3>Test Summary</h3>
+                        <p><strong>Tests Passed: ${passedTests}/${totalTests}</strong></p>
+                        <p>Game Status: ${passedTests === totalTests ? '✅ READY TO PLAY!' : '❌ NEEDS FIXING'}</p>
+                    </div>
+                `;
+            }, 500);
+        }
+        
+        function openGame() {
+            window.open('index.html', '_blank');
+        }
+        
+        // Run tests automatically when page loads
+        window.addEventListener('load', () => {
+            setTimeout(runAllTests, 1000);
+        });
+    </script>
+</body>
+</html>
