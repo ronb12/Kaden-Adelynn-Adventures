@@ -47,6 +47,43 @@ body {
     font-size: 1.2em;
     font-weight: bold;
     color: #FFD700;
+    margin-bottom: 10px;
+}
+
+.game-stats {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #FFD700;
+    background: rgba(101, 67, 33, 0.3);
+    padding: 8px;
+    border-radius: 10px;
+    border: 2px solid #654321;
+}
+
+.coins {
+    color: #FFD700;
+    font-size: 1.2em;
+}
+
+.combo {
+    color: #FF6B6B;
+    font-size: 1.2em;
+    animation: pulse 1s infinite;
+}
+
+.power-up {
+    color: #4ECDC4;
+    font-size: 1.2em;
+    min-width: 30px;
+    text-align: center;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
 }
 
 .game-area {
@@ -132,6 +169,14 @@ body {
     transform: translateX(-50%) translateX(80px);
 }
 
+.player.shield {
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 10px #4ECDC4);
+}
+
+.player.magnet {
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 10px #FFD700);
+}
+
 @keyframes runForward {
     0% { transform: translateX(-50%) translateY(0px); }
     100% { transform: translateX(-50%) translateY(-5px); }
@@ -185,6 +230,46 @@ body {
     font-size: 3em;
 }
 
+/* Collectibles */
+.collectible {
+    position: absolute;
+    font-size: 1.5em;
+    z-index: 6;
+    animation: moveForward 3s linear infinite, collectibleFloat 1s ease-in-out infinite alternate;
+}
+
+.collectible.coin {
+    color: #FFD700;
+    filter: drop-shadow(0 0 5px #FFD700);
+}
+
+.collectible.gem {
+    color: #FF69B4;
+    filter: drop-shadow(0 0 8px #FF69B4);
+    font-size: 2em;
+}
+
+.collectible.powerup {
+    color: #4ECDC4;
+    filter: drop-shadow(0 0 8px #4ECDC4);
+    font-size: 2em;
+}
+
+.collectible.magnet {
+    color: #FFD700;
+    filter: drop-shadow(0 0 8px #FFD700);
+}
+
+.collectible.shield {
+    color: #4ECDC4;
+    filter: drop-shadow(0 0 8px #4ECDC4);
+}
+
+@keyframes collectibleFloat {
+    0% { transform: translateY(0px); }
+    100% { transform: translateY(-10px); }
+}
+
 @keyframes moveForward {
     0% { transform: translateY(-100vh); }
     100% { transform: translateY(100vh); }
@@ -198,6 +283,59 @@ body {
 @keyframes flicker {
     0% { opacity: 0.7; transform: scale(1); }
     100% { opacity: 1; transform: scale(1.1); }
+}
+
+/* Achievement Popup */
+.achievement-popup {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(45deg, #FFD700, #FFA500);
+    color: #8B4513;
+    padding: 20px;
+    border-radius: 15px;
+    border: 3px solid #654321;
+    z-index: 25;
+    display: none;
+    animation: achievementSlide 2s ease-out;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.achievement-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+@keyframes achievementSlide {
+    0% { transform: translate(-50%, -50%) translateY(-100px); opacity: 0; }
+    20% { transform: translate(-50%, -50%) translateY(0); opacity: 1; }
+    80% { transform: translate(-50%, -50%) translateY(0); opacity: 1; }
+    100% { transform: translate(-50%, -50%) translateY(-100px); opacity: 0; }
+}
+
+/* Combo Popup */
+.combo-popup {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #FF6B6B;
+    font-size: 2em;
+    font-weight: bold;
+    z-index: 25;
+    display: none;
+    animation: comboBounce 1s ease-out;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes comboBounce {
+    0% { transform: translateX(-50%) scale(0.5); opacity: 0; }
+    50% { transform: translateX(-50%) scale(1.2); opacity: 1; }
+    100% { transform: translateX(-50%) scale(1); opacity: 1; }
 }
 
 .game-overlay {
@@ -234,6 +372,69 @@ body {
     color: #FFD700;
     font-size: 1.1em;
     margin-bottom: 30px;
+}
+
+.stats-summary {
+    background: rgba(101, 67, 33, 0.3);
+    padding: 15px;
+    border-radius: 10px;
+    margin: 20px 0;
+    border: 2px solid #654321;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    margin: 5px 0;
+    font-weight: bold;
+}
+
+.stat-label {
+    color: #FFD700;
+}
+
+.stat-value {
+    color: #4ECDC4;
+}
+
+.final-stats {
+    background: rgba(101, 67, 33, 0.3);
+    padding: 15px;
+    border-radius: 10px;
+    margin: 20px 0;
+    border: 2px solid #654321;
+}
+
+.final-stats p {
+    margin: 5px 0;
+    font-weight: bold;
+}
+
+.achievements-earned {
+    background: rgba(101, 67, 33, 0.3);
+    padding: 15px;
+    border-radius: 10px;
+    margin: 20px 0;
+    border: 2px solid #654321;
+}
+
+.achievements-earned h3 {
+    color: #FFD700;
+    margin-bottom: 10px;
+}
+
+.achievement-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.achievement-item {
+    color: #4ECDC4;
+    font-weight: bold;
+    padding: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
 }
 
 .controls-info {
@@ -277,6 +478,20 @@ body {
 
 .mobile-controls-info p {
     color: #FFD700;
+    font-weight: bold;
+    margin: 0;
+}
+
+.power-up-info {
+    background: rgba(78, 205, 196, 0.3);
+    padding: 10px;
+    border-radius: 10px;
+    border: 2px solid #4ECDC4;
+    margin: 15px 0;
+}
+
+.power-up-info p {
+    color: #4ECDC4;
     font-weight: bold;
     margin: 0;
 }
@@ -397,6 +612,17 @@ body {
     }
 }
 
+/* Screen shake effect */
+.game-area.shake {
+    animation: screenShake 0.5s ease-in-out;
+}
+
+@keyframes screenShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
 /* Responsive design for mobile devices */
 @media (max-width: 850px) {
     body {
@@ -429,10 +655,16 @@ body {
         flex-wrap: wrap;
         gap: 5px;
         justify-content: center;
+        margin-bottom: 5px;
     }
     
     .score-board > div {
         margin: 0 5px;
+    }
+    
+    .game-stats {
+        font-size: 0.9em;
+        padding: 5px;
     }
     
     .game-area {
@@ -506,6 +738,10 @@ body {
     .obstacle {
         font-size: 1.5em;
     }
+    
+    .collectible {
+        font-size: 1.2em;
+    }
 }
 
 /* Tablet specific adjustments */
@@ -541,12 +777,22 @@ body {
         gap: 2px;
     }
     
+    .game-stats {
+        font-size: 0.8em;
+        flex-direction: column;
+        gap: 2px;
+    }
+    
     .player {
         font-size: 2em;
     }
     
     .obstacle {
         font-size: 1.2em;
+    }
+    
+    .collectible {
+        font-size: 1em;
     }
     
     .control-btn {
@@ -581,6 +827,11 @@ body {
         font-size: 0.8em;
         flex-direction: row;
         justify-content: space-around;
+    }
+    
+    .game-stats {
+        font-size: 0.8em;
+        flex-direction: row;
     }
     
     .game-area {

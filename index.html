@@ -17,6 +17,11 @@
                 <div class="high-score">Best: <span id="highScore">0</span></div>
                 <div class="distance">Distance: <span id="distance">0</span>m</div>
             </div>
+            <div class="game-stats">
+                <div class="coins">🪙 <span id="coins">0</span></div>
+                <div class="combo">🔥 <span id="combo">1</span>x</div>
+                <div class="power-up" id="powerUpDisplay"></div>
+            </div>
         </div>
         
         <div class="game-area">
@@ -27,10 +32,37 @@
             
             <div class="player" id="player">🏃‍♂️</div>
             
+            <!-- Achievement Popup -->
+            <div class="achievement-popup" id="achievementPopup">
+                <div class="achievement-content">
+                    <span class="achievement-icon">🏆</span>
+                    <span class="achievement-text">Achievement Unlocked!</span>
+                </div>
+            </div>
+            
+            <!-- Combo Popup -->
+            <div class="combo-popup" id="comboPopup">
+                <span class="combo-text">COMBO!</span>
+            </div>
+            
             <div class="game-overlay" id="gameOverlay">
                 <div class="start-screen" id="startScreen">
                     <h2>🏛️ Temple Adventure Awaits! 🏛️</h2>
                     <p>Run through ancient ruins and escape the temple!</p>
+                    <div class="stats-summary">
+                        <div class="stat-item">
+                            <span class="stat-label">Total Distance:</span>
+                            <span class="stat-value" id="totalDistance">0</span>m
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Games Played:</span>
+                            <span class="stat-value" id="gamesPlayed">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Total Coins:</span>
+                            <span class="stat-value" id="totalCoins">0</span>
+                        </div>
+                    </div>
                     <div class="controls-info">
                         <div class="control-item">
                             <span class="key">SPACE</span>
@@ -52,12 +84,23 @@
                     <div class="mobile-controls-info">
                         <p>📱 Mobile: Tap screen to jump, swipe to move!</p>
                     </div>
+                    <div class="power-up-info">
+                        <p>💎 Collect coins! 🧲 Magnet power-up! 🛡️ Shield protection!</p>
+                    </div>
                     <button id="startButton" class="start-btn">🏃‍♂️ Start Adventure!</button>
                 </div>
                 <div class="game-over-screen" id="gameOverScreen" style="display: none;">
                     <h2>🏛️ Temple Escape Failed! 🏛️</h2>
-                    <p>Distance: <span id="finalDistance">0</span>m</p>
-                    <p>Score: <span id="finalScore">0</span></p>
+                    <div class="final-stats">
+                        <p>Distance: <span id="finalDistance">0</span>m</p>
+                        <p>Score: <span id="finalScore">0</span></p>
+                        <p>Coins: <span id="finalCoins">0</span></p>
+                        <p>Best Combo: <span id="finalCombo">1</span>x</p>
+                    </div>
+                    <div class="achievements-earned" id="achievementsEarned">
+                        <h3>🏆 Achievements Earned:</h3>
+                        <div class="achievement-list" id="achievementList"></div>
+                    </div>
                     <button id="restartButton" class="restart-btn">🏃‍♂️ Try Again!</button>
                 </div>
             </div>
