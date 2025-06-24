@@ -1059,8 +1059,7 @@ Enjoy the adventure! 🏛️✨`);
           init3D();
           resetGame();
           setupMobileControls();
-          
-          // Show mobile tab view on mobile devices
+          updateUIVisibility();
           if (isMobile) {
               showMobileTabView();
           } else {
@@ -1110,6 +1109,14 @@ Enjoy the adventure! 🏛️✨`);
           }
       }
 
+      function updateUIVisibility() {
+          if (startScreen.classList.contains('active') || gameOverScreen.classList.contains('active')) {
+              ui.style.display = 'none';
+          } else {
+              ui.style.display = '';
+          }
+      }
+
       function startGame() {
           setWorldMusic();
           resetGame();
@@ -1117,7 +1124,28 @@ Enjoy the adventure! 🏛️✨`);
           startScreen.classList.remove('active');
           gameOverScreen.classList.remove('active');
           mobileTabView.style.display = 'none';
+          updateUIVisibility();
           animate();
+      }
+
+      function endGame() {
+          running = false;
+          const newBest = score > highScore;
+          if (newBest) {
+              highScore = score;
+              localStorage.setItem('runner3dHighScore', highScore);
+              newBestEl.style.display = 'inline';
+          } else {
+              newBestEl.style.display = 'none';
+          }
+          finalScoreEl.textContent = score;
+          finalCoinsEl.textContent = coinsCollected;
+          startScreen.classList.remove('active');
+          gameOverScreen.classList.add('active');
+          updateUIVisibility();
+          if (player && player.position) {
+              createBurstParticles(player.position);
+          }
       }
     </script>
 </body>
