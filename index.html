@@ -3,106 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kaden & Adelynn Adventures - Fun Game for Kids!</title>
-    <link rel="stylesheet" href="styles/main.css">
-    <link rel="stylesheet" href="styles/effects.css">
-    <link rel="stylesheet" href="styles/characters.css">
+    <title>Kaden & Adelynn Adventures - Fun Game!</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="gameContainer">
-        <div class="space-bg"></div>
-        <div id="gameArea">
-            <div id="player" class="character-spaceship">
-                <div class="player-emoji">🚀</div>
-            </div>
-            
-            <!-- UI Elements -->
-            <div id="score">Score: 0</div>
-            <div id="timer">Time: 60</div>
-            <button id="pauseBtn">⏸️ Pause</button>
-            <div id="soundToggle">🔊 Sound</div>
-            <div id="combo" style="display: none;">Combo: 0x</div>
-            <div id="level">Level: 1</div>
-            <div id="experience">XP: 0</div>
-            <div id="bossHealth" style="display: none;">Boss: None</div>
-            
-            <!-- Power-up Indicator -->
-            <div id="powerupIndicator" class="powerupIndicator">
-                <h4>Active Power-ups:</h4>
-                <div id="powerupList"></div>
-            </div>
-            
-            <!-- Instructions -->
-            <div class="instructions">
-                ← → Move | Spacebar: Shoot | P: Pause
+    <div class="game-container">
+        <div class="game-header">
+            <h1>🏃‍♂️ Kaden & Adelynn Adventures 🏃‍♀️</h1>
+            <div class="score-board">
+                <div class="score">Score: <span id="score">0</span></div>
+                <div class="high-score">Best: <span id="highScore">0</span></div>
             </div>
         </div>
         
-        <!-- Start Screen -->
-        <div id="startScreen" class="screen">
-            <h1>🚀 Kaden & Adelynn Adventures 🚀</h1>
-            <p>Collect coins, avoid sharks, and use power-ups!</p>
-            
-            <h3>Choose Your Character:</h3>
-            <div class="character-grid">
-                <div class="character-option selected" data-character="boy">👦</div>
-                <div class="character-option" data-character="girl">👧</div>
-                <div class="character-option" data-character="car">🚗</div>
-                <div class="character-option" data-character="spaceship">🚀</div>
-                <div class="character-option" data-character="army">🪖</div>
-                <div class="character-option" data-character="barbie">👸</div>
-            </div>
-            
-            <h3>🎮 Controls:</h3>
-            <p>← → Arrow Keys: Move<br>
-            Spacebar: Shoot missiles<br>
-            P: Pause game</p>
-            
-            <h3>⚡ Power-ups:</h3>
-            <p>⚡ Speed Boost: Move faster<br>
-            🛡️ Shield: Protection from sharks<br>
-            🎯 Multi-Shot: Fire 3 missiles<br>
-            ⏰ Time Freeze: Stop the timer<br>
-            🎯 Auto-Aim: Missiles track sharks</p>
-            
-            <button class="btn" onclick="startGame()">🚀 Start Game!</button>
-            
-            <!-- Saved Game Info -->
-            <div id="savedGameInfo" style="display: none;">
-                <h3>💾 Saved Game Found!</h3>
-                <p>Score: <span id="savedScore">0</span> | Time: <span id="savedTime">60</span>s</p>
-                <button class="btn" id="loadSavedGame">📂 Load Saved Game</button>
+        <div class="game-area">
+            <div class="player" id="player">🏃‍♂️</div>
+            <div class="game-overlay" id="gameOverlay">
+                <div class="start-screen" id="startScreen">
+                    <h2>Ready for an Adventure?</h2>
+                    <p>Use SPACE to jump, DOWN ARROW to slide!</p>
+                    <button id="startButton" class="start-btn">Start Game!</button>
+                </div>
+                <div class="game-over-screen" id="gameOverScreen" style="display: none;">
+                    <h2>Game Over!</h2>
+                    <p>Your score: <span id="finalScore">0</span></p>
+                    <button id="restartButton" class="restart-btn">Play Again!</button>
+                </div>
             </div>
         </div>
         
-        <!-- Game Over Screen -->
-        <div id="gameOverScreen" class="screen" style="display: none;">
-            <h1>🎮 Game Over! 🎮</h1>
-            <div id="finalScore">Final Score: 0</div>
-            <div id="finalLevel">Level Reached: 1</div>
-            <div id="finalXP">Total XP: 0</div>
-            <button class="btn" onclick="restartGame()">🔄 Play Again</button>
-            <button class="btn" onclick="showStartScreen()">🏠 Main Menu</button>
-        </div>
-        
-        <!-- Pause Menu -->
-        <div id="pauseMenu" class="pause-menu" style="display: none;">
-            <h2>⏸️ Game Paused</h2>
-            <div id="pauseScore">Current Score: 0</div>
-            <div id="pauseTime">Time Left: 60s</div>
-            <button class="btn" onclick="saveGame()">💾 Save Game</button>
-            <button class="btn" onclick="resumeGame()">▶️ Resume</button>
-            <button class="btn" onclick="quitGame()">❌ Quit Game</button>
-        </div>
-        
-        <!-- Achievement Popup -->
-        <div id="achievement">
-            <div class="achievementEmoji">🏆</div>
-            <h3>Achievement Unlocked!</h3>
-            <p id="achievementText">Great job!</p>
+        <div class="controls">
+            <div class="control-hint">
+                <span>🎮 Controls:</span>
+                <span>SPACE = Jump</span>
+                <span>↓ = Slide</span>
+            </div>
         </div>
     </div>
-
-    <script src="scripts/game.js"></script>
+    
+    <script src="script.js"></script>
 </body>
 </html> 

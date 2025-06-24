@@ -1,0 +1,214 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.game-container {
+    width: 800px;
+    height: 600px;
+    background: linear-gradient(to bottom, #87CEEB, #98FB98);
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.game-header {
+    background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+    color: white;
+    padding: 15px;
+    text-align: center;
+    border-radius: 20px 20px 0 0;
+}
+
+.game-header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.score-board {
+    display: flex;
+    justify-content: space-around;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.game-area {
+    height: 450px;
+    position: relative;
+    background: linear-gradient(to bottom, #98FB98, #87CEEB);
+    overflow: hidden;
+}
+
+.player {
+    position: absolute;
+    bottom: 50px;
+    left: 100px;
+    font-size: 3em;
+    z-index: 10;
+    transition: transform 0.1s ease;
+}
+
+.player.jumping {
+    animation: jump 0.6s ease-out;
+}
+
+.player.sliding {
+    animation: slide 0.5s ease-out;
+}
+
+@keyframes jump {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-100px); }
+}
+
+@keyframes slide {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(0.5); }
+}
+
+.obstacle {
+    position: absolute;
+    font-size: 2em;
+    z-index: 5;
+}
+
+.obstacle.tree {
+    bottom: 50px;
+    color: #228B22;
+}
+
+.obstacle.rock {
+    bottom: 30px;
+    color: #696969;
+}
+
+.obstacle.bird {
+    bottom: 150px;
+    color: #FFD700;
+    animation: fly 2s linear infinite;
+}
+
+@keyframes fly {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+}
+
+.game-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+}
+
+.start-screen, .game-over-screen {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.start-screen h2, .game-over-screen h2 {
+    color: #FF6B6B;
+    font-size: 2em;
+    margin-bottom: 20px;
+}
+
+.start-screen p {
+    color: #666;
+    font-size: 1.1em;
+    margin-bottom: 30px;
+}
+
+.start-btn, .restart-btn {
+    background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.2em;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.start-btn:hover, .restart-btn:hover {
+    transform: scale(1.05);
+}
+
+.controls {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 15px;
+    border-radius: 0 0 20px 20px;
+}
+
+.control-hint {
+    display: flex;
+    justify-content: space-around;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.control-hint span {
+    background: #f0f0f0;
+    padding: 5px 10px;
+    border-radius: 15px;
+    border: 2px solid #ddd;
+}
+
+/* Particle effects for fun */
+.particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: #FFD700;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: particle 1s ease-out forwards;
+}
+
+@keyframes particle {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0) translateY(-50px);
+    }
+}
+
+/* Responsive design */
+@media (max-width: 850px) {
+    .game-container {
+        width: 95vw;
+        height: 80vh;
+    }
+    
+    .game-header h1 {
+        font-size: 2em;
+    }
+    
+    .control-hint {
+        flex-direction: column;
+        gap: 5px;
+    }
+} 
