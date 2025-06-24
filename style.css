@@ -12,6 +12,7 @@ body {
     justify-content: center;
     align-items: center;
     overflow: hidden;
+    touch-action: none; /* Prevent zooming on mobile */
 }
 
 .game-container {
@@ -251,6 +252,20 @@ body {
     font-weight: bold;
 }
 
+.mobile-controls-info {
+    background: rgba(101, 67, 33, 0.5);
+    padding: 10px;
+    border-radius: 10px;
+    border: 2px solid #654321;
+    margin: 15px 0;
+}
+
+.mobile-controls-info p {
+    color: #FFD700;
+    font-weight: bold;
+    margin: 0;
+}
+
 .start-btn, .restart-btn {
     background: linear-gradient(45deg, #FFD700, #FFA500);
     color: #8B4513;
@@ -267,6 +282,61 @@ body {
 .start-btn:hover, .restart-btn:hover {
     transform: scale(1.05);
     background: linear-gradient(45deg, #FFA500, #FFD700);
+}
+
+/* Mobile Touch Controls */
+.mobile-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 120px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    z-index: 15;
+    pointer-events: none;
+}
+
+.control-area {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: auto;
+}
+
+.control-btn {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 215, 0, 0.8);
+    border: 3px solid #654321;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #8B4513;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+}
+
+.control-btn:active {
+    transform: scale(0.9);
+    background: rgba(255, 165, 0, 0.9);
+}
+
+.center-area {
+    flex-direction: column;
+    gap: 5px;
+}
+
+.center-area .control-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 1.2em;
 }
 
 .controls {
@@ -312,23 +382,99 @@ body {
     }
 }
 
-/* Responsive design */
+/* Responsive design for mobile devices */
 @media (max-width: 850px) {
     .game-container {
-        width: 95vw;
-        height: 80vh;
+        width: 100vw;
+        height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+    }
+    
+    .game-header {
+        border-radius: 0;
+        padding: 10px;
     }
     
     .game-header h1 {
-        font-size: 2em;
+        font-size: 1.8em;
+    }
+    
+    .score-board {
+        font-size: 1em;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+    
+    .game-area {
+        height: calc(100vh - 200px);
+    }
+    
+    .controls {
+        border-radius: 0;
+        padding: 10px;
     }
     
     .control-hint {
         flex-direction: column;
         gap: 5px;
+        font-size: 0.8em;
     }
     
     .controls-info {
         grid-template-columns: 1fr;
     }
+    
+    .start-screen, .game-over-screen {
+        padding: 20px;
+        margin: 20px;
+        max-width: 90vw;
+    }
+    
+    .start-screen h2, .game-over-screen h2 {
+        font-size: 1.5em;
+    }
+    
+    .start-screen p {
+        font-size: 1em;
+    }
+    
+    .mobile-controls {
+        display: flex !important;
+        height: 100px;
+    }
+    
+    .control-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2em;
+    }
+    
+    .center-area .control-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1em;
+    }
+}
+
+/* Tablet specific adjustments */
+@media (min-width: 851px) and (max-width: 1024px) {
+    .game-container {
+        width: 90vw;
+        height: 80vh;
+    }
+    
+    .mobile-controls {
+        display: flex !important;
+    }
+}
+
+/* Prevent text selection on mobile */
+* {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 } 

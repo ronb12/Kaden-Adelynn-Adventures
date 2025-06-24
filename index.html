@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Kaden & Adelynn Adventures - Temple Run Style!</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -47,6 +49,9 @@
                             <span class="action">Right</span>
                         </div>
                     </div>
+                    <div class="mobile-controls-info">
+                        <p>📱 Mobile: Tap screen to jump, swipe to move!</p>
+                    </div>
                     <button id="startButton" class="start-btn">🏃‍♂️ Start Adventure!</button>
                 </div>
                 <div class="game-over-screen" id="gameOverScreen" style="display: none;">
@@ -55,6 +60,20 @@
                     <p>Score: <span id="finalScore">0</span></p>
                     <button id="restartButton" class="restart-btn">🏃‍♂️ Try Again!</button>
                 </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Touch Controls -->
+        <div class="mobile-controls" id="mobileControls" style="display: none;">
+            <div class="control-area left-area" id="leftArea">
+                <div class="control-btn left-btn">←</div>
+            </div>
+            <div class="control-area center-area" id="centerArea">
+                <div class="control-btn jump-btn">⬆️</div>
+                <div class="control-btn slide-btn">⬇️</div>
+            </div>
+            <div class="control-area right-area" id="rightArea">
+                <div class="control-btn right-btn">→</div>
             </div>
         </div>
         

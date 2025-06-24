@@ -12,6 +12,7 @@ class AdventureRunner {
         this.restartButton = document.getElementById('restartButton');
         this.finalScoreElement = document.getElementById('finalScore');
         this.finalDistanceElement = document.getElementById('finalDistance');
+        this.mobileControls = document.getElementById('mobileControls');
         
         this.gameRunning = false;
         this.score = 0;
@@ -21,6 +22,7 @@ class AdventureRunner {
         this.obstacles = [];
         this.particles = [];
         this.animationId = null;
+        this.isMobile = this.detectMobile();
         
         this.playerState = 'running'; // running, jumping, sliding
         this.playerLane = 'center'; // left, center, right
@@ -30,14 +32,96 @@ class AdventureRunner {
         this.init();
     }
     
+    detectMobile() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+               window.innerWidth <= 850;
+    }
+    
     init() {
         this.highScoreElement.textContent = this.highScore;
         this.startButton.addEventListener('click', () => this.startGame());
         this.restartButton.addEventListener('click', () => this.restartGame());
         document.addEventListener('keydown', (e) => this.handleKeyPress(e));
         
+        // Mobile touch controls
+        if (this.isMobile) {
+            this.setupMobileControls();
+        }
+        
         // Add some fun background elements
         this.createBackgroundElements();
+    }
+    
+    setupMobileControls() {
+        this.mobileControls.style.display = 'flex';
+        
+        // Jump button
+        document.getElementById('centerArea').addEventListener('click', (e) => {
+            if (e.target.classList.contains('jump-btn')) {
+                this.jump();
+            }
+        });
+        
+        // Slide button
+        document.getElementById('centerArea').addEventListener('click', (e) => {
+            if (e.target.classList.contains('slide-btn')) {
+                this.slide();
+            }
+        });
+        
+        // Left button
+        document.getElementById('leftArea').addEventListener('click', (e) => {
+            if (e.target.classList.contains('left-btn')) {
+                this.moveLeft();
+            }
+        });
+        
+        // Right button
+        document.getElementById('rightArea').addEventListener('click', (e) => {
+            if (e.target.classList.contains('right-btn')) {
+                this.moveRight();
+            }
+        });
+        
+        // Touch controls for game area
+        let touchStartX = 0;
+        let touchStartY = 0;
+        
+        this.gameArea.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+        
+        this.gameArea.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            if (!this.gameRunning) return;
+            
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+            
+            // Determine swipe direction
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                // Horizontal swipe
+                if (deltaX > 50) {
+                    this.moveRight();
+                } else if (deltaX < -50) {
+                    this.moveLeft();
+                }
+            } else {
+                // Vertical swipe
+                if (deltaY > 50) {
+                    this.slide();
+                } else if (deltaY < -50) {
+                    this.jump();
+                } else {
+                    // Tap to jump
+                    this.jump();
+                }
+            }
+        });
     }
     
     createBackgroundElements() {
@@ -75,6 +159,9 @@ class AdventureRunner {
         this.playerState = 'running';
         this.playerLane = 'center';
         this.playerY = 50;
+        
+        // Reset player position
+        this.player.classList.remove('left', 'right');
         
         this.startScreen.style.display = 'none';
         this.gameOverlay.style.display = 'none';
