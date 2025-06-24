@@ -6,7 +6,7 @@
 
 body {
     font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
     min-height: 100vh;
     display: flex;
     justify-content: center;
@@ -17,25 +17,27 @@ body {
 .game-container {
     width: 800px;
     height: 600px;
-    background: linear-gradient(to bottom, #87CEEB, #98FB98);
+    background: linear-gradient(to bottom, #8B4513, #654321);
     border-radius: 20px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
     position: relative;
     overflow: hidden;
 }
 
 .game-header {
-    background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
-    color: white;
+    background: linear-gradient(45deg, #8B4513, #A0522D);
+    color: #FFD700;
     padding: 15px;
     text-align: center;
     border-radius: 20px 20px 0 0;
+    border-bottom: 3px solid #654321;
 }
 
 .game-header h1 {
     font-size: 2.5em;
     margin-bottom: 10px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    color: #FFD700;
 }
 
 .score-board {
@@ -43,13 +45,62 @@ body {
     justify-content: space-around;
     font-size: 1.2em;
     font-weight: bold;
+    color: #FFD700;
 }
 
 .game-area {
     height: 450px;
     position: relative;
-    background: linear-gradient(to bottom, #98FB98, #87CEEB);
+    background: linear-gradient(to bottom, #8B4513, #654321);
     overflow: hidden;
+    perspective: 1000px;
+}
+
+.temple-background {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.temple-ruins {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60%;
+    background: 
+        linear-gradient(45deg, transparent 30%, rgba(139, 69, 19, 0.3) 30%, rgba(139, 69, 19, 0.3) 70%, transparent 70%),
+        linear-gradient(-45deg, transparent 30%, rgba(101, 67, 33, 0.3) 30%, rgba(101, 67, 33, 0.3) 70%, transparent 70%);
+    background-size: 100px 100px;
+    animation: templeMove 20s linear infinite;
+}
+
+.ground-texture {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40%;
+    background: 
+        repeating-linear-gradient(
+            90deg,
+            #654321 0px,
+            #654321 20px,
+            #8B4513 20px,
+            #8B4513 40px
+        );
+    animation: groundMove 10s linear infinite;
+}
+
+@keyframes templeMove {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100px); }
+}
+
+@keyframes groundMove {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-40px); }
 }
 
 .player {
@@ -59,6 +110,7 @@ body {
     font-size: 3em;
     z-index: 10;
     transition: transform 0.1s ease;
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
 }
 
 .player.jumping {
@@ -67,6 +119,14 @@ body {
 
 .player.sliding {
     animation: slide 0.5s ease-out;
+}
+
+.player.left {
+    transform: translateX(-50px);
+}
+
+.player.right {
+    transform: translateX(50px);
 }
 
 @keyframes jump {
@@ -83,6 +143,7 @@ body {
     position: absolute;
     font-size: 2em;
     z-index: 5;
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
 }
 
 .obstacle.tree {
@@ -101,9 +162,26 @@ body {
     animation: fly 2s linear infinite;
 }
 
+.obstacle.fire {
+    bottom: 40px;
+    color: #FF4500;
+    animation: flicker 0.5s ease-in-out infinite alternate;
+}
+
+.obstacle.pillar {
+    bottom: 30px;
+    color: #8B4513;
+    font-size: 3em;
+}
+
 @keyframes fly {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-20px); }
+}
+
+@keyframes flicker {
+    0% { opacity: 0.7; transform: scale(1); }
+    100% { opacity: 1; transform: scale(1.1); }
 }
 
 .game-overlay {
@@ -112,7 +190,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.8);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -120,58 +198,96 @@ body {
 }
 
 .start-screen, .game-over-screen {
-    background: white;
+    background: linear-gradient(45deg, #8B4513, #A0522D);
     padding: 40px;
     border-radius: 20px;
     text-align: center;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 3px solid #654321;
+    color: #FFD700;
 }
 
 .start-screen h2, .game-over-screen h2 {
-    color: #FF6B6B;
+    color: #FFD700;
     font-size: 2em;
     margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .start-screen p {
-    color: #666;
+    color: #FFD700;
     font-size: 1.1em;
     margin-bottom: 30px;
 }
 
+.controls-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.control-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(101, 67, 33, 0.5);
+    padding: 10px;
+    border-radius: 10px;
+    border: 2px solid #654321;
+}
+
+.key {
+    background: #FFD700;
+    color: #8B4513;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+.action {
+    color: #FFD700;
+    font-weight: bold;
+}
+
 .start-btn, .restart-btn {
-    background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
-    color: white;
+    background: linear-gradient(45deg, #FFD700, #FFA500);
+    color: #8B4513;
     border: none;
     padding: 15px 30px;
     font-size: 1.2em;
     border-radius: 25px;
     cursor: pointer;
     transition: transform 0.2s ease;
+    font-weight: bold;
+    border: 3px solid #654321;
 }
 
 .start-btn:hover, .restart-btn:hover {
     transform: scale(1.05);
+    background: linear-gradient(45deg, #FFA500, #FFD700);
 }
 
 .controls {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(139, 69, 19, 0.9);
     padding: 15px;
     border-radius: 0 0 20px 20px;
+    border-top: 3px solid #654321;
 }
 
 .control-hint {
     display: flex;
     justify-content: space-around;
     font-size: 0.9em;
-    color: #666;
+    color: #FFD700;
 }
 
 .control-hint span {
-    background: #f0f0f0;
+    background: rgba(101, 67, 33, 0.8);
     padding: 5px 10px;
     border-radius: 15px;
-    border: 2px solid #ddd;
+    border: 2px solid #654321;
 }
 
 /* Particle effects for fun */
@@ -210,5 +326,9 @@ body {
     .control-hint {
         flex-direction: column;
         gap: 5px;
+    }
+    
+    .controls-info {
+        grid-template-columns: 1fr;
     }
 } 

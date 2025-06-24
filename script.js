@@ -4,15 +4,18 @@ class AdventureRunner {
         this.player = document.getElementById('player');
         this.scoreElement = document.getElementById('score');
         this.highScoreElement = document.getElementById('highScore');
+        this.distanceElement = document.getElementById('distance');
         this.gameOverlay = document.getElementById('gameOverlay');
         this.startScreen = document.getElementById('startScreen');
         this.gameOverScreen = document.getElementById('gameOverScreen');
         this.startButton = document.getElementById('startButton');
         this.restartButton = document.getElementById('restartButton');
         this.finalScoreElement = document.getElementById('finalScore');
+        this.finalDistanceElement = document.getElementById('finalDistance');
         
         this.gameRunning = false;
         this.score = 0;
+        this.distance = 0;
         this.highScore = localStorage.getItem('adventureRunnerHighScore') || 0;
         this.gameSpeed = 5;
         this.obstacles = [];
@@ -20,6 +23,7 @@ class AdventureRunner {
         this.animationId = null;
         
         this.playerState = 'running'; // running, jumping, sliding
+        this.playerLane = 'center'; // left, center, right
         this.playerY = 50;
         this.playerHeight = 60;
         
@@ -37,18 +41,18 @@ class AdventureRunner {
     }
     
     createBackgroundElements() {
-        // Add floating clouds
-        for (let i = 0; i < 5; i++) {
-            const cloud = document.createElement('div');
-            cloud.innerHTML = '☁️';
-            cloud.style.position = 'absolute';
-            cloud.style.fontSize = '2em';
-            cloud.style.opacity = '0.7';
-            cloud.style.top = Math.random() * 200 + 'px';
-            cloud.style.left = Math.random() * 800 + 'px';
-            cloud.style.animation = `float ${10 + Math.random() * 10}s linear infinite`;
-            cloud.style.zIndex = '1';
-            this.gameArea.appendChild(cloud);
+        // Add floating temple elements
+        for (let i = 0; i < 3; i++) {
+            const temple = document.createElement('div');
+            temple.innerHTML = '🏛️';
+            temple.style.position = 'absolute';
+            temple.style.fontSize = '3em';
+            temple.style.opacity = '0.3';
+            temple.style.top = Math.random() * 150 + 'px';
+            temple.style.left = Math.random() * 800 + 'px';
+            temple.style.animation = `float ${15 + Math.random() * 10}s linear infinite`;
+            temple.style.zIndex = '1';
+            this.gameArea.appendChild(temple);
         }
         
         // Add CSS for floating animation
@@ -65,15 +69,18 @@ class AdventureRunner {
     startGame() {
         this.gameRunning = true;
         this.score = 0;
+        this.distance = 0;
         this.gameSpeed = 5;
         this.obstacles = [];
         this.playerState = 'running';
+        this.playerLane = 'center';
         this.playerY = 50;
         
         this.startScreen.style.display = 'none';
         this.gameOverlay.style.display = 'none';
         
         this.updateScore();
+        this.updateDistance();
         this.gameLoop();
         this.spawnObstacles();
     }
@@ -96,6 +103,36 @@ class AdventureRunner {
                 e.preventDefault();
                 this.slide();
                 break;
+            case 'ArrowLeft':
+                e.preventDefault();
+                this.moveLeft();
+                break;
+            case 'ArrowRight':
+                e.preventDefault();
+                this.moveRight();
+                break;
+        }
+    }
+    
+    moveLeft() {
+        if (this.playerLane === 'center') {
+            this.playerLane = 'left';
+            this.player.classList.remove('right');
+            this.player.classList.add('left');
+        } else if (this.playerLane === 'right') {
+            this.playerLane = 'center';
+            this.player.classList.remove('right', 'left');
+        }
+    }
+    
+    moveRight() {
+        if (this.playerLane === 'center') {
+            this.playerLane = 'right';
+            this.player.classList.remove('left');
+            this.player.classList.add('right');
+        } else if (this.playerLane === 'left') {
+            this.playerLane = 'center';
+            this.player.classList.remove('right', 'left');
         }
     }
     
@@ -152,12 +189,16 @@ class AdventureRunner {
         if (!this.gameRunning) return;
         
         const obstacleTypes = [
-            { emoji: '🌳', class: 'tree', height: 60, y: 50 },
-            { emoji: '🪨', class: 'rock', height: 40, y: 30 },
-            { emoji: '🦅', class: 'bird', height: 40, y: 150 }
+            { emoji: '🌳', class: 'tree', height: 60, y: 50, lanes: ['left', 'center', 'right'] },
+            { emoji: '🪨', class: 'rock', height: 40, y: 30, lanes: ['left', 'center', 'right'] },
+            { emoji: '🦅', class: 'bird', height: 40, y: 150, lanes: ['left', 'center', 'right'] },
+            { emoji: '🔥', class: 'fire', height: 30, y: 40, lanes: ['left', 'center', 'right'] },
+            { emoji: '🏛️', class: 'pillar', height: 80, y: 30, lanes: ['left', 'right'] }
         ];
         
         const randomObstacle = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
+        const randomLane = randomObstacle.lanes[Math.floor(Math.random() * randomObstacle.lanes.length)];
+        
         const obstacle = document.createElement('div');
         obstacle.className = `obstacle ${randomObstacle.class}`;
         obstacle.innerHTML = randomObstacle.emoji;
@@ -165,6 +206,14 @@ class AdventureRunner {
         obstacle.style.bottom = randomObstacle.y + 'px';
         obstacle.dataset.height = randomObstacle.height;
         obstacle.dataset.y = randomObstacle.y;
+        obstacle.dataset.lane = randomLane;
+        
+        // Position based on lane
+        if (randomLane === 'left') {
+            obstacle.style.left = '650px';
+        } else if (randomLane === 'right') {
+            obstacle.style.left = '750px';
+        }
         
         this.gameArea.appendChild(obstacle);
         this.obstacles.push(obstacle);
@@ -183,7 +232,9 @@ class AdventureRunner {
                 obstacle.remove();
                 this.obstacles.splice(index, 1);
                 this.score += 10;
+                this.distance += 10;
                 this.updateScore();
+                this.updateDistance();
             } else {
                 obstacle.style.left = newLeft + 'px';
             }
@@ -197,8 +248,15 @@ class AdventureRunner {
             const obstacleRect = obstacle.getBoundingClientRect();
             
             if (this.isColliding(playerRect, obstacleRect)) {
-                this.gameOver();
-                return;
+                // Check if player is in the same lane as obstacle
+                const obstacleLane = obstacle.dataset.lane;
+                if (this.playerLane === obstacleLane || 
+                    (obstacleLane === 'center' && this.playerLane === 'center') ||
+                    (obstacleLane === 'left' && this.playerLane === 'left') ||
+                    (obstacleLane === 'right' && this.playerLane === 'right')) {
+                    this.gameOver();
+                    return;
+                }
             }
         }
     }
@@ -219,6 +277,10 @@ class AdventureRunner {
         }
     }
     
+    updateDistance() {
+        this.distanceElement.textContent = this.distance;
+    }
+    
     gameOver() {
         this.gameRunning = false;
         cancelAnimationFrame(this.animationId);
@@ -231,6 +293,7 @@ class AdventureRunner {
         }
         
         this.finalScoreElement.textContent = this.score;
+        this.finalDistanceElement.textContent = this.distance;
         this.gameOverScreen.style.display = 'block';
         this.gameOverlay.style.display = 'flex';
         
