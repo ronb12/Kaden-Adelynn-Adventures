@@ -1145,6 +1145,252 @@ Enjoy the adventure! 🏛️✨`);
               createBurstParticles(player.position);
           }
       }
+
+      // Initialize 3D scene
+      function init3D() {
+          // Create scene
+          scene = new THREE.Scene();
+          
+          // Create camera
+          camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+          camera.position.set(0, 2, 5);
+          camera.lookAt(0, 0, 0);
+          
+          // Create renderer
+          renderer = new THREE.WebGLRenderer({ antialias: true });
+          renderer.setSize(window.innerWidth, window.innerHeight);
+          renderer.shadowMap.enabled = true;
+          renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+          gameContainer.appendChild(renderer.domElement);
+          
+          // Create lighting
+          const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+          scene.add(ambientLight);
+          
+          const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+          directionalLight.position.set(10, 10, 5);
+          directionalLight.castShadow = true;
+          directionalLight.shadow.mapSize.width = 2048;
+          directionalLight.shadow.mapSize.height = 2048;
+          scene.add(directionalLight);
+          
+          // Create skybox
+          createSkybox();
+          
+          // Create ground
+          createGround();
+          
+          // Create player
+          createPlayer();
+          
+          // Load high score
+          highScore = localStorage.getItem('runner3dHighScore') || 0;
+          highScoreEl.textContent = highScore;
+      }
+
+      // Reset game state
+      function resetGame() {
+          // Clear existing objects
+          obstacles.forEach(o => scene.remove(o.mesh));
+          coins.forEach(c => scene.remove(c.mesh));
+          powerUps.forEach(p => scene.remove(p.mesh));
+          particles.forEach(p => scene.remove(p));
+          
+          obstacles = [];
+          coins = [];
+          powerUps = [];
+          particles = [];
+          
+          // Reset game variables
+          score = 0;
+          coinsCollected = 0;
+          speed = GAME_SPEED_START;
+          lane = 1;
+          jumping = false;
+          sliding = false;
+          running = false;
+          lastSpawn = 0;
+          lastCoin = 0;
+          lastPowerUp = 0;
+          powerUpActive = null;
+          powerUpTimer = 0;
+          combo = 0;
+          
+          // Reset player position
+          if (player) {
+              player.position.set(LANES[lane], PLAYER_SIZE, 0);
+              player.rotation.y = 0;
+          }
+          
+          // Reset UI
+          scoreEl.textContent = score;
+          coinsEl.textContent = coinsCollected;
+          powerUpDisplay.style.display = 'none';
+          
+          // Reset achievements
+          achievements = {
+              firstCoin: false,
+              tenCoins: false,
+              fiftyCoins: false,
+              hundredScore: false,
+              fiveHundredScore: false
+          };
+      }
+
+      // Create player character
+      function createPlayer() {
+          player = new THREE.Group();
+          
+          // Player body
+          const bodyGeo = new THREE.BoxGeometry(PLAYER_SIZE, PLAYER_SIZE * 1.5, PLAYER_SIZE);
+          const bodyMat = new THREE.MeshLambertMaterial({color: 0x2196f3});
+          playerBody = new THREE.Mesh(bodyGeo, bodyMat);
+          playerBody.position.y = PLAYER_SIZE * 0.75;
+          playerBody.castShadow = true;
+          player.add(playerBody);
+          
+          // Player head
+          const headGeo = new THREE.SphereGeometry(PLAYER_SIZE * 0.4, 8, 8);
+          const headMat = new THREE.MeshLambertMaterial({color: 0xffcc80});
+          playerHead = new THREE.Mesh(headGeo, headMat);
+          playerHead.position.y = PLAYER_SIZE * 1.8;
+          playerHead.castShadow = true;
+          player.add(playerHead);
+          
+          // Player arms
+          const armGeo = new THREE.BoxGeometry(PLAYER_SIZE * 0.2, PLAYER_SIZE * 0.8, PLAYER_SIZE * 0.2);
+          const armMat = new THREE.MeshLambertMaterial({color: 0xffcc80});
+          playerArms = new THREE.Group();
+          
+          const leftArm = new THREE.Mesh(armGeo, armMat);
+          leftArm.position.set(-PLAYER_SIZE * 0.6, PLAYER_SIZE * 0.9, 0);
+          leftArm.castShadow = true;
+          playerArms.add(leftArm);
+          
+          const rightArm = new THREE.Mesh(armGeo, armMat);
+          rightArm.position.set(PLAYER_SIZE * 0.6, PLAYER_SIZE * 0.9, 0);
+          rightArm.castShadow = true;
+          playerArms.add(rightArm);
+          
+          player.add(playerArms);
+          
+          // Player legs
+          const legGeo = new THREE.BoxGeometry(PLAYER_SIZE * 0.2, PLAYER_SIZE * 0.8, PLAYER_SIZE * 0.2);
+          const legMat = new THREE.MeshLambertMaterial({color: 0x2196f3});
+          playerLegs = new THREE.Group();
+          
+          const leftLeg = new THREE.Mesh(legGeo, legMat);
+          leftLeg.position.set(-PLAYER_SIZE * 0.3, PLAYER_SIZE * 0.2, 0);
+          leftLeg.castShadow = true;
+          playerLegs.add(leftLeg);
+          
+          const rightLeg = new THREE.Mesh(legGeo, legMat);
+          rightLeg.position.set(PLAYER_SIZE * 0.3, PLAYER_SIZE * 0.2, 0);
+          rightLeg.castShadow = true;
+          playerLegs.add(rightLeg);
+          
+          player.add(playerLegs);
+          
+          player.position.set(LANES[lane], PLAYER_SIZE, 0);
+          scene.add(player);
+      }
+
+      // Main animation loop
+      function animate() {
+          if (!running) return;
+          
+          requestAnimationFrame(animate);
+          
+          // Update player position
+          const targetX = LANES[lane];
+          player.position.x += (targetX - player.position.x) * 0.1;
+          
+          // Update jumping
+          if (jumping) {
+              const jumpTime = (performance.now() - jumpStart) / 1000;
+              if (jumpTime < JUMP_DURATION) {
+                  const jumpProgress = jumpTime / JUMP_DURATION;
+                  const jumpHeight = Math.sin(jumpProgress * Math.PI) * JUMP_HEIGHT;
+                  player.position.y = PLAYER_SIZE + jumpHeight;
+              } else {
+                  jumping = false;
+                  player.position.y = PLAYER_SIZE;
+              }
+          }
+          
+          // Update sliding
+          if (sliding) {
+              const slideTime = (performance.now() - slideStart) / 1000;
+              if (slideTime < SLIDE_DURATION) {
+                  player.scale.y = 0.5;
+                  player.position.y = PLAYER_SIZE * 0.5;
+              } else {
+                  sliding = false;
+                  player.scale.y = 1;
+                  player.position.y = PLAYER_SIZE;
+              }
+          }
+          
+          // Spawn objects
+          if (performance.now() - lastSpawn > 2000 / speed) {
+              spawnObstacle();
+              lastSpawn = performance.now();
+          }
+          
+          if (performance.now() - lastCoin > 1000 / speed) {
+              spawnCoin();
+              lastCoin = performance.now();
+          }
+          
+          if (performance.now() - lastPowerUp > 5000 / speed) {
+              spawnPowerUp();
+              lastPowerUp = performance.now();
+          }
+          
+          // Move objects
+          moveObjects();
+          
+          // Check collisions
+          checkCollisions();
+          
+          // Update score
+          score += speed * 10;
+          scoreEl.textContent = Math.floor(score);
+          
+          // Increase speed
+          speed += 0.0001;
+          
+          // Update clouds
+          clouds.forEach(cloud => {
+              cloud.position.z += cloud.userData.speed;
+              if (cloud.position.z > 10) {
+                  cloud.position.z = -20;
+              }
+          });
+          
+          // Update particles
+          particles.forEach(particle => {
+              if (particle.velocity) {
+                  particle.position.add(particle.velocity);
+                  particle.velocity.y -= 0.01; // gravity
+              }
+          });
+          
+          // Update power-up timer
+          if (powerUpActive && powerUpTimer > 0) {
+              powerUpTimer--;
+              if (powerUpTimer === 0) {
+                  powerUpActive = null;
+                  powerUpDisplay.style.display = 'none';
+              }
+          }
+          
+          // Check achievements
+          checkAchievements();
+          
+          // Render scene
+          renderer.render(scene, camera);
+      }
     </script>
 </body>
 </html>
