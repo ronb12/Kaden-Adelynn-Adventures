@@ -1,0 +1,296 @@
+# System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Dependency directories
+node_modules/
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env
+
+# Temporary files
+*.tmp
+*.temp
+
+# Unreal Engine Project .gitignore
+
+# Unreal Engine generated files
+/Binaries/
+/DerivedDataCache/
+/Intermediate/
+/Saved/
+/.vs/
+*.VC.db
+*.opensdf
+*.opendb
+*.sdf
+*.suo
+*.xcodeproj
+*.xcworkspace
+
+# Visual Studio files
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.sln
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Xcode files
+*.xcodeproj
+*.xcworkspace
+*.xcuserstate
+*.xcuserdata
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Unreal Engine specific
+*.uproject
+*.uplugin
+*.uasset
+*.umap
+*.ubulk
+*.uexp
+*.uexp.bak
+*.ubulk.bak
+*.uasset.bak
+*.umap.bak
+
+# Content that should be in Git LFS
+*.fbx
+*.obj
+*.max
+*.ma
+*.mb
+*.blend
+*.3ds
+*.dae
+*.dxf
+*.dwg
+*.skp
+*.c4d
+*.lwo
+*.lws
+*.lxo
+*.ply
+*.stl
+*.wrl
+*.x3d
+*.bvh
+*.b3d
+*.ac
+*.ase
+*.awd
+*.dts
+*.irr
+*.irrmesh
+*.mdl
+*.nif
+*.off
+*.smd
+*.ter
+*.vta
+*.x
+*.mesh
+*.mesh.xml
+*.skeleton
+*.skeleton.xml
+*.anim
+*.anim.xml
+*.scene
+*.scene.xml
+*.material
+*.material.xml
+*.program
+*.program.xml
+*.compositor
+*.compositor.xml
+*.overlay
+*.overlay.xml
+*.fontdef
+*.fontdef.xml
+*.particle
+*.particle.xml
+*.gpu
+*.gpu.xml
+*.compositor
+*.compositor.xml
+*.overlay
+*.overlay.xml
+*.fontdef
+*.fontdef.xml
+*.particle
+*.particle.xml
+*.gpu
+*.gpu.xml
+
+# Audio files
+*.wav
+*.mp3
+*.ogg
+*.flac
+*.aiff
+*.aif
+*.m4a
+*.wma
+*.ac3
+*.dts
+*.opus
+
+# Video files
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm
+*.mkv
+*.m4v
+*.3gp
+*.ogv
+
+# Image files
+*.tga
+*.png
+*.jpg
+*.jpeg
+*.bmp
+*.tiff
+*.tif
+*.exr
+*.hdr
+*.raw
+*.psd
+*.ai
+*.eps
+*.svg
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Package files
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+
+# Documentation
+*.pdf
+*.doc
+*.docx
+*.rtf
+
+# Backup files
+*~
+*.orig
+*.rej
+
+# Local configuration
+LocalBuilds/
+LocalBuilds.bat
+LocalBuilds.sh
+
+# Unreal Engine cache
+.vscode/
+.vs/
+*.VC.db
+*.opensdf
+*.opendb
+*.sdf
+*.suo
+*.xcodeproj
+*.xcworkspace
+
+# Unreal Engine generated
+/Binaries/
+/DerivedDataCache/
+/Intermediate/
+/Saved/
+/.vs/
+*.VC.db
+*.opensdf
+*.opendb
+*.sdf
+*.suo
+*.xcodeproj
+*.xcworkspace
+
+# Unreal Engine project files (keep these)
+!*.uproject
+!*.uplugin
+!*.uasset
+!*.umap
+!*.ubulk
+!*.uexp
+!*.uasset.bak
+!*.umap.bak 
