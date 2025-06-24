@@ -9,12 +9,15 @@
     max-width: 440px;
     width: 95vw;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, 0);
     position: absolute;
-    top: 50%;
+    top: 0;
     z-index: 10;
     text-align: center;
-    margin-top: 0;
+    margin-top: 100px;
+}
+@media (max-width: 768px) {
+    #startScreen { margin-top: 70px; padding: 28px 8px 24px 8px; }
 }
 #startScreen .mascot {
     height: 70px;
