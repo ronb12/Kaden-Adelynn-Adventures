@@ -399,64 +399,91 @@ body {
 
 /* Responsive design for mobile devices */
 @media (max-width: 850px) {
+    body {
+        padding: 0;
+        margin: 0;
+    }
+    
     .game-container {
         width: 100vw;
         height: 100vh;
         border-radius: 0;
         box-shadow: none;
+        max-width: none;
+        max-height: none;
     }
     
     .game-header {
         border-radius: 0;
         padding: 10px;
+        height: auto;
     }
     
     .game-header h1 {
-        font-size: 1.8em;
+        font-size: 1.5em;
+        margin-bottom: 5px;
     }
     
     .score-board {
-        font-size: 1em;
+        font-size: 0.9em;
         flex-wrap: wrap;
         gap: 5px;
+        justify-content: center;
+    }
+    
+    .score-board > div {
+        margin: 0 5px;
     }
     
     .game-area {
         height: calc(100vh - 200px);
+        min-height: 300px;
     }
     
     .controls {
         border-radius: 0;
         padding: 10px;
+        height: auto;
     }
     
     .control-hint {
         flex-direction: column;
         gap: 5px;
         font-size: 0.8em;
+        align-items: center;
+    }
+    
+    .control-hint span {
+        margin: 2px 0;
     }
     
     .controls-info {
         grid-template-columns: 1fr;
+        gap: 10px;
     }
     
     .start-screen, .game-over-screen {
         padding: 20px;
         margin: 20px;
         max-width: 90vw;
+        max-height: 80vh;
+        overflow-y: auto;
     }
     
     .start-screen h2, .game-over-screen h2 {
-        font-size: 1.5em;
+        font-size: 1.3em;
+        margin-bottom: 15px;
     }
     
     .start-screen p {
-        font-size: 1em;
+        font-size: 0.9em;
+        margin-bottom: 20px;
     }
     
     .mobile-controls {
         display: flex !important;
         height: 100px;
+        bottom: 0;
     }
     
     .control-btn {
@@ -470,17 +497,104 @@ body {
         height: 40px;
         font-size: 1em;
     }
+    
+    .player {
+        font-size: 2.5em;
+        bottom: 40px;
+    }
+    
+    .obstacle {
+        font-size: 1.5em;
+    }
 }
 
 /* Tablet specific adjustments */
 @media (min-width: 851px) and (max-width: 1024px) {
     .game-container {
-        width: 90vw;
-        height: 80vh;
+        width: 95vw;
+        height: 90vh;
+        max-width: 900px;
     }
     
     .mobile-controls {
         display: flex !important;
+    }
+    
+    .game-header h1 {
+        font-size: 2em;
+    }
+    
+    .score-board {
+        font-size: 1em;
+    }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+    .game-header h1 {
+        font-size: 1.2em;
+    }
+    
+    .score-board {
+        font-size: 0.8em;
+        flex-direction: column;
+        gap: 2px;
+    }
+    
+    .player {
+        font-size: 2em;
+    }
+    
+    .obstacle {
+        font-size: 1.2em;
+    }
+    
+    .control-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 1em;
+    }
+    
+    .center-area .control-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 0.9em;
+    }
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 850px) and (orientation: landscape) {
+    .game-container {
+        height: 100vh;
+    }
+    
+    .game-header {
+        padding: 5px;
+    }
+    
+    .game-header h1 {
+        font-size: 1.2em;
+        margin-bottom: 2px;
+    }
+    
+    .score-board {
+        font-size: 0.8em;
+        flex-direction: row;
+        justify-content: space-around;
+    }
+    
+    .game-area {
+        height: calc(100vh - 120px);
+    }
+    
+    .mobile-controls {
+        height: 80px;
+    }
+    
+    .control-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1em;
     }
 }
 
