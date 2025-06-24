@@ -1000,16 +1000,18 @@ Enjoy the adventure! 🏛️✨`);
               bgMusic.src = url;
               bgMusic.load();
           }
+          // Fallback: if music fails to load, use jungle music
+          bgMusic.onerror = function() {
+              if (bgMusic.src !== worldMusic.jungle) {
+                  bgMusic.src = worldMusic.jungle;
+                  bgMusic.load();
+                  if (!musicMuted) bgMusic.play();
+              }
+          };
           if (!musicMuted) {
-              bgMusic.play();
+              bgMusic.play().catch(()=>{});
           }
       }
-      // Call setWorldMusic in startGame
-      const originalStartGame = startGame;
-      startGame = function() {
-          setWorldMusic();
-          originalStartGame();
-      };
 
       // Controls
       window.addEventListener('keydown', e => {
@@ -1106,6 +1108,16 @@ Enjoy the adventure! 🏛️✨`);
               el.currentTime = 0;
               el.play();
           }
+      }
+
+      function startGame() {
+          setWorldMusic();
+          resetGame();
+          running = true;
+          startScreen.classList.remove('active');
+          gameOverScreen.classList.remove('active');
+          mobileTabView.style.display = 'none';
+          animate();
       }
     </script>
 </body>
