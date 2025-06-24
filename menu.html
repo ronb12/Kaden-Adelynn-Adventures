@@ -1,0 +1,59 @@
+<style>
+#startScreen {
+    background: rgba(255,255,255,0.72);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    border-radius: 28px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 48px 32px 36px 32px;
+    max-width: 440px;
+    width: 95vw;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    position: absolute;
+    top: 50%;
+    z-index: 10;
+    text-align: center;
+    margin-top: 0;
+}
+#startScreen .mascot {
+    height: 70px;
+    margin-bottom: 18px;
+    animation: mascotFloat 2.8s ease-in-out infinite alternate;
+}
+@keyframes mascotFloat {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-18px); }
+}
+#startScreen h2 {
+    font-size: 2.5rem;
+    font-weight: 900;
+    letter-spacing: 0.01em;
+    margin-bottom: 12px;
+    color: #1a3a4a;
+    text-shadow: 0 2px 12px #fff, 0 0 8px #43e97b22;
+}
+#worldSelect { margin: 24px 0 32px 0; }
+</style>
+<div id="startScreen" class="active">
+    <h2>🏛️ Kaden & Adelynn Adventures 3D</h2>
+    <div>
+        <img src="https://cdn.jsdelivr.net/gh/ronb12/sfx@main/mascot.png" alt="Mascot" class="mascot">
+    </div>
+    <div id="worldSelect" style="display: flex; justify-content: center; gap: 16px;">
+        <button class="worldBtn active" data-world="jungle">🌴 Jungle</button>
+        <button class="worldBtn" data-world="ice">❄️ Ice</button>
+        <button class="worldBtn" data-world="desert">🏜️ Desert</button>
+        <button class="worldBtn" data-world="space">🪐 Space</button>
+    </div>
+    <div style="margin-bottom:22px;">
+        <p style="font-size:1.15rem; color:#1a3a4a; font-weight:600; margin-bottom:6px;">🎮 <b>Controls:</b></p>
+        <div style="font-size:1.05rem; color:#2d4a5a;">
+            ← → = Switch lanes<br>
+            ↑ = Jump over obstacles<br>
+            ↓ = Slide under obstacles
+        </div>
+    </div>
+    <p style="color:#00796b; font-size:1.08rem; font-weight:500; margin-bottom:28px;">💎 Collect coins and power-ups!</p>
+    <button class="gameButton" id="startBtn">🏃‍♂️ START ADVENTURE!</button>
+</div> 
