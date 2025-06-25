@@ -132,7 +132,7 @@
         #mobileControls {
             display: none;
         }
-        body.game-running #mobileControls {
+        body.game-running.play-tab-active #mobileControls {
             display: flex;
         }
         @media (min-width: 769px) {
@@ -1721,7 +1721,7 @@
             showTab('play');
         });
 
-        // Show mobile controls only when game is running and tab menu is not visible
+        // Show mobile controls only when game is running and Play tab is active
         function setGameRunning(running) {
             if (running) {
                 document.body.classList.add('game-running');
@@ -1729,10 +1729,18 @@
                 document.body.classList.remove('game-running');
             }
         }
+        function setPlayTabActive(active) {
+            if (active) {
+                document.body.classList.add('play-tab-active');
+            } else {
+                document.body.classList.remove('play-tab-active');
+            }
+        }
         // Patch startGame and gameOver to toggle controls
         const origStartGame = window.startGame;
         window.startGame = function() {
             setGameRunning(true);
+            setPlayTabActive(true);
             origStartGame();
         };
         const origGameOver = window.gameOver;
@@ -1746,8 +1754,11 @@
             tabBtns.forEach(btn => {
                 btn.addEventListener('click', function() {
                     setGameRunning(false);
+                    setPlayTabActive(this.getAttribute('data-tab') === 'play');
                 });
             });
+            // Set Play tab active by default
+            setPlayTabActive(true);
         });
     </script>
 </body>
