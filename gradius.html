@@ -293,14 +293,92 @@
             }
             
             draw() {
-                ctx.fillStyle = this.isEnemy ? '#ff0000' : '#ffff00';
-                ctx.fillRect(this.x, this.y, this.width, this.height);
-                
-                // Add glow effect
-                ctx.shadowColor = this.isEnemy ? '#ff0000' : '#ffff00';
-                ctx.shadowBlur = 5;
-                ctx.fillRect(this.x, this.y, this.width, this.height);
-                ctx.shadowBlur = 0;
+                if (this.isEnemy) {
+                    // Enemy bullet - red energy bolt
+                    // Main bolt
+                    ctx.fillStyle = '#ff0000';
+                    ctx.beginPath();
+                    ctx.moveTo(this.x, this.y + this.height / 2);
+                    ctx.lineTo(this.x + this.width * 0.7, this.y);
+                    ctx.lineTo(this.x + this.width, this.y + this.height / 2);
+                    ctx.lineTo(this.x + this.width * 0.7, this.y + this.height);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Energy core
+                    ctx.fillStyle = '#ffff00';
+                    ctx.beginPath();
+                    ctx.moveTo(this.x + this.width * 0.2, this.y + this.height / 2);
+                    ctx.lineTo(this.x + this.width * 0.6, this.y + this.height * 0.2);
+                    ctx.lineTo(this.x + this.width * 0.8, this.y + this.height / 2);
+                    ctx.lineTo(this.x + this.width * 0.6, this.y + this.height * 0.8);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Trail effect
+                    ctx.fillStyle = '#ff0000';
+                    ctx.globalAlpha = 0.6;
+                    ctx.fillRect(this.x - 8, this.y + this.height * 0.3, 8, this.height * 0.4);
+                    ctx.globalAlpha = 0.3;
+                    ctx.fillRect(this.x - 16, this.y + this.height * 0.4, 8, this.height * 0.2);
+                    ctx.globalAlpha = 1;
+                    
+                    // Glow effect
+                    ctx.shadowColor = '#ff0000';
+                    ctx.shadowBlur = 8;
+                    ctx.fillStyle = '#ff0000';
+                    ctx.beginPath();
+                    ctx.moveTo(this.x, this.y + this.height / 2);
+                    ctx.lineTo(this.x + this.width * 0.7, this.y);
+                    ctx.lineTo(this.x + this.width, this.y + this.height / 2);
+                    ctx.lineTo(this.x + this.width * 0.7, this.y + this.height);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    
+                } else {
+                    // Player bullet - blue energy bolt
+                    // Main bolt
+                    ctx.fillStyle = '#00ffff';
+                    ctx.beginPath();
+                    ctx.moveTo(this.x, this.y + this.height / 2);
+                    ctx.lineTo(this.x + this.width * 0.7, this.y);
+                    ctx.lineTo(this.x + this.width, this.y + this.height / 2);
+                    ctx.lineTo(this.x + this.width * 0.7, this.y + this.height);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Energy core
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.moveTo(this.x + this.width * 0.2, this.y + this.height / 2);
+                    ctx.lineTo(this.x + this.width * 0.6, this.y + this.height * 0.2);
+                    ctx.lineTo(this.x + this.width * 0.8, this.y + this.height / 2);
+                    ctx.lineTo(this.x + this.width * 0.6, this.y + this.height * 0.8);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Trail effect
+                    ctx.fillStyle = '#00ffff';
+                    ctx.globalAlpha = 0.6;
+                    ctx.fillRect(this.x - 8, this.y + this.height * 0.3, 8, this.height * 0.4);
+                    ctx.globalAlpha = 0.3;
+                    ctx.fillRect(this.x - 16, this.y + this.height * 0.4, 8, this.height * 0.2);
+                    ctx.globalAlpha = 1;
+                    
+                    // Glow effect
+                    ctx.shadowColor = '#00ffff';
+                    ctx.shadowBlur = 8;
+                    ctx.fillStyle = '#00ffff';
+                    ctx.beginPath();
+                    ctx.moveTo(this.x, this.y + this.height / 2);
+                    ctx.lineTo(this.x + this.width * 0.7, this.y);
+                    ctx.lineTo(this.x + this.width, this.y + this.height / 2);
+                    ctx.lineTo(this.x + this.width * 0.7, this.y + this.height);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
             }
         }
         
@@ -331,26 +409,131 @@
             }
             
             draw() {
-                // Draw enemy ship
-                ctx.fillStyle = this.type === 'boss' ? '#ff00ff' : '#ff0000';
-                ctx.beginPath();
-                ctx.moveTo(this.x + this.width / 2, this.y);
-                ctx.lineTo(this.x + this.width, this.y + this.height / 2);
-                ctx.lineTo(this.x + this.width / 2, this.y + this.height);
-                ctx.lineTo(this.x, this.y + this.height / 2);
-                ctx.closePath();
-                ctx.fill();
+                if (this.type === 'boss') {
+                    // Boss ship - large and menacing
+                    // Main body
+                    ctx.fillStyle = '#ff00ff';
+                    ctx.beginPath();
+                    ctx.moveTo(this.x + this.width * 0.2, this.y + this.height / 2);
+                    ctx.lineTo(this.x + this.width * 0.8, this.y);
+                    ctx.lineTo(this.x + this.width, this.y + this.height * 0.3);
+                    ctx.lineTo(this.x + this.width, this.y + this.height * 0.7);
+                    ctx.lineTo(this.x + this.width * 0.8, this.y + this.height);
+                    ctx.lineTo(this.x + this.width * 0.2, this.y + this.height / 2);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Central core
+                    ctx.fillStyle = '#800080';
+                    ctx.beginPath();
+                    ctx.ellipse(this.x + this.width * 0.5, this.y + this.height / 2, 
+                               this.width * 0.2, this.height * 0.4, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Weapon pods
+                    ctx.fillStyle = '#ff0080';
+                    ctx.fillRect(this.x + this.width * 0.1, this.y + this.height * 0.2, 
+                               this.width * 0.15, this.height * 0.6);
+                    ctx.fillRect(this.x + this.width * 0.75, this.y + this.height * 0.2, 
+                               this.width * 0.15, this.height * 0.6);
+                    
+                    // Engine glow
+                    ctx.fillStyle = '#ff0000';
+                    ctx.beginPath();
+                    ctx.moveTo(this.x + this.width * 0.2, this.y + this.height * 0.3);
+                    ctx.lineTo(this.x + this.width * 0.2 - 10, this.y + this.height * 0.4);
+                    ctx.lineTo(this.x + this.width * 0.2 - 10, this.y + this.height * 0.6);
+                    ctx.lineTo(this.x + this.width * 0.2, this.y + this.height * 0.7);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Add glow effect
+                    ctx.shadowColor = '#ff00ff';
+                    ctx.shadowBlur = 20;
+                    ctx.fillStyle = '#ff00ff';
+                    ctx.beginPath();
+                    ctx.moveTo(this.x + this.width * 0.2, this.y + this.height / 2);
+                    ctx.lineTo(this.x + this.width * 0.8, this.y);
+                    ctx.lineTo(this.x + this.width, this.y + this.height * 0.3);
+                    ctx.lineTo(this.x + this.width, this.y + this.height * 0.7);
+                    ctx.lineTo(this.x + this.width * 0.8, this.y + this.height);
+                    ctx.lineTo(this.x + this.width * 0.2, this.y + this.height / 2);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    
+                } else {
+                    // Basic enemy ship - sleek and aggressive
+                    // Main body
+                    ctx.fillStyle = '#ff0000';
+                    ctx.beginPath();
+                    ctx.moveTo(this.x + this.width * 0.3, this.y + this.height / 2);
+                    ctx.lineTo(this.x + this.width * 0.7, this.y);
+                    ctx.lineTo(this.x + this.width, this.y + this.height * 0.4);
+                    ctx.lineTo(this.x + this.width, this.y + this.height * 0.6);
+                    ctx.lineTo(this.x + this.width * 0.7, this.y + this.height);
+                    ctx.lineTo(this.x + this.width * 0.3, this.y + this.height / 2);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Cockpit
+                    ctx.fillStyle = '#800000';
+                    ctx.beginPath();
+                    ctx.ellipse(this.x + this.width * 0.6, this.y + this.height / 2, 
+                               this.width * 0.1, this.height * 0.25, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Wing details
+                    ctx.strokeStyle = '#800000';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(this.x + this.width * 0.4, this.y);
+                    ctx.lineTo(this.x + this.width * 0.6, this.y + this.height * 0.3);
+                    ctx.moveTo(this.x + this.width * 0.4, this.y + this.height);
+                    ctx.lineTo(this.x + this.width * 0.6, this.y + this.height * 0.7);
+                    ctx.stroke();
+                    
+                    // Engine glow
+                    ctx.fillStyle = '#ff8000';
+                    ctx.beginPath();
+                    ctx.moveTo(this.x + this.width * 0.3, this.y + this.height * 0.3);
+                    ctx.lineTo(this.x + this.width * 0.3 - 6, this.y + this.height * 0.4);
+                    ctx.lineTo(this.x + this.width * 0.3 - 6, this.y + this.height * 0.6);
+                    ctx.lineTo(this.x + this.width * 0.3, this.y + this.height * 0.7);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Add glow effect
+                    ctx.shadowColor = '#ff0000';
+                    ctx.shadowBlur = 10;
+                    ctx.fillStyle = '#ff0000';
+                    ctx.beginPath();
+                    ctx.moveTo(this.x + this.width * 0.3, this.y + this.height / 2);
+                    ctx.lineTo(this.x + this.width * 0.7, this.y);
+                    ctx.lineTo(this.x + this.width, this.y + this.height * 0.4);
+                    ctx.lineTo(this.x + this.width, this.y + this.height * 0.6);
+                    ctx.lineTo(this.x + this.width * 0.7, this.y + this.height);
+                    ctx.lineTo(this.x + this.width * 0.3, this.y + this.height / 2);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
                 
                 // Health bar for boss
                 if (this.type === 'boss') {
                     const barWidth = this.width;
-                    const barHeight = 4;
+                    const barHeight = 6;
                     const healthPercent = this.health / this.maxHealth;
                     
                     ctx.fillStyle = '#333';
-                    ctx.fillRect(this.x, this.y - 10, barWidth, barHeight);
+                    ctx.fillRect(this.x, this.y - 15, barWidth, barHeight);
                     ctx.fillStyle = '#0f0';
-                    ctx.fillRect(this.x, this.y - 10, barWidth * healthPercent, barHeight);
+                    ctx.fillRect(this.x, this.y - 15, barWidth * healthPercent, barHeight);
+                    
+                    // Health bar border
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(this.x, this.y - 15, barWidth, barHeight);
                 }
             }
         }
@@ -377,8 +560,48 @@
                 ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
                 ctx.rotate(this.angle);
                 
-                ctx.fillStyle = this.type === 'power' ? '#00ff00' : '#ffff00';
+                // Pulsing effect
+                const pulse = 1 + Math.sin(this.angle * 3) * 0.2;
+                const scaledWidth = this.width * pulse;
+                const scaledHeight = this.height * pulse;
+                
+                // Outer glow
+                ctx.shadowColor = '#00ff00';
+                ctx.shadowBlur = 15;
+                ctx.fillStyle = '#00ff00';
+                ctx.fillRect(-scaledWidth / 2, -scaledHeight / 2, scaledWidth, scaledHeight);
+                ctx.shadowBlur = 0;
+                
+                // Main body
+                ctx.fillStyle = '#00ff00';
                 ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+                
+                // Energy core
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.ellipse(0, 0, this.width * 0.3, this.height * 0.3, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Energy lines
+                ctx.strokeStyle = '#00ff00';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(-this.width / 2, 0);
+                ctx.lineTo(-this.width / 3, 0);
+                ctx.moveTo(this.width / 2, 0);
+                ctx.lineTo(this.width / 3, 0);
+                ctx.moveTo(0, -this.height / 2);
+                ctx.lineTo(0, -this.height / 3);
+                ctx.moveTo(0, this.height / 2);
+                ctx.lineTo(0, this.height / 3);
+                ctx.stroke();
+                
+                // Corner indicators
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(-this.width / 2 + 2, -this.height / 2 + 2, 3, 3);
+                ctx.fillRect(this.width / 2 - 5, -this.height / 2 + 2, 3, 3);
+                ctx.fillRect(-this.width / 2 + 2, this.height / 2 - 5, 3, 3);
+                ctx.fillRect(this.width / 2 - 5, this.height / 2 - 5, 3, 3);
                 
                 ctx.restore();
             }
@@ -418,11 +641,39 @@
                 const alpha = this.life / 30;
                 ctx.globalAlpha = alpha;
                 
+                // Shockwave effect
+                const shockwaveRadius = (30 - this.life) * 2;
+                ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.5})`;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, shockwaveRadius, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                // Energy burst
+                ctx.fillStyle = `rgba(255, 255, 0, ${alpha * 0.8})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, (30 - this.life) * 0.5, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Particle effects
                 this.particles.forEach(p => {
                     const particleAlpha = p.life / 30;
                     ctx.globalAlpha = alpha * particleAlpha;
-                    ctx.fillStyle = `hsl(${Math.random() * 60}, 100%, 50%)`;
-                    ctx.fillRect(p.x, p.y, 3, 3);
+                    
+                    // Different particle types
+                    if (p.life > 20) {
+                        // Fire particles
+                        ctx.fillStyle = `hsl(${Math.random() * 30 + 15}, 100%, 50%)`;
+                        ctx.fillRect(p.x, p.y, 4, 4);
+                    } else if (p.life > 10) {
+                        // Spark particles
+                        ctx.fillStyle = `hsl(${Math.random() * 60 + 45}, 100%, 70%)`;
+                        ctx.fillRect(p.x, p.y, 2, 2);
+                    } else {
+                        // Smoke particles
+                        ctx.fillStyle = `rgba(100, 100, 100, ${particleAlpha * 0.5})`;
+                        ctx.fillRect(p.x, p.y, 3, 3);
+                    }
                 });
                 
                 ctx.globalAlpha = 1;
@@ -618,26 +869,111 @@
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             // Draw stars
-            ctx.fillStyle = 'white';
             stars.forEach(star => {
-                ctx.beginPath();
-                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-                ctx.fill();
+                // Twinkling effect
+                const twinkle = Math.sin(Date.now() * 0.001 + star.x * 0.01) * 0.3 + 0.7;
+                ctx.globalAlpha = twinkle;
+                
+                // Different star types based on size
+                if (star.size > 2) {
+                    // Bright stars - draw with glow
+                    ctx.shadowColor = 'white';
+                    ctx.shadowBlur = star.size * 2;
+                    ctx.fillStyle = 'white';
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    
+                    // Cross pattern for bright stars
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(star.x - star.size * 2, star.y);
+                    ctx.lineTo(star.x + star.size * 2, star.y);
+                    ctx.moveTo(star.x, star.y - star.size * 2);
+                    ctx.lineTo(star.x, star.y + star.size * 2);
+                    ctx.stroke();
+                    
+                } else if (star.size > 1.5) {
+                    // Medium stars
+                    ctx.fillStyle = '#ffffcc';
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                } else {
+                    // Small stars - different colors
+                    const colors = ['#ffffff', '#ffffcc', '#ccffff', '#ffccff'];
+                    ctx.fillStyle = colors[Math.floor(star.x * 0.1) % colors.length];
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
             });
+            ctx.globalAlpha = 1;
             
             // Draw player (with invulnerability flash)
             if (!player.invulnerable || Math.floor(player.invulnerableTime / 10) % 2) {
+                // Main ship body
                 ctx.fillStyle = '#00ffff';
                 ctx.beginPath();
                 ctx.moveTo(player.x, player.y + player.height / 2);
-                ctx.lineTo(player.x + player.width, player.y);
-                ctx.lineTo(player.x + player.width, player.y + player.height);
+                ctx.lineTo(player.x + player.width * 0.8, player.y);
+                ctx.lineTo(player.x + player.width, player.y + player.height * 0.3);
+                ctx.lineTo(player.x + player.width, player.y + player.height * 0.7);
+                ctx.lineTo(player.x + player.width * 0.8, player.y + player.height);
                 ctx.closePath();
                 ctx.fill();
                 
+                // Cockpit
+                ctx.fillStyle = '#0080ff';
+                ctx.beginPath();
+                ctx.ellipse(player.x + player.width * 0.6, player.y + player.height / 2, 
+                           player.width * 0.15, player.height * 0.3, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Engine glow
+                ctx.fillStyle = '#ffff00';
+                ctx.beginPath();
+                ctx.moveTo(player.x, player.y + player.height * 0.3);
+                ctx.lineTo(player.x - 8, player.y + player.height * 0.4);
+                ctx.lineTo(player.x - 8, player.y + player.height * 0.6);
+                ctx.lineTo(player.x, player.y + player.height * 0.7);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Engine exhaust
+                ctx.fillStyle = '#ff8000';
+                ctx.beginPath();
+                ctx.moveTo(player.x - 8, player.y + player.height * 0.4);
+                ctx.lineTo(player.x - 15, player.y + player.height * 0.35);
+                ctx.lineTo(player.x - 15, player.y + player.height * 0.65);
+                ctx.lineTo(player.x - 8, player.y + player.height * 0.6);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Wing details
+                ctx.strokeStyle = '#0080ff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(player.x + player.width * 0.3, player.y);
+                ctx.lineTo(player.x + player.width * 0.5, player.y + player.height * 0.2);
+                ctx.moveTo(player.x + player.width * 0.3, player.y + player.height);
+                ctx.lineTo(player.x + player.width * 0.5, player.y + player.height * 0.8);
+                ctx.stroke();
+                
                 // Add glow effect
                 ctx.shadowColor = '#00ffff';
-                ctx.shadowBlur = 10;
+                ctx.shadowBlur = 15;
+                ctx.fillStyle = '#00ffff';
+                ctx.beginPath();
+                ctx.moveTo(player.x, player.y + player.height / 2);
+                ctx.lineTo(player.x + player.width * 0.8, player.y);
+                ctx.lineTo(player.x + player.width, player.y + player.height * 0.3);
+                ctx.lineTo(player.x + player.width, player.y + player.height * 0.7);
+                ctx.lineTo(player.x + player.width * 0.8, player.y + player.height);
+                ctx.closePath();
                 ctx.fill();
                 ctx.shadowBlur = 0;
             }
