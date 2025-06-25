@@ -247,6 +247,33 @@
             missile: 400   // Still powerful but not too slow
         };
         
+        // Power-Up System
+        let activePowerUps = {
+            shield: false,
+            rapidFire: false,
+            spreadShot: false,
+            speedBoost: false,
+            laserUpgrade: false
+        };
+        let powerUpTimers = {
+            shield: 0,
+            rapidFire: 0,
+            spreadShot: 0,
+            speedBoost: 0,
+            laserUpgrade: 0
+        };
+        let powerUpDuration = 10000; // 10 seconds
+        let lastPowerUpSpawn = 0;
+        let powerUpSpawnInterval = 15000; // 15 seconds
+        
+        // Boss System
+        let currentBoss = null;
+        let bossHealth = 0;
+        let maxBossHealth = 0;
+        let bossPhase = 1;
+        let bossSpawnScore = 1000; // Spawn boss every 1000 points
+        let lastBossSpawn = 0;
+        
         // Arrays for game objects
         let bullets = [];
         let enemyBullets = [];
@@ -254,6 +281,7 @@
         let powerUps = [];
         let explosions = [];
         let stars = [];
+        let bossBullets = [];
         
         // Player ship
         const player = {
@@ -842,9 +870,138 @@
             }
         }
         
-        // Power-up class
+        // Boss class
+        class Boss {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.width = 120;
+                this.height = 80;
+                this.health = 50;
+                this.maxHealth = 50;
+                this.phase = 1;
+                this.speed = 2;
+                this.direction = 1;
+                this.lastShot = 0;
+                this.shotCooldown = 1000;
+                this.attackPattern = 0;
+                this.attackTimer = 0;
+                this.angle = 0;
+            }
+            
+            update() {
+                // Movement pattern
+                this.y += this.speed * this.direction;
+                if (this.y <= 50 || this.y >= canvas.height - 130) {
+                    this.direction *= -1;
+                }
+                
+                // Phase transitions
+                if (this.health <= this.maxHealth * 0.6 && this.phase === 1) {
+                    this.phase = 2;
+                    this.shotCooldown = 800;
+                    this.speed = 3;
+                }
+                if (this.health <= this.maxHealth * 0.3 && this.phase === 2) {
+                    this.phase = 3;
+                    this.shotCooldown = 600;
+                    this.speed = 4;
+                }
+                
+                // Shooting
+                this.attackTimer++;
+                if (this.attackTimer > this.shotCooldown) {
+                    this.shoot();
+                    this.attackTimer = 0;
+                }
+                
+                this.angle += 0.02;
+            }
+            
+            shoot() {
+                switch (this.phase) {
+                    case 1:
+                        // Single shot pattern
+                        bossBullets.push(new Bullet(this.x, this.y + this.height / 2, 5, true, 'laser'));
+                        break;
+                    case 2:
+                        // Spread shot pattern
+                        for (let i = -1; i <= 1; i++) {
+                            bossBullets.push(new Bullet(this.x, this.y + this.height / 2 + i * 20, 6, true, 'plasma'));
+                        }
+                        break;
+                    case 3:
+                        // Rapid fire pattern
+                        for (let i = 0; i < 3; i++) {
+                            setTimeout(() => {
+                                bossBullets.push(new Bullet(this.x, this.y + this.height / 2, 7, true, 'missile'));
+                            }, i * 200);
+                        }
+                        break;
+                }
+            }
+            
+            draw() {
+                ctx.save();
+                ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+                ctx.rotate(this.angle);
+                
+                // Boss glow effect
+                ctx.shadowColor = '#ff0000';
+                ctx.shadowBlur = 20;
+                
+                // Main body
+                ctx.fillStyle = '#ff0000';
+                ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+                
+                // Armor plates
+                ctx.fillStyle = '#800000';
+                ctx.fillRect(-this.width / 2 + 10, -this.height / 2 + 10, this.width - 20, this.height - 20);
+                
+                // Weapon turrets
+                ctx.fillStyle = '#400000';
+                ctx.fillRect(-this.width / 2 + 5, -this.height / 2 + 5, 15, 15);
+                ctx.fillRect(this.width / 2 - 20, -this.height / 2 + 5, 15, 15);
+                ctx.fillRect(-this.width / 2 + 5, this.height / 2 - 20, 15, 15);
+                ctx.fillRect(this.width / 2 - 20, this.height / 2 - 20, 15, 15);
+                
+                // Energy core
+                ctx.fillStyle = '#ffff00';
+                ctx.beginPath();
+                ctx.arc(0, 0, 10, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+                
+                // Health bar
+                this.drawHealthBar();
+            }
+            
+            drawHealthBar() {
+                const barWidth = 200;
+                const barHeight = 10;
+                const barX = this.x + this.width / 2 - barWidth / 2;
+                const barY = this.y - 20;
+                
+                // Background
+                ctx.fillStyle = '#333333';
+                ctx.fillRect(barX, barY, barWidth, barHeight);
+                
+                // Health
+                const healthPercent = this.health / this.maxHealth;
+                ctx.fillStyle = healthPercent > 0.6 ? '#00ff00' : healthPercent > 0.3 ? '#ffff00' : '#ff0000';
+                ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
+                
+                // Border
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(barX, barY, barWidth, barHeight);
+            }
+        }
+        
+        // Enhanced PowerUp class with multiple types
         class PowerUp {
-            constructor(x, y, type = 'power') {
+            constructor(x, y, type = 'shield') {
                 this.x = x;
                 this.y = y;
                 this.width = 20;
@@ -852,6 +1009,7 @@
                 this.type = type;
                 this.speed = 1;
                 this.angle = 0;
+                this.collected = false;
             }
             
             update() {
@@ -869,129 +1027,122 @@
                 const scaledWidth = this.width * pulse;
                 const scaledHeight = this.height * pulse;
                 
+                // Get color based on type
+                const colors = {
+                    shield: '#0080ff',
+                    rapidFire: '#ff8000',
+                    spreadShot: '#ff0080',
+                    speedBoost: '#00ff80',
+                    laserUpgrade: '#ffff00'
+                };
+                
+                const color = colors[this.type] || '#00ff00';
+                
                 // Outer glow
-                ctx.shadowColor = '#00ff00';
+                ctx.shadowColor = color;
                 ctx.shadowBlur = 15;
-                ctx.fillStyle = '#00ff00';
+                ctx.fillStyle = color;
                 ctx.fillRect(-scaledWidth / 2, -scaledHeight / 2, scaledWidth, scaledHeight);
                 ctx.shadowBlur = 0;
                 
                 // Main body
-                ctx.fillStyle = '#00ff00';
+                ctx.fillStyle = color;
                 ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
                 
-                // Energy core
+                // Type indicator
                 ctx.fillStyle = '#ffffff';
-                ctx.beginPath();
-                ctx.ellipse(0, 0, this.width * 0.3, this.height * 0.3, 0, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Energy lines
-                ctx.strokeStyle = '#00ff00';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(-this.width / 2, 0);
-                ctx.lineTo(-this.width / 3, 0);
-                ctx.moveTo(this.width / 2, 0);
-                ctx.lineTo(this.width / 3, 0);
-                ctx.moveTo(0, -this.height / 2);
-                ctx.lineTo(0, -this.height / 3);
-                ctx.moveTo(0, this.height / 2);
-                ctx.lineTo(0, this.height / 3);
-                ctx.stroke();
-                
-                // Corner indicators
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(-this.width / 2 + 2, -this.height / 2 + 2, 3, 3);
-                ctx.fillRect(this.width / 2 - 5, -this.height / 2 + 2, 3, 3);
-                ctx.fillRect(-this.width / 2 + 2, this.height / 2 - 5, 3, 3);
-                ctx.fillRect(this.width / 2 - 5, this.height / 2 - 5, 3, 3);
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(this.getTypeSymbol(), 0, 4);
                 
                 ctx.restore();
             }
-        }
-        
-        // Explosion class
-        class Explosion {
-            constructor(x, y, size = 1) {
-                this.x = x;
-                this.y = y;
-                this.size = size;
-                this.particles = [];
-                this.life = 30;
-                
-                // Create particles
-                for (let i = 0; i < 10; i++) {
-                    this.particles.push({
-                        x: x,
-                        y: y,
-                        vx: (Math.random() - 0.5) * 10,
-                        vy: (Math.random() - 0.5) * 10,
-                        life: 30
-                    });
-                }
-            }
             
-            update() {
-                this.life--;
-                this.particles.forEach(p => {
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    p.life--;
-                });
-            }
-            
-            draw() {
-                const alpha = this.life / 30;
-                ctx.globalAlpha = alpha;
-                
-                // Shockwave effect
-                const shockwaveRadius = (30 - this.life) * 2;
-                ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.5})`;
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, shockwaveRadius, 0, Math.PI * 2);
-                ctx.stroke();
-                
-                // Energy burst
-                ctx.fillStyle = `rgba(255, 255, 0, ${alpha * 0.8})`;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, (30 - this.life) * 0.5, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Particle effects
-                this.particles.forEach(p => {
-                    const particleAlpha = p.life / 30;
-                    ctx.globalAlpha = alpha * particleAlpha;
-                    
-                    // Different particle types
-                    if (p.life > 20) {
-                        // Fire particles
-                        ctx.fillStyle = `hsl(${Math.random() * 30 + 15}, 100%, 50%)`;
-                        ctx.fillRect(p.x, p.y, 4, 4);
-                    } else if (p.life > 10) {
-                        // Spark particles
-                        ctx.fillStyle = `hsl(${Math.random() * 60 + 45}, 100%, 70%)`;
-                        ctx.fillRect(p.x, p.y, 2, 2);
-                    } else {
-                        // Smoke particles
-                        ctx.fillStyle = `rgba(100, 100, 100, ${particleAlpha * 0.5})`;
-                        ctx.fillRect(p.x, p.y, 3, 3);
-                    }
-                });
-                
-                ctx.globalAlpha = 1;
+            getTypeSymbol() {
+                const symbols = {
+                    shield: '🛡️',
+                    rapidFire: '⚡',
+                    spreadShot: '🎯',
+                    speedBoost: '💨',
+                    laserUpgrade: '🔋'
+                };
+                return symbols[this.type] || '?';
             }
         }
         
-        // Shooting function
+        // Spawn power-up
+        function spawnPowerUp() {
+            const types = ['shield', 'rapidFire', 'spreadShot', 'speedBoost', 'laserUpgrade'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            const y = Math.random() * (canvas.height - 20);
+            powerUps.push(new PowerUp(canvas.width, y, type));
+        }
+        
+        // Spawn boss
+        function spawnBoss() {
+            if (!currentBoss && score >= bossSpawnScore && score - lastBossSpawn >= bossSpawnScore) {
+                currentBoss = new Boss(canvas.width - 150, canvas.height / 2 - 40);
+                bossHealth = currentBoss.health;
+                maxBossHealth = currentBoss.maxHealth;
+                lastBossSpawn = score;
+            }
+        }
+        
+        // Power-up activation functions
+        function activatePowerUp(type) {
+            activePowerUps[type] = true;
+            powerUpTimers[type] = Date.now() + powerUpDuration;
+            
+            // Apply effects
+            switch (type) {
+                case 'shield':
+                    player.invulnerable = true;
+                    break;
+                case 'rapidFire':
+                    weaponCooldowns.laser = 50;
+                    weaponCooldowns.plasma = 100;
+                    weaponCooldowns.missile = 200;
+                    break;
+                case 'spreadShot':
+                    // Handled in shoot function
+                    break;
+                case 'speedBoost':
+                    player.speed = 10;
+                    break;
+                case 'laserUpgrade':
+                    powerLevel = Math.min(powerLevel + 1, 5);
+                    break;
+            }
+        }
+        
+        function deactivatePowerUp(type) {
+            activePowerUps[type] = false;
+            powerUpTimers[type] = 0;
+            
+            switch (type) {
+                case 'shield':
+                    player.invulnerable = false;
+                    break;
+                case 'rapidFire':
+                    weaponCooldowns.laser = 100;
+                    weaponCooldowns.plasma = 200;
+                    weaponCooldowns.missile = 400;
+                    break;
+                case 'speedBoost':
+                    player.speed = 7;
+                    break;
+            }
+        }
+        
+        // Enhanced shooting with spread shot
         function shoot() {
-            const bulletCount = Math.min(powerLevel, 3);
-            const spread = 10;
-            const cooldown = weaponCooldowns[currentWeapon];
+            const bulletCount = activePowerUps.spreadShot ? 5 : Math.min(powerLevel, 3);
+            const spread = activePowerUps.spreadShot ? 15 : 10;
+            const cooldown = activePowerUps.rapidFire ? weaponCooldowns[currentWeapon] * 0.5 : weaponCooldowns[currentWeapon];
             
-            // Different speeds for different weapons
-            let bulletSpeed = 10; // Default speed
+            if (Date.now() - lastShotTime < cooldown) return;
+            
+            let bulletSpeed = 10;
             if (currentWeapon === 'laser') bulletSpeed = 12;
             else if (currentWeapon === 'plasma') bulletSpeed = 9;
             else if (currentWeapon === 'missile') bulletSpeed = 7;
@@ -1001,78 +1152,40 @@
                 bullets.push(new Bullet(
                     player.x + player.width,
                     player.y + player.height / 2 - 2 + offset,
-                    bulletSpeed, // Use weapon-specific speed
-                    false, // isEnemy
+                    bulletSpeed,
+                    false,
                     currentWeapon
                 ));
             }
+            
+            lastShotTime = Date.now();
         }
         
-        // Spawn enemy
-        function spawnEnemy() {
-            const y = Math.random() * (canvas.height - 40);
-            const type = Math.random() < 0.1 ? 'boss' : 'basic';
-            enemies.push(new Enemy(canvas.width, y, type));
-        }
-        
-        // Spawn power-up
-        function spawnPowerUp() {
-            if (Math.random() < 0.3) {
-                const y = Math.random() * (canvas.height - 20);
-                powerUps.push(new PowerUp(canvas.width, y, 'power'));
-            }
-        }
-        
-        // Collision detection
-        function isColliding(a, b) {
-            return a.x < b.x + b.width &&
-                   a.x + a.width > b.x &&
-                   a.y < b.y + b.height &&
-                   a.y + a.height > b.y;
-        }
-        
-        // Update game logic
+        // Enhanced update function
         function update() {
             if (!gameRunning) return;
             
-            // Player movement
-            if (keys['ArrowUp'] || touchControls.up) player.y -= player.speed;
-            if (keys['ArrowDown'] || touchControls.down) player.y += player.speed;
-            if (keys['ArrowLeft'] || touchControls.left) player.x -= player.speed;
-            if (keys['ArrowRight'] || touchControls.right) player.x += player.speed;
-            
-            // Shooting
-            if (keys['Space'] || touchControls.shoot) {
-                const currentTime = Date.now();
-                const cooldown = weaponCooldowns[currentWeapon];
-                if (currentTime - lastShotTime > cooldown) {
-                    shoot();
-                    lastShotTime = currentTime;
+            // Update power-up timers
+            Object.keys(powerUpTimers).forEach(type => {
+                if (powerUpTimers[type] > 0 && Date.now() > powerUpTimers[type]) {
+                    deactivatePowerUp(type);
                 }
-            }
+            });
             
-            // Weapon switching
-            if (keys['Key1']) {
-                currentWeapon = 'laser';
-                document.getElementById('currentWeapon').textContent = 'Laser';
-            } else if (keys['Key2']) {
-                currentWeapon = 'plasma';
-                document.getElementById('currentWeapon').textContent = 'Plasma';
-            } else if (keys['Key3']) {
-                currentWeapon = 'missile';
-                document.getElementById('currentWeapon').textContent = 'Missile';
-            }
+            // Player movement with speed boost
+            const currentSpeed = activePowerUps.speedBoost ? player.speed * 1.5 : player.speed;
+            if (keys['ArrowUp'] || touchControls.up) player.y -= currentSpeed;
+            if (keys['ArrowDown'] || touchControls.down) player.y += currentSpeed;
+            if (keys['ArrowLeft'] || touchControls.left) player.x -= currentSpeed;
+            if (keys['ArrowRight'] || touchControls.right) player.x += currentSpeed;
             
-            // Clamp player to screen
+            // Keep player in bounds
             player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
             player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
             
-            // Update invulnerability
-            if (player.invulnerable) {
-                player.invulnerableTime--;
-                if (player.invulnerableTime <= 0) {
-                    player.invulnerable = false;
-                }
+            // Shooting
+            if (keys['Space'] || touchControls.shoot) {
+                shoot();
             }
             
             // Update stars
@@ -1092,104 +1205,124 @@
             enemyBullets = enemyBullets.filter(b => b.x > 0 && b.x < canvas.width);
             enemyBullets.forEach(b => b.update());
             
-            // Update enemies and check collisions
-            const enemiesToRemove = [];
-            const bulletsToRemove = [];
+            // Update boss bullets
+            bossBullets = bossBullets.filter(b => b.x > 0 && b.x < canvas.width);
+            bossBullets.forEach(b => b.update());
             
-            enemies.forEach((enemy, enemyIndex) => {
-                enemy.update();
-                
-                // Check bullet collisions
-                bullets.forEach((bullet, bulletIndex) => {
-                    if (isColliding(bullet, enemy)) {
-                        enemy.health -= bullet.damage;
-                        bulletsToRemove.push(bulletIndex);
-                        
-                        if (enemy.health <= 0) {
-                            explosions.push(new Explosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2, 2));
-                            enemiesToRemove.push(enemyIndex);
-                            score += enemy.type === 'boss' ? 500 : 100;
-                            
-                            // Spawn power-up
-                            spawnPowerUp();
-                        }
-                    }
-                });
-                
-                // Remove enemies that are off screen
-                if (enemy.x + enemy.width < 0) {
-                    enemiesToRemove.push(enemyIndex);
-                }
-            });
+            // Update enemies
+            enemies.forEach(enemy => enemy.update());
             
-            // Remove bullets and enemies (in reverse order to maintain indices)
-            bulletsToRemove.reverse().forEach(index => bullets.splice(index, 1));
-            enemiesToRemove.reverse().forEach(index => enemies.splice(index, 1));
-            
-            // Update power-ups
-            const powerUpsToRemove = [];
-            powerUps.forEach((powerUp, index) => {
-                powerUp.update();
-                
-                if (isColliding(player, powerUp)) {
-                    powerUpsToRemove.push(index);
-                    powerLevel = Math.min(powerLevel + 1, 5);
-                }
-                
-                if (powerUp.x + powerUp.width < 0) {
-                    powerUpsToRemove.push(index);
-                }
-            });
-            
-            // Remove power-ups (in reverse order)
-            powerUpsToRemove.reverse().forEach(index => powerUps.splice(index, 1));
-            
-            // Update explosions
-            explosions = explosions.filter(explosion => explosion.life > 0);
-            explosions.forEach(explosion => explosion.update());
-            
-            // Check player collision with enemies
-            if (!player.invulnerable) {
-                enemies.forEach(enemy => {
-                    if (isColliding(player, enemy)) {
-                        lives--;
-                        player.invulnerable = true;
-                        player.invulnerableTime = 120; // 2 seconds at 60fps
-                        explosions.push(new Explosion(player.x + player.width / 2, player.y + player.height / 2, 1));
-                        
-                        if (lives <= 0) {
-                            gameOver();
-                        }
-                    }
-                });
-                
-                // Check player collision with enemy bullets
-                const enemyBulletsToRemove = [];
-                enemyBullets.forEach((bullet, index) => {
-                    if (isColliding(player, bullet)) {
-                        lives--;
-                        player.invulnerable = true;
-                        player.invulnerableTime = 120;
-                        enemyBulletsToRemove.push(index);
-                        explosions.push(new Explosion(player.x + player.width / 2, player.y + player.height / 2, 1));
-                        
-                        if (lives <= 0) {
-                            gameOver();
-                        }
-                    }
-                });
-                
-                // Remove enemy bullets (in reverse order)
-                enemyBulletsToRemove.reverse().forEach(index => enemyBullets.splice(index, 1));
+            // Update boss
+            if (currentBoss) {
+                currentBoss.update();
             }
             
-            // Update UI
-            document.getElementById('score').textContent = score;
-            document.getElementById('lives').textContent = lives;
-            document.getElementById('powerLevel').textContent = powerLevel;
+            // Update power-ups
+            powerUps = powerUps.filter(p => p.x > -20);
+            powerUps.forEach(p => p.update());
+            
+            // Update explosions
+            explosions = explosions.filter(e => e.life > 0);
+            explosions.forEach(e => e.update());
+            
+            // Spawn boss
+            spawnBoss();
+            
+            // Spawn power-ups
+            if (Date.now() - lastPowerUpSpawn > powerUpSpawnInterval) {
+                spawnPowerUp();
+                lastPowerUpSpawn = Date.now();
+            }
+            
+            // Collision detection
+            checkCollisions();
         }
         
-        // Draw everything
+        // Collision detection
+        function isColliding(a, b) {
+            return a.x < b.x + b.width &&
+                   a.x + a.width > b.x &&
+                   a.y < b.y + b.height &&
+                   a.y + a.height > b.y;
+        }
+        
+        // Enhanced collision detection
+        function checkCollisions() {
+            // Player-bullet collisions
+            if (!player.invulnerable) {
+                [...enemyBullets, ...bossBullets].forEach(bullet => {
+                    if (isColliding(player, bullet)) {
+                        takeDamage();
+                        enemyBullets = enemyBullets.filter(b => b !== bullet);
+                        bossBullets = bossBullets.filter(b => b !== bullet);
+                    }
+                });
+                
+                // Player-enemy collisions
+                enemies.forEach(enemy => {
+                    if (isColliding(player, enemy)) {
+                        takeDamage();
+                        explosions.push(new Explosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2, 2));
+                        enemies = enemies.filter(e => e !== enemy);
+                    }
+                });
+                
+                // Player-boss collisions
+                if (currentBoss && isColliding(player, currentBoss)) {
+                    takeDamage();
+                }
+            }
+            
+            // Bullet-enemy collisions
+            bullets.forEach(bullet => {
+                enemies.forEach(enemy => {
+                    if (isColliding(bullet, enemy)) {
+                        enemy.health -= bullet.damage;
+                        if (enemy.health <= 0) {
+                            score += enemy.type === 'boss' ? 500 : 100;
+                            explosions.push(new Explosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2, 2));
+                            enemies = enemies.filter(e => e !== enemy);
+                        }
+                        bullets = bullets.filter(b => b !== bullet);
+                    }
+                });
+                
+                // Bullet-boss collisions
+                if (currentBoss && isColliding(bullet, currentBoss)) {
+                    currentBoss.health -= bullet.damage;
+                    bossHealth = currentBoss.health;
+                    if (currentBoss.health <= 0) {
+                        score += 2000;
+                        explosions.push(new Explosion(currentBoss.x + currentBoss.width / 2, currentBoss.y + currentBoss.height / 2, 4));
+                        currentBoss = null;
+                        bossHealth = 0;
+                    }
+                    bullets = bullets.filter(b => b !== bullet);
+                }
+            });
+            
+            // Player-power-up collisions
+            powerUps.forEach(powerUp => {
+                if (isColliding(player, powerUp)) {
+                    activatePowerUp(powerUp.type);
+                    powerUps = powerUps.filter(p => p !== powerUp);
+                }
+            });
+        }
+        
+        function takeDamage() {
+            if (player.invulnerable) return;
+            
+            lives--;
+            player.invulnerable = true;
+            player.invulnerableTime = Date.now() + 2000;
+            
+            if (lives <= 0) {
+                gameOver();
+            }
+        }
+        
+        // Draw function
         function draw() {
             // Clear canvas
             ctx.fillStyle = '#000011';
@@ -1197,166 +1330,34 @@
             
             // Draw stars
             stars.forEach(star => {
-                // Twinkling effect
-                const twinkle = Math.sin(Date.now() * 0.001 + star.x * 0.01) * 0.3 + 0.7;
-                ctx.globalAlpha = twinkle;
-                
-                // Different star types based on size
-                if (star.size > 2) {
-                    // Bright stars - draw with glow
-                    ctx.shadowColor = 'white';
-                    ctx.shadowBlur = star.size * 2;
-                    ctx.fillStyle = 'white';
-                    ctx.beginPath();
-                    ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
-                    
-                    // Cross pattern for bright stars
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-                    ctx.lineWidth = 1;
-                    ctx.beginPath();
-                    ctx.moveTo(star.x - star.size * 2, star.y);
-                    ctx.lineTo(star.x + star.size * 2, star.y);
-                    ctx.moveTo(star.x, star.y - star.size * 2);
-                    ctx.lineTo(star.x, star.y + star.size * 2);
-                    ctx.stroke();
-                    
-                } else if (star.size > 1.5) {
-                    // Medium stars
-                    ctx.fillStyle = '#ffffcc';
-                    ctx.beginPath();
-                    ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                } else {
-                    // Small stars - different colors
-                    const colors = ['#ffffff', '#ffffcc', '#ccffff', '#ffccff'];
-                    ctx.fillStyle = colors[Math.floor(star.x * 0.1) % colors.length];
-                    ctx.beginPath();
-                    ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-                    ctx.fill();
-                }
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.size / 3})`;
+                ctx.fillRect(star.x, star.y, star.size, star.size);
             });
-            ctx.globalAlpha = 1;
             
-            // Draw player (with invulnerability flash)
-            if (!player.invulnerable || Math.floor(player.invulnerableTime / 10) % 2) {
-                // Main ship body - more detailed shape
-                ctx.fillStyle = '#00ffff';
-                ctx.beginPath();
-                ctx.moveTo(player.x, player.y + player.height / 2);
-                ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.1);
-                ctx.lineTo(player.x + player.width * 0.8, player.y);
-                ctx.lineTo(player.x + player.width, player.y + player.height * 0.2);
-                ctx.lineTo(player.x + player.width, player.y + player.height * 0.8);
-                ctx.lineTo(player.x + player.width * 0.8, player.y + player.height);
-                ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.9);
-                ctx.closePath();
-                ctx.fill();
-                
-                // Secondary hull
-                ctx.fillStyle = '#0080ff';
-                ctx.beginPath();
-                ctx.moveTo(player.x + player.width * 0.2, player.y + player.height * 0.3);
-                ctx.lineTo(player.x + player.width * 0.7, player.y + player.height * 0.2);
-                ctx.lineTo(player.x + player.width * 0.7, player.y + player.height * 0.8);
-                ctx.lineTo(player.x + player.width * 0.2, player.y + player.height * 0.7);
-                ctx.closePath();
-                ctx.fill();
-                
-                // Cockpit with better detail
-                ctx.fillStyle = '#0080ff';
-                ctx.beginPath();
-                ctx.ellipse(player.x + player.width * 0.65, player.y + player.height / 2, 
-                           player.width * 0.12, player.height * 0.25, 0, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Cockpit glass
-                ctx.fillStyle = '#ffffff';
-                ctx.globalAlpha = 0.7;
-                ctx.beginPath();
-                ctx.ellipse(player.x + player.width * 0.65, player.y + player.height / 2, 
-                           player.width * 0.08, player.height * 0.2, 0, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.globalAlpha = 1;
-                
-                // Weapon mounts
-                ctx.fillStyle = '#404040';
-                ctx.fillRect(player.x + player.width * 0.85, player.y + player.height * 0.3, 
-                           player.width * 0.1, player.height * 0.4);
-                
-                // Engine glow with multiple engines
-                ctx.fillStyle = '#ffff00';
-                ctx.beginPath();
-                ctx.moveTo(player.x, player.y + player.height * 0.25);
-                ctx.lineTo(player.x - 10, player.y + player.height * 0.35);
-                ctx.lineTo(player.x - 10, player.y + player.height * 0.45);
-                ctx.lineTo(player.x, player.y + player.height * 0.35);
-                ctx.closePath();
-                ctx.fill();
-                
-                ctx.beginPath();
-                ctx.moveTo(player.x, player.y + player.height * 0.55);
-                ctx.lineTo(player.x - 10, player.y + player.height * 0.65);
-                ctx.lineTo(player.x - 10, player.y + player.height * 0.75);
-                ctx.lineTo(player.x, player.y + player.height * 0.65);
-                ctx.closePath();
-                ctx.fill();
-                
-                // Engine exhaust with better effects
-                ctx.fillStyle = '#ff8000';
-                ctx.beginPath();
-                ctx.moveTo(player.x - 10, player.y + player.height * 0.35);
-                ctx.lineTo(player.x - 18, player.y + player.height * 0.3);
-                ctx.lineTo(player.x - 18, player.y + player.height * 0.5);
-                ctx.lineTo(player.x - 10, player.y + player.height * 0.45);
-                ctx.closePath();
-                ctx.fill();
-                
-                ctx.beginPath();
-                ctx.moveTo(player.x - 10, player.y + player.height * 0.65);
-                ctx.lineTo(player.x - 18, player.y + player.height * 0.6);
-                ctx.lineTo(player.x - 18, player.y + player.height * 0.8);
-                ctx.lineTo(player.x - 10, player.y + player.height * 0.75);
-                ctx.closePath();
-                ctx.fill();
-                
-                // Wing details with better structure
+            // Draw boss
+            if (currentBoss) {
+                currentBoss.draw();
+            }
+            
+            // Draw boss bullets
+            bossBullets.forEach(bullet => bullet.draw());
+            
+            // Draw player with shield effect
+            if (activePowerUps.shield) {
+                ctx.save();
+                ctx.globalAlpha = 0.5;
                 ctx.strokeStyle = '#0080ff';
-                ctx.lineWidth = 2;
+                ctx.lineWidth = 3;
                 ctx.beginPath();
-                ctx.moveTo(player.x + player.width * 0.3, player.y);
-                ctx.lineTo(player.x + player.width * 0.5, player.y + player.height * 0.15);
-                ctx.moveTo(player.x + player.width * 0.3, player.y + player.height);
-                ctx.lineTo(player.x + player.width * 0.5, player.y + player.height * 0.85);
+                ctx.arc(player.x + player.width / 2, player.y + player.height / 2, 
+                       Math.max(player.width, player.height) / 2 + 10, 0, Math.PI * 2);
                 ctx.stroke();
-                
-                // Additional wing details
-                ctx.strokeStyle = '#00ffff';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(player.x + player.width * 0.4, player.y + player.height * 0.1);
-                ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.2);
-                ctx.moveTo(player.x + player.width * 0.4, player.y + player.height * 0.9);
-                ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.8);
-                ctx.stroke();
-                
-                // Add glow effect
-                ctx.shadowColor = '#00ffff';
-                ctx.shadowBlur = 20;
-                ctx.fillStyle = '#00ffff';
-                ctx.beginPath();
-                ctx.moveTo(player.x, player.y + player.height / 2);
-                ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.1);
-                ctx.lineTo(player.x + player.width * 0.8, player.y);
-                ctx.lineTo(player.x + player.width, player.y + player.height * 0.2);
-                ctx.lineTo(player.x + player.width, player.y + player.height * 0.8);
-                ctx.lineTo(player.x + player.width * 0.8, player.y + player.height);
-                ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.9);
-                ctx.closePath();
-                ctx.fill();
-                ctx.shadowBlur = 0;
+                ctx.restore();
+            }
+            
+            // Draw player
+            if (!player.invulnerable || Math.floor(Date.now() / 100) % 2) {
+                drawPlayer();
             }
             
             // Draw bullets
@@ -1373,23 +1374,26 @@
             
             // Draw explosions
             explosions.forEach(explosion => explosion.draw());
-        }
-        
-        // Game over
-        function gameOver() {
-            gameRunning = false;
             
-            // Clear spawn timer
-            if (spawnTimer) {
-                clearInterval(spawnTimer);
-                spawnTimer = null;
+            // Update UI
+            document.getElementById('score').textContent = score;
+            document.getElementById('lives').textContent = lives;
+            document.getElementById('powerLevel').textContent = powerLevel;
+            
+            // Show active power-ups
+            let powerUpText = '';
+            Object.keys(activePowerUps).forEach(type => {
+                if (activePowerUps[type]) {
+                    const timeLeft = Math.ceil((powerUpTimers[type] - Date.now()) / 1000);
+                    powerUpText += `${type}: ${timeLeft}s `;
+                }
+            });
+            if (powerUpText) {
+                document.getElementById('currentWeapon').textContent = powerUpText;
             }
-            
-            document.getElementById('finalScore').textContent = score;
-            document.getElementById('gameOverScreen').style.display = 'block';
         }
         
-        // Start game
+        // Enhanced start game function
         function startGame() {
             gameRunning = true;
             score = 0;
@@ -1398,9 +1402,22 @@
             lastShotTime = 0;
             currentWeapon = 'laser';
             
+            // Reset power-ups
+            Object.keys(activePowerUps).forEach(type => {
+                activePowerUps[type] = false;
+                powerUpTimers[type] = 0;
+            });
+            
+            // Reset boss
+            currentBoss = null;
+            bossHealth = 0;
+            maxBossHealth = 0;
+            lastBossSpawn = 0;
+            
             // Clear arrays
             bullets = [];
             enemyBullets = [];
+            bossBullets = [];
             enemies = [];
             powerUps = [];
             explosions = [];
@@ -1410,6 +1427,12 @@
             player.y = canvas.height / 2;
             player.invulnerable = false;
             player.invulnerableTime = 0;
+            player.speed = 7;
+            
+            // Reset weapon cooldowns
+            weaponCooldowns.laser = 100;
+            weaponCooldowns.plasma = 200;
+            weaponCooldowns.missile = 400;
             
             // Hide screens
             document.getElementById('startScreen').style.display = 'none';
