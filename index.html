@@ -329,9 +329,9 @@
         document.getElementById('shootBtn').addEventListener('touchend', (e) => { e.preventDefault(); touchControls.shoot = false; });
         
         // Weapon switching buttons
-        document.getElementById('weapon1Btn').addEventListener('click', (e) => { e.preventDefault(); currentWeapon = 'laser'; document.getElementById('currentWeapon').textContent = 'Laser'; });
-        document.getElementById('weapon2Btn').addEventListener('click', (e) => { e.preventDefault(); currentWeapon = 'plasma'; document.getElementById('currentWeapon').textContent = 'Plasma'; });
-        document.getElementById('weapon3Btn').addEventListener('click', (e) => { e.preventDefault(); currentWeapon = 'missile'; document.getElementById('currentWeapon').textContent = 'Missile'; });
+        document.getElementById('weapon1Btn').addEventListener('click', () => { currentWeapon = 'laser'; document.getElementById('currentWeapon').textContent = 'Laser'; });
+        document.getElementById('weapon2Btn').addEventListener('click', () => { currentWeapon = 'plasma'; document.getElementById('currentWeapon').textContent = 'Plasma'; });
+        document.getElementById('weapon3Btn').addEventListener('click', () => { currentWeapon = 'missile'; document.getElementById('currentWeapon').textContent = 'Missile'; });
         
         // Add touch events for weapon buttons
         document.getElementById('weapon1Btn').addEventListener('touchstart', (e) => { e.preventDefault(); currentWeapon = 'laser'; document.getElementById('currentWeapon').textContent = 'Laser'; });
