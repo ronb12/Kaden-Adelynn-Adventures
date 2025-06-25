@@ -604,7 +604,7 @@
           
           mesh.castShadow = true;
           mesh.position.x = LANES[laneIdx];
-          mesh.position.z = player.position.z - 20;
+          mesh.position.z = -20; // Fixed distance from camera
           scene.add(mesh);
           obstacles.push({mesh, type, lane: laneIdx});
       }
@@ -618,7 +618,7 @@
           );
           mesh.position.x = LANES[laneIdx];
           mesh.position.y = PLAYER_SIZE + 0.5;
-          mesh.position.z = player.position.z - 20;
+          mesh.position.z = -20; // Fixed distance from camera
           scene.add(mesh);
           coins.push({mesh, lane: laneIdx});
       }
@@ -648,7 +648,7 @@
           
           mesh.position.x = LANES[laneIdx];
           mesh.position.y = PLAYER_SIZE + 0.5;
-          mesh.position.z = player.position.z - 20;
+          mesh.position.z = -20; // Fixed distance from camera
           scene.add(mesh);
           powerUps.push({mesh, type, lane: laneIdx});
       }
@@ -657,12 +657,12 @@
           // Move obstacles
           for (let i = obstacles.length - 1; i >= 0; i--) {
               let o = obstacles[i];
-              o.mesh.position.z -= speed;
+              o.mesh.position.z += speed; // Move towards player (positive z)
               // Add bounce/wiggle animation
               const t = performance.now() * 0.002 + i;
               o.mesh.position.y += Math.sin(t * 2) * 0.03;
               o.mesh.rotation.y = Math.sin(t) * 0.08;
-              if (o.mesh.position.z < player.position.z - 3) {
+              if (o.mesh.position.z > 3) { // Remove when past player
                   scene.remove(o.mesh);
                   obstacles.splice(i, 1);
               }
@@ -671,12 +671,12 @@
           // Move coins
           for (let i = coins.length - 1; i >= 0; i--) {
               let c = coins[i];
-              c.mesh.position.z -= speed;
+              c.mesh.position.z += speed; // Move towards player (positive z)
               // Spin and pulse animation
               c.mesh.rotation.y += 0.18;
               const pulse = 1 + Math.sin(performance.now() * 0.008 + i) * 0.13;
               c.mesh.scale.set(pulse, pulse, pulse);
-              if (c.mesh.position.z < player.position.z - 3) {
+              if (c.mesh.position.z > 3) { // Remove when past player
                   scene.remove(c.mesh);
                   coins.splice(i, 1);
               }
@@ -685,9 +685,9 @@
           // Move power-ups
           for (let i = powerUps.length - 1; i >= 0; i--) {
               let p = powerUps[i];
-              p.mesh.position.z -= speed;
+              p.mesh.position.z += speed; // Move towards player (positive z)
               p.mesh.rotation.y += 0.05;
-              if (p.mesh.position.z < player.position.z - 3) {
+              if (p.mesh.position.z > 3) { // Remove when past player
                   scene.remove(p.mesh);
                   powerUps.splice(i, 1);
               }
@@ -1186,6 +1186,9 @@ Enjoy the adventure! 🏛️✨`);
           // Load high score
           highScore = localStorage.getItem('runner3dHighScore') || 0;
           highScoreEl.textContent = highScore;
+          
+          // Start initial render
+          renderer.render(scene, camera);
       }
 
       // Reset game state
