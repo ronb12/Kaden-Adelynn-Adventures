@@ -242,10 +242,10 @@
                     <h2>Gradius Adventures</h2>
                     <p>Use arrow keys to move</p>
                     <p>Spacebar to shoot</p>
-                    <p>1, 2, 3 to switch weapons</p>
-                    <p>Laser (1) - Fast, low damage</p>
-                    <p>Plasma (2) - Medium, high damage</p>
-                    <p>Missile (3) - Slow, massive damage</p>
+                    <p>Collect weapon power-ups to upgrade your ship's weapon: Laser → Plasma → Missile</p>
+                    <p>Laser - Fast, low damage</p>
+                    <p>Plasma - Medium, high damage</p>
+                    <p>Missile - Slow, massive damage</p>
                     <p>Collect power-ups to upgrade your ship!</p>
                     <p>You have 5 lives to complete the mission!</p>
                     <button id="startBtn">START MISSION</button>
@@ -256,7 +256,7 @@
                     <h2>📖 How to Play</h2>
                     <p>Move: Arrow keys or on-screen arrows</p>
                     <p>Shoot: Spacebar or 🔥 button</p>
-                    <p>Switch Weapons: 1, 2, 3 or on-screen buttons</p>
+                    <p>Collect weapon power-ups to upgrade your ship's weapon: Laser → Plasma → Missile</p>
                     <p>Collect power-ups and defeat bosses!</p>
                 </div>
             </div>
@@ -286,9 +286,6 @@
             <div class="controlBtn" id="downBtn">↓</div>
             <div class="controlBtn" id="rightBtn">→</div>
             <div class="controlBtn" id="shootBtn">🔥</div>
-            <div class="controlBtn" id="weapon1Btn">1</div>
-            <div class="controlBtn" id="weapon2Btn">2</div>
-            <div class="controlBtn" id="weapon3Btn">3</div>
         </div>
     </div>
 
@@ -377,16 +374,6 @@
         document.getElementById('downBtn').addEventListener('touchend', (e) => { e.preventDefault(); touchControls.down = false; });
         document.getElementById('shootBtn').addEventListener('touchstart', (e) => { e.preventDefault(); touchControls.shoot = true; });
         document.getElementById('shootBtn').addEventListener('touchend', (e) => { e.preventDefault(); touchControls.shoot = false; });
-        
-        // Weapon switching buttons
-        document.getElementById('weapon1Btn').addEventListener('click', () => { currentWeapon = 'laser'; document.getElementById('currentWeapon').textContent = 'Laser'; });
-        document.getElementById('weapon2Btn').addEventListener('click', () => { currentWeapon = 'plasma'; document.getElementById('currentWeapon').textContent = 'Plasma'; });
-        document.getElementById('weapon3Btn').addEventListener('click', () => { currentWeapon = 'missile'; document.getElementById('currentWeapon').textContent = 'Missile'; });
-        
-        // Add touch events for weapon buttons
-        document.getElementById('weapon1Btn').addEventListener('touchstart', (e) => { e.preventDefault(); currentWeapon = 'laser'; document.getElementById('currentWeapon').textContent = 'Laser'; });
-        document.getElementById('weapon2Btn').addEventListener('touchstart', (e) => { e.preventDefault(); currentWeapon = 'plasma'; document.getElementById('currentWeapon').textContent = 'Plasma'; });
-        document.getElementById('weapon3Btn').addEventListener('touchstart', (e) => { e.preventDefault(); currentWeapon = 'missile'; document.getElementById('currentWeapon').textContent = 'Missile'; });
         
         // Initialize starfield
         function initStars() {
@@ -1170,7 +1157,16 @@
                     player.speed = 10;
                     break;
                 case 'laserUpgrade':
-                    powerLevel = Math.min(powerLevel + 1, 5);
+                    // Weapon upgrade order: laser -> plasma -> missile
+                    if (currentWeapon === 'laser') {
+                        currentWeapon = 'plasma';
+                        document.getElementById('currentWeapon').textContent = 'Plasma';
+                    } else if (currentWeapon === 'plasma') {
+                        currentWeapon = 'missile';
+                        document.getElementById('currentWeapon').textContent = 'Missile';
+                    } else if (currentWeapon === 'missile') {
+                        // Already at max, maybe give bonus points or nothing
+                    }
                     break;
             }
         }
