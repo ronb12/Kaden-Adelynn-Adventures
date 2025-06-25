@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Kaden & Adelynn - Gradius Adventures</title>
     <style>
         html, body {
@@ -12,6 +14,14 @@
             overflow: hidden;
             font-family: 'Arial', sans-serif;
             color: white;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
         
         #gameContainer {
@@ -167,10 +177,14 @@
             align-items: center;
             justify-content: center;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
         }
         
         .controlBtn:active {
             background: rgba(0, 255, 255, 0.6);
+            transform: scale(0.95);
         }
         
         @media (max-width: 768px) {
@@ -303,30 +317,26 @@
         document.addEventListener('keyup', e => keys[e.code] = false);
         
         // Mobile controls
-        document.getElementById('leftBtn').addEventListener('touchstart', () => touchControls.left = true);
-        document.getElementById('leftBtn').addEventListener('touchend', () => touchControls.left = false);
-        document.getElementById('rightBtn').addEventListener('touchstart', () => touchControls.right = true);
-        document.getElementById('rightBtn').addEventListener('touchend', () => touchControls.right = false);
-        document.getElementById('upBtn').addEventListener('touchstart', () => touchControls.up = true);
-        document.getElementById('upBtn').addEventListener('touchend', () => touchControls.up = false);
-        document.getElementById('downBtn').addEventListener('touchstart', () => touchControls.down = true);
-        document.getElementById('downBtn').addEventListener('touchend', () => touchControls.down = false);
-        document.getElementById('shootBtn').addEventListener('touchstart', () => touchControls.shoot = true);
-        document.getElementById('shootBtn').addEventListener('touchend', () => touchControls.shoot = false);
+        document.getElementById('leftBtn').addEventListener('touchstart', (e) => { e.preventDefault(); touchControls.left = true; });
+        document.getElementById('leftBtn').addEventListener('touchend', (e) => { e.preventDefault(); touchControls.left = false; });
+        document.getElementById('rightBtn').addEventListener('touchstart', (e) => { e.preventDefault(); touchControls.right = true; });
+        document.getElementById('rightBtn').addEventListener('touchend', (e) => { e.preventDefault(); touchControls.right = false; });
+        document.getElementById('upBtn').addEventListener('touchstart', (e) => { e.preventDefault(); touchControls.up = true; });
+        document.getElementById('upBtn').addEventListener('touchend', (e) => { e.preventDefault(); touchControls.up = false; });
+        document.getElementById('downBtn').addEventListener('touchstart', (e) => { e.preventDefault(); touchControls.down = true; });
+        document.getElementById('downBtn').addEventListener('touchend', (e) => { e.preventDefault(); touchControls.down = false; });
+        document.getElementById('shootBtn').addEventListener('touchstart', (e) => { e.preventDefault(); touchControls.shoot = true; });
+        document.getElementById('shootBtn').addEventListener('touchend', (e) => { e.preventDefault(); touchControls.shoot = false; });
         
         // Weapon switching buttons
-        document.getElementById('weapon1Btn').addEventListener('click', () => {
-            currentWeapon = 'laser';
-            document.getElementById('currentWeapon').textContent = 'Laser';
-        });
-        document.getElementById('weapon2Btn').addEventListener('click', () => {
-            currentWeapon = 'plasma';
-            document.getElementById('currentWeapon').textContent = 'Plasma';
-        });
-        document.getElementById('weapon3Btn').addEventListener('click', () => {
-            currentWeapon = 'missile';
-            document.getElementById('currentWeapon').textContent = 'Missile';
-        });
+        document.getElementById('weapon1Btn').addEventListener('click', (e) => { e.preventDefault(); currentWeapon = 'laser'; document.getElementById('currentWeapon').textContent = 'Laser'; });
+        document.getElementById('weapon2Btn').addEventListener('click', (e) => { e.preventDefault(); currentWeapon = 'plasma'; document.getElementById('currentWeapon').textContent = 'Plasma'; });
+        document.getElementById('weapon3Btn').addEventListener('click', (e) => { e.preventDefault(); currentWeapon = 'missile'; document.getElementById('currentWeapon').textContent = 'Missile'; });
+        
+        // Add touch events for weapon buttons
+        document.getElementById('weapon1Btn').addEventListener('touchstart', (e) => { e.preventDefault(); currentWeapon = 'laser'; document.getElementById('currentWeapon').textContent = 'Laser'; });
+        document.getElementById('weapon2Btn').addEventListener('touchstart', (e) => { e.preventDefault(); currentWeapon = 'plasma'; document.getElementById('currentWeapon').textContent = 'Plasma'; });
+        document.getElementById('weapon3Btn').addEventListener('touchstart', (e) => { e.preventDefault(); currentWeapon = 'missile'; document.getElementById('currentWeapon').textContent = 'Missile'; });
         
         // Initialize starfield
         function initStars() {
