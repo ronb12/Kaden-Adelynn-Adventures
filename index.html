@@ -1201,7 +1201,7 @@
                     // Reset shadow
                     ctx.shadowBlur = 0;
                 } else {
-                    // Basic enemy ship - alien interceptor with organic design
+                    // Basic enemy ship - improved alien interceptor design
                     
                     // Engine flicker animation
                     const engineFlicker = 0.7 + 0.3 * Math.sin(Date.now() * 0.012);
@@ -1210,75 +1210,139 @@
                     ctx.shadowColor = '#ff4444';
                     ctx.shadowBlur = 15;
                     
-                    // Main body - crab-like organic shape
+                    // Main body - improved aerodynamic shape
                     ctx.fillStyle = '#cc0000';
                     ctx.beginPath();
-                    ctx.moveTo(this.x + this.width * 0.2, this.y + this.height / 2);
-                    ctx.lineTo(this.x + this.width * 0.4, this.y + this.height * 0.05);
-                    ctx.lineTo(this.x + this.width * 0.7, this.y + this.height * 0.1);
-                    ctx.lineTo(this.x + this.width * 0.9, this.y + this.height * 0.3);
-                    ctx.lineTo(this.x + this.width, this.y + this.height * 0.5);
-                    ctx.lineTo(this.x + this.width * 0.9, this.y + this.height * 0.7);
-                    ctx.lineTo(this.x + this.width * 0.7, this.y + this.height * 0.9);
-                    ctx.lineTo(this.x + this.width * 0.4, this.y + this.height * 0.95);
+                    // Sharp nose
+                    ctx.moveTo(this.x + this.width, this.y + this.height / 2);
+                    // Top wing leading edge
+                    ctx.lineTo(this.x + this.width * 0.8, this.y + this.height * 0.1);
+                    ctx.lineTo(this.x + this.width * 0.6, this.y + this.height * 0.05);
+                    // Top wing trailing edge
+                    ctx.lineTo(this.x + this.width * 0.2, this.y + this.height * 0.08);
+                    // Engine housing
+                    ctx.lineTo(this.x + this.width * 0.05, this.y + this.height * 0.2);
+                    ctx.lineTo(this.x, this.y + this.height * 0.35);
+                    // Bottom engine housing
+                    ctx.lineTo(this.x + this.width * 0.05, this.y + this.height * 0.65);
+                    // Bottom wing trailing edge
+                    ctx.lineTo(this.x + this.width * 0.2, this.y + this.height * 0.92);
+                    // Bottom wing leading edge
+                    ctx.lineTo(this.x + this.width * 0.6, this.y + this.height * 0.95);
+                    ctx.lineTo(this.x + this.width * 0.8, this.y + this.height * 0.9);
                     ctx.closePath();
                     ctx.fill();
                     
-                    // Central sensor - glowing
-                    ctx.fillStyle = '#ff0000';
+                    // Secondary hull detail
+                    ctx.fillStyle = '#ff6666';
+                    ctx.globalAlpha = 0.4;
                     ctx.beginPath();
-                    ctx.ellipse(this.x + this.width * 0.7, this.y + this.height / 2, 
-                               this.width * 0.12, this.height * 0.25, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Sensor core
-                    ctx.fillStyle = '#ffff00';
-                    ctx.globalAlpha = 0.8;
-                    ctx.beginPath();
-                    ctx.ellipse(this.x + this.width * 0.7, this.y + this.height / 2, 
-                               this.width * 0.06, this.height * 0.15, 0, 0, Math.PI * 2);
+                    ctx.moveTo(this.x + this.width * 0.9, this.y + this.height * 0.25);
+                    ctx.lineTo(this.x + this.width * 0.7, this.y + this.height * 0.2);
+                    ctx.lineTo(this.x + this.width * 0.7, this.y + this.height * 0.8);
+                    ctx.lineTo(this.x + this.width * 0.9, this.y + this.height * 0.75);
+                    ctx.closePath();
                     ctx.fill();
                     ctx.globalAlpha = 1;
                     
-                    // Side appendages - organic
-                    ctx.fillStyle = '#880000';
+                    // Central sensor array - enhanced
+                    ctx.fillStyle = '#ff0000';
                     ctx.beginPath();
-                    ctx.moveTo(this.x + this.width * 0.3, this.y);
-                    ctx.lineTo(this.x + this.width * 0.5, this.y + this.height * 0.1);
-                    ctx.lineTo(this.x + this.width * 0.5, this.y + this.height * 0.9);
-                    ctx.lineTo(this.x + this.width * 0.3, this.y + this.height);
-                    ctx.closePath();
+                    ctx.ellipse(this.x + this.width * 0.75, this.y + this.height / 2, 
+                               this.width * 0.15, this.height * 0.3, 0, 0, Math.PI * 2);
                     ctx.fill();
                     
-                    // Animated engine thrust
+                    // Sensor core with energy field
+                    ctx.fillStyle = '#ff00ff';
+                    ctx.globalAlpha = 0.8;
+                    ctx.beginPath();
+                    ctx.ellipse(this.x + this.width * 0.75, this.y + this.height / 2, 
+                               this.width * 0.12, this.height * 0.25, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Sensor pupil
+                    ctx.fillStyle = '#ffff00';
+                    ctx.globalAlpha = 1;
+                    ctx.beginPath();
+                    ctx.ellipse(this.x + this.width * 0.75, this.y + this.height / 2, 
+                               this.width * 0.08, this.height * 0.2, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Wing detail lines
+                    ctx.strokeStyle = '#ff6666';
+                    ctx.lineWidth = 2;
+                    ctx.globalAlpha = 0.7;
+                    ctx.beginPath();
+                    // Top wing detail
+                    ctx.moveTo(this.x + this.width * 0.5, this.y + this.height * 0.08);
+                    ctx.lineTo(this.x + this.width * 0.7, this.y + this.height * 0.12);
+                    ctx.lineTo(this.x + this.width * 0.8, this.y + this.height * 0.15);
+                    // Bottom wing detail
+                    ctx.moveTo(this.x + this.width * 0.5, this.y + this.height * 0.92);
+                    ctx.lineTo(this.x + this.width * 0.7, this.y + this.height * 0.88);
+                    ctx.lineTo(this.x + this.width * 0.8, this.y + this.height * 0.85);
+                    ctx.stroke();
+                    ctx.globalAlpha = 1;
+                    
+                    // Weapon mount
+                    ctx.fillStyle = '#404040';
+                    ctx.fillRect(this.x + this.width * 0.88, this.y + this.height * 0.3, 
+                               this.width * 0.1, this.height * 0.4);
+                    
+                    // Weapon mount detail
+                    ctx.fillStyle = '#202020';
+                    ctx.fillRect(this.x + this.width * 0.9, this.y + this.height * 0.35, 
+                               this.width * 0.06, this.height * 0.3);
+                    
+                    // Enhanced animated engine thrust
                     ctx.shadowColor = '#ff6600';
                     ctx.shadowBlur = 20 * engineFlicker;
                     ctx.fillStyle = `rgba(255, 102, 0, ${engineFlicker})`;
+                    
+                    // Top thruster
                     ctx.beginPath();
-                    ctx.moveTo(this.x + this.width * 0.2, this.y + this.height * 0.25);
-                    ctx.lineTo(this.x + this.width * 0.2 - 15 * engineFlicker, this.y + this.height * 0.35);
-                    ctx.lineTo(this.x + this.width * 0.2 - 15 * engineFlicker, this.y + this.height * 0.45);
-                    ctx.lineTo(this.x + this.width * 0.2, this.y + this.height * 0.35);
+                    ctx.moveTo(this.x, this.y + this.height * 0.2);
+                    ctx.lineTo(this.x - 20 * engineFlicker, this.y + this.height * 0.25);
+                    ctx.lineTo(this.x - 20 * engineFlicker, this.y + this.height * 0.35);
+                    ctx.lineTo(this.x, this.y + this.height * 0.3);
                     ctx.closePath();
                     ctx.fill();
                     
+                    // Bottom thruster
                     ctx.beginPath();
-                    ctx.moveTo(this.x + this.width * 0.2, this.y + this.height * 0.55);
-                    ctx.lineTo(this.x + this.width * 0.2 - 15 * engineFlicker, this.y + this.height * 0.65);
-                    ctx.lineTo(this.x + this.width * 0.2 - 15 * engineFlicker, this.y + this.height * 0.75);
-                    ctx.lineTo(this.x + this.width * 0.2, this.y + this.height * 0.65);
+                    ctx.moveTo(this.x, this.y + this.height * 0.65);
+                    ctx.lineTo(this.x - 20 * engineFlicker, this.y + this.height * 0.7);
+                    ctx.lineTo(this.x - 20 * engineFlicker, this.y + this.height * 0.8);
+                    ctx.lineTo(this.x, this.y + this.height * 0.75);
                     ctx.closePath();
                     ctx.fill();
                     
-                    // Engine exhaust particles
+                    // Center thruster
+                    ctx.beginPath();
+                    ctx.moveTo(this.x, this.y + this.height * 0.45);
+                    ctx.lineTo(this.x - 15 * engineFlicker, this.y + this.height * 0.48);
+                    ctx.lineTo(this.x - 15 * engineFlicker, this.y + this.height * 0.52);
+                    ctx.lineTo(this.x, this.y + this.height * 0.49);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Enhanced engine exhaust particles
                     ctx.fillStyle = '#ff8800';
-                    ctx.globalAlpha = 0.7;
-                    for (let i = 0; i < 4; i++) {
-                        const offset = Math.sin(Date.now() * 0.01 + i) * 2;
-                        ctx.fillRect(this.x + this.width * 0.2 - 18 - i * 3, 
-                                   this.y + this.height * 0.35 + offset, 2, 2);
-                        ctx.fillRect(this.x + this.width * 0.2 - 18 - i * 3, 
-                                   this.y + this.height * 0.65 + offset, 2, 2);
+                    ctx.globalAlpha = 0.8;
+                    for (let i = 0; i < 5; i++) {
+                        const offset = Math.sin(Date.now() * 0.01 + i) * 3;
+                        const alpha = 0.8 - (i * 0.1);
+                        ctx.globalAlpha = alpha;
+                        
+                        // Top thruster particles
+                        ctx.fillRect(this.x - 25 - i * 4, 
+                                   this.y + this.height * 0.25 + offset, 3, 3);
+                        // Bottom thruster particles
+                        ctx.fillRect(this.x - 25 - i * 4, 
+                                   this.y + this.height * 0.7 + offset, 3, 3);
+                        // Center thruster particles
+                        ctx.fillRect(this.x - 20 - i * 3, 
+                                   this.y + this.height * 0.48 + offset, 2, 2);
                     }
                     ctx.globalAlpha = 1;
                     
@@ -1364,30 +1428,135 @@
                 ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
                 ctx.rotate(this.angle);
                 
+                // Engine flicker animation
+                const engineFlicker = 0.6 + 0.4 * Math.sin(Date.now() * 0.008);
+                
                 // Boss glow effect
                 ctx.shadowColor = '#ff0000';
-                ctx.shadowBlur = 20;
+                ctx.shadowBlur = 25;
                 
-                // Main body
+                // Main body - massive dreadnought design
+                ctx.fillStyle = '#8b0000';
+                ctx.beginPath();
+                // Sharp angular design
+                ctx.moveTo(this.width / 2, -this.height / 2);
+                ctx.lineTo(this.width / 2 - 20, -this.height / 2 + 10);
+                ctx.lineTo(this.width / 2 - 40, -this.height / 2 + 5);
+                ctx.lineTo(this.width / 2 - 60, -this.height / 2 + 15);
+                ctx.lineTo(-this.width / 2 + 20, -this.height / 2 + 10);
+                ctx.lineTo(-this.width / 2, -this.height / 2 + 20);
+                ctx.lineTo(-this.width / 2, this.height / 2 - 20);
+                ctx.lineTo(-this.width / 2 + 20, this.height / 2 - 10);
+                ctx.lineTo(this.width / 2 - 60, this.height / 2 - 15);
+                ctx.lineTo(this.width / 2 - 40, this.height / 2 - 5);
+                ctx.lineTo(this.width / 2 - 20, this.height / 2 - 10);
+                ctx.lineTo(this.width / 2, this.height / 2);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Secondary armor plating
+                ctx.fillStyle = '#660000';
+                ctx.beginPath();
+                ctx.moveTo(this.width / 2 - 10, -this.height / 2 + 15);
+                ctx.lineTo(this.width / 2 - 30, -this.height / 2 + 10);
+                ctx.lineTo(this.width / 2 - 50, -this.height / 2 + 20);
+                ctx.lineTo(-this.width / 2 + 30, -this.height / 2 + 15);
+                ctx.lineTo(-this.width / 2 + 10, -this.height / 2 + 25);
+                ctx.lineTo(-this.width / 2 + 10, this.height / 2 - 25);
+                ctx.lineTo(-this.width / 2 + 30, this.height / 2 - 15);
+                ctx.lineTo(this.width / 2 - 50, this.height / 2 - 20);
+                ctx.lineTo(this.width / 2 - 30, this.height / 2 - 10);
+                ctx.lineTo(this.width / 2 - 10, this.height / 2 - 15);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Central command bridge
                 ctx.fillStyle = '#ff0000';
-                ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+                ctx.beginPath();
+                ctx.ellipse(0, 0, this.width * 0.15, this.height * 0.3, 0, 0, Math.PI * 2);
+                ctx.fill();
                 
-                // Armor plates
-                ctx.fillStyle = '#800000';
-                ctx.fillRect(-this.width / 2 + 10, -this.height / 2 + 10, this.width - 20, this.height - 20);
+                // Bridge energy field
+                ctx.fillStyle = '#ff00ff';
+                ctx.globalAlpha = 0.7;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, this.width * 0.12, this.height * 0.25, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
                 
-                // Weapon turrets
-                ctx.fillStyle = '#400000';
-                ctx.fillRect(-this.width / 2 + 5, -this.height / 2 + 5, 15, 15);
-                ctx.fillRect(this.width / 2 - 20, -this.height / 2 + 5, 15, 15);
-                ctx.fillRect(-this.width / 2 + 5, this.height / 2 - 20, 15, 15);
-                ctx.fillRect(this.width / 2 - 20, this.height / 2 - 20, 15, 15);
+                // Multiple weapon turrets - enhanced
+                const turretPositions = [
+                    {x: -this.width / 2 + 15, y: -this.height / 2 + 15},
+                    {x: this.width / 2 - 15, y: -this.height / 2 + 15},
+                    {x: -this.width / 2 + 15, y: this.height / 2 - 15},
+                    {x: this.width / 2 - 15, y: this.height / 2 - 15},
+                    {x: 0, y: -this.height / 2 + 10},
+                    {x: 0, y: this.height / 2 - 10}
+                ];
                 
-                // Energy core
+                turretPositions.forEach(pos => {
+                    // Turret base
+                    ctx.fillStyle = '#400000';
+                    ctx.fillRect(pos.x - 8, pos.y - 8, 16, 16);
+                    
+                    // Turret barrel
+                    ctx.fillStyle = '#200000';
+                    ctx.fillRect(pos.x - 3, pos.y - 12, 6, 20);
+                    
+                    // Turret glow
+                    ctx.fillStyle = '#ff0000';
+                    ctx.globalAlpha = 0.6;
+                    ctx.fillRect(pos.x - 10, pos.y - 10, 20, 20);
+                    ctx.globalAlpha = 1;
+                });
+                
+                // Energy core - enhanced
                 ctx.fillStyle = '#ffff00';
+                ctx.shadowColor = '#ffff00';
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.arc(0, 0, 15, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Core energy field
+                ctx.fillStyle = '#ffffff';
+                ctx.globalAlpha = 0.8;
                 ctx.beginPath();
                 ctx.arc(0, 0, 10, 0, Math.PI * 2);
                 ctx.fill();
+                ctx.globalAlpha = 1;
+                
+                // Animated engine thrust
+                ctx.shadowColor = '#ff0000';
+                ctx.shadowBlur = 30 * engineFlicker;
+                ctx.fillStyle = `rgba(255, 0, 0, ${engineFlicker})`;
+                
+                // Multiple thrusters
+                for (let i = 0; i < 3; i++) {
+                    const offset = (i - 1) * 20;
+                    ctx.beginPath();
+                    ctx.moveTo(-this.width / 2, offset);
+                    ctx.lineTo(-this.width / 2 - 40 * engineFlicker, offset - 10);
+                    ctx.lineTo(-this.width / 2 - 40 * engineFlicker, offset + 10);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+                
+                // Engine exhaust particles
+                ctx.fillStyle = '#ff4400';
+                ctx.globalAlpha = 0.8;
+                for (let i = 0; i < 10; i++) {
+                    const offset = Math.sin(Date.now() * 0.01 + i) * 8;
+                    const alpha = 0.8 - (i * 0.05);
+                    ctx.globalAlpha = alpha;
+                    
+                    for (let j = 0; j < 3; j++) {
+                        const thrusterOffset = (j - 1) * 20;
+                        ctx.fillRect(-this.width / 2 - 45 - i * 4, 
+                                   thrusterOffset + offset, 4, 4);
+                    }
+                }
+                ctx.globalAlpha = 1;
                 
                 ctx.restore();
                 
@@ -1941,23 +2110,27 @@
         // Draw player function
         function drawPlayer() {
             // Get weapon-based color scheme
-            let hullColor, glowColor;
+            let hullColor, glowColor, accentColor;
             switch (currentWeapon) {
                 case 'laser':
                     hullColor = '#00ffff'; // Cyan
                     glowColor = '#0088ff';
+                    accentColor = '#ffffff';
                     break;
                 case 'plasma':
                     hullColor = '#00ff00'; // Green
                     glowColor = '#88ff00';
+                    accentColor = '#ffff00';
                     break;
                 case 'missile':
                     hullColor = '#ff4444'; // Red
                     glowColor = '#ff0088';
+                    accentColor = '#ffaa00';
                     break;
                 default:
                     hullColor = '#00ffff';
                     glowColor = '#0088ff';
+                    accentColor = '#ffffff';
             }
             
             // Engine flicker animation
@@ -1967,118 +2140,163 @@
             ctx.shadowColor = glowColor;
             ctx.shadowBlur = 15;
             
-            // Main hull - sleek triangular fighter
+            // Main hull - modern sleek fighter design
             ctx.fillStyle = hullColor;
             ctx.beginPath();
-            ctx.moveTo(player.x + player.width, player.y + player.height / 2); // Sharp nose
-            ctx.lineTo(player.x + player.width * 0.7, player.y + player.height * 0.1); // Top wing
-            ctx.lineTo(player.x + player.width * 0.3, player.y + player.height * 0.05); // Wing tip
-            ctx.lineTo(player.x + player.width * 0.1, player.y + player.height * 0.2); // Wing base
-            ctx.lineTo(player.x, player.y + player.height * 0.4); // Engine area
-            ctx.lineTo(player.x, player.y + player.height * 0.6); // Engine area
-            ctx.lineTo(player.x + player.width * 0.1, player.y + player.height * 0.8); // Wing base
-            ctx.lineTo(player.x + player.width * 0.3, player.y + player.height * 0.95); // Wing tip
-            ctx.lineTo(player.x + player.width * 0.7, player.y + player.height * 0.9); // Bottom wing
+            // Sharp aerodynamic nose
+            ctx.moveTo(player.x + player.width, player.y + player.height / 2);
+            // Top wing leading edge
+            ctx.lineTo(player.x + player.width * 0.85, player.y + player.height * 0.15);
+            ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.08);
+            // Top wing trailing edge
+            ctx.lineTo(player.x + player.width * 0.2, player.y + player.height * 0.12);
+            // Engine housing
+            ctx.lineTo(player.x + player.width * 0.05, player.y + player.height * 0.25);
+            ctx.lineTo(player.x, player.y + player.height * 0.35);
+            // Bottom engine housing
+            ctx.lineTo(player.x + player.width * 0.05, player.y + player.height * 0.65);
+            // Bottom wing trailing edge
+            ctx.lineTo(player.x + player.width * 0.2, player.y + player.height * 0.88);
+            // Bottom wing leading edge
+            ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.92);
+            ctx.lineTo(player.x + player.width * 0.85, player.y + player.height * 0.85);
             ctx.closePath();
             ctx.fill();
             
-            // Secondary hull detail
-            ctx.fillStyle = '#ffffff';
-            ctx.globalAlpha = 0.3;
-            ctx.beginPath();
-            ctx.moveTo(player.x + player.width * 0.8, player.y + player.height * 0.2);
-            ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.15);
-            ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.85);
-            ctx.lineTo(player.x + player.width * 0.8, player.y + player.height * 0.8);
-            ctx.closePath();
-            ctx.fill();
-            ctx.globalAlpha = 1;
-            
-            // Cockpit dome - glowing
-            ctx.shadowColor = '#ffffff';
-            ctx.shadowBlur = 10;
-            ctx.fillStyle = '#88ccff';
-            ctx.beginPath();
-            ctx.arc(player.x + player.width * 0.75, player.y + player.height / 2, 
-                   player.width * 0.12, player.height * 0.25, 0, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Cockpit glass with reflection
-            ctx.fillStyle = '#ffffff';
-            ctx.globalAlpha = 0.8;
-            ctx.beginPath();
-            ctx.arc(player.x + player.width * 0.75, player.y + player.height / 2, 
-                   player.width * 0.08, player.height * 0.2, 0, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Cockpit highlight
-            ctx.fillStyle = '#ffffff';
+            // Secondary hull detail - cockpit area
+            ctx.fillStyle = accentColor;
             ctx.globalAlpha = 0.4;
             ctx.beginPath();
-            ctx.arc(player.x + player.width * 0.7, player.y + player.height * 0.4, 
-                   player.width * 0.04, player.height * 0.08, 0, 0, Math.PI * 2);
+            ctx.moveTo(player.x + player.width * 0.9, player.y + player.height * 0.25);
+            ctx.lineTo(player.x + player.width * 0.75, player.y + player.height * 0.2);
+            ctx.lineTo(player.x + player.width * 0.75, player.y + player.height * 0.8);
+            ctx.lineTo(player.x + player.width * 0.9, player.y + player.height * 0.75);
+            ctx.closePath();
             ctx.fill();
             ctx.globalAlpha = 1;
             
-            // Wing detail lines
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 2;
+            // Cockpit dome - enhanced with better proportions
+            ctx.shadowColor = '#ffffff';
+            ctx.shadowBlur = 12;
+            ctx.fillStyle = '#88ccff';
+            ctx.beginPath();
+            ctx.ellipse(player.x + player.width * 0.8, player.y + player.height / 2, 
+                       player.width * 0.15, player.height * 0.3, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Cockpit glass with enhanced reflection
+            ctx.fillStyle = '#ffffff';
+            ctx.globalAlpha = 0.9;
+            ctx.beginPath();
+            ctx.ellipse(player.x + player.width * 0.8, player.y + player.height / 2, 
+                       player.width * 0.12, player.height * 0.25, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Cockpit highlight - more realistic
+            ctx.fillStyle = '#ffffff';
             ctx.globalAlpha = 0.6;
             ctx.beginPath();
-            ctx.moveTo(player.x + player.width * 0.4, player.y + player.height * 0.1);
-            ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.2);
-            ctx.moveTo(player.x + player.width * 0.4, player.y + player.height * 0.9);
-            ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.8);
+            ctx.ellipse(player.x + player.width * 0.75, player.y + player.height * 0.4, 
+                       player.width * 0.06, player.height * 0.12, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+            
+            // Wing detail lines - more aerodynamic
+            ctx.strokeStyle = accentColor;
+            ctx.lineWidth = 2;
+            ctx.globalAlpha = 0.7;
+            ctx.beginPath();
+            // Top wing detail
+            ctx.moveTo(player.x + player.width * 0.5, player.y + player.height * 0.1);
+            ctx.lineTo(player.x + player.width * 0.7, player.y + player.height * 0.15);
+            ctx.lineTo(player.x + player.width * 0.8, player.y + player.height * 0.2);
+            // Bottom wing detail
+            ctx.moveTo(player.x + player.width * 0.5, player.y + player.height * 0.9);
+            ctx.lineTo(player.x + player.width * 0.7, player.y + player.height * 0.85);
+            ctx.lineTo(player.x + player.width * 0.8, player.y + player.height * 0.8);
             ctx.stroke();
             ctx.globalAlpha = 1;
             
-            // Weapon mount
+            // Enhanced weapon mount with better positioning
             ctx.fillStyle = '#404040';
-            ctx.fillRect(player.x + player.width * 0.85, player.y + player.height * 0.25, 
-                       player.width * 0.12, player.height * 0.5);
+            ctx.fillRect(player.x + player.width * 0.88, player.y + player.height * 0.3, 
+                       player.width * 0.1, player.height * 0.4);
             
-            // Animated engine thrust
-            ctx.shadowColor = '#00ffff';
-            ctx.shadowBlur = 20 * engineFlicker;
+            // Weapon mount detail
+            ctx.fillStyle = '#202020';
+            ctx.fillRect(player.x + player.width * 0.9, player.y + player.height * 0.35, 
+                       player.width * 0.06, player.height * 0.3);
+            
+            // Animated engine thrust - enhanced with multiple thrusters
+            ctx.shadowColor = glowColor;
+            ctx.shadowBlur = 25 * engineFlicker;
             ctx.fillStyle = `rgba(0, 255, 255, ${engineFlicker})`;
+            
+            // Top thruster
             ctx.beginPath();
-            ctx.moveTo(player.x, player.y + player.height * 0.25);
-            ctx.lineTo(player.x - 20 * engineFlicker, player.y + player.height * 0.35);
-            ctx.lineTo(player.x - 20 * engineFlicker, player.y + player.height * 0.45);
-            ctx.lineTo(player.x, player.y + player.height * 0.35);
+            ctx.moveTo(player.x, player.y + player.height * 0.2);
+            ctx.lineTo(player.x - 25 * engineFlicker, player.y + player.height * 0.25);
+            ctx.lineTo(player.x - 25 * engineFlicker, player.y + player.height * 0.35);
+            ctx.lineTo(player.x, player.y + player.height * 0.3);
             ctx.closePath();
             ctx.fill();
             
+            // Bottom thruster
             ctx.beginPath();
-            ctx.moveTo(player.x, player.y + player.height * 0.55);
-            ctx.lineTo(player.x - 20 * engineFlicker, player.y + player.height * 0.65);
-            ctx.lineTo(player.x - 20 * engineFlicker, player.y + player.height * 0.75);
-            ctx.lineTo(player.x, player.y + player.height * 0.65);
+            ctx.moveTo(player.x, player.y + player.height * 0.65);
+            ctx.lineTo(player.x - 25 * engineFlicker, player.y + player.height * 0.7);
+            ctx.lineTo(player.x - 25 * engineFlicker, player.y + player.height * 0.8);
+            ctx.lineTo(player.x, player.y + player.height * 0.75);
             ctx.closePath();
             ctx.fill();
             
-            // Engine exhaust particles
+            // Center thruster
+            ctx.beginPath();
+            ctx.moveTo(player.x, player.y + player.height * 0.45);
+            ctx.lineTo(player.x - 20 * engineFlicker, player.y + player.height * 0.48);
+            ctx.lineTo(player.x - 20 * engineFlicker, player.y + player.height * 0.52);
+            ctx.lineTo(player.x, player.y + player.height * 0.49);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Enhanced engine exhaust particles with color variation
             ctx.fillStyle = '#ff8800';
-            ctx.globalAlpha = 0.7;
-            for (let i = 0; i < 5; i++) {
-                const offset = Math.sin(Date.now() * 0.01 + i) * 3;
+            ctx.globalAlpha = 0.8;
+            for (let i = 0; i < 6; i++) {
+                const offset = Math.sin(Date.now() * 0.01 + i) * 4;
+                const alpha = 0.8 - (i * 0.1);
+                ctx.globalAlpha = alpha;
+                
+                // Top thruster particles
+                ctx.fillRect(player.x - 30 - i * 5, 
+                           player.y + player.height * 0.25 + offset, 3, 3);
+                // Bottom thruster particles
+                ctx.fillRect(player.x - 30 - i * 5, 
+                           player.y + player.height * 0.7 + offset, 3, 3);
+                // Center thruster particles
                 ctx.fillRect(player.x - 25 - i * 4, 
-                           player.y + player.height * 0.35 + offset, 2, 2);
-                ctx.fillRect(player.x - 25 - i * 4, 
-                           player.y + player.height * 0.65 + offset, 2, 2);
+                           player.y + player.height * 0.48 + offset, 2, 2);
             }
             ctx.globalAlpha = 1;
             
-            // Energy field effect when invulnerable
+            // Energy field effect when invulnerable - enhanced
             if (player.invulnerable) {
                 ctx.strokeStyle = '#ffffff';
                 ctx.lineWidth = 3;
-                ctx.globalAlpha = 0.6;
+                ctx.globalAlpha = 0.7;
                 ctx.shadowColor = '#ffffff';
-                ctx.shadowBlur = 10;
+                ctx.shadowBlur = 15;
                 ctx.beginPath();
                 ctx.arc(player.x + player.width / 2, player.y + player.height / 2, 
-                       Math.max(player.width, player.height) / 2 + 10, 0, Math.PI * 2);
+                       Math.max(player.width, player.height) / 2 + 15, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                // Additional energy rings
+                ctx.globalAlpha = 0.4;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(player.x + player.width / 2, player.y + player.height / 2, 
+                       Math.max(player.width, player.height) / 2 + 25, 0, Math.PI * 2);
                 ctx.stroke();
                 ctx.globalAlpha = 1;
                 ctx.shadowBlur = 0;
