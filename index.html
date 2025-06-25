@@ -486,14 +486,14 @@
                       sky: 0xb3e5fc,
                       ground: {color: 0xe1f5fe, emissive: 0x81d4fa},
                       obstacle: {rock: 0x90caf9, tree: 0xb2ebf2, log: 0x80deea},
-                      coin: 0xb2ebf2
+                      coin: 0x40c4ff
                   };
               case 'desert':
                   return {
                       sky: 0xffe082,
                       ground: {color: 0xffcc80, emissive: 0xffb300},
                       obstacle: {rock: 0xffb74d, tree: 0xffe082, log: 0xffa726},
-                      coin: 0xffe082
+                      coin: 0xffd700
                   };
               case 'space':
                   return {
@@ -543,22 +543,165 @@
 
       function createGround() {
           const theme = getWorldTheme();
-          // Main ground
-          const groundGeo = new THREE.BoxGeometry(8, 0.2, GROUND_LENGTH);
-          const groundMat = new THREE.MeshPhongMaterial({color: theme.ground.color, emissive: theme.ground.emissive, shininess: 30});
-          ground = new THREE.Mesh(groundGeo, groundMat);
-          ground.position.set(0, -PLAYER_SIZE, -GROUND_LENGTH/2 + 5);
-          ground.receiveShadow = true;
-          scene.add(ground);
           
-          // Lane markers
+          // Simplified bridge deck - clean wooden planks
+          const bridgeGeo = new THREE.BoxGeometry(8, 0.2, GROUND_LENGTH);
+          const bridgeMat = new THREE.MeshPhongMaterial({
+              color: 0x8d6e63, // Warm brown wood
+              shininess: 20
+          });
+          const bridge = new THREE.Mesh(bridgeGeo, bridgeMat);
+          bridge.position.set(0, -PLAYER_SIZE + 0.1, -GROUND_LENGTH/2 + 5);
+          bridge.receiveShadow = true;
+          scene.add(bridge);
+          
+          // Simple lane markers
           for (let i = 0; i < 3; i++) {
               const markerGeo = new THREE.BoxGeometry(0.1, 0.05, GROUND_LENGTH);
-              const markerMat = new THREE.MeshLambertMaterial({color: 0xffffff});
+              const markerMat = new THREE.MeshLambertMaterial({
+                  color: 0xffd700, // Gold
+                  emissive: 0x333300
+              });
               const marker = new THREE.Mesh(markerGeo, markerMat);
-              marker.position.set(LANES[i], -PLAYER_SIZE + 0.1, -GROUND_LENGTH/2 + 5);
+              marker.position.set(LANES[i], -PLAYER_SIZE + 0.15, -GROUND_LENGTH/2 + 5);
+              marker.receiveShadow = true;
               scene.add(marker);
           }
+          
+          // Simple railings
+          const railingGeo = new THREE.BoxGeometry(0.1, 0.8, GROUND_LENGTH);
+          const railingMat = new THREE.MeshLambertMaterial({color: 0x5d4037});
+          
+          const leftRailing = new THREE.Mesh(railingGeo, railingMat);
+          leftRailing.position.set(-4, -PLAYER_SIZE + 0.5, -GROUND_LENGTH/2 + 5);
+          leftRailing.castShadow = true;
+          scene.add(leftRailing);
+          
+          const rightRailing = new THREE.Mesh(railingGeo, railingMat);
+          rightRailing.position.set(4, -PLAYER_SIZE + 0.5, -GROUND_LENGTH/2 + 5);
+          rightRailing.castShadow = true;
+          scene.add(rightRailing);
+      }
+      
+      // Create railing with posts and rails
+      function createRailing(x, y, z, length) {
+          const railing = new THREE.Group();
+          
+          // Main rail (top)
+          const topRailGeo = new THREE.CylinderGeometry(0.08, 0.08, length, 8);
+          const topRailMat = new THREE.MeshLambertMaterial({color: 0x5d4037});
+          const topRail = new THREE.Mesh(topRailGeo, topRailMat);
+          topRail.rotation.z = Math.PI / 2;
+          topRail.position.set(x, y + 0.4, z + length/2);
+          topRail.castShadow = true;
+          railing.add(topRail);
+          
+          // Bottom rail
+          const bottomRailGeo = new THREE.CylinderGeometry(0.06, 0.06, length, 8);
+          const bottomRailMat = new THREE.MeshLambertMaterial({color: 0x5d4037});
+          const bottomRail = new THREE.Mesh(bottomRailGeo, bottomRailMat);
+          bottomRail.rotation.z = Math.PI / 2;
+          bottomRail.position.set(x, y + 0.1, z + length/2);
+          bottomRail.castShadow = true;
+          railing.add(bottomRail);
+          
+          // Vertical posts
+          for (let i = 0; i < length; i += 2) {
+              const postGeo = new THREE.CylinderGeometry(0.05, 0.05, 0.4, 6);
+              const postMat = new THREE.MeshLambertMaterial({color: 0x4e342e});
+              const post = new THREE.Mesh(postGeo, postMat);
+              post.position.set(x, y + 0.2, z + i);
+              post.castShadow = true;
+              railing.add(post);
+          }
+          
+          return railing;
+      }
+      
+      // Create bridge support pylon
+      function createBridgeSupport(z) {
+          const support = new THREE.Group();
+          
+          // Main pylon
+          const pylonGeo = new THREE.CylinderGeometry(0.8, 1.2, 3, 8);
+          const pylonMat = new THREE.MeshLambertMaterial({color: 0x424242});
+          const pylon = new THREE.Mesh(pylonGeo, pylonMat);
+          pylon.position.set(0, -PLAYER_SIZE - 1.5, z);
+          pylon.castShadow = true;
+          support.add(pylon);
+          
+          // Cross beams
+          for (let i = 0; i < 3; i++) {
+              const beamGeo = new THREE.BoxGeometry(8.5, 0.3, 0.3);
+              const beamMat = new THREE.MeshLambertMaterial({color: 0x616161});
+              const beam = new THREE.Mesh(beamGeo, beamMat);
+              beam.position.set(0, -PLAYER_SIZE - 0.5 + i * 0.8, z);
+              beam.castShadow = true;
+              support.add(beam);
+          }
+          
+          return support;
+      }
+      
+      // Create decorative lantern
+      function createLantern(z) {
+          const lantern = new THREE.Group();
+          
+          // Lantern body
+          const bodyGeo = new THREE.SphereGeometry(0.3, 8, 8);
+          const bodyMat = new THREE.MeshLambertMaterial({
+              color: 0xffd700,
+              emissive: 0x333300,
+              transparent: true,
+              opacity: 0.8
+          });
+          const body = new THREE.Mesh(bodyGeo, bodyMat);
+          body.position.set(0, -PLAYER_SIZE + 1.2, z);
+          body.castShadow = true;
+          lantern.add(body);
+          
+          // Lantern top
+          const topGeo = new THREE.ConeGeometry(0.2, 0.3, 8);
+          const topMat = new THREE.MeshLambertMaterial({color: 0x8d6e63});
+          const top = new THREE.Mesh(topGeo, topMat);
+          top.position.set(0, -PLAYER_SIZE + 1.5, z);
+          top.castShadow = true;
+          lantern.add(top);
+          
+          // Light source
+          const light = new THREE.PointLight(0xffaa00, 0.5, 10);
+          light.position.set(0, -PLAYER_SIZE + 1.2, z);
+          lantern.add(light);
+          
+          return lantern;
+      }
+      
+      // Create wood texture
+      function createWoodTexture() {
+          const canvas = document.createElement('canvas');
+          canvas.width = 256;
+          canvas.height = 256;
+          const ctx = canvas.getContext('2d');
+          
+          // Wood grain pattern
+          ctx.fillStyle = '#8d6e63';
+          ctx.fillRect(0, 0, 256, 256);
+          
+          for (let i = 0; i < 50; i++) {
+              ctx.strokeStyle = `rgba(109, 76, 65, ${0.1 + Math.random() * 0.3})`;
+              ctx.lineWidth = 1 + Math.random() * 3;
+              ctx.beginPath();
+              ctx.moveTo(Math.random() * 256, 0);
+              ctx.lineTo(Math.random() * 256, 256);
+              ctx.stroke();
+          }
+          
+          const texture = new THREE.CanvasTexture(canvas);
+          texture.wrapS = THREE.RepeatWrapping;
+          texture.wrapT = THREE.RepeatWrapping;
+          texture.repeat.set(4, 1);
+          
+          return texture;
       }
 
       function spawnObstacle() {
@@ -571,32 +714,32 @@
           if (type === 'rock') {
               mesh = new THREE.Mesh(
                   new THREE.DodecahedronGeometry(OBSTACLE_SIZE, 0),
-                  new THREE.MeshLambertMaterial({color: theme.obstacle.rock, emissive: theme.obstacle.rock})
+                  new THREE.MeshLambertMaterial({color: theme.obstacle.rock})
               );
               mesh.position.y = PLAYER_SIZE;
           } else if (type === 'tree') {
-              // Tree trunk
+              // Simple tree trunk
               const trunk = new THREE.Mesh(
-                  new THREE.CylinderGeometry(0.2, 0.3, 1.5, 8),
-                  new THREE.MeshLambertMaterial({color: theme.obstacle.tree, emissive: theme.obstacle.tree})
+                  new THREE.CylinderGeometry(0.15, 0.2, 1.2, 8),
+                  new THREE.MeshLambertMaterial({color: theme.obstacle.tree})
               );
-              trunk.position.y = 0.75;
+              trunk.position.y = 0.6;
               
-              // Tree leaves
-              const leaves = new THREE.Mesh(
-                  new THREE.SphereGeometry(0.8, 8, 8),
-                  new THREE.MeshLambertMaterial({color: theme.obstacle.tree, emissive: theme.obstacle.tree})
+              // Simple tree top
+              const top = new THREE.Mesh(
+                  new THREE.SphereGeometry(0.6, 8, 8),
+                  new THREE.MeshLambertMaterial({color: theme.obstacle.tree})
               );
-              leaves.position.y = 1.5;
+              top.position.y = 1.2;
               
               mesh = new THREE.Group();
               mesh.add(trunk);
-              mesh.add(leaves);
+              mesh.add(top);
               mesh.position.y = PLAYER_SIZE;
           } else { // log
               mesh = new THREE.Mesh(
-                  new THREE.CylinderGeometry(0.3, 0.3, 1.2, 8),
-                  new THREE.MeshLambertMaterial({color: theme.obstacle.log, emissive: theme.obstacle.log})
+                  new THREE.CylinderGeometry(0.25, 0.25, 1.0, 8),
+                  new THREE.MeshLambertMaterial({color: theme.obstacle.log})
               );
               mesh.rotation.z = Math.PI / 2;
               mesh.position.y = PLAYER_SIZE * 0.5;
@@ -604,7 +747,7 @@
           
           mesh.castShadow = true;
           mesh.position.x = LANES[laneIdx];
-          mesh.position.z = -20; // Fixed distance from camera
+          mesh.position.z = player.position.z - 30; // Spawn ahead of player
           scene.add(mesh);
           obstacles.push({mesh, type, lane: laneIdx});
       }
@@ -613,12 +756,16 @@
           const theme = getWorldTheme();
           const laneIdx = Math.floor(Math.random() * 3);
           const mesh = new THREE.Mesh(
-              new THREE.TorusGeometry(COIN_SIZE, 0.07, 12, 24),
-              new THREE.MeshPhongMaterial({color: theme.coin, emissive: theme.coin, shininess: 80, specular: 0xffffff})
+              new THREE.TorusGeometry(COIN_SIZE, 0.05, 8, 16),
+              new THREE.MeshPhongMaterial({
+                  color: theme.coin, 
+                  shininess: 100, 
+                  specular: 0xffffff
+              })
           );
           mesh.position.x = LANES[laneIdx];
           mesh.position.y = PLAYER_SIZE + 0.5;
-          mesh.position.z = -20; // Fixed distance from camera
+          mesh.position.z = player.position.z - 30; // Spawn ahead of player
           scene.add(mesh);
           coins.push({mesh, lane: laneIdx});
       }
@@ -632,62 +779,68 @@
           if (type === 'magnet') {
               mesh = new THREE.Mesh(
                   new THREE.BoxGeometry(POWERUP_SIZE, POWERUP_SIZE, POWERUP_SIZE),
-                  new THREE.MeshLambertMaterial({color: 0x2196f3, emissive: 0x64b5f6})
+                  new THREE.MeshLambertMaterial({color: 0x2196f3})
               );
           } else if (type === 'shield') {
               mesh = new THREE.Mesh(
                   new THREE.SphereGeometry(POWERUP_SIZE, 8, 8),
-                  new THREE.MeshLambertMaterial({color: 0x4caf50, emissive: 0x81c784})
+                  new THREE.MeshLambertMaterial({color: 0x4caf50})
               );
           } else { // speed
               mesh = new THREE.Mesh(
                   new THREE.ConeGeometry(POWERUP_SIZE, POWERUP_SIZE * 2, 8),
-                  new THREE.MeshLambertMaterial({color: 0xff5722, emissive: 0xff8a65})
+                  new THREE.MeshLambertMaterial({color: 0xff5722})
               );
           }
           
           mesh.position.x = LANES[laneIdx];
           mesh.position.y = PLAYER_SIZE + 0.5;
-          mesh.position.z = -20; // Fixed distance from camera
+          mesh.position.z = player.position.z - 30; // Spawn ahead of player
           scene.add(mesh);
           powerUps.push({mesh, type, lane: laneIdx});
       }
 
       function moveObjects() {
-          // Move obstacles
+          // Objects now stay in world, player moves through them
+          // Only remove objects that are far behind the player
+          
+          // Check obstacles
           for (let i = obstacles.length - 1; i >= 0; i--) {
               let o = obstacles[i];
-              o.mesh.position.z += speed; // Move towards player (positive z)
               // Add bounce/wiggle animation
               const t = performance.now() * 0.002 + i;
               o.mesh.position.y += Math.sin(t * 2) * 0.03;
               o.mesh.rotation.y = Math.sin(t) * 0.08;
-              if (o.mesh.position.z > 3) { // Remove when past player
+              
+              // Remove if far behind player
+              if (o.mesh.position.z > player.position.z + 10) {
                   scene.remove(o.mesh);
                   obstacles.splice(i, 1);
               }
           }
           
-          // Move coins
+          // Check coins
           for (let i = coins.length - 1; i >= 0; i--) {
               let c = coins[i];
-              c.mesh.position.z += speed; // Move towards player (positive z)
               // Spin and pulse animation
               c.mesh.rotation.y += 0.18;
               const pulse = 1 + Math.sin(performance.now() * 0.008 + i) * 0.13;
               c.mesh.scale.set(pulse, pulse, pulse);
-              if (c.mesh.position.z > 3) { // Remove when past player
+              
+              // Remove if far behind player
+              if (c.mesh.position.z > player.position.z + 10) {
                   scene.remove(c.mesh);
                   coins.splice(i, 1);
               }
           }
           
-          // Move power-ups
+          // Check power-ups
           for (let i = powerUps.length - 1; i >= 0; i--) {
               let p = powerUps[i];
-              p.mesh.position.z += speed; // Move towards player (positive z)
               p.mesh.rotation.y += 0.05;
-              if (p.mesh.position.z > 3) { // Remove when past player
+              
+              // Remove if far behind player
+              if (p.mesh.position.z > player.position.z + 10) {
                   scene.remove(p.mesh);
                   powerUps.splice(i, 1);
               }
@@ -1151,28 +1304,46 @@ Enjoy the adventure! 🏛️✨`);
           // Create scene
           scene = new THREE.Scene();
           
-          // Create camera
+          // Create camera with better positioning
           camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-          camera.position.set(0, 2, 5);
-          camera.lookAt(0, 0, 0);
+          camera.position.set(0, 4, 10); // Better camera angle
+          camera.lookAt(0, 1, 0);
           
-          // Create renderer
-          renderer = new THREE.WebGLRenderer({ antialias: true });
+          // Create renderer with enhanced settings
+          renderer = new THREE.WebGLRenderer({ 
+              antialias: true,
+              alpha: true,
+              powerPreference: "high-performance"
+          });
           renderer.setSize(window.innerWidth, window.innerHeight);
           renderer.shadowMap.enabled = true;
           renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+          renderer.setClearColor(0x87ceeb, 1); // Sky blue background
+          renderer.toneMapping = THREE.ACESFilmicToneMapping;
+          renderer.toneMappingExposure = 1.0;
           gameContainer.appendChild(renderer.domElement);
           
-          // Create lighting
-          const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+          // Improved lighting setup
+          const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); // Brighter ambient
           scene.add(ambientLight);
           
           const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-          directionalLight.position.set(10, 10, 5);
+          directionalLight.position.set(5, 10, 5);
           directionalLight.castShadow = true;
           directionalLight.shadow.mapSize.width = 2048;
           directionalLight.shadow.mapSize.height = 2048;
+          directionalLight.shadow.camera.near = 0.5;
+          directionalLight.shadow.camera.far = 50;
+          directionalLight.shadow.camera.left = -15;
+          directionalLight.shadow.camera.right = 15;
+          directionalLight.shadow.camera.top = 15;
+          directionalLight.shadow.camera.bottom = -15;
           scene.add(directionalLight);
+          
+          // Add fill light for better character visibility
+          const fillLight = new THREE.DirectionalLight(0x87ceeb, 0.4);
+          fillLight.position.set(-5, 5, -5);
+          scene.add(fillLight);
           
           // Create skybox
           createSkybox();
@@ -1183,11 +1354,163 @@ Enjoy the adventure! 🏛️✨`);
           // Create player
           createPlayer();
           
+          // Add particle system for atmosphere
+          createAtmosphereParticles();
+          
           // Load high score
           highScore = localStorage.getItem('runner3dHighScore') || 0;
           highScoreEl.textContent = highScore;
           
           // Start initial render
+          renderer.render(scene, camera);
+      }
+
+      // Create atmospheric particles
+      function createAtmosphereParticles() {
+          const particleCount = 100;
+          const particles = new THREE.BufferGeometry();
+          const positions = new Float32Array(particleCount * 3);
+          const colors = new Float32Array(particleCount * 3);
+          
+          for (let i = 0; i < particleCount; i++) {
+              positions[i * 3] = (Math.random() - 0.5) * 40; // x
+              positions[i * 3 + 1] = Math.random() * 10 + 2; // y
+              positions[i * 3 + 2] = (Math.random() - 0.5) * 100; // z
+              
+              colors[i * 3] = 0.8 + Math.random() * 0.2; // r
+              colors[i * 3 + 1] = 0.8 + Math.random() * 0.2; // g
+              colors[i * 3 + 2] = 1.0; // b
+          }
+          
+          particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+          particles.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+          
+          const particleMaterial = new THREE.PointsMaterial({
+              size: 0.1,
+              vertexColors: true,
+              transparent: true,
+              opacity: 0.6
+          });
+          
+          const particleSystem = new THREE.Points(particles, particleMaterial);
+          scene.add(particleSystem);
+      }
+
+      // Main animation loop
+      function animate() {
+          if (!running) return;
+          
+          requestAnimationFrame(animate);
+          
+          // Update player position - now player moves forward
+          const targetX = LANES[lane];
+          player.position.x += (targetX - player.position.x) * 0.1;
+          
+          // Player moves forward through the world
+          player.position.z -= speed * 2; // Move player forward
+          
+          // Update camera to follow player
+          camera.position.x += (player.position.x - camera.position.x) * 0.05;
+          camera.position.z = player.position.z + 10; // Keep camera behind player
+          camera.lookAt(player.position.x, player.position.y + 1, player.position.z - 5);
+          
+          // Update jumping
+          if (jumping) {
+              const jumpTime = (performance.now() - jumpStart) / 1000;
+              if (jumpTime < JUMP_DURATION) {
+                  const jumpProgress = jumpTime / JUMP_DURATION;
+                  const jumpHeight = Math.sin(jumpProgress * Math.PI) * JUMP_HEIGHT;
+                  player.position.y = PLAYER_SIZE + jumpHeight;
+                  
+                  // Add running animation during jump
+                  playerArms.rotation.x = Math.sin(jumpTime * 10) * 0.3;
+                  playerLegs.rotation.x = Math.sin(jumpTime * 10) * 0.3;
+              } else {
+                  jumping = false;
+                  player.position.y = PLAYER_SIZE;
+                  playerArms.rotation.x = 0;
+                  playerLegs.rotation.x = 0;
+              }
+          }
+          
+          // Update sliding
+          if (sliding) {
+              const slideTime = (performance.now() - slideStart) / 1000;
+              if (slideTime < SLIDE_DURATION) {
+                  player.scale.y = 0.5;
+                  player.position.y = PLAYER_SIZE * 0.5;
+              } else {
+                  sliding = false;
+                  player.scale.y = 1;
+                  player.position.y = PLAYER_SIZE;
+              }
+          }
+          
+          // Add running animation when not jumping/sliding
+          if (!jumping && !sliding) {
+              const runTime = performance.now() * 0.01;
+              playerArms.rotation.x = Math.sin(runTime) * 0.2;
+              playerLegs.rotation.x = Math.sin(runTime) * 0.2;
+          }
+          
+          // Spawn objects ahead of player
+          if (performance.now() - lastSpawn > 2000 / speed) {
+              spawnObstacle();
+              lastSpawn = performance.now();
+          }
+          
+          if (performance.now() - lastCoin > 1000 / speed) {
+              spawnCoin();
+              lastCoin = performance.now();
+          }
+          
+          if (performance.now() - lastPowerUp > 5000 / speed) {
+              spawnPowerUp();
+              lastPowerUp = performance.now();
+          }
+          
+          // Move objects (now objects stay in world, player moves through them)
+          moveObjects();
+          
+          // Check collisions
+          checkCollisions();
+          
+          // Update score
+          score += speed * 10;
+          scoreEl.textContent = Math.floor(score);
+          
+          // Increase speed
+          speed += 0.0001;
+          
+          // Update clouds
+          clouds.forEach(cloud => {
+              cloud.position.z += cloud.userData.speed;
+              if (cloud.position.z > 10) {
+                  cloud.position.z = -20;
+              }
+          });
+          
+          // Update particles
+          particles.forEach(particle => {
+              if (particle.velocity) {
+                  particle.position.add(particle.velocity);
+                  particle.velocity.y -= 0.01; // gravity
+              }
+          });
+          
+          // Update power-up timer
+          if (powerUpActive && powerUpTimer > 0) {
+              powerUpTimer--;
+              if (powerUpTimer === 0) {
+                  powerUpActive = null;
+                  powerUpDisplay.style.display = 'none';
+              }
+          }
+          
+          // Check achievements
+          checkAchievements();
+          
+          // Render scene
           renderer.render(scene, camera);
       }
 
@@ -1244,155 +1567,112 @@ Enjoy the adventure! 🏛️✨`);
       function createPlayer() {
           player = new THREE.Group();
           
-          // Player body
-          const bodyGeo = new THREE.BoxGeometry(PLAYER_SIZE, PLAYER_SIZE * 1.5, PLAYER_SIZE);
-          const bodyMat = new THREE.MeshLambertMaterial({color: 0x2196f3});
+          // Player body (torso) - simple and clean
+          const bodyGeo = new THREE.BoxGeometry(PLAYER_SIZE * 0.6, PLAYER_SIZE * 1.0, PLAYER_SIZE * 0.3);
+          const bodyMat = new THREE.MeshLambertMaterial({color: 0x1976d2}); // Blue shirt
           playerBody = new THREE.Mesh(bodyGeo, bodyMat);
-          playerBody.position.y = PLAYER_SIZE * 0.75;
+          playerBody.position.y = PLAYER_SIZE * 0.5;
           playerBody.castShadow = true;
           player.add(playerBody);
           
-          // Player head
-          const headGeo = new THREE.SphereGeometry(PLAYER_SIZE * 0.4, 8, 8);
-          const headMat = new THREE.MeshLambertMaterial({color: 0xffcc80});
+          // Player head - simple sphere
+          const headGeo = new THREE.SphereGeometry(PLAYER_SIZE * 0.35, 12, 12);
+          const headMat = new THREE.MeshLambertMaterial({color: 0xffdbac}); // Skin tone
           playerHead = new THREE.Mesh(headGeo, headMat);
-          playerHead.position.y = PLAYER_SIZE * 1.8;
+          playerHead.position.y = PLAYER_SIZE * 1.35;
           playerHead.castShadow = true;
           player.add(playerHead);
           
-          // Player arms
-          const armGeo = new THREE.BoxGeometry(PLAYER_SIZE * 0.2, PLAYER_SIZE * 0.8, PLAYER_SIZE * 0.2);
-          const armMat = new THREE.MeshLambertMaterial({color: 0xffcc80});
+          // Simple hair
+          const hairGeo = new THREE.SphereGeometry(PLAYER_SIZE * 0.4, 8, 8);
+          const hairMat = new THREE.MeshLambertMaterial({color: 0x3e2723}); // Dark brown hair
+          const hair = new THREE.Mesh(hairGeo, hairMat);
+          hair.position.y = PLAYER_SIZE * 1.5;
+          hair.scale.y = 0.5;
+          hair.castShadow = true;
+          player.add(hair);
+          
+          // Simple eyes
+          const eyeGeo = new THREE.SphereGeometry(PLAYER_SIZE * 0.08, 8, 8);
+          const eyeMat = new THREE.MeshLambertMaterial({color: 0x1b5e20}); // Green eyes
+          
+          const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
+          leftEye.position.set(-PLAYER_SIZE * 0.15, PLAYER_SIZE * 1.4, PLAYER_SIZE * 0.25);
+          player.add(leftEye);
+          
+          const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
+          rightEye.position.set(PLAYER_SIZE * 0.15, PLAYER_SIZE * 1.4, PLAYER_SIZE * 0.25);
+          player.add(rightEye);
+          
+          // Simple mouth
+          const mouthGeo = new THREE.BoxGeometry(PLAYER_SIZE * 0.2, PLAYER_SIZE * 0.05, PLAYER_SIZE * 0.05);
+          const mouthMat = new THREE.MeshLambertMaterial({color: 0xd32f2f});
+          const mouth = new THREE.Mesh(mouthGeo, mouthMat);
+          mouth.position.set(0, PLAYER_SIZE * 1.25, PLAYER_SIZE * 0.25);
+          player.add(mouth);
+          
+          // Player arms - simple cylinders
+          const armGeo = new THREE.CylinderGeometry(PLAYER_SIZE * 0.12, PLAYER_SIZE * 0.15, PLAYER_SIZE * 0.8, 8);
+          const armMat = new THREE.MeshLambertMaterial({color: 0xffdbac}); // Skin tone
           playerArms = new THREE.Group();
           
           const leftArm = new THREE.Mesh(armGeo, armMat);
-          leftArm.position.set(-PLAYER_SIZE * 0.6, PLAYER_SIZE * 0.9, 0);
+          leftArm.position.set(-PLAYER_SIZE * 0.6, PLAYER_SIZE * 0.7, 0);
           leftArm.castShadow = true;
           playerArms.add(leftArm);
           
           const rightArm = new THREE.Mesh(armGeo, armMat);
-          rightArm.position.set(PLAYER_SIZE * 0.6, PLAYER_SIZE * 0.9, 0);
+          rightArm.position.set(PLAYER_SIZE * 0.6, PLAYER_SIZE * 0.7, 0);
           rightArm.castShadow = true;
           playerArms.add(rightArm);
           
           player.add(playerArms);
           
-          // Player legs
-          const legGeo = new THREE.BoxGeometry(PLAYER_SIZE * 0.2, PLAYER_SIZE * 0.8, PLAYER_SIZE * 0.2);
-          const legMat = new THREE.MeshLambertMaterial({color: 0x2196f3});
+          // Simple hands
+          const handGeo = new THREE.SphereGeometry(PLAYER_SIZE * 0.12, 8, 8);
+          const handMat = new THREE.MeshLambertMaterial({color: 0xffdbac});
+          
+          const leftHand = new THREE.Mesh(handGeo, handMat);
+          leftHand.position.set(-PLAYER_SIZE * 0.8, PLAYER_SIZE * 0.3, 0);
+          player.add(leftHand);
+          
+          const rightHand = new THREE.Mesh(handGeo, handMat);
+          rightHand.position.set(PLAYER_SIZE * 0.8, PLAYER_SIZE * 0.3, 0);
+          player.add(rightHand);
+          
+          // Player legs - simple cylinders
+          const legGeo = new THREE.CylinderGeometry(PLAYER_SIZE * 0.15, PLAYER_SIZE * 0.18, PLAYER_SIZE * 0.9, 8);
+          const legMat = new THREE.MeshLambertMaterial({color: 0x303f9f}); // Dark blue pants
           playerLegs = new THREE.Group();
           
           const leftLeg = new THREE.Mesh(legGeo, legMat);
-          leftLeg.position.set(-PLAYER_SIZE * 0.3, PLAYER_SIZE * 0.2, 0);
+          leftLeg.position.set(-PLAYER_SIZE * 0.25, PLAYER_SIZE * 0.05, 0);
           leftLeg.castShadow = true;
           playerLegs.add(leftLeg);
           
           const rightLeg = new THREE.Mesh(legGeo, legMat);
-          rightLeg.position.set(PLAYER_SIZE * 0.3, PLAYER_SIZE * 0.2, 0);
+          rightLeg.position.set(PLAYER_SIZE * 0.25, PLAYER_SIZE * 0.05, 0);
           rightLeg.castShadow = true;
           playerLegs.add(rightLeg);
           
           player.add(playerLegs);
           
+          // Simple feet
+          const footGeo = new THREE.BoxGeometry(PLAYER_SIZE * 0.2, PLAYER_SIZE * 0.1, PLAYER_SIZE * 0.3);
+          const footMat = new THREE.MeshLambertMaterial({color: 0x212121}); // Dark shoes
+          
+          const leftFoot = new THREE.Mesh(footGeo, footMat);
+          leftFoot.position.set(-PLAYER_SIZE * 0.25, -PLAYER_SIZE * 0.35, 0);
+          leftFoot.castShadow = true;
+          player.add(leftFoot);
+          
+          const rightFoot = new THREE.Mesh(footGeo, footMat);
+          rightFoot.position.set(PLAYER_SIZE * 0.25, -PLAYER_SIZE * 0.35, 0);
+          rightFoot.castShadow = true;
+          player.add(rightFoot);
+          
           player.position.set(LANES[lane], PLAYER_SIZE, 0);
           scene.add(player);
-      }
-
-      // Main animation loop
-      function animate() {
-          if (!running) return;
-          
-          requestAnimationFrame(animate);
-          
-          // Update player position
-          const targetX = LANES[lane];
-          player.position.x += (targetX - player.position.x) * 0.1;
-          
-          // Update jumping
-          if (jumping) {
-              const jumpTime = (performance.now() - jumpStart) / 1000;
-              if (jumpTime < JUMP_DURATION) {
-                  const jumpProgress = jumpTime / JUMP_DURATION;
-                  const jumpHeight = Math.sin(jumpProgress * Math.PI) * JUMP_HEIGHT;
-                  player.position.y = PLAYER_SIZE + jumpHeight;
-              } else {
-                  jumping = false;
-                  player.position.y = PLAYER_SIZE;
-              }
-          }
-          
-          // Update sliding
-          if (sliding) {
-              const slideTime = (performance.now() - slideStart) / 1000;
-              if (slideTime < SLIDE_DURATION) {
-                  player.scale.y = 0.5;
-                  player.position.y = PLAYER_SIZE * 0.5;
-              } else {
-                  sliding = false;
-                  player.scale.y = 1;
-                  player.position.y = PLAYER_SIZE;
-              }
-          }
-          
-          // Spawn objects
-          if (performance.now() - lastSpawn > 2000 / speed) {
-              spawnObstacle();
-              lastSpawn = performance.now();
-          }
-          
-          if (performance.now() - lastCoin > 1000 / speed) {
-              spawnCoin();
-              lastCoin = performance.now();
-          }
-          
-          if (performance.now() - lastPowerUp > 5000 / speed) {
-              spawnPowerUp();
-              lastPowerUp = performance.now();
-          }
-          
-          // Move objects
-          moveObjects();
-          
-          // Check collisions
-          checkCollisions();
-          
-          // Update score
-          score += speed * 10;
-          scoreEl.textContent = Math.floor(score);
-          
-          // Increase speed
-          speed += 0.0001;
-          
-          // Update clouds
-          clouds.forEach(cloud => {
-              cloud.position.z += cloud.userData.speed;
-              if (cloud.position.z > 10) {
-                  cloud.position.z = -20;
-              }
-          });
-          
-          // Update particles
-          particles.forEach(particle => {
-              if (particle.velocity) {
-                  particle.position.add(particle.velocity);
-                  particle.velocity.y -= 0.01; // gravity
-              }
-          });
-          
-          // Update power-up timer
-          if (powerUpActive && powerUpTimer > 0) {
-              powerUpTimer--;
-              if (powerUpTimer === 0) {
-                  powerUpActive = null;
-                  powerUpDisplay.style.display = 'none';
-              }
-          }
-          
-          // Check achievements
-          checkAchievements();
-          
-          // Render scene
-          renderer.render(scene, camera);
       }
     </script>
 </body>
