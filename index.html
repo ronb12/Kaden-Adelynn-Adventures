@@ -54,6 +54,8 @@
             box-shadow: 0 0 30px rgba(68,68,255,0.5);
             min-width: 400px;
             max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
         }
 
         #gameOver h2 {
@@ -287,8 +289,9 @@
                 max-height: 80vh;
                 overflow-y: auto;
                 top: 50%;
+                left: 50%;
                 transform: translate(-50%, -50%);
-                position: fixed;
+                position: absolute;
             }
             
             #gameOver h2 {
@@ -694,7 +697,24 @@
                 achievementsDiv.appendChild(achievementDiv);
             });
             
-            document.getElementById('gameOver').style.display = 'block';
+            // Ensure the game over screen is visible
+            const gameOverScreen = document.getElementById('gameOver');
+            gameOverScreen.style.display = 'block';
+            
+            // Force a reflow to ensure proper positioning
+            gameOverScreen.offsetHeight;
+            
+            // Ensure it's within viewport bounds
+            const rect = gameOverScreen.getBoundingClientRect();
+            if (rect.top < 10) {
+                gameOverScreen.style.top = '10px';
+                gameOverScreen.style.transform = 'translate(-50%, 0)';
+            }
+            if (rect.bottom > window.innerHeight - 10) {
+                gameOverScreen.style.top = 'auto';
+                gameOverScreen.style.bottom = '10px';
+                gameOverScreen.style.transform = 'translate(-50%, 0)';
+            }
         }
         
         function calculateGrade(score, enemies, maxCombo, time) {
@@ -1136,8 +1156,8 @@
         function gameLoop() {
             if (!gameRunning) return;
             
-            // Clear canvas
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            // Clear canvas with solid background (no blur effect)
+            ctx.fillStyle = '#000011';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             // Update game objects
