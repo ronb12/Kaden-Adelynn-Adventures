@@ -284,6 +284,26 @@
                 max-width: 90vw;
                 padding: 20px;
                 margin: 10px;
+                max-height: 80vh;
+                overflow-y: auto;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                position: fixed;
+            }
+            
+            #gameOver h2 {
+                font-size: 28px;
+                margin-bottom: 15px;
+            }
+            
+            .final-score {
+                font-size: 24px;
+                margin: 15px 0;
+            }
+            
+            .grade {
+                font-size: 20px;
+                margin: 10px 0;
             }
             
             .score-section {
@@ -291,8 +311,64 @@
                 margin: 10px 0;
             }
             
+            .score-section h3 {
+                font-size: 18px;
+                margin-bottom: 10px;
+            }
+            
             .stat-row {
                 font-size: 14px;
+                margin: 6px 0;
+                padding: 3px 0;
+            }
+            
+            .achievement {
+                padding: 8px;
+                margin: 8px 0;
+                font-size: 14px;
+            }
+            
+            #gameOver button {
+                padding: 12px 24px;
+                font-size: 16px;
+                margin-top: 15px;
+            }
+        }
+
+        /* Extra small screens */
+        @media (max-width: 480px) {
+            #gameOver {
+                padding: 15px;
+                margin: 5px;
+            }
+            
+            #gameOver h2 {
+                font-size: 24px;
+            }
+            
+            .final-score {
+                font-size: 20px;
+            }
+            
+            .grade {
+                font-size: 18px;
+            }
+            
+            .score-section {
+                padding: 10px;
+            }
+            
+            .score-section h3 {
+                font-size: 16px;
+            }
+            
+            .stat-row {
+                font-size: 12px;
+            }
+            
+            .achievement {
+                font-size: 12px;
+                padding: 6px;
             }
         }
 
@@ -888,8 +964,9 @@
             enemies = enemies.filter(enemy => {
                 enemy.y += enemy.speed;
                 
-                // Check collision with bullets
-                player.bullets.forEach((bullet, bulletIndex) => {
+                // Check collision with bullets (reverse loop to avoid splicing issues)
+                for (let bulletIndex = player.bullets.length - 1; bulletIndex >= 0; bulletIndex--) {
+                    const bullet = player.bullets[bulletIndex];
                     if (Math.abs(bullet.x - enemy.x) < (enemy.big ? 30 : 20) && Math.abs(bullet.y - enemy.y) < (enemy.big ? 30 : 20)) {
                         explosionSound.currentTime = 0; explosionSound.play();
                         enemy.health--;
@@ -914,10 +991,11 @@
                             comboTimer = 60;
                             if (combo > maxCombo) maxCombo = combo;
                             showCombo();
+                            console.log(`Enemy destroyed! Total: ${enemiesDestroyed}, Big: ${bigEnemiesDestroyed}, Score: ${score}`);
                             return false;
                         }
                     }
-                });
+                }
                 
                 // Check collision with player
                 if (Math.abs(player.x - enemy.x) < (enemy.big ? 35 : 25) && Math.abs(player.y - enemy.y) < (enemy.big ? 35 : 25)) {
@@ -1077,6 +1155,11 @@
             enemies.forEach(drawEnemy);
             player.bullets.forEach(drawBullet);
             particles.forEach(drawParticle);
+            
+            // Debug info (remove in production)
+            if (enemies.length > 0) {
+                console.log(`Enemies on screen: ${enemies.length}, Bullets: ${player.bullets.length}`);
+            }
             
             requestAnimationFrame(gameLoop);
         }
