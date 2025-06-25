@@ -30,13 +30,18 @@
             position: absolute;
             top: 20px;
             left: 20px;
-            z-index: 100;
+            z-index: 9999;
             font-size: 18px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.55);
+            border-radius: 10px;
+            padding: 10px 18px 10px 18px;
+            color: #fff;
         }
 
         #score, #lives, #level {
             margin-bottom: 10px;
+            color: #fff;
         }
 
         #gameOver {
@@ -272,7 +277,7 @@
         /* Mobile detection and responsive adjustments */
         @media (max-width: 768px) {
             .mobile-controls {
-                display: flex;
+                display: flex !important;
             }
             
             #ui {
@@ -335,6 +340,20 @@
                 padding: 12px 24px;
                 font-size: 16px;
                 margin-top: 15px;
+            }
+            
+            /* Ensure mobile controls are visible and properly sized */
+            .control-btn {
+                width: 70px;
+                height: 70px;
+                font-size: 28px;
+                z-index: 1001;
+            }
+            
+            .center-controls .control-btn {
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
             }
         }
 
@@ -522,15 +541,21 @@
         
         // Touch controls for mobile
         function setupTouchControls() {
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            // Better mobile detection
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                            window.innerWidth <= 768 || 
+                            'ontouchstart' in window;
+            
             if (isMobile) {
                 document.querySelector('.mobile-controls').style.display = 'flex';
+                console.log('Mobile controls enabled');
             }
             
             // Movement buttons
             document.getElementById('upBtn').addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 touchControls.up = true;
+                console.log('Up pressed');
             });
             document.getElementById('upBtn').addEventListener('touchend', (e) => {
                 e.preventDefault();
@@ -540,6 +565,7 @@
             document.getElementById('downBtn').addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 touchControls.down = true;
+                console.log('Down pressed');
             });
             document.getElementById('downBtn').addEventListener('touchend', (e) => {
                 e.preventDefault();
@@ -549,6 +575,7 @@
             document.getElementById('leftBtn').addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 touchControls.left = true;
+                console.log('Left pressed');
             });
             document.getElementById('leftBtn').addEventListener('touchend', (e) => {
                 e.preventDefault();
@@ -558,6 +585,7 @@
             document.getElementById('rightBtn').addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 touchControls.right = true;
+                console.log('Right pressed');
             });
             document.getElementById('rightBtn').addEventListener('touchend', (e) => {
                 e.preventDefault();
@@ -583,12 +611,27 @@
                 touchControls.down = false;
             });
             
-            // Shoot button
-            document.getElementById('shootBtn').addEventListener('touchstart', (e) => {
+            // Shoot button with better event handling
+            const shootBtn = document.getElementById('shootBtn');
+            shootBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                touchControls.shoot = true;
+                console.log('Shoot pressed - touchControls.shoot:', touchControls.shoot);
+            });
+            shootBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                touchControls.shoot = false;
+            });
+            
+            // Also add mouse events for testing on desktop
+            shootBtn.addEventListener('mousedown', (e) => {
                 e.preventDefault();
                 touchControls.shoot = true;
+                console.log('Shoot pressed - mouse');
             });
-            document.getElementById('shootBtn').addEventListener('touchend', (e) => {
+            shootBtn.addEventListener('mouseup', (e) => {
                 e.preventDefault();
                 touchControls.shoot = false;
             });
@@ -901,9 +944,11 @@
             player.x = Math.max(player.width/2, Math.min(canvas.width - player.width/2, player.x));
             player.y = Math.max(player.height/2, Math.min(canvas.height - player.height/2, player.y));
             
-            // Shooting
+            // Shooting with debugging
             let cooldown = rapidFireActive ? 40 : player.shotCooldown;
-            if ((keys['Space'] || keys['KeyX'] || touchControls.shoot) && Date.now() - player.lastShot > cooldown) {
+            let shouldShoot = (keys['Space'] || keys['KeyX'] || touchControls.shoot) && Date.now() - player.lastShot > cooldown;
+            
+            if (shouldShoot) {
                 player.bullets.push({
                     x: player.x,
                     y: player.y - 20,
@@ -911,6 +956,16 @@
                 });
                 player.lastShot = Date.now();
                 shootSound.currentTime = 0; shootSound.play();
+                
+                // Debug shooting
+                if (touchControls.shoot) {
+                    console.log('Shooting from touch control! Bullets:', player.bullets.length);
+                }
+            }
+            
+            // Debug touch controls state
+            if (touchControls.shoot) {
+                console.log('Touch shoot is active');
             }
             
             // Shield timer
