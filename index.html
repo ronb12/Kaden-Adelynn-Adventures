@@ -1403,6 +1403,132 @@
             }
         }
         
+        // Draw player function
+        function drawPlayer() {
+            // Main ship body - more detailed shape
+            ctx.fillStyle = '#00ffff';
+            ctx.beginPath();
+            ctx.moveTo(player.x, player.y + player.height / 2);
+            ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.1);
+            ctx.lineTo(player.x + player.width * 0.8, player.y);
+            ctx.lineTo(player.x + player.width, player.y + player.height * 0.2);
+            ctx.lineTo(player.x + player.width, player.y + player.height * 0.8);
+            ctx.lineTo(player.x + player.width * 0.8, player.y + player.height);
+            ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.9);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Secondary hull
+            ctx.fillStyle = '#0080ff';
+            ctx.beginPath();
+            ctx.moveTo(player.x + player.width * 0.2, player.y + player.height * 0.3);
+            ctx.lineTo(player.x + player.width * 0.7, player.y + player.height * 0.2);
+            ctx.lineTo(player.x + player.width * 0.7, player.y + player.height * 0.8);
+            ctx.lineTo(player.x + player.width * 0.2, player.y + player.height * 0.7);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Cockpit with better detail
+            ctx.fillStyle = '#0080ff';
+            ctx.beginPath();
+            ctx.ellipse(player.x + player.width * 0.65, player.y + player.height / 2, 
+                       player.width * 0.12, player.height * 0.25, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Cockpit glass
+            ctx.fillStyle = '#ffffff';
+            ctx.globalAlpha = 0.7;
+            ctx.beginPath();
+            ctx.ellipse(player.x + player.width * 0.65, player.y + player.height / 2, 
+                       player.width * 0.08, player.height * 0.2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+            
+            // Weapon mounts
+            ctx.fillStyle = '#404040';
+            ctx.fillRect(player.x + player.width * 0.85, player.y + player.height * 0.3, 
+                       player.width * 0.1, player.height * 0.4);
+            
+            // Engine glow with multiple engines
+            ctx.fillStyle = '#ffff00';
+            ctx.beginPath();
+            ctx.moveTo(player.x, player.y + player.height * 0.25);
+            ctx.lineTo(player.x - 10, player.y + player.height * 0.35);
+            ctx.lineTo(player.x - 10, player.y + player.height * 0.45);
+            ctx.lineTo(player.x, player.y + player.height * 0.35);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(player.x, player.y + player.height * 0.55);
+            ctx.lineTo(player.x - 10, player.y + player.height * 0.65);
+            ctx.lineTo(player.x - 10, player.y + player.height * 0.75);
+            ctx.lineTo(player.x, player.y + player.height * 0.65);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Engine exhaust with better effects
+            ctx.fillStyle = '#ff8000';
+            ctx.beginPath();
+            ctx.moveTo(player.x - 10, player.y + player.height * 0.35);
+            ctx.lineTo(player.x - 18, player.y + player.height * 0.3);
+            ctx.lineTo(player.x - 18, player.y + player.height * 0.5);
+            ctx.lineTo(player.x - 10, player.y + player.height * 0.45);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(player.x - 10, player.y + player.height * 0.65);
+            ctx.lineTo(player.x - 18, player.y + player.height * 0.6);
+            ctx.lineTo(player.x - 18, player.y + player.height * 0.8);
+            ctx.lineTo(player.x - 10, player.y + player.height * 0.75);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Wing details with better structure
+            ctx.strokeStyle = '#0080ff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(player.x + player.width * 0.3, player.y);
+            ctx.lineTo(player.x + player.width * 0.5, player.y + player.height * 0.15);
+            ctx.moveTo(player.x + player.width * 0.3, player.y + player.height);
+            ctx.lineTo(player.x + player.width * 0.5, player.y + player.height * 0.85);
+            ctx.stroke();
+            
+            // Additional wing details
+            ctx.strokeStyle = '#00ffff';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(player.x + player.width * 0.4, player.y + player.height * 0.1);
+            ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.2);
+            ctx.moveTo(player.x + player.width * 0.4, player.y + player.height * 0.9);
+            ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.8);
+            ctx.stroke();
+            
+            // Add glow effect
+            ctx.shadowColor = '#00ffff';
+            ctx.shadowBlur = 20;
+            ctx.fillStyle = '#00ffff';
+            ctx.beginPath();
+            ctx.moveTo(player.x, player.y + player.height / 2);
+            ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.1);
+            ctx.lineTo(player.x + player.width * 0.8, player.y);
+            ctx.lineTo(player.x + player.width, player.y + player.height * 0.2);
+            ctx.lineTo(player.x + player.width, player.y + player.height * 0.8);
+            ctx.lineTo(player.x + player.width * 0.8, player.y + player.height);
+            ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.9);
+            ctx.closePath();
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+        
+        // Spawn enemy function
+        function spawnEnemy() {
+            const y = Math.random() * (canvas.height - 40);
+            const type = Math.random() < 0.1 ? 'boss' : 'basic';
+            enemies.push(new Enemy(canvas.width, y, type));
+        }
+        
         // Enhanced start game function
         function startGame() {
             gameRunning = true;
