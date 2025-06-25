@@ -130,41 +130,10 @@
         }
         
         #mobileControls {
-            position: absolute;
-            bottom: 2vw;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 3vw;
-            flex-wrap: wrap;
-            justify-content: center;
-            max-width: 95vw;
-            z-index: 30;
+            display: none;
         }
-        .controlBtn {
-            width: 14vw;
-            height: 14vw;
-            min-width: 48px;
-            min-height: 48px;
-            max-width: 80px;
-            max-height: 80px;
-            background: rgba(0, 255, 255, 0.3);
-            border: 2px solid #00ffff;
-            border-radius: 50%;
-            color: white;
-            font-size: 6vw;
-            cursor: pointer;
+        body.game-running #mobileControls {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
-            -webkit-touch-callout: none;
-        }
-        .controlBtn:active {
-            background: rgba(0, 255, 255, 0.6);
-            transform: scale(0.95);
         }
         @media (min-width: 769px) {
             #ui { font-size: 18px; top: 20px; left: 20px; }
@@ -174,6 +143,76 @@
             #startScreen p, #gameOverScreen p { font-size: 1.1em; }
             #startBtn, #restartBtn { font-size: 1.2em; padding: 15px 30px; }
             .controlBtn { width: 60px; height: 60px; font-size: 24px; }
+            #mobileControls { display: none !important; }
+        }
+        #mobileTabBar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100vw;
+            height: 64px;
+            background: rgba(0,0,0,0.92);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+            border-top: 2px solid #00ffff;
+        }
+        .tabBtn {
+            flex: 1;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.2em;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 0 0 0;
+            cursor: pointer;
+            transition: background 0.18s, color 0.18s;
+            outline: none;
+        }
+        .tabBtn.active, .tabBtn:active {
+            color: #00ffff;
+            background: rgba(0,255,255,0.08);
+        }
+        .tabBtn span {
+            font-size: 1.7em;
+            margin-bottom: 2px;
+        }
+        .tabBtn div {
+            font-size: 0.9em;
+        }
+        #tabViews {
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 99;
+            background: transparent;
+        }
+        .tabView {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: transparent;
+        }
+        .tabContent {
+            background: rgba(0,0,0,0.85);
+            border: 2px solid #00ffff;
+            border-radius: 12px;
+            padding: 32px 18px;
+            max-width: 95vw;
+            width: 100%;
+            text-align: center;
+            color: #fff;
         }
     </style>
 </head>
@@ -188,18 +227,51 @@
             <div>Weapon: <span id="currentWeapon">Laser</span></div>
         </div>
         
-        <div id="startScreen">
-            <h1>🚀 Kaden & Adelynn</h1>
-            <h2>Gradius Adventures</h2>
-            <p>Use arrow keys to move</p>
-            <p>Spacebar to shoot</p>
-            <p>1, 2, 3 to switch weapons</p>
-            <p>Laser (1) - Fast, low damage</p>
-            <p>Plasma (2) - Medium, high damage</p>
-            <p>Missile (3) - Slow, massive damage</p>
-            <p>Collect power-ups to upgrade your ship!</p>
-            <p>You have 5 lives to complete the mission!</p>
-            <button id="startBtn">START MISSION</button>
+        <!-- Mobile Tab Bar (only visible on mobile) -->
+        <div id="mobileTabBar">
+            <button class="tabBtn" data-tab="play"><span>🎮</span><div>Play</div></button>
+            <button class="tabBtn" data-tab="howto"><span>📖</span><div>How to</div></button>
+            <button class="tabBtn" data-tab="settings"><span>⚙️</span><div>Settings</div></button>
+            <button class="tabBtn" data-tab="about"><span>ℹ️</span><div>About</div></button>
+        </div>
+        <!-- Tab Views -->
+        <div id="tabViews">
+            <div class="tabView" id="tabPlayView">
+                <div id="startScreen">
+                    <h1>🚀 Kaden & Adelynn</h1>
+                    <h2>Gradius Adventures</h2>
+                    <p>Use arrow keys to move</p>
+                    <p>Spacebar to shoot</p>
+                    <p>1, 2, 3 to switch weapons</p>
+                    <p>Laser (1) - Fast, low damage</p>
+                    <p>Plasma (2) - Medium, high damage</p>
+                    <p>Missile (3) - Slow, massive damage</p>
+                    <p>Collect power-ups to upgrade your ship!</p>
+                    <p>You have 5 lives to complete the mission!</p>
+                    <button id="startBtn">START MISSION</button>
+                </div>
+            </div>
+            <div class="tabView" id="tabHowToView" style="display:none;">
+                <div class="tabContent">
+                    <h2>📖 How to Play</h2>
+                    <p>Move: Arrow keys or on-screen arrows</p>
+                    <p>Shoot: Spacebar or 🔥 button</p>
+                    <p>Switch Weapons: 1, 2, 3 or on-screen buttons</p>
+                    <p>Collect power-ups and defeat bosses!</p>
+                </div>
+            </div>
+            <div class="tabView" id="tabSettingsView" style="display:none;">
+                <div class="tabContent">
+                    <h2>⚙️ Settings</h2>
+                    <p>Sound, music, and other settings coming soon!</p>
+                </div>
+            </div>
+            <div class="tabView" id="tabAboutView" style="display:none;">
+                <div class="tabContent">
+                    <h2>ℹ️ About</h2>
+                    <p>Kaden & Adelynn Gradius Adventures<br>Created by Ronell Bradley</p>
+                </div>
+            </div>
         </div>
         
         <div id="gameOverScreen">
@@ -1456,10 +1528,10 @@
             ctx.fill();
             
             ctx.beginPath();
-            ctx.moveTo(player.x - 10, player.y + player.height * 0.65);
-            ctx.lineTo(player.x - 18, player.y + player.height * 0.6);
-            ctx.lineTo(player.x - 18, player.y + player.height * 0.8);
-            ctx.lineTo(player.x - 10, player.y + player.height * 0.75);
+            ctx.moveTo(player.x - 10, player.y + player.height * 0.75);
+            ctx.lineTo(player.x - 18, player.y + player.height * 0.65);
+            ctx.lineTo(player.x - 18, player.y + player.height * 0.85);
+            ctx.lineTo(player.x - 10, player.y + player.height * 0.8);
             ctx.closePath();
             ctx.fill();
             
@@ -1633,6 +1705,54 @@
                 ctx.globalAlpha = 1;
             }
         }
+
+        // Mobile tab bar logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabBtns = document.querySelectorAll('#mobileTabBar .tabBtn');
+            const tabViews = document.querySelectorAll('.tabView');
+            function showTab(tab) {
+                tabViews.forEach(view => view.style.display = 'none');
+                tabBtns.forEach(btn => btn.classList.remove('active'));
+                document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1) + 'View').style.display = 'flex';
+                document.querySelector('#mobileTabBar .tabBtn[data-tab="' + tab + '"]').classList.add('active');
+            }
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    showTab(this.getAttribute('data-tab'));
+                });
+            });
+            // Default to Play tab
+            showTab('play');
+        });
+
+        // Show mobile controls only when game is running and tab menu is not visible
+        function setGameRunning(running) {
+            if (running) {
+                document.body.classList.add('game-running');
+            } else {
+                document.body.classList.remove('game-running');
+            }
+        }
+        // Patch startGame and gameOver to toggle controls
+        const origStartGame = window.startGame;
+        window.startGame = function() {
+            setGameRunning(true);
+            origStartGame();
+        };
+        const origGameOver = window.gameOver;
+        window.gameOver = function() {
+            setGameRunning(false);
+            origGameOver();
+        };
+        // Hide controls when switching tabs
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabBtns = document.querySelectorAll('#mobileTabBar .tabBtn');
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    setGameRunning(false);
+                });
+            });
+        });
     </script>
 </body>
 </html> 
