@@ -25,24 +25,17 @@
             overflow: hidden;
             font-family: 'Arial', sans-serif;
             color: white;
-            min-height: 100vh;
-            min-width: 100vw;
             margin: 0;
             padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            width: 100vw;
+            height: 100vh;
         }
 
         .game-container {
             position: relative;
-            width: 900px;
-            height: 700px;
-            max-width: 98vw;
-            max-height: 98vh;
+            width: 100vw;
+            height: 100vh;
             background: linear-gradient(to bottom, #000011, #000033, #000011);
-            border-radius: 24px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.45);
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -523,11 +516,10 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
-        // Set canvas size to fit container
+        // Set canvas size to fit full screen
         function resizeCanvas() {
-            const container = document.querySelector('.game-container');
-            canvas.width = container.offsetWidth;
-            canvas.height = container.offsetHeight;
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
         }
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
