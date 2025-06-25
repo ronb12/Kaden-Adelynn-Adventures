@@ -222,6 +222,9 @@
         let score = 0;
         let lives = 3;
         let powerLevel = 1;
+        let spawnTimer = null;
+        let lastShotTime = 0;
+        let shotCooldown = 200; // milliseconds between shots
         
         // Arrays for game objects
         let bullets = [];
@@ -475,8 +478,10 @@
             
             // Shooting
             if (keys['Space'] || touchControls.shoot) {
-                if (bullets.length === 0 || bullets[bullets.length - 1].x > player.x + 60) {
+                const currentTime = Date.now();
+                if (currentTime - lastShotTime > shotCooldown) {
                     shoot();
+                    lastShotTime = currentTime;
                 }
             }
             
@@ -509,7 +514,10 @@
             enemyBullets = enemyBullets.filter(b => b.x > 0 && b.x < canvas.width);
             enemyBullets.forEach(b => b.update());
             
-            // Update enemies
+            // Update enemies and check collisions
+            const enemiesToRemove = [];
+            const bulletsToRemove = [];
+            
             enemies.forEach((enemy, enemyIndex) => {
                 enemy.update();
                 
@@ -517,11 +525,11 @@
                 bullets.forEach((bullet, bulletIndex) => {
                     if (isColliding(bullet, enemy)) {
                         enemy.health--;
-                        bullets.splice(bulletIndex, 1);
+                        bulletsToRemove.push(bulletIndex);
                         
                         if (enemy.health <= 0) {
                             explosions.push(new Explosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2, 2));
-                            enemies.splice(enemyIndex, 1);
+                            enemiesToRemove.push(enemyIndex);
                             score += enemy.type === 'boss' ? 500 : 100;
                             
                             // Spawn power-up
@@ -532,23 +540,31 @@
                 
                 // Remove enemies that are off screen
                 if (enemy.x + enemy.width < 0) {
-                    enemies.splice(enemyIndex, 1);
+                    enemiesToRemove.push(enemyIndex);
                 }
             });
             
+            // Remove bullets and enemies (in reverse order to maintain indices)
+            bulletsToRemove.reverse().forEach(index => bullets.splice(index, 1));
+            enemiesToRemove.reverse().forEach(index => enemies.splice(index, 1));
+            
             // Update power-ups
+            const powerUpsToRemove = [];
             powerUps.forEach((powerUp, index) => {
                 powerUp.update();
                 
                 if (isColliding(player, powerUp)) {
-                    powerUps.splice(index, 1);
+                    powerUpsToRemove.push(index);
                     powerLevel = Math.min(powerLevel + 1, 5);
                 }
                 
                 if (powerUp.x + powerUp.width < 0) {
-                    powerUps.splice(index, 1);
+                    powerUpsToRemove.push(index);
                 }
             });
+            
+            // Remove power-ups (in reverse order)
+            powerUpsToRemove.reverse().forEach(index => powerUps.splice(index, 1));
             
             // Update explosions
             explosions = explosions.filter(explosion => explosion.life > 0);
@@ -570,12 +586,13 @@
                 });
                 
                 // Check player collision with enemy bullets
+                const enemyBulletsToRemove = [];
                 enemyBullets.forEach((bullet, index) => {
                     if (isColliding(player, bullet)) {
                         lives--;
                         player.invulnerable = true;
                         player.invulnerableTime = 120;
-                        enemyBullets.splice(index, 1);
+                        enemyBulletsToRemove.push(index);
                         explosions.push(new Explosion(player.x + player.width / 2, player.y + player.height / 2, 1));
                         
                         if (lives <= 0) {
@@ -583,6 +600,9 @@
                         }
                     }
                 });
+                
+                // Remove enemy bullets (in reverse order)
+                enemyBulletsToRemove.reverse().forEach(index => enemyBullets.splice(index, 1));
             }
             
             // Update UI
@@ -641,6 +661,13 @@
         // Game over
         function gameOver() {
             gameRunning = false;
+            
+            // Clear spawn timer
+            if (spawnTimer) {
+                clearInterval(spawnTimer);
+                spawnTimer = null;
+            }
+            
             document.getElementById('finalScore').textContent = score;
             document.getElementById('gameOverScreen').style.display = 'block';
         }
@@ -651,6 +678,7 @@
             score = 0;
             lives = 3;
             powerLevel = 1;
+            lastShotTime = 0;
             
             // Clear arrays
             bullets = [];
@@ -669,8 +697,11 @@
             document.getElementById('startScreen').style.display = 'none';
             document.getElementById('gameOverScreen').style.display = 'none';
             
-            // Start spawning
-            setInterval(spawnEnemy, 2000);
+            // Clear existing spawn timer and start new one
+            if (spawnTimer) {
+                clearInterval(spawnTimer);
+            }
+            spawnTimer = setInterval(spawnEnemy, 2000);
         }
         
         // Game loop
