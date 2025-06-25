@@ -154,19 +154,24 @@
             margin: 5px;
             position: fixed;
             z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0, 255, 255, 0.3);
         }
         
         .controlBtn:active {
             transform: scale(0.9);
             background: rgba(0, 255, 255, 1);
+            box-shadow: 0 2px 4px rgba(0, 255, 255, 0.5);
         }
         
-        #leftBtn { bottom: 80px; left: 20px; }
-        #rightBtn { bottom: 80px; right: 20px; }
-        #upBtn { bottom: 150px; left: 50%; transform: translateX(-50%); }
-        #downBtn { bottom: 20px; left: 50%; transform: translateX(-50%); }
-        #shootBtn { bottom: 80px; left: 50%; transform: translateX(-50%); }
+        /* Better mobile layout - left side for movement, right side for shooting */
+        #leftBtn { bottom: 20px; left: 20px; }
+        #rightBtn { bottom: 20px; left: 90px; }
+        #upBtn { bottom: 90px; left: 55px; }
+        #downBtn { bottom: 20px; left: 55px; }
+        #shootBtn { bottom: 20px; right: 20px; width: 80px; height: 80px; font-size: 32px; }
+        #pauseBtn { top: 20px; right: 20px; width: 50px; height: 50px; font-size: 20px; }
         
+        /* Desktop improvements */
         @media (min-width: 769px) {
             #ui { font-size: 18px; top: 20px; left: 20px; }
             #startScreen, #gameOverScreen { font-size: 1.2em; padding: 40px; max-width: 420px; }
@@ -176,7 +181,59 @@
             #startBtn, #restartBtn { font-size: 1.2em; padding: 15px 30px; }
             .controlBtn { width: 60px; height: 60px; font-size: 24px; }
             #mobileControls { display: none !important; }
+            
+            /* Better desktop UI positioning */
+            #ui {
+                background: rgba(0, 0, 0, 0.7);
+                padding: 10px 15px;
+                border-radius: 10px;
+                border: 2px solid #00ffff;
+            }
         }
+        
+        /* Mobile-specific improvements */
+        @media (max-width: 768px) {
+            .controlBtn {
+                width: 70px;
+                height: 70px;
+                font-size: 28px;
+                margin: 8px;
+            }
+            
+            #shootBtn {
+                width: 90px;
+                height: 90px;
+                font-size: 36px;
+            }
+            
+            #ui {
+                font-size: 5vw;
+                top: 3vw;
+                left: 3vw;
+                background: rgba(0, 0, 0, 0.8);
+                padding: 2vw;
+                border-radius: 2vw;
+                border: 1px solid #00ffff;
+            }
+            
+            #startScreen, #gameOverScreen {
+                font-size: 4.5vw;
+                padding: 8vw 6vw;
+                max-width: 90vw;
+            }
+            
+            #startScreen h1, #gameOverScreen h2 {
+                font-size: 8vw;
+                margin-bottom: 3vw;
+            }
+            
+            #startBtn, #restartBtn {
+                font-size: 5.5vw;
+                padding: 4vw 10vw;
+                min-height: 50px;
+            }
+        }
+        
         #mobileTabBar {
             position: fixed;
             bottom: 0;
@@ -318,6 +375,7 @@
             <div class="controlBtn" id="downBtn">↓</div>
             <div class="controlBtn" id="rightBtn">→</div>
             <div class="controlBtn" id="shootBtn">🔥</div>
+            <div class="controlBtn" id="pauseBtn">⏸️</div>
         </div>
     </div>
 
@@ -327,6 +385,7 @@
         
         // Game state
         let gameRunning = false;
+        let gamePaused = false;
         let score = 0;
         let lives = 5;
         let powerLevel = 1;
@@ -390,22 +449,59 @@
         // Input handling
         let keys = {};
         let touchControls = {};
+        let mouseX = 0;
+        let mouseY = 0;
+        let isMouseDown = false;
         
         // Event listeners
-        document.addEventListener('keydown', e => keys[e.code] = true);
+        document.addEventListener('keydown', e => {
+            keys[e.code] = true;
+            
+            // Pause functionality
+            if (e.code === 'KeyP' && gameRunning) {
+                togglePause();
+            }
+        });
         document.addEventListener('keyup', e => keys[e.code] = false);
         
-        // Mobile controls
-        document.getElementById('leftBtn').addEventListener('touchstart', (e) => { e.preventDefault(); touchControls.left = true; });
-        document.getElementById('leftBtn').addEventListener('touchend', (e) => { e.preventDefault(); touchControls.left = false; });
-        document.getElementById('rightBtn').addEventListener('touchstart', (e) => { e.preventDefault(); touchControls.right = true; });
-        document.getElementById('rightBtn').addEventListener('touchend', (e) => { e.preventDefault(); touchControls.right = false; });
-        document.getElementById('upBtn').addEventListener('touchstart', (e) => { e.preventDefault(); touchControls.up = true; });
-        document.getElementById('upBtn').addEventListener('touchend', (e) => { e.preventDefault(); touchControls.up = false; });
-        document.getElementById('downBtn').addEventListener('touchstart', (e) => { e.preventDefault(); touchControls.down = true; });
-        document.getElementById('downBtn').addEventListener('touchend', (e) => { e.preventDefault(); touchControls.down = false; });
-        document.getElementById('shootBtn').addEventListener('touchstart', (e) => { e.preventDefault(); touchControls.shoot = true; });
-        document.getElementById('shootBtn').addEventListener('touchend', (e) => { e.preventDefault(); touchControls.shoot = false; });
+        // Mouse/touch events for shooting
+        canvas.addEventListener('mousedown', (e) => {
+            isMouseDown = true;
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
+        });
+        
+        canvas.addEventListener('mouseup', () => {
+            isMouseDown = false;
+        });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
+        });
+        
+        // Touch events for mobile shooting
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isMouseDown = true;
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.touches[0].clientX - rect.left;
+            mouseY = e.touches[0].clientY - rect.top;
+        });
+        
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            isMouseDown = false;
+        });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.touches[0].clientX - rect.left;
+            mouseY = e.touches[0].clientY - rect.top;
+        });
         
         // Initialize starfield
         function initStars() {
@@ -1260,19 +1356,19 @@
                 }
             });
             
-            // Player movement with speed boost
+            // Player movement with speed boost - support both WASD and arrow keys
             const currentSpeed = activePowerUps.speedBoost ? player.speed * 1.5 : player.speed;
-            if (keys['ArrowUp'] || touchControls.up) player.y -= currentSpeed;
-            if (keys['ArrowDown'] || touchControls.down) player.y += currentSpeed;
-            if (keys['ArrowLeft'] || touchControls.left) player.x -= currentSpeed;
-            if (keys['ArrowRight'] || touchControls.right) player.x += currentSpeed;
+            if (keys['ArrowUp'] || keys['KeyW'] || touchControls.up) player.y -= currentSpeed;
+            if (keys['ArrowDown'] || keys['KeyS'] || touchControls.down) player.y += currentSpeed;
+            if (keys['ArrowLeft'] || keys['KeyA'] || touchControls.left) player.x -= currentSpeed;
+            if (keys['ArrowRight'] || keys['KeyD'] || touchControls.right) player.x += currentSpeed;
             
             // Keep player in bounds
             player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
             player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
             
-            // Shooting
-            if (keys['Space'] || touchControls.shoot) {
+            // Shooting - support keyboard, touch controls, and mouse/touch
+            if (keys['Space'] || touchControls.shoot || isMouseDown) {
                 shoot();
             }
             
@@ -1681,7 +1777,9 @@
         
         // Game loop
         function gameLoop() {
-            update();
+            if (!gamePaused) {
+                update();
+            }
             draw();
             requestAnimationFrame(gameLoop);
         }
@@ -1696,6 +1794,29 @@
         // Initialize and start
         initStars();
         gameLoop();
+        
+        // Canvas resize function for responsive design
+        function resizeCanvas() {
+            const container = document.getElementById('gameContainer');
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+            
+            // Set canvas size to container size
+            canvas.width = containerWidth;
+            canvas.height = containerHeight;
+            
+            // Update player position if game is running
+            if (gameRunning) {
+                player.x = Math.min(player.x, canvas.width - player.width);
+                player.y = Math.min(player.y, canvas.height - player.height);
+            }
+        }
+        
+        // Resize canvas on window resize
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Initial resize
+        resizeCanvas();
 
         // Add Explosion class before checkCollisions
         class Explosion {
@@ -1812,6 +1933,50 @@
             // Set Play tab active by default
             setPlayTabActive(true);
         });
+
+        // Pause functionality
+        function togglePause() {
+            gamePaused = !gamePaused;
+            if (gamePaused) {
+                // Show pause screen
+                const pauseScreen = document.createElement('div');
+                pauseScreen.id = 'pauseScreen';
+                pauseScreen.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100vw;
+                    height: 100vh;
+                    background: rgba(0, 0, 0, 0.8);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 1000;
+                    color: #00ffff;
+                    font-size: 48px;
+                    text-shadow: 0 0 20px #00ffff;
+                `;
+                pauseScreen.innerHTML = '<div>PAUSED<br><small style="font-size: 24px;">Press P or tap ⏸️ to resume</small></div>';
+                document.body.appendChild(pauseScreen);
+            } else {
+                // Remove pause screen
+                const pauseScreen = document.getElementById('pauseScreen');
+                if (pauseScreen) pauseScreen.remove();
+            }
+        }
+
+        // Mobile controls
+        document.getElementById('leftBtn').addEventListener('touchstart', (e) => { e.preventDefault(); touchControls.left = true; });
+        document.getElementById('leftBtn').addEventListener('touchend', (e) => { e.preventDefault(); touchControls.left = false; });
+        document.getElementById('rightBtn').addEventListener('touchstart', (e) => { e.preventDefault(); touchControls.right = true; });
+        document.getElementById('rightBtn').addEventListener('touchend', (e) => { e.preventDefault(); touchControls.right = false; });
+        document.getElementById('upBtn').addEventListener('touchstart', (e) => { e.preventDefault(); touchControls.up = true; });
+        document.getElementById('upBtn').addEventListener('touchend', (e) => { e.preventDefault(); touchControls.up = false; });
+        document.getElementById('downBtn').addEventListener('touchstart', (e) => { e.preventDefault(); touchControls.down = true; });
+        document.getElementById('downBtn').addEventListener('touchend', (e) => { e.preventDefault(); touchControls.down = false; });
+        document.getElementById('shootBtn').addEventListener('touchstart', (e) => { e.preventDefault(); touchControls.shoot = true; });
+        document.getElementById('shootBtn').addEventListener('touchend', (e) => { e.preventDefault(); touchControls.shoot = false; });
+        document.getElementById('pauseBtn').addEventListener('touchstart', (e) => { e.preventDefault(); if (gameRunning) togglePause(); });
     </script>
 </body>
 </html> 
