@@ -132,9 +132,41 @@
         #mobileControls {
             display: none;
         }
-        body.game-running.play-tab-active #mobileControls {
+        body.game-running #mobileControls {
             display: flex;
         }
+        
+        .controlBtn {
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 255, 255, 0.8);
+            border: 3px solid #00ffff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #000;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+            margin: 5px;
+            position: fixed;
+            z-index: 1000;
+        }
+        
+        .controlBtn:active {
+            transform: scale(0.9);
+            background: rgba(0, 255, 255, 1);
+        }
+        
+        #leftBtn { bottom: 80px; left: 20px; }
+        #rightBtn { bottom: 80px; right: 20px; }
+        #upBtn { bottom: 150px; left: 50%; transform: translateX(-50%); }
+        #downBtn { bottom: 20px; left: 50%; transform: translateX(-50%); }
+        #shootBtn { bottom: 80px; left: 50%; transform: translateX(-50%); }
+        
         @media (min-width: 769px) {
             #ui { font-size: 18px; top: 20px; left: 20px; }
             #startScreen, #gameOverScreen { font-size: 1.2em; padding: 40px; max-width: 420px; }
@@ -1378,6 +1410,23 @@
             }
         }
         
+        function gameOver() {
+            gameRunning = false;
+            
+            // Clear spawn timer
+            if (spawnTimer) {
+                clearInterval(spawnTimer);
+                spawnTimer = null;
+            }
+            
+            // Hide mobile controls
+            document.body.classList.remove('game-running');
+            
+            // Show game over screen
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('gameOverScreen').style.display = 'block';
+        }
+        
         // Draw function
         function draw() {
             // Clear canvas
@@ -1619,6 +1668,9 @@
             // Hide screens
             document.getElementById('startScreen').style.display = 'none';
             document.getElementById('gameOverScreen').style.display = 'none';
+            
+            // Show mobile controls
+            document.body.classList.add('game-running');
             
             // Clear existing spawn timer and start new one
             if (spawnTimer) {
