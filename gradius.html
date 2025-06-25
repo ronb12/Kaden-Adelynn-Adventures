@@ -73,6 +73,12 @@
             text-shadow: 0 0 20px #00ffff;
         }
         
+        #startScreen h2 {
+            color: #00ffff;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        
         #startScreen p {
             color: #ffffff;
             font-size: 1.2em;
@@ -185,8 +191,9 @@
         
         <div id="ui">
             <div>Score: <span id="score">0</span></div>
-            <div>Lives: <span id="lives">3</span></div>
+            <div>Lives: <span id="lives">5</span></div>
             <div>Power: <span id="powerLevel">1</span></div>
+            <div>Weapon: <span id="currentWeapon">Laser</span></div>
         </div>
         
         <div id="startScreen">
@@ -194,7 +201,12 @@
             <h2>Gradius Adventures</h2>
             <p>Use arrow keys to move</p>
             <p>Spacebar to shoot</p>
+            <p>1, 2, 3 to switch weapons</p>
+            <p>Laser (1) - Fast, low damage</p>
+            <p>Plasma (2) - Medium, high damage</p>
+            <p>Missile (3) - Slow, massive damage</p>
             <p>Collect power-ups to upgrade your ship!</p>
+            <p>You have 5 lives to complete the mission!</p>
             <button id="startBtn">START MISSION</button>
         </div>
         
@@ -210,6 +222,9 @@
             <div class="controlBtn" id="downBtn">↓</div>
             <div class="controlBtn" id="rightBtn">→</div>
             <div class="controlBtn" id="shootBtn">🔥</div>
+            <div class="controlBtn" id="weapon1Btn">1</div>
+            <div class="controlBtn" id="weapon2Btn">2</div>
+            <div class="controlBtn" id="weapon3Btn">3</div>
         </div>
     </div>
 
@@ -220,11 +235,17 @@
         // Game state
         let gameRunning = false;
         let score = 0;
-        let lives = 3;
+        let lives = 5;
         let powerLevel = 1;
         let spawnTimer = null;
         let lastShotTime = 0;
         let shotCooldown = 200; // milliseconds between shots
+        let currentWeapon = 'laser'; // laser, plasma, missile
+        let weaponCooldowns = {
+            laser: 150,
+            plasma: 300,
+            missile: 500
+        };
         
         // Arrays for game objects
         let bullets = [];
@@ -265,6 +286,20 @@
         document.getElementById('shootBtn').addEventListener('touchstart', () => touchControls.shoot = true);
         document.getElementById('shootBtn').addEventListener('touchend', () => touchControls.shoot = false);
         
+        // Weapon switching buttons
+        document.getElementById('weapon1Btn').addEventListener('click', () => {
+            currentWeapon = 'laser';
+            document.getElementById('currentWeapon').textContent = 'Laser';
+        });
+        document.getElementById('weapon2Btn').addEventListener('click', () => {
+            currentWeapon = 'plasma';
+            document.getElementById('currentWeapon').textContent = 'Plasma';
+        });
+        document.getElementById('weapon3Btn').addEventListener('click', () => {
+            currentWeapon = 'missile';
+            document.getElementById('currentWeapon').textContent = 'Missile';
+        });
+        
         // Initialize starfield
         function initStars() {
             for (let i = 0; i < 200; i++) {
@@ -279,106 +314,240 @@
         
         // Bullet class
         class Bullet {
-            constructor(x, y, speed = 8, isEnemy = false) {
+            constructor(x, y, speed = 8, isEnemy = false, weaponType = 'laser') {
                 this.x = x;
                 this.y = y;
                 this.width = isEnemy ? 6 : 8;
                 this.height = isEnemy ? 6 : 3;
                 this.speed = speed;
                 this.isEnemy = isEnemy;
+                this.weaponType = weaponType;
+                this.damage = this.getDamage();
+                this.trail = [];
+                this.maxTrailLength = 5;
+            }
+            
+            getDamage() {
+                if (this.isEnemy) return 1;
+                switch (this.weaponType) {
+                    case 'laser': return 1;
+                    case 'plasma': return 2;
+                    case 'missile': return 3;
+                    default: return 1;
+                }
             }
             
             update() {
+                // Add current position to trail
+                this.trail.push({ x: this.x, y: this.y });
+                if (this.trail.length > this.maxTrailLength) {
+                    this.trail.shift();
+                }
+                
                 this.x += this.isEnemy ? -this.speed : this.speed;
             }
             
             draw() {
                 if (this.isEnemy) {
-                    // Enemy bullet - red energy bolt
-                    // Main bolt
-                    ctx.fillStyle = '#ff0000';
-                    ctx.beginPath();
-                    ctx.moveTo(this.x, this.y + this.height / 2);
-                    ctx.lineTo(this.x + this.width * 0.7, this.y);
-                    ctx.lineTo(this.x + this.width, this.y + this.height / 2);
-                    ctx.lineTo(this.x + this.width * 0.7, this.y + this.height);
-                    ctx.closePath();
-                    ctx.fill();
-                    
-                    // Energy core
-                    ctx.fillStyle = '#ffff00';
-                    ctx.beginPath();
-                    ctx.moveTo(this.x + this.width * 0.2, this.y + this.height / 2);
-                    ctx.lineTo(this.x + this.width * 0.6, this.y + this.height * 0.2);
-                    ctx.lineTo(this.x + this.width * 0.8, this.y + this.height / 2);
-                    ctx.lineTo(this.x + this.width * 0.6, this.y + this.height * 0.8);
-                    ctx.closePath();
-                    ctx.fill();
-                    
-                    // Trail effect
-                    ctx.fillStyle = '#ff0000';
-                    ctx.globalAlpha = 0.6;
-                    ctx.fillRect(this.x - 8, this.y + this.height * 0.3, 8, this.height * 0.4);
-                    ctx.globalAlpha = 0.3;
-                    ctx.fillRect(this.x - 16, this.y + this.height * 0.4, 8, this.height * 0.2);
-                    ctx.globalAlpha = 1;
-                    
-                    // Glow effect
-                    ctx.shadowColor = '#ff0000';
-                    ctx.shadowBlur = 8;
-                    ctx.fillStyle = '#ff0000';
-                    ctx.beginPath();
-                    ctx.moveTo(this.x, this.y + this.height / 2);
-                    ctx.lineTo(this.x + this.width * 0.7, this.y);
-                    ctx.lineTo(this.x + this.width, this.y + this.height / 2);
-                    ctx.lineTo(this.x + this.width * 0.7, this.y + this.height);
-                    ctx.closePath();
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
-                    
+                    this.drawEnemyBullet();
                 } else {
-                    // Player bullet - blue energy bolt
-                    // Main bolt
-                    ctx.fillStyle = '#00ffff';
-                    ctx.beginPath();
-                    ctx.moveTo(this.x, this.y + this.height / 2);
-                    ctx.lineTo(this.x + this.width * 0.7, this.y);
-                    ctx.lineTo(this.x + this.width, this.y + this.height / 2);
-                    ctx.lineTo(this.x + this.width * 0.7, this.y + this.height);
-                    ctx.closePath();
-                    ctx.fill();
-                    
-                    // Energy core
-                    ctx.fillStyle = '#ffffff';
-                    ctx.beginPath();
-                    ctx.moveTo(this.x + this.width * 0.2, this.y + this.height / 2);
-                    ctx.lineTo(this.x + this.width * 0.6, this.y + this.height * 0.2);
-                    ctx.lineTo(this.x + this.width * 0.8, this.y + this.height / 2);
-                    ctx.lineTo(this.x + this.width * 0.6, this.y + this.height * 0.8);
-                    ctx.closePath();
-                    ctx.fill();
-                    
-                    // Trail effect
-                    ctx.fillStyle = '#00ffff';
-                    ctx.globalAlpha = 0.6;
-                    ctx.fillRect(this.x - 8, this.y + this.height * 0.3, 8, this.height * 0.4);
-                    ctx.globalAlpha = 0.3;
-                    ctx.fillRect(this.x - 16, this.y + this.height * 0.4, 8, this.height * 0.2);
-                    ctx.globalAlpha = 1;
-                    
-                    // Glow effect
-                    ctx.shadowColor = '#00ffff';
-                    ctx.shadowBlur = 8;
-                    ctx.fillStyle = '#00ffff';
-                    ctx.beginPath();
-                    ctx.moveTo(this.x, this.y + this.height / 2);
-                    ctx.lineTo(this.x + this.width * 0.7, this.y);
-                    ctx.lineTo(this.x + this.width, this.y + this.height / 2);
-                    ctx.lineTo(this.x + this.width * 0.7, this.y + this.height);
-                    ctx.closePath();
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
+                    this.drawPlayerBullet();
                 }
+            }
+            
+            drawEnemyBullet() {
+                // Enemy bullet - red energy bolt
+                // Main bolt
+                ctx.fillStyle = '#ff0000';
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y + this.height / 2);
+                ctx.lineTo(this.x + this.width * 0.7, this.y);
+                ctx.lineTo(this.x + this.width, this.y + this.height / 2);
+                ctx.lineTo(this.x + this.width * 0.7, this.y + this.height);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Energy core
+                ctx.fillStyle = '#ffff00';
+                ctx.beginPath();
+                ctx.moveTo(this.x + this.width * 0.2, this.y + this.height / 2);
+                ctx.lineTo(this.x + this.width * 0.6, this.y + this.height * 0.2);
+                ctx.lineTo(this.x + this.width * 0.8, this.y + this.height / 2);
+                ctx.lineTo(this.x + this.width * 0.6, this.y + this.height * 0.8);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Trail effect
+                ctx.fillStyle = '#ff0000';
+                ctx.globalAlpha = 0.6;
+                ctx.fillRect(this.x - 8, this.y + this.height * 0.3, 8, this.height * 0.4);
+                ctx.globalAlpha = 0.3;
+                ctx.fillRect(this.x - 16, this.y + this.height * 0.4, 8, this.height * 0.2);
+                ctx.globalAlpha = 1;
+                
+                // Glow effect
+                ctx.shadowColor = '#ff0000';
+                ctx.shadowBlur = 8;
+                ctx.fillStyle = '#ff0000';
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y + this.height / 2);
+                ctx.lineTo(this.x + this.width * 0.7, this.y);
+                ctx.lineTo(this.x + this.width, this.y + this.height / 2);
+                ctx.lineTo(this.x + this.width * 0.7, this.y + this.height);
+                ctx.closePath();
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+            
+            drawPlayerBullet() {
+                switch (this.weaponType) {
+                    case 'laser':
+                        this.drawLaser();
+                        break;
+                    case 'plasma':
+                        this.drawPlasma();
+                        break;
+                    case 'missile':
+                        this.drawMissile();
+                        break;
+                }
+            }
+            
+            drawLaser() {
+                // Laser - thin, fast, blue
+                ctx.fillStyle = '#00ffff';
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y + this.height / 2);
+                ctx.lineTo(this.x + this.width * 0.7, this.y);
+                ctx.lineTo(this.x + this.width, this.y + this.height / 2);
+                ctx.lineTo(this.x + this.width * 0.7, this.y + this.height);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Energy core
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.moveTo(this.x + this.width * 0.2, this.y + this.height / 2);
+                ctx.lineTo(this.x + this.width * 0.6, this.y + this.height * 0.2);
+                ctx.lineTo(this.x + this.width * 0.8, this.y + this.height / 2);
+                ctx.lineTo(this.x + this.width * 0.6, this.y + this.height * 0.8);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Trail effect
+                ctx.fillStyle = '#00ffff';
+                ctx.globalAlpha = 0.6;
+                ctx.fillRect(this.x - 8, this.y + this.height * 0.3, 8, this.height * 0.4);
+                ctx.globalAlpha = 0.3;
+                ctx.fillRect(this.x - 16, this.y + this.height * 0.4, 8, this.height * 0.2);
+                ctx.globalAlpha = 1;
+                
+                // Glow effect
+                ctx.shadowColor = '#00ffff';
+                ctx.shadowBlur = 8;
+                ctx.fillStyle = '#00ffff';
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y + this.height / 2);
+                ctx.lineTo(this.x + this.width * 0.7, this.y);
+                ctx.lineTo(this.x + this.width, this.y + this.height / 2);
+                ctx.lineTo(this.x + this.width * 0.7, this.y + this.height);
+                ctx.closePath();
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+            
+            drawPlasma() {
+                // Plasma - larger, green, with energy field
+                const size = this.width * 1.5;
+                
+                // Energy field
+                ctx.fillStyle = '#00ff00';
+                ctx.globalAlpha = 0.3;
+                ctx.beginPath();
+                ctx.arc(this.x + size / 2, this.y + this.height / 2, size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+                
+                // Main plasma ball
+                ctx.fillStyle = '#00ff00';
+                ctx.beginPath();
+                ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Core
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Energy rings
+                ctx.strokeStyle = '#00ff00';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 3, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 6, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                // Glow effect
+                ctx.shadowColor = '#00ff00';
+                ctx.shadowBlur = 15;
+                ctx.fillStyle = '#00ff00';
+                ctx.beginPath();
+                ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+            
+            drawMissile() {
+                // Missile - large, red, with rocket trail
+                const missileWidth = this.width * 2;
+                const missileHeight = this.height * 1.5;
+                
+                // Rocket trail
+                ctx.fillStyle = '#ff8000';
+                ctx.globalAlpha = 0.8;
+                ctx.fillRect(this.x - 20, this.y + missileHeight * 0.3, 20, missileHeight * 0.4);
+                ctx.globalAlpha = 0.5;
+                ctx.fillRect(this.x - 35, this.y + missileHeight * 0.4, 15, missileHeight * 0.2);
+                ctx.globalAlpha = 1;
+                
+                // Missile body
+                ctx.fillStyle = '#ff0000';
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y + missileHeight / 2);
+                ctx.lineTo(this.x + missileWidth * 0.8, this.y);
+                ctx.lineTo(this.x + missileWidth, this.y + missileHeight * 0.3);
+                ctx.lineTo(this.x + missileWidth, this.y + missileHeight * 0.7);
+                ctx.lineTo(this.x + missileWidth * 0.8, this.y + missileHeight);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Warhead
+                ctx.fillStyle = '#ffff00';
+                ctx.beginPath();
+                ctx.arc(this.x + missileWidth * 0.9, this.y + missileHeight / 2, missileWidth * 0.1, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Fins
+                ctx.fillStyle = '#800000';
+                ctx.fillRect(this.x + missileWidth * 0.2, this.y - 2, missileWidth * 0.3, 4);
+                ctx.fillRect(this.x + missileWidth * 0.2, this.y + missileHeight - 2, missileWidth * 0.3, 4);
+                
+                // Glow effect
+                ctx.shadowColor = '#ff0000';
+                ctx.shadowBlur = 12;
+                ctx.fillStyle = '#ff0000';
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y + missileHeight / 2);
+                ctx.lineTo(this.x + missileWidth * 0.8, this.y);
+                ctx.lineTo(this.x + missileWidth, this.y + missileHeight * 0.3);
+                ctx.lineTo(this.x + missileWidth, this.y + missileHeight * 0.7);
+                ctx.lineTo(this.x + missileWidth * 0.8, this.y + missileHeight);
+                ctx.closePath();
+                ctx.fill();
+                ctx.shadowBlur = 0;
             }
         }
         
@@ -684,12 +853,16 @@
         function shoot() {
             const bulletCount = Math.min(powerLevel, 3);
             const spread = 10;
+            const cooldown = weaponCooldowns[currentWeapon];
             
             for (let i = 0; i < bulletCount; i++) {
                 const offset = (i - (bulletCount - 1) / 2) * spread;
                 bullets.push(new Bullet(
                     player.x + player.width,
-                    player.y + player.height / 2 - 2 + offset
+                    player.y + player.height / 2 - 2 + offset,
+                    8, // speed
+                    false, // isEnemy
+                    currentWeapon
                 ));
             }
         }
@@ -730,10 +903,23 @@
             // Shooting
             if (keys['Space'] || touchControls.shoot) {
                 const currentTime = Date.now();
-                if (currentTime - lastShotTime > shotCooldown) {
+                const cooldown = weaponCooldowns[currentWeapon];
+                if (currentTime - lastShotTime > cooldown) {
                     shoot();
                     lastShotTime = currentTime;
                 }
+            }
+            
+            // Weapon switching
+            if (keys['Key1']) {
+                currentWeapon = 'laser';
+                document.getElementById('currentWeapon').textContent = 'Laser';
+            } else if (keys['Key2']) {
+                currentWeapon = 'plasma';
+                document.getElementById('currentWeapon').textContent = 'Plasma';
+            } else if (keys['Key3']) {
+                currentWeapon = 'missile';
+                document.getElementById('currentWeapon').textContent = 'Missile';
             }
             
             // Clamp player to screen
@@ -775,7 +961,7 @@
                 // Check bullet collisions
                 bullets.forEach((bullet, bulletIndex) => {
                     if (isColliding(bullet, enemy)) {
-                        enemy.health--;
+                        enemy.health -= bullet.damage;
                         bulletsToRemove.push(bulletIndex);
                         
                         if (enemy.health <= 0) {
@@ -1012,9 +1198,10 @@
         function startGame() {
             gameRunning = true;
             score = 0;
-            lives = 3;
+            lives = 5;
             powerLevel = 1;
             lastShotTime = 0;
+            currentWeapon = 'laser';
             
             // Clear arrays
             bullets = [];
