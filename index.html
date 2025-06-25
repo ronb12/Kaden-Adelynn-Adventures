@@ -158,20 +158,9 @@
         // Game objects
         let enemies = [];
         let particles = [];
-        let stars = [];
         
         // Input
         const keys = {};
-        
-        // Initialize stars
-        for (let i = 0; i < 100; i++) {
-            stars.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                speed: Math.random() * 2 + 1,
-                size: Math.random() * 2 + 1
-            });
-        }
         
         // Event listeners
         document.addEventListener('keydown', (e) => {
@@ -339,15 +328,6 @@
             ctx.restore();
         }
         
-        function drawStars() {
-            ctx.fillStyle = '#ffffff';
-            stars.forEach(star => {
-                ctx.beginPath();
-                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-                ctx.fill();
-            });
-        }
-        
         function updatePlayer() {
             // Movement
             if (keys['KeyA'] || keys['ArrowLeft']) player.x -= player.speed;
@@ -455,16 +435,6 @@
             });
         }
         
-        function updateStars() {
-            stars.forEach(star => {
-                star.y += star.speed;
-                if (star.y > canvas.height) {
-                    star.y = -10;
-                    star.x = Math.random() * canvas.width;
-                }
-            });
-        }
-        
         function updateLevel() {
             level = Math.floor(score / 1000) + 1;
         }
@@ -488,12 +458,10 @@
             spawnEnemy();
             updateEnemies();
             updateParticles();
-            updateStars();
             updateLevel();
             updateUI();
             
             // Draw everything
-            drawStars();
             drawPlayer();
             enemies.forEach(drawEnemy);
             player.bullets.forEach(drawBullet);
@@ -506,9 +474,6 @@
         function startScreenLoop() {
             ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            updateStars();
-            drawStars();
             
             requestAnimationFrame(startScreenLoop);
         }

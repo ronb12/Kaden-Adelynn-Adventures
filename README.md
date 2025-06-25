@@ -36,7 +36,7 @@ The game is a **single HTML file** that works immediately in any web browser wit
 ### Visual Excellence
 - **No Blinking Effects** - Ships are always visible (no annoying invulnerability flashing)
 - **Glowing Effects** - Engine exhaust, cockpit highlights, and weapon fire
-- **Starfield Background** - Animated stars moving across the screen
+- **Clean Space Background** - Distraction-free gameplay environment
 - **Color-Coded Ships** - Blue player fighter vs red enemy fighters
 - **Professional UI** - Clean, modern interface design
 
