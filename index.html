@@ -352,7 +352,10 @@
             <div class="tabView" id="tabSettingsView" style="display:none;">
                 <div class="tabContent">
                     <h2>⚙️ Settings</h2>
-                    <p>Sound, music, and other settings coming soon!</p>
+                    <button id="soundBtn" onclick="toggleSound()" style="margin: 10px; padding: 10px 20px; background: #00ffff; border: none; border-radius: 5px; color: #000; font-size: 16px;">🔊 Sound: ON</button>
+                    <button id="musicBtn" onclick="toggleMusic()" style="margin: 10px; padding: 10px 20px; background: #00ffff; border: none; border-radius: 5px; color: #000; font-size: 16px;">🎵 Music: ON</button>
+                    <p>High Score: <span id="highScoreDisplay">0</span></p>
+                    <p>FPS: <span id="fpsDisplay">60</span></p>
                 </div>
             </div>
             <div class="tabView" id="tabAboutView" style="display:none;">
@@ -397,6 +400,34 @@
             laser: 100,    // Faster laser
             plasma: 200,   // Balanced plasma
             missile: 400   // Still powerful but not too slow
+        };
+        
+        // Audio system
+        let audioContext = null;
+        let soundEnabled = true;
+        let musicEnabled = true;
+        let backgroundMusic = null;
+        
+        // Performance optimization
+        let lastFrameTime = 0;
+        let frameCount = 0;
+        let fps = 60;
+        let objectPool = {
+            bullets: [],
+            explosions: [],
+            particles: []
+        };
+        
+        // Game progression
+        let difficulty = 1;
+        let combo = 1;
+        let comboTime = 0;
+        let highScore = localStorage.getItem('gradiusHighScore') || 0;
+        let achievements = {
+            firstKill: false,
+            powerUpCollector: false,
+            bossSlayer: false,
+            survivor: false
         };
         
         // Power-Up System
@@ -512,6 +543,135 @@
                     speed: 0.5 + Math.random() * 2,
                     size: Math.random() * 2 + 1
                 });
+            }
+        }
+        
+        // Audio system functions
+        function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                console.log('Audio not supported');
+            }
+        }
+        
+        function playSound(frequency, duration, type = 'sine', volume = 0.3) {
+            if (!soundEnabled || !audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+        
+        function playShootSound() {
+            playSound(800, 0.1, 'square', 0.2);
+        }
+        
+        function playExplosionSound() {
+            playSound(200, 0.3, 'sawtooth', 0.4);
+        }
+        
+        function playPowerUpSound() {
+            playSound(600, 0.2, 'sine', 0.3);
+            setTimeout(() => playSound(800, 0.2, 'sine', 0.3), 100);
+        }
+        
+        function playDamageSound() {
+            playSound(150, 0.4, 'triangle', 0.5);
+        }
+        
+        function playBossSound() {
+            playSound(100, 0.5, 'sawtooth', 0.6);
+        }
+        
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            updateSettingsUI();
+        }
+        
+        function toggleMusic() {
+            musicEnabled = !musicEnabled;
+            updateSettingsUI();
+        }
+        
+        function updateSettingsUI() {
+            const soundBtn = document.getElementById('soundBtn');
+            const musicBtn = document.getElementById('musicBtn');
+            if (soundBtn) soundBtn.textContent = soundEnabled ? '🔊 Sound: ON' : '🔇 Sound: OFF';
+            if (musicBtn) musicBtn.textContent = musicEnabled ? '🎵 Music: ON' : '🔇 Music: OFF';
+        }
+        
+        // Performance optimization functions
+        function getObjectFromPool(type) {
+            if (objectPool[type].length > 0) {
+                return objectPool[type].pop();
+            }
+            return null;
+        }
+        
+        function returnObjectToPool(type, obj) {
+            if (objectPool[type].length < 50) { // Limit pool size
+                objectPool[type].push(obj);
+            }
+        }
+        
+        function calculateFPS(currentTime) {
+            frameCount++;
+            if (currentTime - lastFrameTime >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastFrameTime = currentTime;
+            }
+        }
+        
+        function screenShake(intensity = 5, duration = 200) {
+            const originalX = canvas.style.transform;
+            let shakeCount = 0;
+            const maxShakes = duration / 16; // 60fps
+            
+            const shake = () => {
+                if (shakeCount >= maxShakes) {
+                    canvas.style.transform = originalX;
+                    return;
+                }
+                
+                const x = (Math.random() - 0.5) * intensity;
+                const y = (Math.random() - 0.5) * intensity;
+                canvas.style.transform = `translate(${x}px, ${y}px)`;
+                
+                shakeCount++;
+                setTimeout(shake, 16);
+            };
+            
+            shake();
+        }
+        
+        function createParticleEffect(x, y, color, count = 10) {
+            for (let i = 0; i < count; i++) {
+                const particle = {
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8,
+                    life: 30,
+                    color: color,
+                    size: Math.random() * 3 + 1
+                };
+                
+                // Add to particles array (will be cleaned up in update)
+                if (!window.particles) window.particles = [];
+                window.particles.push(particle);
             }
         }
         
@@ -968,9 +1128,9 @@
                     ctx.lineWidth = 1;
                     ctx.beginPath();
                     ctx.moveTo(this.x + this.width * 0.5, this.y + this.height * 0.1);
-                    ctx.lineTo(this.x + this.width * 0.7, this.y + this.height * 0.15);
+                    ctx.lineTo(this.x + this.width * 0.7, this.y + this.height * 0.25);
                     ctx.moveTo(this.x + this.width * 0.5, this.y + this.height * 0.9);
-                    ctx.lineTo(this.x + this.width * 0.7, this.y + this.height * 0.85);
+                    ctx.lineTo(this.x + this.width * 0.7, this.y + this.height * 0.75);
                     ctx.stroke();
                     
                     // Engine glow with multiple engines
@@ -1326,6 +1486,9 @@
             
             if (Date.now() - lastShotTime < cooldown) return;
             
+            // Play shoot sound
+            playShootSound();
+            
             let bulletSpeed = 10;
             if (currentWeapon === 'laser') bulletSpeed = 12;
             else if (currentWeapon === 'plasma') bulletSpeed = 9;
@@ -1341,6 +1504,9 @@
                     currentWeapon
                 ));
             }
+            
+            // Create muzzle flash effect
+            createParticleEffect(player.x + player.width, player.y + player.height / 2, '#ffff00', 5);
             
             lastShotTime = Date.now();
         }
@@ -1464,6 +1630,10 @@
                         enemy.health -= bullet.damage;
                         if (enemy.health <= 0) {
                             score += enemy.type === 'boss' ? 500 : 100;
+                            // Play explosion sound
+                            playExplosionSound();
+                            // Create explosion particles
+                            createParticleEffect(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2, '#ff8000', 20);
                             explosions.push(new Explosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2, 2));
                             enemies = enemies.filter(e => e !== enemy);
                         }
@@ -1477,6 +1647,10 @@
                     bossHealth = currentBoss.health;
                     if (currentBoss.health <= 0) {
                         score += 2000;
+                        // Play boss explosion sound
+                        playBossSound();
+                        // Create massive explosion particles
+                        createParticleEffect(currentBoss.x + currentBoss.width / 2, currentBoss.y + currentBoss.height / 2, '#ff0000', 50);
                         explosions.push(new Explosion(currentBoss.x + currentBoss.width / 2, currentBoss.y + currentBoss.height / 2, 4));
                         currentBoss = null;
                         bossHealth = 0;
@@ -1488,6 +1662,10 @@
             // Player-power-up collisions
             powerUps.forEach(powerUp => {
                 if (isColliding(player, powerUp)) {
+                    // Play power-up sound
+                    playPowerUpSound();
+                    // Create power-up particles
+                    createParticleEffect(powerUp.x + powerUp.width / 2, powerUp.y + powerUp.height / 2, '#00ff00', 10);
                     activatePowerUp(powerUp.type);
                     powerUps = powerUps.filter(p => p !== powerUp);
                 }
@@ -1500,6 +1678,15 @@
             lives--;
             player.invulnerable = true;
             player.invulnerableTime = Date.now() + 2000;
+            
+            // Play damage sound
+            playDamageSound();
+            
+            // Screen shake effect
+            screenShake(8, 300);
+            
+            // Create damage particles
+            createParticleEffect(player.x + player.width / 2, player.y + player.height / 2, '#ff0000', 15);
             
             if (lives <= 0) {
                 gameOver();
@@ -1576,6 +1763,17 @@
             // Draw explosions
             explosions.forEach(explosion => explosion.draw());
             
+            // Draw particles
+            if (window.particles) {
+                window.particles.forEach(p => {
+                    const alpha = p.life / 30;
+                    ctx.globalAlpha = alpha;
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x, p.y, p.size, p.size);
+                });
+                ctx.globalAlpha = 1;
+            }
+            
             // Update UI
             document.getElementById('score').textContent = score;
             document.getElementById('lives').textContent = lives;
@@ -1596,118 +1794,162 @@
         
         // Draw player function
         function drawPlayer() {
-            // Main ship body - more detailed shape
+            // Enhanced player ship design with multiple layers and effects
+            
+            // Main hull - sleek fighter design
             ctx.fillStyle = '#00ffff';
             ctx.beginPath();
             ctx.moveTo(player.x, player.y + player.height / 2);
-            ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.1);
-            ctx.lineTo(player.x + player.width * 0.8, player.y);
-            ctx.lineTo(player.x + player.width, player.y + player.height * 0.2);
-            ctx.lineTo(player.x + player.width, player.y + player.height * 0.8);
-            ctx.lineTo(player.x + player.width * 0.8, player.y + player.height);
-            ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.9);
+            ctx.lineTo(player.x + player.width * 0.3, player.y + player.height * 0.1);
+            ctx.lineTo(player.x + player.width * 0.7, player.y);
+            ctx.lineTo(player.x + player.width * 0.9, player.y + player.height * 0.2);
+            ctx.lineTo(player.x + player.width, player.y + player.height * 0.4);
+            ctx.lineTo(player.x + player.width, player.y + player.height * 0.6);
+            ctx.lineTo(player.x + player.width * 0.9, player.y + player.height * 0.8);
+            ctx.lineTo(player.x + player.width * 0.7, player.y + player.height);
+            ctx.lineTo(player.x + player.width * 0.3, player.y + player.height * 0.9);
             ctx.closePath();
             ctx.fill();
             
-            // Secondary hull
+            // Secondary hull - darker accent
             ctx.fillStyle = '#0080ff';
             ctx.beginPath();
-            ctx.moveTo(player.x + player.width * 0.2, player.y + player.height * 0.3);
-            ctx.lineTo(player.x + player.width * 0.7, player.y + player.height * 0.2);
-            ctx.lineTo(player.x + player.width * 0.7, player.y + player.height * 0.8);
-            ctx.lineTo(player.x + player.width * 0.2, player.y + player.height * 0.7);
+            ctx.moveTo(player.x + player.width * 0.2, player.y + player.height * 0.2);
+            ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.15);
+            ctx.lineTo(player.x + player.width * 0.8, player.y + player.height * 0.25);
+            ctx.lineTo(player.x + player.width * 0.8, player.y + player.height * 0.75);
+            ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.85);
+            ctx.lineTo(player.x + player.width * 0.2, player.y + player.height * 0.8);
             ctx.closePath();
             ctx.fill();
             
-            // Cockpit with better detail
-            ctx.fillStyle = '#0080ff';
+            // Cockpit with advanced detail
+            ctx.fillStyle = '#004080';
             ctx.beginPath();
-            ctx.ellipse(player.x + player.width * 0.65, player.y + player.height / 2, 
-                       player.width * 0.12, player.height * 0.25, 0, 0, Math.PI * 2);
+            ctx.ellipse(player.x + player.width * 0.75, player.y + player.height / 2, 
+                       player.width * 0.15, player.height * 0.3, 0, 0, Math.PI * 2);
             ctx.fill();
             
-            // Cockpit glass
+            // Cockpit glass with reflection
             ctx.fillStyle = '#ffffff';
-            ctx.globalAlpha = 0.7;
+            ctx.globalAlpha = 0.8;
             ctx.beginPath();
-            ctx.ellipse(player.x + player.width * 0.65, player.y + player.height / 2, 
-                       player.width * 0.08, player.height * 0.2, 0, 0, Math.PI * 2);
+            ctx.ellipse(player.x + player.width * 0.75, player.y + player.height / 2, 
+                       player.width * 0.1, player.height * 0.25, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Cockpit highlight
+            ctx.fillStyle = '#ffffff';
+            ctx.globalAlpha = 0.4;
+            ctx.beginPath();
+            ctx.ellipse(player.x + player.width * 0.7, player.y + player.height * 0.4, 
+                       player.width * 0.05, player.height * 0.1, 0, 0, Math.PI * 2);
             ctx.fill();
             ctx.globalAlpha = 1;
             
-            // Weapon mounts
+            // Weapon mounts with detail
             ctx.fillStyle = '#404040';
-            ctx.fillRect(player.x + player.width * 0.85, player.y + player.height * 0.3, 
-                       player.width * 0.1, player.height * 0.4);
+            ctx.fillRect(player.x + player.width * 0.85, player.y + player.height * 0.25, 
+                       player.width * 0.12, player.height * 0.5);
             
-            // Engine glow with multiple engines
-            ctx.fillStyle = '#ffff00';
-            ctx.beginPath();
-            ctx.moveTo(player.x, player.y + player.height * 0.25);
-            ctx.lineTo(player.x - 10, player.y + player.height * 0.35);
-            ctx.lineTo(player.x - 10, player.y + player.height * 0.45);
-            ctx.lineTo(player.x, player.y + player.height * 0.35);
-            ctx.closePath();
-            ctx.fill();
+            // Weapon mount highlights
+            ctx.fillStyle = '#606060';
+            ctx.fillRect(player.x + player.width * 0.85, player.y + player.height * 0.25, 
+                       player.width * 0.12, player.height * 0.1);
+            ctx.fillRect(player.x + player.width * 0.85, player.y + player.height * 0.65, 
+                       player.width * 0.12, player.height * 0.1);
             
-            ctx.beginPath();
-            ctx.moveTo(player.x, player.y + player.height * 0.55);
-            ctx.lineTo(player.x - 10, player.y + player.height * 0.65);
-            ctx.lineTo(player.x - 10, player.y + player.height * 0.75);
-            ctx.lineTo(player.x, player.y + player.height * 0.65);
-            ctx.closePath();
-            ctx.fill();
-            
-            // Engine exhaust with better effects
-            ctx.fillStyle = '#ff8000';
-            ctx.beginPath();
-            ctx.moveTo(player.x - 10, player.y + player.height * 0.35);
-            ctx.lineTo(player.x - 18, player.y + player.height * 0.3);
-            ctx.lineTo(player.x - 18, player.y + player.height * 0.5);
-            ctx.lineTo(player.x - 10, player.y + player.height * 0.45);
-            ctx.closePath();
-            ctx.fill();
-            
-            ctx.beginPath();
-            ctx.moveTo(player.x - 10, player.y + player.height * 0.75);
-            ctx.lineTo(player.x - 18, player.y + player.height * 0.65);
-            ctx.lineTo(player.x - 18, player.y + player.height * 0.85);
-            ctx.lineTo(player.x - 10, player.y + player.height * 0.8);
-            ctx.closePath();
-            ctx.fill();
-            
-            // Wing details with better structure
+            // Wing details with advanced structure
             ctx.strokeStyle = '#0080ff';
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.moveTo(player.x + player.width * 0.3, player.y);
-            ctx.lineTo(player.x + player.width * 0.5, player.y + player.height * 0.15);
-            ctx.moveTo(player.x + player.width * 0.3, player.y + player.height);
-            ctx.lineTo(player.x + player.width * 0.5, player.y + player.height * 0.85);
+            ctx.moveTo(player.x + player.width * 0.4, player.y);
+            ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.2);
+            ctx.moveTo(player.x + player.width * 0.4, player.y + player.height);
+            ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.8);
             ctx.stroke();
             
             // Additional wing details
             ctx.strokeStyle = '#00ffff';
             ctx.lineWidth = 1;
             ctx.beginPath();
-            ctx.moveTo(player.x + player.width * 0.4, player.y + player.height * 0.1);
-            ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.2);
-            ctx.moveTo(player.x + player.width * 0.4, player.y + player.height * 0.9);
-            ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.8);
+            ctx.moveTo(player.x + player.width * 0.5, player.y + player.height * 0.1);
+            ctx.lineTo(player.x + player.width * 0.7, player.y + player.height * 0.25);
+            ctx.moveTo(player.x + player.width * 0.5, player.y + player.height * 0.9);
+            ctx.lineTo(player.x + player.width * 0.7, player.y + player.height * 0.75);
             ctx.stroke();
             
-            // Add glow effect
+            // Engine glow with multiple engines and effects
+            ctx.fillStyle = '#ffff00';
+            ctx.beginPath();
+            ctx.moveTo(player.x, player.y + player.height * 0.2);
+            ctx.lineTo(player.x - 12, player.y + player.height * 0.3);
+            ctx.lineTo(player.x - 12, player.y + player.height * 0.4);
+            ctx.lineTo(player.x, player.y + player.height * 0.35);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(player.x, player.y + player.height * 0.6);
+            ctx.lineTo(player.x - 12, player.y + player.height * 0.7);
+            ctx.lineTo(player.x - 12, player.y + player.height * 0.8);
+            ctx.lineTo(player.x, player.y + player.height * 0.75);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Engine exhaust with enhanced effects
+            ctx.fillStyle = '#ff8000';
+            ctx.beginPath();
+            ctx.moveTo(player.x - 12, player.y + player.height * 0.3);
+            ctx.lineTo(player.x - 20, player.y + player.height * 0.25);
+            ctx.lineTo(player.x - 20, player.y + player.height * 0.45);
+            ctx.lineTo(player.x - 12, player.y + player.height * 0.4);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(player.x - 12, player.y + player.height * 0.7);
+            ctx.lineTo(player.x - 20, player.y + player.height * 0.65);
+            ctx.lineTo(player.x - 20, player.y + player.height * 0.85);
+            ctx.lineTo(player.x - 12, player.y + player.height * 0.8);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Engine exhaust particles
+            ctx.fillStyle = '#ff4000';
+            ctx.globalAlpha = 0.7;
+            for (let i = 0; i < 3; i++) {
+                ctx.fillRect(player.x - 20 - i * 5, player.y + player.height * 0.3 + Math.random() * 0.2, 3, 3);
+                ctx.fillRect(player.x - 20 - i * 5, player.y + player.height * 0.7 + Math.random() * 0.2, 3, 3);
+            }
+            ctx.globalAlpha = 1;
+            
+            // Energy field effect when invulnerable
+            if (player.invulnerable) {
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.globalAlpha = 0.5;
+                ctx.beginPath();
+                ctx.arc(player.x + player.width / 2, player.y + player.height / 2, 
+                       Math.max(player.width, player.height) / 2 + 15, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+            }
+            
+            // Add glow effect for the entire ship
             ctx.shadowColor = '#00ffff';
-            ctx.shadowBlur = 20;
+            ctx.shadowBlur = 25;
             ctx.fillStyle = '#00ffff';
             ctx.beginPath();
             ctx.moveTo(player.x, player.y + player.height / 2);
-            ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.1);
-            ctx.lineTo(player.x + player.width * 0.8, player.y);
-            ctx.lineTo(player.x + player.width, player.y + player.height * 0.2);
-            ctx.lineTo(player.x + player.width, player.y + player.height * 0.8);
-            ctx.lineTo(player.x + player.width * 0.8, player.y + player.height);
-            ctx.lineTo(player.x + player.width * 0.6, player.y + player.height * 0.9);
+            ctx.lineTo(player.x + player.width * 0.3, player.y + player.height * 0.1);
+            ctx.lineTo(player.x + player.width * 0.7, player.y);
+            ctx.lineTo(player.x + player.width * 0.9, player.y + player.height * 0.2);
+            ctx.lineTo(player.x + player.width, player.y + player.height * 0.4);
+            ctx.lineTo(player.x + player.width, player.y + player.height * 0.6);
+            ctx.lineTo(player.x + player.width * 0.9, player.y + player.height * 0.8);
+            ctx.lineTo(player.x + player.width * 0.7, player.y + player.height);
+            ctx.lineTo(player.x + player.width * 0.3, player.y + player.height * 0.9);
             ctx.closePath();
             ctx.fill();
             ctx.shadowBlur = 0;
@@ -1781,6 +2023,24 @@
                 update();
             }
             draw();
+            
+            // Performance monitoring
+            calculateFPS(performance.now());
+            document.getElementById('fpsDisplay').textContent = fps;
+            document.getElementById('highScoreDisplay').textContent = highScore;
+            
+            // Update particles
+            if (window.particles) {
+                window.particles = window.particles.filter(p => p.life > 0);
+                window.particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.life--;
+                    p.vx *= 0.98; // Air resistance
+                    p.vy *= 0.98;
+                });
+            }
+            
             requestAnimationFrame(gameLoop);
         }
         
@@ -1793,6 +2053,8 @@
         
         // Initialize and start
         initStars();
+        initAudio();
+        updateSettingsUI();
         gameLoop();
         
         // Canvas resize function for responsive design
