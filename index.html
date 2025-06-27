@@ -2780,92 +2780,6 @@
             });
         }
         
-        function updateEnemyBullets() {
-            enemyBullets = enemyBullets.filter(bullet => {
-                // Update bullet position
-                bullet.x += bullet.vx || 0;
-                bullet.y += bullet.vy || 4;
-                
-                // Check collision with player
-                if (Math.abs(bullet.x - player.x) < 20 && Math.abs(bullet.y - player.y) < 20) {
-                    if (player.shield) {
-                        player.shield = false;
-                        player.shieldTimer = 0;
-                        explosionSound.currentTime = 0; explosionSound.play();
-                        combo = 0;
-                        return false;
-                    }
-                    // Use ship defense to reduce damage
-                    const ship = ships[player.shipType] || ships[0];
-                    lives -= 1 / ship.defense;
-                    if (lives <= 0) {
-                        gameOver();
-                        return false;
-                    }
-                    for (let i = 0; i < 10; i++) {
-                        particles.push({
-                            x: player.x,
-                            y: player.y,
-                            vx: (Math.random() - 0.5) * 8,
-                            vy: (Math.random() - 0.5) * 8,
-                            size: Math.random() * 4 + 2,
-                            color: '#ff4444',
-                            alpha: 1,
-                            life: 40
-                        });
-                    }
-                    explosionSound.currentTime = 0; explosionSound.play();
-                    combo = 0;
-                    return false;
-                }
-                
-                return bullet.y < canvas.height + 50 && bullet.y > -50;
-            });
-        }
-        
-        function updateBossBullets() {
-            bossBullets = bossBullets.filter(bullet => {
-                // Update bullet position
-                bullet.x += bullet.vx || 0;
-                bullet.y += bullet.vy || 3;
-                
-                // Check collision with player
-                if (Math.abs(bullet.x - player.x) < 25 && Math.abs(bullet.y - player.y) < 25) {
-                    if (player.shield) {
-                        player.shield = false;
-                        player.shieldTimer = 0;
-                        explosionSound.currentTime = 0; explosionSound.play();
-                        combo = 0;
-                        return false;
-                    }
-                    // Boss bullets do more damage
-                    const ship = ships[player.shipType] || ships[0];
-                    lives -= 2 / ship.defense;
-                    if (lives <= 0) {
-                        gameOver();
-                        return false;
-                    }
-                    for (let i = 0; i < 15; i++) {
-                        particles.push({
-                            x: player.x,
-                            y: player.y,
-                            vx: (Math.random() - 0.5) * 10,
-                            vy: (Math.random() - 0.5) * 10,
-                            size: Math.random() * 5 + 3,
-                            color: '#ff0000',
-                            alpha: 1,
-                            life: 50
-                        });
-                    }
-                    explosionSound.currentTime = 0; explosionSound.play();
-                    combo = 0;
-                    return false;
-                }
-                
-                return bullet.y < canvas.height + 50 && bullet.y > -50;
-            });
-        }
-        
         function spawnEnemy() {
             // Don't spawn regular enemies during boss battles
             if (currentBoss) return;
@@ -3708,71 +3622,165 @@
             }
         });
 
+        // --- ENHANCED MENU SYSTEM ---
+        
+        // Add missing critical functions
+        function updateEnemyBullets() {
+            enemyBullets = enemyBullets.filter(bullet => {
+                bullet.x += bullet.vx || 0;
+                bullet.y += bullet.vy || bullet.speed || 4;
+                
+                // Check collision with player
+                if (Math.abs(player.x - bullet.x) < 20 && Math.abs(player.y - bullet.y) < 20) {
+                    if (player.shield) {
+                        player.shield = false;
+                        player.shieldTimer = 0;
+                        explosionSound.currentTime = 0; explosionSound.play();
+                        combo = 0;
+                        return false;
+                    }
+                    const ship = ships[player.shipType] || ships[0];
+                    lives -= 1 / ship.defense;
+                    if (lives <= 0) {
+                        gameOver();
+                        return false;
+                    }
+                    for (let i = 0; i < 8; i++) {
+                        particles.push({
+                            x: player.x,
+                            y: player.y,
+                            vx: (Math.random() - 0.5) * 6,
+                            vy: (Math.random() - 0.5) * 6,
+                            size: Math.random() * 3 + 2,
+                            color: '#ff4444',
+                            alpha: 1,
+                            life: 30
+                        });
+                    }
+                    explosionSound.currentTime = 0; explosionSound.play();
+                    combo = 0;
+                    return false;
+                }
+                
+                return bullet.y < canvas.height + 20 && bullet.y > -20;
+            });
+        }
+        
+        function updateBossBullets() {
+            bossBullets = bossBullets.filter(bullet => {
+                bullet.x += bullet.vx || 0;
+                bullet.y += bullet.vy || bullet.speed || 5;
+                
+                // Check collision with player
+                if (Math.abs(player.x - bullet.x) < 25 && Math.abs(player.y - bullet.y) < 25) {
+                    if (player.shield) {
+                        player.shield = false;
+                        player.shieldTimer = 0;
+                        explosionSound.currentTime = 0; explosionSound.play();
+                        combo = 0;
+                        return false;
+                    }
+                    const ship = ships[player.shipType] || ships[0];
+                    lives -= 2 / ship.defense; // Boss bullets do more damage
+                    if (lives <= 0) {
+                        gameOver();
+                        return false;
+                    }
+                    for (let i = 0; i < 12; i++) {
+                        particles.push({
+                            x: player.x,
+                            y: player.y,
+                            vx: (Math.random() - 0.5) * 8,
+                            vy: (Math.random() - 0.5) * 8,
+                            size: Math.random() * 4 + 3,
+                            color: '#ff00ff',
+                            alpha: 1,
+                            life: 40
+                        });
+                    }
+                    explosionSound.currentTime = 0; explosionSound.play();
+                    combo = 0;
+                    return false;
+                }
+                
+                return bullet.y < canvas.height + 30 && bullet.y > -30;
+            });
+        }
+        
         function updateBoss() {
             if (!currentBoss) return;
             
             // Boss movement
             if (currentBoss.y < 100) {
-                currentBoss.y += currentBoss.speed;
+                currentBoss.y += 2;
             } else {
-                // Boss is in position, start attacking
+                // Boss attack patterns
                 currentBoss.attackCooldown--;
                 if (currentBoss.attackCooldown <= 0) {
-                    // Choose attack pattern
-                    const attack = currentBoss.attacks[currentBoss.currentAttack];
-                    if (attack === 'laser') {
-                        // Laser attack - straight line
-                        for (let i = 0; i < 5; i++) {
-                            bossBullets.push({
-                                x: currentBoss.x + (i - 2) * 20,
-                                y: currentBoss.y + currentBoss.height/2,
-                                vx: 0,
-                                vy: 5,
-                                size: 6,
-                                color: '#ff0000'
-                            });
-                        }
-                    } else if (attack === 'missile') {
-                        // Missile attack - homing
-                        bossBullets.push({
-                            x: currentBoss.x,
-                            y: currentBoss.y + currentBoss.height/2,
-                            vx: (player.x - currentBoss.x) * 0.1,
-                            vy: 4,
-                            size: 8,
-                            color: '#ff8800'
-                        });
-                    } else if (attack === 'shield') {
-                        // Shield attack - spread
-                        for (let i = 0; i < 8; i++) {
-                            const angle = (i * Math.PI * 2) / 8;
-                            bossBullets.push({
-                                x: currentBoss.x,
-                                y: currentBoss.y + currentBoss.height/2,
-                                vx: Math.cos(angle) * 4,
-                                vy: Math.sin(angle) * 4,
-                                size: 5,
-                                color: '#00ffff'
-                            });
-                        }
-                    } else if (attack === 'bomb') {
-                        // Bomb attack - explosion pattern
-                        for (let i = 0; i < 12; i++) {
-                            const angle = (i * Math.PI * 2) / 12;
-                            bossBullets.push({
-                                x: currentBoss.x,
-                                y: currentBoss.y + currentBoss.height/2,
-                                vx: Math.cos(angle) * 6,
-                                vy: Math.sin(angle) * 6,
-                                size: 7,
-                                color: '#ff00ff'
-                            });
-                        }
+                    const attackType = currentBoss.attacks[currentBoss.currentAttack % currentBoss.attacks.length];
+                    
+                    switch (attackType) {
+                        case 'laser':
+                            // Laser attack - straight line
+                            for (let i = 0; i < 5; i++) {
+                                bossBullets.push({
+                                    x: currentBoss.x + (i - 2) * 20,
+                                    y: currentBoss.y + currentBoss.height/2,
+                                    vx: 0,
+                                    vy: 6,
+                                    size: 4,
+                                    color: '#ff0000'
+                                });
+                            }
+                            break;
+                        case 'missile':
+                            // Missile attack - homing
+                            for (let i = 0; i < 3; i++) {
+                                const dx = player.x - currentBoss.x;
+                                const dy = player.y - currentBoss.y;
+                                const distance = Math.sqrt(dx * dx + dy * dy);
+                                bossBullets.push({
+                                    x: currentBoss.x + (i - 1) * 30,
+                                    y: currentBoss.y + currentBoss.height/2,
+                                    vx: (dx / distance) * 4,
+                                    vy: (dy / distance) * 4,
+                                    size: 6,
+                                    color: '#ff8800'
+                                });
+                            }
+                            break;
+                        case 'shield':
+                            // Shield attack - circular pattern
+                            for (let i = 0; i < 8; i++) {
+                                const angle = (i / 8) * Math.PI * 2;
+                                bossBullets.push({
+                                    x: currentBoss.x,
+                                    y: currentBoss.y,
+                                    vx: Math.cos(angle) * 5,
+                                    vy: Math.sin(angle) * 5,
+                                    size: 3,
+                                    color: '#00ffff'
+                                });
+                            }
+                            break;
+                        case 'bomb':
+                            // Bomb attack - explosive
+                            for (let i = 0; i < 12; i++) {
+                                const angle = (i / 12) * Math.PI * 2;
+                                bossBullets.push({
+                                    x: currentBoss.x,
+                                    y: currentBoss.y,
+                                    vx: Math.cos(angle) * 3,
+                                    vy: Math.sin(angle) * 3 + 2,
+                                    size: 5,
+                                    color: '#ff00ff'
+                                });
+                            }
+                            break;
                     }
                     
-                    // Cycle to next attack
-                    currentBoss.currentAttack = (currentBoss.currentAttack + 1) % currentBoss.attacks.length;
-                    currentBoss.attackCooldown = 120; // 2 seconds between attacks
+                    currentBoss.currentAttack++;
+                    currentBoss.attackCooldown = 120 + Math.random() * 60;
                 }
             }
             
@@ -3785,30 +3793,52 @@
                     currentBoss.health--;
                     player.bullets.splice(bulletIndex, 1);
                     
-                    // Boss defeated
+                    // Boss hit particles
+                    for (let i = 0; i < 10; i++) {
+                        particles.push({
+                            x: bullet.x,
+                            y: bullet.y,
+                            vx: (Math.random() - 0.5) * 8,
+                            vy: (Math.random() - 0.5) * 8,
+                            size: Math.random() * 4 + 2,
+                            color: '#ffd700',
+                            alpha: 1,
+                            life: 25
+                        });
+                    }
+                    
                     if (currentBoss.health <= 0) {
+                        // Boss defeated
                         for (let i = 0; i < 30; i++) {
                             particles.push({
                                 x: currentBoss.x,
                                 y: currentBoss.y,
                                 vx: (Math.random() - 0.5) * 15,
                                 vy: (Math.random() - 0.5) * 15,
-                                size: Math.random() * 5 + 3,
+                                size: Math.random() * 6 + 3,
                                 color: '#ff00ff',
                                 alpha: 1,
                                 life: 60
                             });
                         }
                         score += currentBoss.points;
+                        enemiesDestroyed++;
+                        bigEnemiesDestroyed++;
+                        combo++;
+                        comboTimer = 60;
+                        if (combo > maxCombo) maxCombo = combo;
+                        showCombo();
                         currentBoss = null;
+                        bossBullets = [];
+                        console.log(`Boss defeated! Score: ${score}`);
                         return;
                     }
                 }
             }
             
             // Check collision with player
-            if (Math.abs(player.x - currentBoss.x) < currentBoss.width/2 && 
-                Math.abs(player.y - currentBoss.y) < currentBoss.height/2) {
+            if (Math.abs(player.x - currentBoss.x) < currentBoss.width/2 + 20 && 
+                Math.abs(player.y - currentBoss.y) < currentBoss.height/2 + 20) {
                 if (player.shield) {
                     player.shield = false;
                     player.shieldTimer = 0;
@@ -3816,18 +3846,18 @@
                     combo = 0;
                 } else {
                     const ship = ships[player.shipType] || ships[0];
-                    lives -= 3 / ship.defense; // Boss collision does more damage
+                    lives -= 3 / ship.defense; // Boss collision does heavy damage
                     if (lives <= 0) {
                         gameOver();
                         return;
                     }
-                    for (let i = 0; i < 20; i++) {
+                    for (let i = 0; i < 15; i++) {
                         particles.push({
                             x: player.x,
                             y: player.y,
-                            vx: (Math.random() - 0.5) * 12,
-                            vy: (Math.random() - 0.5) * 12,
-                            size: Math.random() * 6 + 3,
+                            vx: (Math.random() - 0.5) * 10,
+                            vy: (Math.random() - 0.5) * 10,
+                            size: Math.random() * 5 + 3,
                             color: '#ff4444',
                             alpha: 1,
                             life: 50
@@ -3839,15 +3869,7 @@
             }
         }
         
-        function updateParticles() {
-            particles = particles.filter(particle => {
-                particle.x += particle.vx;
-                particle.y += particle.vy;
-                particle.alpha -= 1 / particle.life;
-                particle.life--;
-                return particle.life > 0 && particle.alpha > 0;
-            });
-        }
+        // Game state variables
     </script>
 </body>
 </html>
