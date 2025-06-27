@@ -47,9 +47,11 @@
         }
 
         .game-container {
-            position: relative;
-            width: min(100vw, 800px);
-            height: min(100vh, 500px);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
             background: linear-gradient(to bottom, #000011, #000033, #000011);
             overflow: hidden;
             display: flex;
@@ -57,17 +59,14 @@
             justify-content: flex-start;
             align-items: stretch;
             z-index: 1;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(68,68,255,0.3);
             user-select: none;
             -webkit-user-select: none;
         }
 
         @media (max-width: 900px), (max-height: 600px) {
             .game-container {
-                width: min(100vw, 600px);
-                height: min(100vh, 400px);
-                border-radius: 8px;
+                width: 100vw;
+                height: 100vh;
             }
         }
 
@@ -75,7 +74,6 @@
             .game-container {
                 width: 100vw;
                 height: 100vh;
-                border-radius: 0;
             }
         }
 
@@ -235,11 +233,11 @@
         }
 
         #startScreen {
-            position: absolute;
+            position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.95);
             padding: 30px;
             border-radius: 20px;
             text-align: center;
@@ -247,35 +245,45 @@
             max-width: 90vw;
             max-height: 90vh;
             overflow-y: auto;
+            border: 2px solid #4444ff;
+            box-shadow: 0 0 30px rgba(68,68,255,0.5);
         }
 
         #startScreen h1 {
             color: #4444ff;
             margin-bottom: 15px;
-            font-size: 32px;
+            font-size: clamp(20px, 4vw, 32px);
             line-height: 1.2;
         }
 
         #startScreen p {
             margin-bottom: 15px;
-            font-size: 14px;
+            font-size: clamp(12px, 2.5vw, 14px);
             line-height: 1.4;
         }
 
         #startScreen button {
-            background: #4444ff;
+            background: linear-gradient(45deg, #4444ff, #6666ff);
             color: white;
             border: none;
-            padding: 15px 30px;
+            padding: clamp(12px, 3vw, 15px) clamp(24px, 6vw, 30px);
             border-radius: 10px;
-            font-size: 18px;
+            font-size: clamp(14px, 3vw, 18px);
             cursor: pointer;
             margin-top: 20px;
             min-height: 50px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(68,68,255,0.3);
         }
 
         #startScreen button:hover {
-            background: #6666ff;
+            background: linear-gradient(45deg, #6666ff, #8888ff);
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(68,68,255,0.5);
+        }
+
+        #startScreen button:active {
+            transform: translateY(0);
         }
 
         /* Mobile optimizations for start screen */
@@ -810,6 +818,8 @@
         function resizeCanvas() {
             const gameContainer = document.querySelector('.game-container');
             const rect = gameContainer.getBoundingClientRect();
+            
+            // Set canvas to full container size
             canvas.width = rect.width;
             canvas.height = rect.height;
             
@@ -818,8 +828,17 @@
                 player.x = Math.max(player.width/2, Math.min(canvas.width - player.width/2, player.x || canvas.width / 2));
                 player.y = Math.max(player.height/2, Math.min(canvas.height - player.height/2, player.y || canvas.height - 100));
             }
+            
+            console.log(`🖥️ Canvas resized to: ${canvas.width}x${canvas.height}`);
+            console.log(`📱 Screen size: ${window.innerWidth}x${window.innerHeight}`);
         }
+        
+        // Call resize on load and window resize
         window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('load', resizeCanvas);
+        document.addEventListener('DOMContentLoaded', resizeCanvas);
+        
+        // Initial resize
         resizeCanvas();
         
         // Rank System - Space Fighter Ranks
@@ -1318,6 +1337,9 @@
                             window.innerWidth <= 768 || 
                             'ontouchstart' in window;
             
+            console.log(`📱 Mobile detection: ${isMobile}`);
+            console.log(`🖥️ Screen size: ${window.innerWidth}x${window.innerHeight}`);
+            
             if (isMobile) {
                 document.querySelector('.mobile-controls').style.display = 'flex';
                 console.log('Mobile controls enabled');
@@ -1439,21 +1461,25 @@
         // Load rank info on page load
         displayRankInfo();
         
-        // Add event listener for start button
+        // Add event listener for start button with better error handling
         document.addEventListener('DOMContentLoaded', function() {
             const startButton = document.getElementById('startButton');
             if (startButton) {
-                startButton.addEventListener('click', function() {
+                startButton.addEventListener('click', function(e) {
+                    e.preventDefault();
                     console.log('Start button clicked!');
-                    startGame();
+                    try {
+                        startGame();
+                    } catch (error) {
+                        console.error('Error starting game:', error);
+                        alert('Error starting game. Please refresh the page and try again.');
+                    }
                 });
                 console.log('Start button event listener added');
             } else {
                 console.error('Start button not found!');
             }
         });
-        
-        window.addEventListener('resize', resizeCanvas);
         
         // --- Sound Effects ---
         const shootSound = new Audio('https://cdn.jsdelivr.net/gh/ronb12/sfx@main/shoot.wav');
