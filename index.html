@@ -915,7 +915,11 @@
                 rankDisplay.style.color = currentRankData.color;
             }
             renderShipSelection();
-            spawnWingmen();
+            
+            // Only call spawnWingmen if the function exists
+            if (typeof spawnWingmen === 'function') {
+                spawnWingmen();
+            }
         }
         
         // Show rank up notification
@@ -1669,8 +1673,10 @@
                 player.shipType = selectedShipIndex;
             }
             
-            // Initialize wingmen
-            spawnWingmen();
+            // Initialize wingmen (with safety check)
+            if (typeof spawnWingmen === 'function') {
+                spawnWingmen();
+            }
             
             // Hide start screen
             const startScreen = document.getElementById('startScreen');
@@ -2889,7 +2895,11 @@
                 rankDisplay.style.color = currentRankData.color;
             }
             renderShipSelection();
-            spawnWingmen();
+            
+            // Only call spawnWingmen if the function exists
+            if (typeof spawnWingmen === 'function') {
+                spawnWingmen();
+            }
         }
         // When starting the game, set the player's shipType
         function startGame() {
