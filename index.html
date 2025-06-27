@@ -283,7 +283,7 @@
         .control-group {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 8px;
             pointer-events: auto;
         }
 
@@ -316,9 +316,9 @@
         .control-btn.shoot {
             background: rgba(255, 68, 68, 0.8);
             border-color: #ff4444;
-            width: 100px;
-            height: 100px;
-            font-size: 40px;
+            width: 90px;
+            height: 90px;
+            font-size: 36px;
         }
 
         .control-btn.shoot:active {
@@ -328,41 +328,105 @@
         .center-controls {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 8px;
             align-items: center;
         }
 
         .center-controls .control-btn {
-            width: 70px;
-            height: 70px;
-            font-size: 28px;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+        }
+
+        /* New Control Pad Design */
+        .control-pad {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
+            gap: 5px;
+            width: 120px;
+            height: 120px;
+        }
+
+        .control-pad .control-btn {
+            width: 35px;
+            height: 35px;
+            font-size: 16px;
+            border-width: 2px;
+        }
+
+        .control-pad .up-btn {
+            grid-column: 2;
+            grid-row: 1;
+        }
+
+        .control-pad .left-btn {
+            grid-column: 1;
+            grid-row: 2;
+        }
+
+        .control-pad .right-btn {
+            grid-column: 3;
+            grid-row: 2;
+        }
+
+        .control-pad .down-btn {
+            grid-column: 2;
+            grid-row: 3;
+        }
+
+        .shoot-pad {
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 68, 68, 0.8);
+            border: 3px solid #ff4444;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 32px;
+            color: white;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            pointer-events: auto;
+        }
+
+        .shoot-pad:active {
+            transform: scale(0.9);
+            background: rgba(255, 102, 102, 0.9);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.4);
         }
 
         /* iOS/iPad specific improvements */
         @media (max-width: 768px) {
             .mobile-controls {
                 display: flex !important;
-                bottom: 30px;
-                padding: 0 30px;
+                bottom: 20px;
+                padding: 0 15px;
             }
             
             .control-btn {
-                width: 90px;
-                height: 90px;
-                font-size: 36px;
-                border-width: 4px;
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+                border-width: 2px;
             }
             
             .control-btn.shoot {
-                width: 110px;
-                height: 110px;
-                font-size: 44px;
+                width: 70px;
+                height: 70px;
+                font-size: 28px;
             }
             
             .center-controls .control-btn {
-                width: 80px;
-                height: 80px;
-                font-size: 32px;
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
             }
         }
 
@@ -424,6 +488,38 @@
 
         /* Extra small screens */
         @media (max-width: 480px) {
+            .mobile-controls {
+                bottom: 15px;
+                padding: 0 10px;
+            }
+            
+            .control-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+                border-width: 2px;
+            }
+            
+            .control-btn.shoot {
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+            }
+            
+            .center-controls .control-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 18px;
+            }
+            
+            .control-group {
+                gap: 6px;
+            }
+            
+            .center-controls {
+                gap: 6px;
+            }
+            
             #gameOver {
                 padding: 15px;
                 margin: 5px;
@@ -520,7 +616,7 @@
         </div>
         <div id="startScreen">
             <h1>🚀 Kaden & Adelynn Space Adventures</h1>
-            <p style="font-size: 12px; color: #00ffff; margin-bottom: 20px;">Version 4.1 - Enhanced iOS/iPad Controls</p>
+            <p style="font-size: 12px; color: #00ffff; margin-bottom: 20px;">Version 4.2 - Optimized iPhone Controls</p>
             <p>Use WASD or Arrow Keys to move<br>Spacebar to shoot<br>Destroy enemies to survive!</p>
             <p style="font-size: 14px; color: #00ffff; margin-top: 10px;">🔫 Weapons: Press 1-0 to switch weapons</p>
             <p style="font-size: 12px; color: #888; margin-top: 5px;">1: Laser | 2: Plasma | 3: Missile | 4: Spread | 5: Rapid Laser</p>
@@ -593,23 +689,17 @@
             <button onclick="restartGame()">🚀 Play Again</button>
         </div>
         <div class="mobile-controls">
-            <div class="control-group">
-                <div class="control-btn" id="upBtn">⬆️</div>
-                <div class="control-btn" id="leftBtn">⬅️</div>
-                <div class="control-btn" id="downBtn">⬇️</div>
+            <div class="control-pad">
+                <div class="control-btn up-btn" id="upBtn">⬆️</div>
+                <div class="control-btn left-btn" id="leftBtn">⬅️</div>
+                <div class="control-btn right-btn" id="rightBtn">➡️</div>
+                <div class="control-btn down-btn" id="downBtn">⬇️</div>
             </div>
-            <div class="center-controls">
-                <div class="control-btn shoot" id="shootBtn">🚀</div>
-            </div>
-            <div class="control-group">
-                <div class="control-btn" id="upBtn2">⬆️</div>
-                <div class="control-btn" id="rightBtn">➡️</div>
-                <div class="control-btn" id="downBtn2">⬇️</div>
-            </div>
+            <div class="shoot-pad" id="shootBtn">🚀</div>
         </div>
     </div>
     <script>
-        console.log('🚀 Kaden & Adelynn Space Adventures v4.1 - Enhanced iOS/iPad Controls Loaded!');
+        console.log('🚀 Kaden & Adelynn Space Adventures v4.2 - Control Pad Design Loaded!');
         console.log('📱 Mobile detection:', /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
         console.log('🖥️ Screen size:', window.innerWidth + 'x' + window.innerHeight);
         
@@ -1231,25 +1321,6 @@
                 touchControls.right = false;
             });
             
-            // Duplicate buttons for easier access
-            document.getElementById('upBtn2').addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                touchControls.up = true;
-            });
-            document.getElementById('upBtn2').addEventListener('touchend', (e) => {
-                e.preventDefault();
-                touchControls.up = false;
-            });
-            
-            document.getElementById('downBtn2').addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                touchControls.down = true;
-            });
-            document.getElementById('downBtn2').addEventListener('touchend', (e) => {
-                e.preventDefault();
-                touchControls.down = false;
-            });
-            
             // Shoot button with better event handling
             const shootBtn = document.getElementById('shootBtn');
             shootBtn.addEventListener('touchstart', (e) => {
@@ -1291,7 +1362,7 @@
                 
                 // Add haptic feedback for iOS
                 if ('vibrate' in navigator) {
-                    const hapticButtons = document.querySelectorAll('.control-btn');
+                    const hapticButtons = document.querySelectorAll('.control-btn, .shoot-pad');
                     hapticButtons.forEach(btn => {
                         btn.addEventListener('touchstart', () => {
                             navigator.vibrate(10);
@@ -1309,7 +1380,7 @@
             
             // Prevent default touch behaviors
             document.addEventListener('touchstart', (e) => {
-                if (e.target.classList.contains('control-btn')) {
+                if (e.target.classList.contains('control-btn') || e.target.classList.contains('shoot-pad')) {
                     e.preventDefault();
                 }
             }, { passive: false });
