@@ -1232,6 +1232,7 @@
         let particles = [];
         let powerups = [];
         let weaponPowerups = [];
+        let wingmen = []; // Wingman system
         
         // Fuel system
         let fuelLevel = 100;
@@ -2873,7 +2874,6 @@
         }
 
         // --- Wingman System ---
-        let wingmen = [];
         function getWingmanCount() {
             // Commander: 1, Captain: 2, Commodore+: 3
             const rankIdx = ranks.findIndex(r => r.name === currentRank);
@@ -2936,5 +2936,6 @@
             });
         }
     </script>
+    <script src="test-game.js"></script>
 </body>
 </html>
