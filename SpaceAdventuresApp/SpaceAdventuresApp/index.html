@@ -239,66 +239,365 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.9);
-            padding: 30px;
-            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(20,20,40,0.95));
+            padding: 40px;
+            border-radius: 25px;
             text-align: center;
             z-index: 200;
             max-width: 90vw;
             max-height: 90vh;
             overflow-y: auto;
+            border: 3px solid #4444ff;
+            box-shadow: 0 0 40px rgba(68,68,255,0.6), inset 0 0 20px rgba(68,68,255,0.2);
+            backdrop-filter: blur(20px);
+            animation: menuGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes menuGlow {
+            0%, 100% { box-shadow: 0 0 40px rgba(68,68,255,0.6), inset 0 0 20px rgba(68,68,255,0.2); }
+            50% { box-shadow: 0 0 60px rgba(68,68,255,0.8), inset 0 0 30px rgba(68,68,255,0.3); }
         }
 
         #startScreen h1 {
             color: #4444ff;
-            margin-bottom: 15px;
-            font-size: 32px;
+            margin-bottom: 20px;
+            font-size: 36px;
             line-height: 1.2;
+            text-shadow: 0 0 20px #4444ff, 0 0 40px #4444ff;
+            animation: titlePulse 2s ease-in-out infinite;
+            background: linear-gradient(45deg, #4444ff, #00ffff, #4444ff);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        #startScreen p {
+        @keyframes titlePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .menu-section {
+            background: rgba(68,68,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            border: 2px solid rgba(68,68,255,0.3);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .menu-section:hover {
+            background: rgba(68,68,255,0.2);
+            border-color: rgba(68,68,255,0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(68,68,255,0.3);
+        }
+
+        .menu-section h3 {
+            color: #00ffff;
             margin-bottom: 15px;
-            font-size: 14px;
-            line-height: 1.4;
+            font-size: 18px;
+            text-shadow: 0 0 10px #00ffff;
         }
 
-        #startScreen button {
-            background: #4444ff;
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .menu-btn {
+            background: linear-gradient(45deg, #4444ff, #6666ff);
             color: white;
             border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 18px;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-size: 16px;
             cursor: pointer;
-            margin-top: 20px;
-            min-height: 50px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(68,68,255,0.3);
+            position: relative;
+            overflow: hidden;
         }
 
-        #startScreen button:hover {
-            background: #6666ff;
+        .menu-btn:hover {
+            background: linear-gradient(45deg, #6666ff, #8888ff);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(68,68,255,0.5);
         }
 
-        /* Mobile optimizations for start screen */
+        .menu-btn:active {
+            transform: translateY(0);
+        }
+
+        .menu-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .menu-btn:hover::before {
+            left: 100%;
+        }
+
+        .menu-btn.primary {
+            background: linear-gradient(45deg, #ff4444, #ff6666);
+            box-shadow: 0 4px 15px rgba(255,68,68,0.3);
+        }
+
+        .menu-btn.primary:hover {
+            background: linear-gradient(45deg, #ff6666, #ff8888);
+            box-shadow: 0 6px 20px rgba(255,68,68,0.5);
+        }
+
+        .menu-btn.secondary {
+            background: linear-gradient(45deg, #00ff00, #00cc00);
+            box-shadow: 0 4px 15px rgba(0,255,0,0.3);
+        }
+
+        .menu-btn.secondary:hover {
+            background: linear-gradient(45deg, #00cc00, #009900);
+            box-shadow: 0 6px 20px rgba(0,255,0,0.5);
+        }
+
+        .menu-btn.warning {
+            background: linear-gradient(45deg, #ffaa00, #ff8800);
+            box-shadow: 0 4px 15px rgba(255,170,0,0.3);
+        }
+
+        .menu-btn.warning:hover {
+            background: linear-gradient(45deg, #ff8800, #ff6600);
+            box-shadow: 0 6px 20px rgba(255,170,0,0.5);
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .menu-item {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid rgba(68,68,255,0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .menu-item:hover {
+            background: rgba(68,68,255,0.1);
+            border-color: rgba(68,68,255,0.4);
+            transform: scale(1.02);
+        }
+
+        .menu-item.selected {
+            background: rgba(68,68,255,0.2);
+            border-color: #4444ff;
+            box-shadow: 0 0 15px rgba(68,68,255,0.5);
+        }
+
+        .menu-item h4 {
+            color: #00ffff;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .menu-item p {
+            color: #cccccc;
+            font-size: 12px;
+            margin: 0;
+        }
+
+        .version-info {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            color: #888;
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .menu-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .menu-particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #4444ff;
+            border-radius: 50%;
+            animation: float 6s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-10px) rotate(360deg); opacity: 0; }
+        }
+
+        /* Sub-menu styles */
+        .sub-menu {
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .sub-menu.active {
+            display: block;
+        }
+
+        .back-btn {
+            background: rgba(68,68,255,0.2);
+            color: #00ffff;
+            border: 1px solid #4444ff;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(68,68,255,0.3);
+            border-color: #00ffff;
+        }
+
+        /* Settings styles */
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-label {
+            color: #cccccc;
+            font-size: 14px;
+        }
+
+        .setting-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: #333;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: #4444ff;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(26px);
+        }
+
+        .slider {
+            width: 100px;
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #4444ff;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        /* Mobile optimizations for enhanced menu */
         @media (max-width: 768px) {
             #startScreen {
-                padding: 20px;
+                padding: 25px;
                 margin: 10px;
+                max-width: 95vw;
             }
             
             #startScreen h1 {
-                font-size: 24px;
-                margin-bottom: 10px;
+                font-size: 28px;
+                margin-bottom: 15px;
             }
             
-            #startScreen p {
-                font-size: 12px;
-                margin-bottom: 10px;
+            .menu-section {
+                padding: 15px;
+                margin: 10px 0;
             }
             
-            #startScreen button {
+            .menu-section h3 {
                 font-size: 16px;
-                padding: 12px 24px;
-                margin-top: 15px;
+                margin-bottom: 10px;
+            }
+            
+            .menu-btn {
+                font-size: 14px;
+                padding: 12px 20px;
+            }
+            
+            .menu-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .menu-item {
+                padding: 12px;
+            }
+            
+            .menu-item h4 {
+                font-size: 13px;
+            }
+            
+            .menu-item p {
+                font-size: 11px;
             }
         }
 
@@ -651,33 +950,152 @@
             <div id="comboCounter" style="margin-top:10px;"></div>
         </div>
         <div id="startScreen">
+            <div class="version-info">v4.3 - Enhanced Menu</div>
+            <div class="menu-background" id="menuBackground"></div>
+            
             <h1>🚀 Kaden & Adelynn Space Adventures</h1>
-            <p style="font-size: 12px; color: #00ffff; margin-bottom: 15px;">Version 4.2 - Control Pad Design</p>
             
-            <div style="margin-bottom: 15px;">
-                <p style="font-size: 14px; margin-bottom: 8px;"><strong>Controls:</strong></p>
-                <p style="font-size: 12px; margin-bottom: 5px;">• WASD or Arrow Keys to move</p>
-                <p style="font-size: 12px; margin-bottom: 5px;">• Spacebar to shoot</p>
-                <p style="font-size: 12px; margin-bottom: 5px;">• 1-0 to switch weapons</p>
-                <p style="font-size: 12px; margin-bottom: 8px;">• Mobile: Use on-screen control pad</p>
+            <!-- Main Menu -->
+            <div id="mainMenu" class="menu-content">
+                <div class="menu-section">
+                    <h3>🎮 Game Modes</h3>
+                    <div class="menu-grid">
+                        <div class="menu-item selected" onclick="selectGameMode('arcade')">
+                            <h4>🎯 Arcade Mode</h4>
+                            <p>Classic space shooter with progressive difficulty</p>
+                        </div>
+                        <div class="menu-item" onclick="selectGameMode('survival')">
+                            <h4>🔥 Survival Mode</h4>
+                            <p>Endless waves of enemies - how long can you last?</p>
+                        </div>
+                        <div class="menu-item" onclick="selectGameMode('boss')">
+                            <h4>👹 Boss Rush</h4>
+                            <p>Face powerful bosses in epic battles</p>
+                        </div>
+                        <div class="menu-item" onclick="selectGameMode('practice')">
+                            <h4>🎓 Practice Mode</h4>
+                            <p>Training mode with no death penalty</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="menu-section">
+                    <h3>🛸 Choose Your Ship</h3>
+                    <div id="shipSelection" class="menu-grid"></div>
+                </div>
+                
+                <div class="menu-section">
+                    <h3>⭐ Pilot Rank</h3>
+                    <div id="rankInfo"></div>
+                </div>
+                
+                <div class="menu-section">
+                    <h3>🏆 Top Scores</h3>
+                    <div id="topScores" style="max-height: 120px; overflow-y: auto;"></div>
+                </div>
+                
+                <div class="menu-buttons">
+                    <button class="menu-btn primary" onclick="startGame()">🚀 START GAME</button>
+                    <button class="menu-btn" onclick="showSettings()">⚙️ Settings</button>
+                    <button class="menu-btn" onclick="showControls()">🎮 Controls</button>
+                    <button class="menu-btn" onclick="showAchievements()">🏆 Achievements</button>
+                    <button class="menu-btn" onclick="showCredits()">ℹ️ About</button>
+                </div>
             </div>
             
-            <div class="score-section" style="margin: 10px 0; max-height: 150px; overflow-y: auto;">
-                <h3>🏆 Top Scores</h3>
-                <div id="topScores"></div>
+            <!-- Settings Menu -->
+            <div id="settingsMenu" class="sub-menu">
+                <button class="back-btn" onclick="showMainMenu()">← Back to Menu</button>
+                <div class="menu-section">
+                    <h3>⚙️ Game Settings</h3>
+                    <div class="setting-item">
+                        <span class="setting-label">Sound Effects</span>
+                        <div class="setting-control">
+                            <div class="toggle-switch" id="soundToggle" onclick="toggleSetting('sound')"></div>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Background Music</span>
+                        <div class="setting-control">
+                            <div class="toggle-switch" id="musicToggle" onclick="toggleSetting('music')"></div>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Visual Effects</span>
+                        <div class="setting-control">
+                            <div class="toggle-switch" id="effectsToggle" onclick="toggleSetting('effects')"></div>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Difficulty</span>
+                        <div class="setting-control">
+                            <select id="difficultySelect" onchange="changeDifficulty()">
+                                <option value="easy">Easy</option>
+                                <option value="normal" selected>Normal</option>
+                                <option value="hard">Hard</option>
+                                <option value="extreme">Extreme</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Screen Shake</span>
+                        <div class="setting-control">
+                            <input type="range" class="slider" id="screenShakeSlider" min="0" max="100" value="50" onchange="changeScreenShake()">
+                        </div>
+                    </div>
+                </div>
             </div>
             
-            <div class="score-section" style="margin: 10px 0;">
-                <h3>🛸 Choose Your Ship</h3>
-                <div id="shipSelection" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;"></div>
+            <!-- Controls Menu -->
+            <div id="controlsMenu" class="sub-menu">
+                <button class="back-btn" onclick="showMainMenu()">← Back to Menu</button>
+                <div class="menu-section">
+                    <h3>🎮 Controls</h3>
+                    <div class="menu-grid">
+                        <div class="menu-item">
+                            <h4>🖥️ Desktop</h4>
+                            <p>WASD or Arrow Keys to move<br>Spacebar to shoot<br>1-0 to switch weapons</p>
+                        </div>
+                        <div class="menu-item">
+                            <h4>📱 Mobile</h4>
+                            <p>Use on-screen control pad<br>Touch to shoot<br>Swipe for movement</p>
+                        </div>
+                        <div class="menu-item">
+                            <h4>🎯 Special</h4>
+                            <p>ESC to pause<br>P for power-ups<br>R to restart</p>
+                        </div>
+                    </div>
+                </div>
             </div>
             
-            <div class="score-section" style="margin: 10px 0;">
-                <h3>⭐ Pilot Rank</h3>
-                <div id="rankInfo"></div>
+            <!-- Achievements Menu -->
+            <div id="achievementsMenu" class="sub-menu">
+                <button class="back-btn" onclick="showMainMenu()">← Back to Menu</button>
+                <div class="menu-section">
+                    <h3>🏆 Achievements</h3>
+                    <div id="achievementsList" class="menu-grid"></div>
+                </div>
             </div>
             
-            <button id="startButton" onclick="startGame()">START GAME</button>
+            <!-- Credits Menu -->
+            <div id="creditsMenu" class="sub-menu">
+                <button class="back-btn" onclick="showMainMenu()">← Back to Menu</button>
+                <div class="menu-section">
+                    <h3>ℹ️ About</h3>
+                    <div class="menu-item">
+                        <h4>🚀 Kaden & Adelynn Space Adventures</h4>
+                        <p>An epic space shooter adventure featuring advanced gameplay mechanics, multiple game modes, and a comprehensive progression system.</p>
+                    </div>
+                    <div class="menu-item">
+                        <h4>🎮 Features</h4>
+                        <p>• 5 unique ships with different stats<br>• 10 weapon types with special effects<br>• 4 enemy types with AI patterns<br>• Boss battles at levels 5 & 10<br>• Rank progression system<br>• Mobile-optimized controls</p>
+                    </div>
+                    <div class="menu-item">
+                        <h4>🛠️ Technical</h4>
+                        <p>Built with HTML5 Canvas, CSS3, and JavaScript<br>Progressive Web App (PWA) compatible<br>Responsive design for all devices<br>Local storage for progress saving</p>
+                    </div>
+                </div>
+            </div>
         </div>
         <div id="gameOver">
             <h2>🎮 Mission Complete!</h2>
@@ -2974,6 +3392,234 @@
             
             ctx.restore();
         }
+
+        // --- ENHANCED MENU SYSTEM ---
+        
+        // Game state variables
+        let currentGameMode = 'arcade';
+        let gameSettings = {
+            sound: true,
+            music: true,
+            effects: true,
+            difficulty: 'normal',
+            screenShake: 50
+        };
+        
+        // Load settings from localStorage
+        function loadSettings() {
+            const saved = localStorage.getItem('spaceAdventuresSettings');
+            if (saved) {
+                gameSettings = { ...gameSettings, ...JSON.parse(saved) };
+            }
+            updateSettingsDisplay();
+        }
+        
+        // Save settings to localStorage
+        function saveSettings() {
+            localStorage.setItem('spaceAdventuresSettings', JSON.stringify(gameSettings));
+        }
+        
+        // Update settings display
+        function updateSettingsDisplay() {
+            document.getElementById('soundToggle').classList.toggle('active', gameSettings.sound);
+            document.getElementById('musicToggle').classList.toggle('active', gameSettings.music);
+            document.getElementById('effectsToggle').classList.toggle('active', gameSettings.effects);
+            document.getElementById('difficultySelect').value = gameSettings.difficulty;
+            document.getElementById('screenShakeSlider').value = gameSettings.screenShake;
+        }
+        
+        // Game mode selection
+        function selectGameMode(mode) {
+            currentGameMode = mode;
+            
+            // Update visual selection
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('selected'));
+            event.target.closest('.menu-item').classList.add('selected');
+            
+            // Update start button text
+            const startBtn = document.querySelector('.menu-btn.primary');
+            switch(mode) {
+                case 'arcade':
+                    startBtn.textContent = '🚀 START ARCADE';
+                    break;
+                case 'survival':
+                    startBtn.textContent = '🔥 START SURVIVAL';
+                    break;
+                case 'boss':
+                    startBtn.textContent = '👹 START BOSS RUSH';
+                    break;
+                case 'practice':
+                    startBtn.textContent = '🎓 START PRACTICE';
+                    break;
+            }
+        }
+        
+        // Menu navigation functions
+        function showMainMenu() {
+            document.querySelectorAll('.sub-menu').forEach(menu => menu.classList.remove('active'));
+            document.getElementById('mainMenu').style.display = 'block';
+        }
+        
+        function showSettings() {
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('settingsMenu').classList.add('active');
+        }
+        
+        function showControls() {
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('controlsMenu').classList.add('active');
+        }
+        
+        function showAchievements() {
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('achievementsMenu').classList.add('active');
+            loadAchievements();
+        }
+        
+        function showCredits() {
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('creditsMenu').classList.add('active');
+        }
+        
+        // Settings functions
+        function toggleSetting(setting) {
+            gameSettings[setting] = !gameSettings[setting];
+            updateSettingsDisplay();
+            saveSettings();
+            
+            // Apply settings
+            if (setting === 'sound') {
+                if (!gameSettings.sound) {
+                    shootSound.volume = 0;
+                    explosionSound.volume = 0;
+                    powerupSound.volume = 0;
+                } else {
+                    shootSound.volume = 1;
+                    explosionSound.volume = 1;
+                    powerupSound.volume = 1;
+                }
+            }
+        }
+        
+        function changeDifficulty() {
+            gameSettings.difficulty = document.getElementById('difficultySelect').value;
+            saveSettings();
+        }
+        
+        function changeScreenShake() {
+            gameSettings.screenShake = document.getElementById('screenShakeSlider').value;
+            saveSettings();
+        }
+        
+        // Load achievements
+        function loadAchievements() {
+            const achievementsList = document.getElementById('achievementsList');
+            achievementsList.innerHTML = '';
+            
+            const allAchievements = [
+                { id: 'score_10k', name: '🏆 Master Pilot', description: 'Score 10,000+ points', unlocked: score >= 10000 },
+                { id: 'score_5k', name: '⭐ Elite Fighter', description: 'Score 5,000+ points', unlocked: score >= 5000 },
+                { id: 'combo_10', name: '🔥 Combo Master', description: 'Achieve 10x combo', unlocked: maxCombo >= 10 },
+                { id: 'combo_5', name: '⚡ Chain Killer', description: 'Achieve 5x combo', unlocked: maxCombo >= 5 },
+                { id: 'big_enemies_5', name: '💪 Giant Slayer', description: 'Destroy 5 big enemies', unlocked: bigEnemiesDestroyed >= 5 },
+                { id: 'powerups_10', name: '🎁 Power Collector', description: 'Collect 10 power-ups', unlocked: powerupsCollected >= 10 },
+                { id: 'enemies_50', name: '💀 Destroyer', description: 'Destroy 50 enemies', unlocked: enemiesDestroyed >= 50 },
+                { id: 'level_5', name: '🚀 High Flyer', description: 'Reach level 5', unlocked: level >= 5 },
+                { id: 'perfect_run', name: '🛡️ Perfect Run', description: 'Complete with full lives', unlocked: lives === maxLives },
+                { id: 'rank_ensign', name: '🎓 First Promotion', description: 'Reach Ensign rank', unlocked: currentRank === 'Ensign' },
+                { id: 'rank_lieutenant', name: '⚡ Skilled Fighter', description: 'Reach Lieutenant rank', unlocked: currentRank === 'Lieutenant' },
+                { id: 'rank_commander', name: '🔥 Elite Pilot', description: 'Reach Commander rank', unlocked: currentRank === 'Commander' },
+                { id: 'rank_captain', name: '👑 Squadron Leader', description: 'Reach Captain rank', unlocked: currentRank === 'Captain' },
+                { id: 'rank_commodore', name: '💎 Fleet Commander', description: 'Reach Commodore rank', unlocked: currentRank === 'Commodore' },
+                { id: 'rank_admiral', name: '🌟 Legendary Warrior', description: 'Reach Admiral rank', unlocked: currentRank === 'Admiral' },
+                { id: 'rank_grand', name: '🏆 Supreme Commander', description: 'Reach Grand Admiral rank', unlocked: currentRank === 'Grand Admiral' },
+                { id: 'rank_marshal', name: '⚔️ Galactic Protector', description: 'Reach Space Marshal rank', unlocked: currentRank === 'Space Marshal' },
+                { id: 'rank_emperor', name: '👑 Universal Legend', description: 'Reach Cosmic Emperor rank', unlocked: currentRank === 'Cosmic Emperor' }
+            ];
+            
+            allAchievements.forEach(achievement => {
+                const achievementDiv = document.createElement('div');
+                achievementDiv.className = `menu-item ${achievement.unlocked ? 'selected' : ''}`;
+                achievementDiv.innerHTML = `
+                    <h4>${achievement.name}</h4>
+                    <p>${achievement.description}</p>
+                    <div style="color: ${achievement.unlocked ? '#00ff00' : '#888'}; font-size: 12px; margin-top: 5px;">
+                        ${achievement.unlocked ? '✅ Unlocked' : '🔒 Locked'}
+                    </div>
+                `;
+                achievementsList.appendChild(achievementDiv);
+            });
+        }
+        
+        // Enhanced ship selection rendering
+        function renderShipSelection() {
+            const shipSelection = document.getElementById('shipSelection');
+            if (!shipSelection) return;
+            
+            shipSelection.innerHTML = '';
+            const unlockedShips = getUnlockedShips();
+            
+            unlockedShips.forEach((ship, index) => {
+                const shipDiv = document.createElement('div');
+                shipDiv.className = `menu-item ${selectedShipIndex === index ? 'selected' : ''}`;
+                shipDiv.onclick = () => selectShip(index);
+                shipDiv.innerHTML = `
+                    <h4>${ship.name}</h4>
+                    <p>${ship.description}</p>
+                    <div style="font-size: 11px; color: #888; margin-top: 5px;">
+                        Speed: ${ship.speed} | Defense: ${ship.defense} | Weapon: +${ship.weaponBonus * 100}%
+                    </div>
+                `;
+                shipSelection.appendChild(shipDiv);
+            });
+        }
+        
+        // Ship selection
+        function selectShip(index) {
+            selectedShipIndex = index;
+            player.shipType = index;
+            renderShipSelection();
+        }
+        
+        // Menu background particles
+        function initMenuParticles() {
+            const menuBackground = document.getElementById('menuBackground');
+            if (!menuBackground) return;
+            
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'menu-particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                menuBackground.appendChild(particle);
+            }
+        }
+        
+        // Initialize enhanced menu
+        function initEnhancedMenu() {
+            loadSettings();
+            renderShipSelection();
+            initMenuParticles();
+            displayRankInfo();
+            loadScoreboard();
+        }
+        
+        // Call initialization when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initEnhancedMenu();
+            
+            const startButton = document.querySelector('.menu-btn.primary');
+            if (startButton) {
+                startButton.addEventListener('click', function() {
+                    console.log('Start button clicked!');
+                    startGame();
+                });
+                console.log('Start button event listener added');
+            } else {
+                console.error('Start button not found!');
+            }
+        });
     </script>
 </body>
 </html>
