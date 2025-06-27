@@ -2565,8 +2565,6 @@
                 // Check bullet collisions
                 for (let bulletIndex = player.bullets.length - 1; bulletIndex >= 0; bulletIndex--) {
                     const bullet = player.bullets[bulletIndex];
-                for (let bulletIndex = player.bullets.length - 1; bulletIndex >= 0; bulletIndex--) {
-                    const bullet = player.bullets[bulletIndex];
                     if (Math.abs(bullet.x - enemy.x) < (enemy.big ? 30 : 20) && Math.abs(bullet.y - enemy.y) < (enemy.big ? 30 : 20)) {
                         explosionSound.currentTime = 0; explosionSound.play();
                         enemy.health--;
