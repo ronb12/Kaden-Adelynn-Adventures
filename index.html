@@ -1255,7 +1255,7 @@
         let particles = [];
         let powerups = [];
         let weaponPowerups = [];
-        let wingmen = []; // Wingman system
+        let wingmen = []; // Add wingmen array declaration here
         
         // Fuel system
         let fuelLevel = 100;
@@ -2884,31 +2884,7 @@
         }
         // Call on load and after rank changes
         renderShipSelection();
-        // Update ship selection when rank changes
-        function updateRank() {
-            // ...existing code...
-            // Update rank display
-            const rankDisplay = document.getElementById('rank');
-            if (rankDisplay) {
-                const currentRankData = ranks.find(r => r.name === currentRank);
-                rankDisplay.innerHTML = `Rank: ${currentRankData.icon} ${currentRank}`;
-                rankDisplay.style.color = currentRankData.color;
-            }
-            renderShipSelection();
-            
-            // Only call spawnWingmen if the function exists
-            if (typeof spawnWingmen === 'function') {
-                spawnWingmen();
-            }
-        }
-        // When starting the game, set the player's shipType
-        function startGame() {
-            // ...existing code...
-            player.shipType = selectedShipIndex;
-            spawnWingmen();
-            // ...existing code...
-        }
-
+        
         // --- Wingman System ---
         function getWingmanCount() {
             // Commander: 1, Captain: 2, Commodore+: 3
@@ -2918,6 +2894,7 @@
             if (rankIdx >= ranks.findIndex(r => r.name === 'Commander')) return 1;
             return 0;
         }
+        
         function spawnWingmen() {
             const count = getWingmanCount();
             wingmen = [];
@@ -2929,6 +2906,7 @@
                 });
             }
         }
+        
         function updateWingmen() {
             const weapon = weapons[player.weaponType];
             wingmen.forEach((wingman, i) => {
@@ -2958,6 +2936,7 @@
                 }
             });
         }
+        
         function drawWingmen() {
             wingmen.forEach((wingman) => {
                 ctx.save();
