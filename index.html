@@ -565,7 +565,7 @@
             y: canvas.height - 100,
             width: 40,
             height: 40,
-            speed: 8,
+            speed: 10,
             bullets: [],
             lastShot: 0,
             shotCooldown: 120,
@@ -576,11 +576,11 @@
             weaponLevel: 1,
             maxWeaponLevel: 3,
             weaponCooldowns: {
-                laser: 120,
-                plasma: 200,
-                missile: 400,
-                spread: 150,
-                laser: 80
+                laser: 100,
+                plasma: 160,
+                missile: 320,
+                spread: 120,
+                laser: 60
             }
         };
         
@@ -589,7 +589,7 @@
             laser: {
                 name: 'Laser',
                 color: '#00ffff',
-                speed: 12,
+                speed: 15,
                 damage: 1,
                 size: 3,
                 sound: 'laser'
@@ -597,7 +597,7 @@
             plasma: {
                 name: 'Plasma',
                 color: '#ff00ff',
-                speed: 8,
+                speed: 12,
                 damage: 2,
                 size: 6,
                 sound: 'plasma'
@@ -605,7 +605,7 @@
             missile: {
                 name: 'Missile',
                 color: '#ff8800',
-                speed: 6,
+                speed: 8,
                 damage: 3,
                 size: 8,
                 sound: 'missile',
@@ -614,7 +614,7 @@
             spread: {
                 name: 'Spread',
                 color: '#ffff00',
-                speed: 10,
+                speed: 13,
                 damage: 1,
                 size: 4,
                 sound: 'spread',
@@ -623,7 +623,7 @@
             laser: {
                 name: 'Rapid Laser',
                 color: '#ff0080',
-                speed: 15,
+                speed: 18,
                 damage: 1,
                 size: 2,
                 sound: 'rapid'
@@ -828,6 +828,7 @@
         document.body.appendChild(comboPopup);
         
         function startGame() {
+            console.log('🚀 Starting game...');
             gameRunning = true;
             score = 0;
             lives = 3;
@@ -841,87 +842,79 @@
             doublePowerups = 0;
             combo = 0;
             maxCombo = 0;
-            player.x = Math.max(player.width/2, Math.min(canvas.width - player.width/2, canvas.width / 2));
-            player.y = Math.max(player.height/2, Math.min(canvas.height - player.height/2, canvas.height - 100));
+            
+            // Reset player position
+            player.x = canvas.width / 2;
+            player.y = canvas.height - 100;
             player.bullets = [];
+            player.shield = false;
+            player.shieldTimer = 0;
+            player.weaponType = 'laser';
+            player.weaponLevel = 1;
+            
+            // Clear all game objects
             enemies = [];
             particles = [];
             powerups = [];
             weaponPowerups = [];
+            
+            // Reset power-ups
+            rapidFireActive = false;
+            rapidFireTimer = 0;
+            doubleScoreActive = false;
+            doubleScoreTimer = 0;
+            
+            // Hide start screen
             document.getElementById('startScreen').style.display = 'none';
+            
+            // Start game loop
             gameLoop();
+            
+            console.log('Game started successfully!');
         }
         
         function gameOver() {
             gameRunning = false;
+            
+            // Calculate final statistics
             const survivalTime = Math.floor((Date.now() - gameStartTime) / 1000);
-            const grade = calculateGrade(score, enemiesDestroyed, maxCombo, survivalTime);
-            const achievements = calculateAchievements();
+            const experienceEarned = calculateExperience();
             
             // Update final score display
-            document.getElementById('finalScore').textContent = `Final Score: ${score.toLocaleString()}`;
-            document.getElementById('grade').textContent = `Grade: ${grade}`;
-            document.getElementById('grade').className = `grade grade-${grade}`;
-            
-            // Update statistics
+            document.getElementById('finalScore').textContent = `Final Score: ${score}`;
             document.getElementById('enemiesDestroyed').textContent = enemiesDestroyed;
             document.getElementById('bigEnemiesDestroyed').textContent = bigEnemiesDestroyed;
             document.getElementById('powerupsCollected').textContent = powerupsCollected;
             document.getElementById('maxCombo').textContent = maxCombo;
             document.getElementById('levelReached').textContent = level;
             document.getElementById('survivalTime').textContent = `${survivalTime}s`;
+            document.getElementById('experienceEarned').textContent = experienceEarned;
             
-            // Display achievements
-            const achievementsDiv = document.getElementById('achievements');
-            achievementsDiv.innerHTML = '';
-            achievements.forEach(achievement => {
-                const achievementDiv = document.createElement('div');
-                achievementDiv.className = 'achievement';
-                achievementDiv.textContent = achievement;
-                achievementsDiv.appendChild(achievementDiv);
-            });
-            
-            // Ensure the game over screen is visible
-            const gameOverScreen = document.getElementById('gameOver');
-            gameOverScreen.style.display = 'block';
-            
-            // Force a reflow to ensure proper positioning
-            gameOverScreen.offsetHeight;
-            
-            // Ensure it's within viewport bounds
-            const rect = gameOverScreen.getBoundingClientRect();
-            if (rect.top < 10) {
-                gameOverScreen.style.top = '10px';
-                gameOverScreen.style.transform = 'translate(-50%, 0)';
-            }
-            if (rect.bottom > window.innerHeight - 10) {
-                gameOverScreen.style.top = 'auto';
-                gameOverScreen.style.bottom = '10px';
-                gameOverScreen.style.transform = 'translate(-50%, 0)';
-            }
-        }
-        
-        function calculateGrade(score, enemies, maxCombo, time) {
+            // Calculate grade
             let grade = 'D';
             if (score >= 10000) grade = 'S';
             else if (score >= 5000) grade = 'A';
             else if (score >= 2000) grade = 'B';
             else if (score >= 500) grade = 'C';
-            return grade;
-        }
-        
-        function calculateAchievements() {
+            
+            document.getElementById('grade').textContent = `Grade: ${grade}`;
+            document.getElementById('grade').className = `grade grade-${grade}`;
+            
+            // Show achievements
             const achievements = [];
-            if (score >= 10000) achievements.push(' Master Pilot - Score 10,000+');
-            if (score >= 5000) achievements.push(' Elite Fighter - Score 5,000+');
-            if (maxCombo >= 10) achievements.push(' Combo Master - 10x Combo');
-            if (maxCombo >= 5) achievements.push(' Chain Killer - 5x Combo');
-            if (bigEnemiesDestroyed >= 5) achievements.push(' Giant Slayer - Destroy 5 Big Enemies');
-            if (powerupsCollected >= 10) achievements.push(' Power Collector - Collect 10 Power-ups');
-            if (enemiesDestroyed >= 50) achievements.push(' Destroyer - Destroy 50 Enemies');
-            if (level >= 5) achievements.push(' High Flyer - Reach Level 5');
-            if (lives === 3) achievements.push(' Perfect Run - Complete with Full Lives');
-            return achievements;
+            if (enemiesDestroyed >= 50) achievements.push('🎯 Enemy Hunter: Destroyed 50+ enemies');
+            if (bigEnemiesDestroyed >= 10) achievements.push('💪 Big Game Hunter: Destroyed 10+ big enemies');
+            if (maxCombo >= 10) achievements.push('🔥 Combo Master: Achieved 10x combo');
+            if (powerupsCollected >= 20) achievements.push('⚡ Power Collector: Collected 20+ power-ups');
+            if (survivalTime >= 300) achievements.push('⏰ Survivor: Survived 5+ minutes');
+            
+            const achievementsDiv = document.getElementById('achievements');
+            achievementsDiv.innerHTML = achievements.length > 0 ? 
+                achievements.map(achievement => `<div class="achievement">${achievement}</div>`).join('') :
+                '<div style="color: #888; font-style: italic;">No achievements earned yet. Keep playing!</div>';
+            
+            // Show game over screen
+            document.getElementById('gameOver').style.display = 'block';
         }
         
         function restartGame() {
@@ -929,25 +922,30 @@
             startGame();
         }
         
+        function calculateExperience() {
+            let exp = score * 0.1;
+            exp += enemiesDestroyed * 10;
+            exp += bigEnemiesDestroyed * 50;
+            exp += powerupsCollected * 5;
+            exp += maxCombo * 20;
+            exp += level * 100;
+            return Math.floor(exp);
+        }
+        
         function drawPlayer() {
             ctx.save();
             ctx.translate(player.x, player.y);
             
-            // Draw shield if active
+            // Shield effect
             if (player.shield) {
-                ctx.globalAlpha = 0.3;
-                ctx.fillStyle = '#00ffff';
+                ctx.strokeStyle = '#00ffff';
+                ctx.lineWidth = 3;
                 ctx.beginPath();
-                ctx.arc(0, 0, 28, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.globalAlpha = 1.0;
+                ctx.arc(0, 0, 30, 0, Math.PI * 2);
+                ctx.stroke();
             }
             
-            // Engine glow
-            ctx.shadowColor = '#00ffff';
-            ctx.shadowBlur = 20;
-            
-            // Main body
+            // Player ship
             ctx.fillStyle = '#4444ff';
             ctx.beginPath();
             ctx.moveTo(0, -20);
@@ -958,34 +956,16 @@
             ctx.closePath();
             ctx.fill();
             
-            // Wings
+            // Ship details
             ctx.fillStyle = '#6666ff';
             ctx.beginPath();
-            ctx.moveTo(-15, 10);
-            ctx.lineTo(-25, 5);
-            ctx.lineTo(-20, 15);
-            ctx.lineTo(-8, 20);
-            ctx.closePath();
-            ctx.fill();
-            
-            ctx.beginPath();
-            ctx.moveTo(15, 10);
-            ctx.lineTo(25, 5);
-            ctx.lineTo(20, 15);
+            ctx.moveTo(-8, 20);
+            ctx.lineTo(-12, 15);
+            ctx.lineTo(-6, 10);
+            ctx.lineTo(6, 10);
+            ctx.lineTo(12, 15);
             ctx.lineTo(8, 20);
             ctx.closePath();
-            ctx.fill();
-            
-            // Cockpit
-            ctx.fillStyle = '#00ffff';
-            ctx.beginPath();
-            ctx.arc(0, 0, 5, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Engine exhaust
-            ctx.fillStyle = '#ffaa00';
-            ctx.beginPath();
-            ctx.ellipse(0, 20, 3, 8, 0, 0, Math.PI * 2);
             ctx.fill();
             
             ctx.restore();
@@ -1135,7 +1115,7 @@
             player.y = Math.max(player.height/2, Math.min(canvas.height - player.height/2, player.y));
             
             // Enhanced shooting system with multiple weapons
-            let cooldown = rapidFireActive ? 40 : player.weaponCooldowns[player.weaponType];
+            let cooldown = rapidFireActive ? 25 : player.weaponCooldowns[player.weaponType];
             let shouldShoot = (keys['Space'] || keys['KeyX'] || touchControls.shoot) && Date.now() - player.lastShot > cooldown;
             
             if (shouldShoot) {
@@ -1232,7 +1212,7 @@
         }
         
         function spawnEnemy() {
-            if (Math.random() < 0.018 + level * 0.004) {
+            if (Math.random() < 0.025 + level * 0.006) {
                 // 80% normal, 20% big enemy
                 if (Math.random() < 0.2) {
                     enemies.push({
@@ -1240,7 +1220,7 @@
                         y: -60,
                         width: 60,
                         height: 60,
-                        speed: 2.5 + Math.random() * 1.5,
+                        speed: 3.5 + Math.random() * 2,
                         big: true,
                         health: 3
                     });
@@ -1250,34 +1230,34 @@
                         y: -40,
                         width: 30,
                         height: 30,
-                        speed: 4 + Math.random() * 2,
+                        speed: 5.5 + Math.random() * 2.5,
                         big: false,
                         health: 1
                     });
                 }
             }
             
-            // Power-up spawn
-            if (Math.random() < 0.005) {
+            // Power-up spawn (increased frequency)
+            if (Math.random() < 0.008) {
                 const types = ['shield', 'rapid', 'double', 'weapon'];
                 const type = types[Math.floor(Math.random() * types.length)];
                 powerups.push({
                     x: Math.random() * (canvas.width - 40) + 20,
                     y: -40,
                     type,
-                    speed: 3
+                    speed: 4
                 });
             }
             
-            // Weapon power-up spawn (rarer)
-            if (Math.random() < 0.002) {
+            // Weapon power-up spawn (increased frequency)
+            if (Math.random() < 0.003) {
                 const weaponTypes = Object.keys(weapons);
                 const weaponType = weaponTypes[Math.floor(Math.random() * weaponTypes.length)];
                 weaponPowerups.push({
                     x: Math.random() * (canvas.width - 40) + 20,
                     y: -40,
                     weaponType,
-                    speed: 3
+                    speed: 4
                 });
             }
         }
