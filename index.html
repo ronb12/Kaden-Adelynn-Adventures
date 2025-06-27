@@ -1486,17 +1486,72 @@
         });
         
         // --- Sound Effects ---
-        // Create silent audio objects to prevent 404 errors
-        const shootSound = new Audio();
-        const explosionSound = new Audio();
-        const powerupSound = new Audio();
+        // Create simple sound effects using Web Audio API
+        let audioContext;
+        let shootSound, explosionSound, powerupSound;
         
-        // Set up error handling for audio
-        [shootSound, explosionSound, powerupSound].forEach(audio => {
-            audio.addEventListener('error', (e) => {
-                console.log('Audio file not available, continuing without sound');
-            });
-        });
+        // Initialize audio context and create sounds
+        function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Create shoot sound (high-pitched beep)
+                shootSound = () => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.1);
+                };
+                
+                // Create explosion sound (low rumble)
+                explosionSound = () => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    oscillator.frequency.setValueAtTime(100, audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.3);
+                    gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                };
+                
+                // Create powerup sound (ascending chime)
+                powerupSound = () => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.2);
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.2);
+                };
+                
+                console.log('Audio system initialized successfully');
+            } catch (error) {
+                console.log('Audio system not available, continuing without sound');
+                // Fallback silent functions
+                shootSound = explosionSound = powerupSound = () => {};
+            }
+        }
+        
+        // Initialize audio when user interacts
+        document.addEventListener('click', function initAudioOnInteraction() {
+            if (!audioContext) {
+                initAudio();
+            }
+            document.removeEventListener('click', initAudioOnInteraction);
+        }, { once: true });
 
         // --- Combo System ---
         let combo = 0;
@@ -2131,7 +2186,7 @@
                     });
                 }
                 player.lastShot = Date.now();
-                shootSound.currentTime = 0; shootSound.play();
+                shootSound();
             }
             if (player.shield) {
                 player.shieldTimer--;
@@ -2231,7 +2286,7 @@
                 for (let bulletIndex = player.bullets.length - 1; bulletIndex >= 0; bulletIndex--) {
                     const bullet = player.bullets[bulletIndex];
                     if (Math.abs(bullet.x - enemy.x) < (enemy.big ? 30 : 20) && Math.abs(bullet.y - enemy.y) < (enemy.big ? 30 : 20)) {
-                        explosionSound.currentTime = 0; explosionSound.play();
+                        explosionSound();
                         enemy.health--;
                         player.bullets.splice(bulletIndex, 1);
                         if (enemy.health <= 0) {
@@ -2264,7 +2319,7 @@
                     if (player.shield) {
                         player.shield = false;
                         player.shieldTimer = 0;
-                        explosionSound.currentTime = 0; explosionSound.play();
+                        explosionSound();
                         combo = 0;
                         return false;
                     }
@@ -2353,27 +2408,9 @@
                 ctx.restore();
                 // Pickup
                 if (Math.abs(player.x - powerup.x) < 25 && Math.abs(player.y - powerup.y) < 25) {
-                    powerupSound.currentTime = 0; powerupSound.play();
-                    powerupsCollected++;
-                    if (powerup.type === 'shield') {
-                        player.shield = true;
-                        player.shieldTimer = 600;
-                        shieldPowerups++;
-                    } else if (powerup.type === 'rapid') {
-                        rapidFireActive = true;
-                        rapidFireTimer = 480;
-                        rapidPowerups++;
-                    } else if (powerup.type === 'double') {
-                        doubleScoreActive = true;
-                        doubleScoreTimer = 480;
-                        doublePowerups++;
-                    } else if (powerup.type === 'weapon') {
-                        // Weapon upgrade
-                        if (player.weaponLevel < player.maxWeaponLevel) {
-                            player.weaponLevel++;
-                            updateWeaponDisplay();
-                        }
-                    }
+                    powerupSound();
+                    player.weaponType = powerup.weaponType;
+                    updateWeaponDisplay();
                     return false;
                 }
                 return powerup.y < canvas.height + 40;
@@ -2406,7 +2443,7 @@
                 
                 // Pickup
                 if (Math.abs(player.x - powerup.x) < 25 && Math.abs(player.y - powerup.y) < 25) {
-                    powerupSound.currentTime = 0; powerupSound.play();
+                    powerupSound();
                     player.weaponType = powerup.weaponType;
                     updateWeaponDisplay();
                     return false;
@@ -2438,7 +2475,7 @@
             if (combo > 1) {
                 comboPopup.textContent = `COMBO x${combo}!`;
                 comboPopup.style.display = 'block';
-                powerupSound.currentTime = 0; powerupSound.play(); // Play sound for combo popup
+                powerupSound(); // Play sound for combo popup
                 setTimeout(() => { comboPopup.style.display = 'none'; }, 700);
             }
         }
@@ -2521,7 +2558,7 @@
         }
         
         function spawnFuelPod() {
-            if (Math.random() < 0.006) { // Increased spawn rate (was 0.003)
+            if (Math.random() < 0.004) { // Reduced spawn rate (was 0.006)
                 fuelPods.push({
                     x: Math.random() * (canvas.width - 30) + 15,
                     y: -30,
@@ -2531,7 +2568,7 @@
                     collected: false
                 });
             }
-            if (Math.random() < 0.001) { // Even rarer for life pod
+            if (Math.random() < 0.0007) { // Slightly reduced life pod rate
                 lifePods.push({
                     x: Math.random() * (canvas.width - 30) + 15,
                     y: -30,
@@ -2544,7 +2581,7 @@
         }
         
         function spawnRefuelerShip() {
-            if (Math.random() < 0.002 && refuelerShips.length === 0) { // Increased spawn rate (was 0.001)
+            if (Math.random() < 0.001 && refuelerShips.length === 0) { // Reduced spawn rate (was 0.002)
                 refuelerShips.push({
                     x: Math.random() * (canvas.width - 80) + 40,
                     y: -80,
@@ -2586,7 +2623,7 @@
                 if (Math.abs(player.x - pod.x) < 25 && Math.abs(player.y - pod.y) < 25 && !pod.collected) {
                     fuelLevel = Math.min(maxFuel, fuelLevel + 40); // Increased from 30 to 40
                     fuelPodsCollected++;
-                    powerupSound.currentTime = 0; powerupSound.play();
+                    powerupSound();
                     pod.collected = true;
                     
                     // Create collection effect
@@ -2617,7 +2654,7 @@
                 if (Math.abs(player.x - ship.x) < 50 && Math.abs(player.y - ship.y) < 40 && ship.active) {
                     fuelLevel = Math.min(maxFuel, fuelLevel + ship.fuelAmount);
                     refuelerVisits++;
-                    powerupSound.currentTime = 0; powerupSound.play();
+                    powerupSound();
                     ship.active = false;
                     
                     // Create refueling effect
@@ -2658,7 +2695,7 @@
                     player.y <= starbase.dockingZone.y + starbase.dockingZone.height) {
                     
                     fuelLevel = maxFuel;
-                    powerupSound.currentTime = 0; powerupSound.play();
+                    powerupSound();
                     
                     // Create massive refueling effect
                     for (let i = 0; i < 30; i++) {
@@ -2819,7 +2856,7 @@
                         lives++;
                     }
                     pod.collected = true;
-                    powerupSound.currentTime = 0; powerupSound.play();
+                    powerupSound();
                     // Collection effect
                     for (let i = 0; i < 10; i++) {
                         particles.push({
