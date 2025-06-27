@@ -96,19 +96,6 @@
             color: #fff;
         }
 
-        #fuel {
-            margin-bottom: 10px;
-            color: #00ff00;
-        }
-
-        #weapon {
-            margin-bottom: 10px;
-            color: #00ffff;
-        }
-
-        #powerups" style="margin-top:10px;"></div>
-        <div id="comboCounter" style="margin-top:10px;"></div>
-
         #gameOver {
             position: absolute;
             top: 50%;
@@ -468,28 +455,6 @@
                 -webkit-tap-highlight-color: transparent;
             }
         }
-
-        @keyframes storySlideIn {
-            from { 
-                opacity: 0; 
-                transform: translate(-50%, -60%); 
-            }
-            to { 
-                opacity: 1; 
-                transform: translate(-50%, -50%); 
-            }
-        }
-
-        @keyframes storySlideOut {
-            from { 
-                opacity: 1; 
-                transform: translate(-50%, -50%); 
-            }
-            to { 
-                opacity: 0; 
-                transform: translate(-50%, -60%); 
-            }
-        }
     </style>
 </head>
 <body>
@@ -499,7 +464,6 @@
             <div id="score">Score: 0</div>
             <div id="lives">Lives: 3</div>
             <div id="level">Level: 1</div>
-            <div id="fuel">Fuel: 100%</div>
             <div id="weapon">Weapon: Laser Lv.1</div>
             <div id="powerups" style="margin-top:10px;"></div>
             <div id="comboCounter" style="margin-top:10px;"></div>
@@ -601,7 +565,7 @@
             y: canvas.height - 100,
             width: 40,
             height: 40,
-            speed: 10,
+            speed: 8,
             bullets: [],
             lastShot: 0,
             shotCooldown: 120,
@@ -612,11 +576,11 @@
             weaponLevel: 1,
             maxWeaponLevel: 3,
             weaponCooldowns: {
-                laser: 100,
-                plasma: 160,
-                missile: 320,
-                spread: 120,
-                laser: 60
+                laser: 120,
+                plasma: 200,
+                missile: 400,
+                spread: 150,
+                laser: 80
             }
         };
         
@@ -625,7 +589,7 @@
             laser: {
                 name: 'Laser',
                 color: '#00ffff',
-                speed: 15,
+                speed: 12,
                 damage: 1,
                 size: 3,
                 sound: 'laser'
@@ -633,7 +597,7 @@
             plasma: {
                 name: 'Plasma',
                 color: '#ff00ff',
-                speed: 12,
+                speed: 8,
                 damage: 2,
                 size: 6,
                 sound: 'plasma'
@@ -641,7 +605,7 @@
             missile: {
                 name: 'Missile',
                 color: '#ff8800',
-                speed: 8,
+                speed: 6,
                 damage: 3,
                 size: 8,
                 sound: 'missile',
@@ -650,7 +614,7 @@
             spread: {
                 name: 'Spread',
                 color: '#ffff00',
-                speed: 13,
+                speed: 10,
                 damage: 1,
                 size: 4,
                 sound: 'spread',
@@ -659,7 +623,7 @@
             laser: {
                 name: 'Rapid Laser',
                 color: '#ff0080',
-                speed: 18,
+                speed: 15,
                 damage: 1,
                 size: 2,
                 sound: 'rapid'
@@ -671,14 +635,6 @@
         let particles = [];
         let powerups = [];
         let weaponPowerups = [];
-        
-        // Fuel system
-        let fuelLevel = 100;
-        let maxFuel = 100;
-        let fuelPods = [];
-        let refuelerShips = [];
-        let starbase = null;
-        let fuelConsumptionRate = 0.1; // Fuel consumed per frame
         
         // Input
         const keys = {};
@@ -871,126 +827,7 @@
         comboPopup.style.display = 'none';
         document.body.appendChild(comboPopup);
         
-        // Storyline system
-        let storyProgress = 0;
-        let storyEvents = [];
-        let currentStory = '';
-        let storyCharacters = [
-            { name: 'Commander Kaden', role: 'Fleet Commander', color: '#4444ff', icon: '👨‍🚀' },
-            { name: 'Lieutenant Adelynn', role: 'Tactical Officer', color: '#ff4444', icon: '👩‍🚀' },
-            { name: 'Dr. Nova', role: 'Chief Engineer', color: '#00ff00', icon: '👨‍🔬' },
-            { name: 'Captain Orion', role: 'Starbase Commander', color: '#ffff00', icon: '👨‍✈️' },
-            { name: 'AI Assistant', role: 'Ship Computer', color: '#00ffff', icon: '🤖' }
-        ];
-        
-        function updateStoryline() {
-            // Story progression based on game events
-            if (storyProgress === 0 && score >= 1000) {
-                addStoryEvent('Commander Kaden', 'Excellent work, pilot! You\'ve proven yourself in basic combat. The galaxy needs more fighters like you.');
-                storyProgress = 1;
-            }
-            
-            if (storyProgress === 1 && level >= 3) {
-                addStoryEvent('Lieutenant Adelynn', 'Your tactical skills are impressive! We\'re detecting refueler ships in the area. They can help maintain your fuel levels.');
-                storyProgress = 2;
-            }
-            
-            if (storyProgress === 2 && fuelPods.length > 0 && fuelPods.some(pod => pod.collected)) {
-                addStoryEvent('Dr. Nova', 'Great! You\'ve collected fuel pods. Your ship\'s efficiency is improving. Keep an eye on your fuel levels!');
-                storyProgress = 3;
-            }
-            
-            if (storyProgress === 3 && level >= 5) {
-                addStoryEvent('Captain Orion', 'Welcome to the deep space sector! Our starbase will appear periodically for full refueling. Dock when you see it!');
-                storyProgress = 4;
-            }
-            
-            if (storyProgress === 4 && starbase && starbase.docked) {
-                addStoryEvent('AI Assistant', 'Docking successful! Fuel tanks at 100%. Starbase systems report all systems optimal.');
-                storyProgress = 5;
-            }
-            
-            if (storyProgress === 5 && enemiesDestroyed >= 50) {
-                addStoryEvent('Commander Kaden', 'You\'ve become a true space warrior! The enemy forces are taking notice of your skills.');
-                storyProgress = 6;
-            }
-            
-            if (storyProgress === 6 && score >= 10000) {
-                addStoryEvent('Lieutenant Adelynn', 'Incredible! You\'ve achieved legendary status. The entire fleet is talking about your accomplishments!');
-                storyProgress = 7;
-            }
-        }
-        
-        function addStoryEvent(characterName, message) {
-            const character = storyCharacters.find(c => c.name === characterName);
-            if (!character) return;
-            
-            const storyEvent = {
-                character: character,
-                message: message,
-                timestamp: Date.now(),
-                duration: 5000 // 5 seconds
-            };
-            
-            storyEvents.push(storyEvent);
-            showStoryPopup(storyEvent);
-        }
-        
-        function showStoryPopup(storyEvent) {
-            const popup = document.createElement('div');
-            popup.style.cssText = `
-                position: absolute;
-                top: 20%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(20,20,40,0.95));
-                border: 2px solid ${storyEvent.character.color};
-                border-radius: 15px;
-                padding: 20px;
-                max-width: 400px;
-                z-index: 1000;
-                box-shadow: 0 0 20px ${storyEvent.character.color};
-                animation: storySlideIn 0.5s ease-out;
-            `;
-            
-            popup.innerHTML = `
-                <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                    <span style="font-size: 24px; margin-right: 10px;">${storyEvent.character.icon}</span>
-                    <div>
-                        <div style="color: ${storyEvent.character.color}; font-weight: bold; font-size: 16px;">
-                            ${storyEvent.character.name}
-                        </div>
-                        <div style="color: #888; font-size: 12px;">
-                            ${storyEvent.character.role}
-                        </div>
-                    </div>
-                </div>
-                <div style="color: #fff; line-height: 1.4; font-size: 14px;">
-                    ${storyEvent.message}
-                </div>
-            `;
-            
-            document.body.appendChild(popup);
-            
-            // Remove popup after duration
-            setTimeout(() => {
-                popup.style.animation = 'storySlideOut 0.5s ease-in';
-                setTimeout(() => {
-                    if (popup.parentNode) {
-                        popup.parentNode.removeChild(popup);
-                    }
-                }, 500);
-            }, storyEvent.duration);
-        }
-        
-        function updateStoryEvents() {
-            storyEvents = storyEvents.filter(event => {
-                return Date.now() - event.timestamp < event.duration;
-            });
-        }
-        
         function startGame() {
-            console.log('🚀 Starting game...');
             gameRunning = true;
             score = 0;
             lives = 3;
@@ -1004,89 +841,87 @@
             doublePowerups = 0;
             combo = 0;
             maxCombo = 0;
-            
-            // Initialize fuel system
-            fuelLevel = maxFuel;
-            fuelPods = [];
-            refuelerShips = [];
-            starbase = null;
-            
-            // Initialize storyline
-            storyProgress = 0;
-            storyEvents = [];
-            
-            // Reset player position
-            player.x = canvas.width / 2;
-            player.y = canvas.height - 100;
+            player.x = Math.max(player.width/2, Math.min(canvas.width - player.width/2, canvas.width / 2));
+            player.y = Math.max(player.height/2, Math.min(canvas.height - player.height/2, canvas.height - 100));
             player.bullets = [];
-            player.shield = false;
-            player.shieldTimer = 0;
-            player.weaponType = 'laser';
-            player.weaponLevel = 1;
-            
-            // Clear all game objects
             enemies = [];
             particles = [];
             powerups = [];
             weaponPowerups = [];
-            
-            // Reset power-ups
-            rapidFireActive = false;
-            rapidFireTimer = 0;
-            doubleScoreActive = false;
-            doubleScoreTimer = 0;
-            
-            // Hide start screen
             document.getElementById('startScreen').style.display = 'none';
-            
-            // Start game loop
             gameLoop();
-            
-            console.log('Game started successfully!');
         }
         
         function gameOver() {
             gameRunning = false;
-            
-            // Calculate final statistics
             const survivalTime = Math.floor((Date.now() - gameStartTime) / 1000);
-            const experienceEarned = calculateExperience();
+            const grade = calculateGrade(score, enemiesDestroyed, maxCombo, survivalTime);
+            const achievements = calculateAchievements();
             
             // Update final score display
-            document.getElementById('finalScore').textContent = `Final Score: ${score}`;
+            document.getElementById('finalScore').textContent = `Final Score: ${score.toLocaleString()}`;
+            document.getElementById('grade').textContent = `Grade: ${grade}`;
+            document.getElementById('grade').className = `grade grade-${grade}`;
+            
+            // Update statistics
             document.getElementById('enemiesDestroyed').textContent = enemiesDestroyed;
             document.getElementById('bigEnemiesDestroyed').textContent = bigEnemiesDestroyed;
             document.getElementById('powerupsCollected').textContent = powerupsCollected;
             document.getElementById('maxCombo').textContent = maxCombo;
             document.getElementById('levelReached').textContent = level;
             document.getElementById('survivalTime').textContent = `${survivalTime}s`;
-            document.getElementById('experienceEarned').textContent = experienceEarned;
             
-            // Calculate grade
+            // Display achievements
+            const achievementsDiv = document.getElementById('achievements');
+            achievementsDiv.innerHTML = '';
+            achievements.forEach(achievement => {
+                const achievementDiv = document.createElement('div');
+                achievementDiv.className = 'achievement';
+                achievementDiv.textContent = achievement;
+                achievementsDiv.appendChild(achievementDiv);
+            });
+            
+            // Ensure the game over screen is visible
+            const gameOverScreen = document.getElementById('gameOver');
+            gameOverScreen.style.display = 'block';
+            
+            // Force a reflow to ensure proper positioning
+            gameOverScreen.offsetHeight;
+            
+            // Ensure it's within viewport bounds
+            const rect = gameOverScreen.getBoundingClientRect();
+            if (rect.top < 10) {
+                gameOverScreen.style.top = '10px';
+                gameOverScreen.style.transform = 'translate(-50%, 0)';
+            }
+            if (rect.bottom > window.innerHeight - 10) {
+                gameOverScreen.style.top = 'auto';
+                gameOverScreen.style.bottom = '10px';
+                gameOverScreen.style.transform = 'translate(-50%, 0)';
+            }
+        }
+        
+        function calculateGrade(score, enemies, maxCombo, time) {
             let grade = 'D';
             if (score >= 10000) grade = 'S';
             else if (score >= 5000) grade = 'A';
             else if (score >= 2000) grade = 'B';
             else if (score >= 500) grade = 'C';
-            
-            document.getElementById('grade').textContent = `Grade: ${grade}`;
-            document.getElementById('grade').className = `grade grade-${grade}`;
-            
-            // Show achievements
+            return grade;
+        }
+        
+        function calculateAchievements() {
             const achievements = [];
-            if (enemiesDestroyed >= 50) achievements.push('🎯 Enemy Hunter: Destroyed 50+ enemies');
-            if (bigEnemiesDestroyed >= 10) achievements.push('💪 Big Game Hunter: Destroyed 10+ big enemies');
-            if (maxCombo >= 10) achievements.push('🔥 Combo Master: Achieved 10x combo');
-            if (powerupsCollected >= 20) achievements.push('⚡ Power Collector: Collected 20+ power-ups');
-            if (survivalTime >= 300) achievements.push('⏰ Survivor: Survived 5+ minutes');
-            
-            const achievementsDiv = document.getElementById('achievements');
-            achievementsDiv.innerHTML = achievements.length > 0 ? 
-                achievements.map(achievement => `<div class="achievement">${achievement}</div>`).join('') :
-                '<div style="color: #888; font-style: italic;">No achievements earned yet. Keep playing!</div>';
-            
-            // Show game over screen
-            document.getElementById('gameOver').style.display = 'block';
+            if (score >= 10000) achievements.push(' Master Pilot - Score 10,000+');
+            if (score >= 5000) achievements.push(' Elite Fighter - Score 5,000+');
+            if (maxCombo >= 10) achievements.push(' Combo Master - 10x Combo');
+            if (maxCombo >= 5) achievements.push(' Chain Killer - 5x Combo');
+            if (bigEnemiesDestroyed >= 5) achievements.push(' Giant Slayer - Destroy 5 Big Enemies');
+            if (powerupsCollected >= 10) achievements.push(' Power Collector - Collect 10 Power-ups');
+            if (enemiesDestroyed >= 50) achievements.push(' Destroyer - Destroy 50 Enemies');
+            if (level >= 5) achievements.push(' High Flyer - Reach Level 5');
+            if (lives === 3) achievements.push(' Perfect Run - Complete with Full Lives');
+            return achievements;
         }
         
         function restartGame() {
@@ -1094,30 +929,25 @@
             startGame();
         }
         
-        function calculateExperience() {
-            let exp = score * 0.1;
-            exp += enemiesDestroyed * 10;
-            exp += bigEnemiesDestroyed * 50;
-            exp += powerupsCollected * 5;
-            exp += maxCombo * 20;
-            exp += level * 100;
-            return Math.floor(exp);
-        }
-        
         function drawPlayer() {
             ctx.save();
             ctx.translate(player.x, player.y);
             
-            // Shield effect
+            // Draw shield if active
             if (player.shield) {
-                ctx.strokeStyle = '#00ffff';
-                ctx.lineWidth = 3;
+                ctx.globalAlpha = 0.3;
+                ctx.fillStyle = '#00ffff';
                 ctx.beginPath();
-                ctx.arc(0, 0, 30, 0, Math.PI * 2);
-                ctx.stroke();
+                ctx.arc(0, 0, 28, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
             }
             
-            // Player ship
+            // Engine glow
+            ctx.shadowColor = '#00ffff';
+            ctx.shadowBlur = 20;
+            
+            // Main body
             ctx.fillStyle = '#4444ff';
             ctx.beginPath();
             ctx.moveTo(0, -20);
@@ -1128,16 +958,34 @@
             ctx.closePath();
             ctx.fill();
             
-            // Ship details
+            // Wings
             ctx.fillStyle = '#6666ff';
             ctx.beginPath();
-            ctx.moveTo(-8, 20);
-            ctx.lineTo(-12, 15);
-            ctx.lineTo(-6, 10);
-            ctx.lineTo(6, 10);
-            ctx.lineTo(12, 15);
+            ctx.moveTo(-15, 10);
+            ctx.lineTo(-25, 5);
+            ctx.lineTo(-20, 15);
+            ctx.lineTo(-8, 20);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(15, 10);
+            ctx.lineTo(25, 5);
+            ctx.lineTo(20, 15);
             ctx.lineTo(8, 20);
             ctx.closePath();
+            ctx.fill();
+            
+            // Cockpit
+            ctx.fillStyle = '#00ffff';
+            ctx.beginPath();
+            ctx.arc(0, 0, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Engine exhaust
+            ctx.fillStyle = '#ffaa00';
+            ctx.beginPath();
+            ctx.ellipse(0, 20, 3, 8, 0, 0, Math.PI * 2);
             ctx.fill();
             
             ctx.restore();
@@ -1287,7 +1135,7 @@
             player.y = Math.max(player.height/2, Math.min(canvas.height - player.height/2, player.y));
             
             // Enhanced shooting system with multiple weapons
-            let cooldown = rapidFireActive ? 25 : player.weaponCooldowns[player.weaponType];
+            let cooldown = rapidFireActive ? 40 : player.weaponCooldowns[player.weaponType];
             let shouldShoot = (keys['Space'] || keys['KeyX'] || touchControls.shoot) && Date.now() - player.lastShot > cooldown;
             
             if (shouldShoot) {
@@ -1384,7 +1232,7 @@
         }
         
         function spawnEnemy() {
-            if (Math.random() < 0.025 + level * 0.006) {
+            if (Math.random() < 0.018 + level * 0.004) {
                 // 80% normal, 20% big enemy
                 if (Math.random() < 0.2) {
                     enemies.push({
@@ -1392,7 +1240,7 @@
                         y: -60,
                         width: 60,
                         height: 60,
-                        speed: 3.5 + Math.random() * 2,
+                        speed: 2.5 + Math.random() * 1.5,
                         big: true,
                         health: 3
                     });
@@ -1402,34 +1250,34 @@
                         y: -40,
                         width: 30,
                         height: 30,
-                        speed: 5.5 + Math.random() * 2.5,
+                        speed: 4 + Math.random() * 2,
                         big: false,
                         health: 1
                     });
                 }
             }
             
-            // Power-up spawn (increased frequency)
-            if (Math.random() < 0.008) {
+            // Power-up spawn
+            if (Math.random() < 0.005) {
                 const types = ['shield', 'rapid', 'double', 'weapon'];
                 const type = types[Math.floor(Math.random() * types.length)];
                 powerups.push({
                     x: Math.random() * (canvas.width - 40) + 20,
                     y: -40,
                     type,
-                    speed: 4
+                    speed: 3
                 });
             }
             
-            // Weapon power-up spawn (increased frequency)
-            if (Math.random() < 0.003) {
+            // Weapon power-up spawn (rarer)
+            if (Math.random() < 0.002) {
                 const weaponTypes = Object.keys(weapons);
                 const weaponType = weaponTypes[Math.floor(Math.random() * weaponTypes.length)];
                 weaponPowerups.push({
                     x: Math.random() * (canvas.width - 40) + 20,
                     y: -40,
                     weaponType,
-                    speed: 4
+                    speed: 3
                 });
             }
         }
@@ -1631,289 +1479,6 @@
             level = Math.floor(score / 1000) + 1;
         }
         
-        // Fuel system functions
-        function updateFuel() {
-            // Consume fuel over time
-            fuelLevel -= fuelConsumptionRate;
-            if (fuelLevel <= 0) {
-                fuelLevel = 0;
-                // Game over if no fuel
-                if (!player.shield) {
-                    lives--;
-                    if (lives <= 0) {
-                        gameOver();
-                        return;
-                    }
-                    // Reset fuel to 20% when hit
-                    fuelLevel = 20;
-                }
-            }
-            
-            // Update fuel display
-            const fuelDisplay = document.getElementById('fuel');
-            if (fuelDisplay) {
-                const fuelPercent = Math.floor(fuelLevel);
-                fuelDisplay.textContent = `Fuel: ${fuelPercent}%`;
-                
-                // Color coding for fuel levels
-                if (fuelPercent > 50) {
-                    fuelDisplay.style.color = '#00ff00';
-                } else if (fuelPercent > 20) {
-                    fuelDisplay.style.color = '#ffff00';
-                } else {
-                    fuelDisplay.style.color = '#ff4444';
-                }
-            }
-        }
-        
-        function spawnFuelPods() {
-            if (Math.random() < 0.003) { // 0.3% chance per frame
-                fuelPods.push({
-                    x: Math.random() * (canvas.width - 40) + 20,
-                    y: -40,
-                    speed: 3,
-                    collected: false
-                });
-            }
-        }
-        
-        function updateFuelPods() {
-            fuelPods = fuelPods.filter(pod => {
-                pod.y += pod.speed;
-                
-                // Check collision with player
-                if (Math.abs(player.x - pod.x) < 25 && Math.abs(player.y - pod.y) < 25 && !pod.collected) {
-                    fuelLevel = Math.min(maxFuel, fuelLevel + 30); // Restore 30% fuel
-                    pod.collected = true;
-                    powerupSound.currentTime = 0; powerupSound.play();
-                    
-                    // Collection effect
-                    for (let i = 0; i < 8; i++) {
-                        particles.push({
-                            x: pod.x,
-                            y: pod.y,
-                            vx: (Math.random() - 0.5) * 6,
-                            vy: (Math.random() - 0.5) * 6,
-                            size: Math.random() * 3 + 2,
-                            color: '#00ff00',
-                            alpha: 1,
-                            life: 30
-                        });
-                    }
-                    return false;
-                }
-                return pod.y < canvas.height + 30;
-            });
-        }
-        
-        function drawFuelPod(pod) {
-            ctx.save();
-            ctx.translate(pod.x, pod.y);
-            ctx.shadowColor = '#00ff00';
-            ctx.shadowBlur = 15;
-            ctx.fillStyle = '#00ff00';
-            ctx.beginPath();
-            ctx.arc(0, 0, 12, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 16px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('⛽', 0, 0);
-            ctx.restore();
-        }
-        
-        function spawnRefuelerShips() {
-            if (Math.random() < 0.001 && level >= 3) { // 0.1% chance, level 3+
-                refuelerShips.push({
-                    x: Math.random() * (canvas.width - 80) + 40,
-                    y: -80,
-                    speed: 2,
-                    width: 60,
-                    height: 40,
-                    fuelRestore: 50, // Restore 50% fuel
-                    collected: false
-                });
-            }
-        }
-        
-        function updateRefuelerShips() {
-            refuelerShips = refuelerShips.filter(ship => {
-                ship.y += ship.speed;
-                
-                // Check collision with player
-                if (Math.abs(player.x - ship.x) < 35 && Math.abs(player.y - ship.y) < 25 && !ship.collected) {
-                    fuelLevel = Math.min(maxFuel, fuelLevel + ship.fuelRestore);
-                    ship.collected = true;
-                    powerupSound.currentTime = 0; powerupSound.play();
-                    
-                    // Collection effect
-                    for (let i = 0; i < 15; i++) {
-                        particles.push({
-                            x: ship.x,
-                            y: ship.y,
-                            vx: (Math.random() - 0.5) * 8,
-                            vy: (Math.random() - 0.5) * 8,
-                            size: Math.random() * 4 + 2,
-                            color: '#00ffff',
-                            alpha: 1,
-                            life: 40
-                        });
-                    }
-                    return false;
-                }
-                return ship.y < canvas.height + 40;
-            });
-        }
-        
-        function drawRefuelerShip(ship) {
-            ctx.save();
-            ctx.translate(ship.x, ship.y);
-            ctx.shadowColor = '#00ffff';
-            ctx.shadowBlur = 20;
-            
-            // Ship body
-            ctx.fillStyle = '#00ffff';
-            ctx.beginPath();
-            ctx.moveTo(0, 20);
-            ctx.lineTo(-25, -10);
-            ctx.lineTo(-15, -20);
-            ctx.lineTo(15, -20);
-            ctx.lineTo(25, -10);
-            ctx.closePath();
-            ctx.fill();
-            
-            // Fuel tanks
-            ctx.fillStyle = '#00ff00';
-            ctx.fillRect(-20, -15, 8, 15);
-            ctx.fillRect(12, -15, 8, 15);
-            
-            // Refueler symbol
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 14px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('🛢️', 0, 0);
-            
-            ctx.restore();
-        }
-        
-        function spawnStarbase() {
-            if (level >= 5 && !starbase) { // Level 5+
-                starbase = {
-                    x: canvas.width / 2,
-                    y: canvas.height + 100,
-                    speed: 1,
-                    width: 120,
-                    height: 80,
-                    docking: false,
-                    docked: false
-                };
-            }
-        }
-        
-        function updateStarbase() {
-            if (starbase) {
-                if (!starbase.docking && !starbase.docked) {
-                    // Move starbase into view
-                    starbase.y -= starbase.speed;
-                    if (starbase.y <= canvas.height - 150) {
-                        starbase.y = canvas.height - 150;
-                        starbase.docking = true;
-                    }
-                }
-                
-                if (starbase.docking && !starbase.docked) {
-                    // Check if player is near for docking
-                    const distance = Math.sqrt(
-                        Math.pow(player.x - starbase.x, 2) + 
-                        Math.pow(player.y - starbase.y, 2)
-                    );
-                    
-                    if (distance < 80) {
-                        starbase.docked = true;
-                        starbase.docking = false;
-                        fuelLevel = maxFuel; // Full refuel
-                        powerupSound.currentTime = 0; powerupSound.play();
-                        
-                        // Docking effect
-                        for (let i = 0; i < 20; i++) {
-                            particles.push({
-                                x: starbase.x,
-                                y: starbase.y,
-                                vx: (Math.random() - 0.5) * 10,
-                                vy: (Math.random() - 0.5) * 10,
-                                size: Math.random() * 5 + 3,
-                                color: '#00ffff',
-                                alpha: 1,
-                                life: 50
-                            });
-                        }
-                    }
-                }
-                
-                if (starbase.docked) {
-                    // Starbase stays for a while then leaves
-                    setTimeout(() => {
-                        starbase.docked = false;
-                        starbase.speed = 0.5;
-                    }, 3000);
-                }
-                
-                if (!starbase.docked && starbase.y < canvas.height - 100) {
-                    // Starbase leaves
-                    starbase.y += starbase.speed;
-                    if (starbase.y > canvas.height + 100) {
-                        starbase = null;
-                    }
-                }
-            }
-        }
-        
-        function drawStarbase() {
-            if (starbase) {
-                ctx.save();
-                ctx.translate(starbase.x, starbase.y);
-                ctx.shadowColor = '#00ffff';
-                ctx.shadowBlur = 30;
-                
-                // Starbase structure
-                ctx.fillStyle = '#4444ff';
-                ctx.fillRect(-60, -40, 120, 80);
-                
-                // Control tower
-                ctx.fillStyle = '#6666ff';
-                ctx.fillRect(-20, -60, 40, 20);
-                
-                // Docking bay
-                ctx.fillStyle = '#000';
-                ctx.fillRect(-50, 20, 100, 20);
-                
-                // Fuel tanks
-                ctx.fillStyle = '#00ff00';
-                ctx.fillRect(-50, -30, 15, 20);
-                ctx.fillRect(35, -30, 15, 20);
-                
-                // Starbase symbol
-                ctx.fillStyle = '#fff';
-                ctx.font = 'bold 20px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('🏠', 0, 0);
-                
-                // Docking zone indicator
-                if (starbase.speed === 0) {
-                    ctx.strokeStyle = '#00ffff';
-                    ctx.lineWidth = 2;
-                    ctx.setLineDash([5, 5]);
-                    ctx.strokeRect(-60, 40, 120, 40);
-                    ctx.setLineDash([]);
-                }
-                
-                ctx.restore();
-            }
-        }
-        
         function updateUI() {
             document.getElementById('score').textContent = `Score: ${score}`;
             document.getElementById('lives').textContent = `Lives: ${lives}`;
@@ -1953,20 +1518,6 @@
             updatePowerups();
             updateWeaponPowerups();
             updateLevel();
-            
-            // Fuel system updates
-            updateFuel();
-            spawnFuelPods();
-            updateFuelPods();
-            spawnRefuelerShips();
-            updateRefuelerShips();
-            spawnStarbase();
-            updateStarbase();
-            
-            // Storyline updates
-            updateStoryline();
-            updateStoryEvents();
-            
             updateUI();
             
             // Draw everything
@@ -1974,13 +1525,10 @@
             enemies.forEach(drawEnemy);
             player.bullets.forEach(drawBullet);
             particles.forEach(drawParticle);
-            fuelPods.forEach(drawFuelPod);
-            refuelerShips.forEach(drawRefuelerShip);
-            drawStarbase();
             
             // Debug info (remove in production)
             if (enemies.length > 0) {
-                console.log(`Enemies on screen: ${enemies.length}, Bullets: ${player.bullets.length}, Fuel: ${Math.floor(fuelLevel)}%`);
+                console.log(`Enemies on screen: ${enemies.length}, Bullets: ${player.bullets.length}`);
             }
             
             requestAnimationFrame(gameLoop);
