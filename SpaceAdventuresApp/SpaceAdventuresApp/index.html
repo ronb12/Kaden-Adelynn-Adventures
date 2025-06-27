@@ -672,7 +672,7 @@
                 <div id="rankInfo"></div>
             </div>
             
-            <button onclick="startGame()">START GAME</button>
+            <button id="startButton" onclick="startGame()">START GAME</button>
         </div>
         <div id="gameOver">
             <h2>🎮 Mission Complete!</h2>
@@ -1428,6 +1428,23 @@
         // Initialize touch controls
         setupTouchControls();
         
+        // Load rank info on page load
+        displayRankInfo();
+        
+        // Add event listener for start button
+        document.addEventListener('DOMContentLoaded', function() {
+            const startButton = document.getElementById('startButton');
+            if (startButton) {
+                startButton.addEventListener('click', function() {
+                    console.log('Start button clicked!');
+                    startGame();
+                });
+                console.log('Start button event listener added');
+            } else {
+                console.error('Start button not found!');
+            }
+        });
+        
         window.addEventListener('resize', resizeCanvas);
         
         // --- Sound Effects ---
@@ -1566,11 +1583,15 @@
             rankInfoDiv.innerHTML = rankHtml;
         }
         
-        // Load rank info on page load
-        displayRankInfo();
-        
         function startGame() {
+            console.log('🚀 startGame() called');
+            console.log('Canvas:', canvas);
+            console.log('Player:', player);
+            console.log('Game running before:', gameRunning);
+            
             gameRunning = true;
+            console.log('Game running after:', gameRunning);
+            
             score = 0;
             lives = 10;
             maxLives = 20;
@@ -1584,8 +1605,12 @@
             doublePowerups = 0;
             combo = 0;
             maxCombo = 0;
+            
+            console.log('Player position before:', player.x, player.y);
             player.x = Math.max(player.width/2, Math.min(canvas.width - player.width/2, canvas.width / 2));
             player.y = Math.max(player.height/2, Math.min(canvas.height - player.height/2, canvas.height - 100));
+            console.log('Player position after:', player.x, player.y);
+            
             player.bullets = [];
             enemies = [];
             particles = [];
@@ -1607,7 +1632,16 @@
             player.shipType = selectedShipIndex;
             spawnWingmen();
             
-            document.getElementById('startScreen').style.display = 'none';
+            console.log('Hiding start screen...');
+            const startScreen = document.getElementById('startScreen');
+            if (startScreen) {
+                startScreen.style.display = 'none';
+                console.log('Start screen hidden successfully');
+            } else {
+                console.error('Start screen element not found!');
+            }
+            
+            console.log('Starting game loop...');
             gameLoop();
         }
         
