@@ -35,14 +35,15 @@
             position: fixed;
             top: 0;
             left: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .game-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
+            position: relative;
+            width: min(100vw, 1200px);
+            height: min(100vh, 800px);
             background: linear-gradient(to bottom, #000011, #000033, #000011);
             overflow: hidden;
             display: flex;
@@ -50,13 +51,15 @@
             justify-content: flex-start;
             align-items: stretch;
             z-index: 1;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(68,68,255,0.3);
         }
 
         @media (max-width: 1000px), (max-height: 800px) {
             .game-container {
-                width: 100vw;
-                height: 100vh;
-                border-radius: 0;
+                width: min(100vw, 900px);
+                height: min(100vh, 600px);
+                border-radius: 8px;
             }
         }
 
@@ -71,8 +74,8 @@
         #gameCanvas {
             display: block;
             background: linear-gradient(to bottom, #000011, #000033, #000011);
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
             position: absolute;
             top: 0;
             left: 0;
@@ -538,10 +541,18 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
-        // Set canvas size to fit full screen
+        // Set canvas size to fit the game container
         function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            const gameContainer = document.querySelector('.game-container');
+            const rect = gameContainer.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            
+            // Update player position to stay within new bounds
+            if (player) {
+                player.x = Math.max(player.width/2, Math.min(canvas.width - player.width/2, player.x));
+                player.y = Math.max(player.height/2, Math.min(canvas.height - player.height/2, player.y));
+            }
         }
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
@@ -792,10 +803,7 @@
         // Initialize touch controls
         setupTouchControls();
         
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        });
+        window.addEventListener('resize', resizeCanvas);
         
         // --- Sound Effects ---
         const shootSound = new Audio('https://cdn.jsdelivr.net/gh/ronb12/sfx@main/shoot.wav');
