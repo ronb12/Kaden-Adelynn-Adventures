@@ -768,6 +768,7 @@
         let currentRank = 'Cadet';
         let rankProgress = 0;
         let totalExperience = 0;
+        let selectedShipIndex = 0; // Ship selection index
         
         // Player - Define this before resizeCanvas
         const player = {
@@ -2815,7 +2816,6 @@
         }
 
         // --- Ship Selection UI ---
-        let selectedShipIndex = 0;
         function renderShipSelection() {
             const shipSelectionDiv = document.getElementById('shipSelection');
             if (!shipSelectionDiv) return;
