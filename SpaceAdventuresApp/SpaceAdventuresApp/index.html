@@ -9,7 +9,11 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Kaden & Adelynn Space Adventures v2.0</title>
+    <title>Kaden & Adelynn Space Adventures v3.0</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000011">
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
@@ -467,6 +471,7 @@
             <div id="score">Score: 0</div>
             <div id="lives">Lives: 3</div>
             <div id="level">Level: 1</div>
+            <div id="fuel">Fuel: 100%</div>
             <div id="weapon">Weapon: Laser Lv.1</div>
             <div id="powerups" style="margin-top:10px;"></div>
             <div id="comboCounter" style="margin-top:10px;"></div>
@@ -541,9 +546,20 @@
         </div>
     </div>
     <script>
-        console.log('🚀 Kaden & Adelynn Space Adventures v2.0 - Enhanced Weapon System Loaded!');
+        console.log('🚀 Kaden & Adelynn Space Adventures v3.0 - Enhanced Weapon System Loaded!');
         console.log('📱 Mobile detection:', /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
         console.log('🖥️ Screen size:', window.innerWidth + 'x' + window.innerHeight);
+        
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+                .then((registration) => {
+                    console.log('Service Worker registered successfully:', registration);
+                })
+                .catch((error) => {
+                    console.log('Service Worker registration failed:', error);
+                });
+        }
         
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -727,6 +743,17 @@
         let particles = [];
         let powerups = [];
         let weaponPowerups = [];
+        
+        // Fuel system
+        let fuelLevel = 100;
+        let maxFuel = 100;
+        let fuelConsumptionRate = 0.1; // Fuel consumed per frame
+        let fuelPods = [];
+        let refuelerShips = [];
+        let starbase = null;
+        let starbaseSpawned = false;
+        let fuelPodsCollected = 0;
+        let refuelerVisits = 0;
         
         // Scoreboard system
         let scoreboard = JSON.parse(localStorage.getItem('spaceAdventuresScoreboard') || '[]');
@@ -1012,6 +1039,14 @@
             particles = [];
             powerups = [];
             weaponPowerups = [];
+            // Fuel system reset
+            fuelLevel = maxFuel;
+            fuelPods = [];
+            refuelerShips = [];
+            starbase = null;
+            starbaseSpawned = false;
+            fuelPodsCollected = 0;
+            refuelerVisits = 0;
             document.getElementById('startScreen').style.display = 'none';
             gameLoop();
         }
@@ -1742,6 +1777,7 @@
             document.getElementById('score').textContent = `Score: ${score}`;
             document.getElementById('lives').textContent = `Lives: ${lives}`;
             document.getElementById('level').textContent = `Level: ${level}`;
+            document.getElementById('fuel').textContent = `Fuel: ${fuelLevel}%`;
             // Power-up indicators
             let powerupText = '';
             if (rapidFireActive) powerupText += '<span style="color:#FFD700;">⚡ Rapid Fire!</span> ';
@@ -1763,12 +1799,17 @@
         
         function gameLoop() {
             if (!gameRunning) return;
-            
-            // Clear canvas with solid background (no blur effect)
             ctx.fillStyle = levelConfigs[level].background;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Update game objects
+            // --- FUEL SYSTEM ---
+            updateFuel();
+            spawnFuelPod();
+            spawnRefuelerShip();
+            spawnStarbase();
+            updateFuelPods();
+            updateRefuelerShips();
+            updateStarbase();
+            // --- GAME OBJECTS ---
             updatePlayer();
             updateBullets();
             spawnEnemy();
@@ -1778,18 +1819,17 @@
             updateWeaponPowerups();
             updateLevel();
             updateUI();
-            
-            // Draw everything
+            // --- DRAW ---
             drawPlayer();
             enemies.forEach(drawEnemy);
             player.bullets.forEach(drawBullet);
             particles.forEach(drawParticle);
-            
-            // Debug info (remove in production)
+            fuelPods.forEach(drawFuelPod);
+            refuelerShips.forEach(drawRefuelerShip);
+            drawStarbase();
             if (enemies.length > 0) {
                 console.log(`Enemies on screen: ${enemies.length}, Bullets: ${player.bullets.length}`);
             }
-            
             requestAnimationFrame(gameLoop);
         }
         
@@ -1802,6 +1842,314 @@
         }
         
         startScreenLoop();
+
+        // Fuel system functions
+        function updateFuel() {
+            fuelLevel -= fuelConsumptionRate;
+            if (fuelLevel <= 0) {
+                fuelLevel = 0;
+                if (lives > 0) {
+                    lives--;
+                    fuelLevel = 50; // Give some fuel back when losing a life
+                    if (lives <= 0) {
+                        gameOver();
+                    }
+                }
+            }
+            
+            // Update fuel display
+            const fuelDisplay = document.getElementById('fuel');
+            const fuelPercent = Math.round(fuelLevel);
+            fuelDisplay.textContent = `Fuel: ${fuelPercent}%`;
+            
+            // Change color based on fuel level
+            if (fuelPercent <= 20) {
+                fuelDisplay.style.color = '#ff4444';
+            } else if (fuelPercent <= 50) {
+                fuelDisplay.style.color = '#ffaa00';
+            } else {
+                fuelDisplay.style.color = '#00ff00';
+            }
+        }
+        
+        function spawnFuelPod() {
+            if (Math.random() < 0.003) { // Rare spawn
+                fuelPods.push({
+                    x: Math.random() * (canvas.width - 30) + 15,
+                    y: -30,
+                    width: 30,
+                    height: 30,
+                    speed: 3,
+                    collected: false
+                });
+            }
+        }
+        
+        function spawnRefuelerShip() {
+            if (Math.random() < 0.001 && refuelerShips.length === 0) { // Very rare spawn
+                refuelerShips.push({
+                    x: Math.random() * (canvas.width - 80) + 40,
+                    y: -80,
+                    width: 80,
+                    height: 60,
+                    speed: 2,
+                    fuelAmount: 50,
+                    active: true
+                });
+            }
+        }
+        
+        function spawnStarbase() {
+            if (!starbaseSpawned && level >= 5 && Math.random() < 0.0005) {
+                starbase = {
+                    x: canvas.width / 2,
+                    y: -100,
+                    width: 120,
+                    height: 80,
+                    speed: 1,
+                    fuelAmount: 100,
+                    active: true,
+                    dockingZone: {
+                        x: canvas.width / 2 - 60,
+                        y: canvas.height - 120,
+                        width: 120,
+                        height: 40
+                    }
+                };
+                starbaseSpawned = true;
+            }
+        }
+        
+        function updateFuelPods() {
+            fuelPods = fuelPods.filter(pod => {
+                pod.y += pod.speed;
+                
+                // Check collision with player
+                if (Math.abs(player.x - pod.x) < 25 && Math.abs(player.y - pod.y) < 25 && !pod.collected) {
+                    fuelLevel = Math.min(maxFuel, fuelLevel + 30);
+                    fuelPodsCollected++;
+                    powerupSound.currentTime = 0; powerupSound.play();
+                    pod.collected = true;
+                    
+                    // Create collection effect
+                    for (let i = 0; i < 8; i++) {
+                        particles.push({
+                            x: pod.x,
+                            y: pod.y,
+                            vx: (Math.random() - 0.5) * 6,
+                            vy: (Math.random() - 0.5) * 6,
+                            size: Math.random() * 3 + 2,
+                            color: '#00ff00',
+                            alpha: 1,
+                            life: 30
+                        });
+                    }
+                    return false;
+                }
+                
+                return pod.y < canvas.height + 30;
+            });
+        }
+        
+        function updateRefuelerShips() {
+            refuelerShips = refuelerShips.filter(ship => {
+                ship.y += ship.speed;
+                
+                // Check collision with player
+                if (Math.abs(player.x - ship.x) < 50 && Math.abs(player.y - ship.y) < 40 && ship.active) {
+                    fuelLevel = Math.min(maxFuel, fuelLevel + ship.fuelAmount);
+                    refuelerVisits++;
+                    powerupSound.currentTime = 0; powerupSound.play();
+                    ship.active = false;
+                    
+                    // Create refueling effect
+                    for (let i = 0; i < 15; i++) {
+                        particles.push({
+                            x: ship.x,
+                            y: ship.y,
+                            vx: (Math.random() - 0.5) * 8,
+                            vy: (Math.random() - 0.5) * 8,
+                            size: Math.random() * 4 + 3,
+                            color: '#00ffff',
+                            alpha: 1,
+                            life: 40
+                        });
+                    }
+                    return false;
+                }
+                
+                return ship.y < canvas.height + 80;
+            });
+        }
+        
+        function updateStarbase() {
+            if (starbase && starbase.active) {
+                starbase.y += starbase.speed;
+                
+                // Check if starbase is in docking position
+                if (starbase.y >= canvas.height - 100) {
+                    starbase.y = canvas.height - 100;
+                    starbase.speed = 0;
+                }
+                
+                // Check collision with player in docking zone
+                if (starbase.speed === 0 && 
+                    player.x >= starbase.dockingZone.x && 
+                    player.x <= starbase.dockingZone.x + starbase.dockingZone.width &&
+                    player.y >= starbase.dockingZone.y && 
+                    player.y <= starbase.dockingZone.y + starbase.dockingZone.height) {
+                    
+                    fuelLevel = maxFuel;
+                    powerupSound.currentTime = 0; powerupSound.play();
+                    
+                    // Create massive refueling effect
+                    for (let i = 0; i < 30; i++) {
+                        particles.push({
+                            x: starbase.x + (Math.random() - 0.5) * 100,
+                            y: starbase.y + (Math.random() - 0.5) * 60,
+                            vx: (Math.random() - 0.5) * 10,
+                            vy: (Math.random() - 0.5) * 10,
+                            size: Math.random() * 5 + 4,
+                            color: '#00ffff',
+                            alpha: 1,
+                            life: 50
+                        });
+                    }
+                }
+            }
+        }
+        
+        function drawFuelPod(pod) {
+            ctx.save();
+            ctx.translate(pod.x, pod.y);
+            
+            // Fuel pod glow
+            ctx.shadowColor = '#00ff00';
+            ctx.shadowBlur = 15;
+            
+            // Main fuel pod
+            ctx.fillStyle = '#00ff00';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 12, 8, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Fuel indicator
+            ctx.fillStyle = '#00aa00';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 8, 5, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Fuel symbol
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('⛽', 0, 0);
+            
+            ctx.restore();
+        }
+        
+        function drawRefuelerShip(ship) {
+            ctx.save();
+            ctx.translate(ship.x, ship.y);
+            
+            // Ship glow
+            ctx.shadowColor = '#00ffff';
+            ctx.shadowBlur = 20;
+            
+            // Main body
+            ctx.fillStyle = '#00ffff';
+            ctx.beginPath();
+            ctx.moveTo(0, -25);
+            ctx.lineTo(-20, 15);
+            ctx.lineTo(-15, 25);
+            ctx.lineTo(15, 25);
+            ctx.lineTo(20, 15);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Wings
+            ctx.fillStyle = '#0088ff';
+            ctx.beginPath();
+            ctx.moveTo(-20, 15);
+            ctx.lineTo(-35, 10);
+            ctx.lineTo(-30, 20);
+            ctx.lineTo(-15, 25);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(20, 15);
+            ctx.lineTo(35, 10);
+            ctx.lineTo(30, 20);
+            ctx.lineTo(15, 25);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Fuel tanks
+            ctx.fillStyle = '#00ff00';
+            ctx.beginPath();
+            ctx.ellipse(-10, 0, 8, 12, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(10, 0, 8, 12, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Refueling symbol
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('⛽', 0, -5);
+            
+            ctx.restore();
+        }
+        
+        function drawStarbase() {
+            if (!starbase || !starbase.active) return;
+            
+            ctx.save();
+            ctx.translate(starbase.x, starbase.y);
+            
+            // Starbase glow
+            ctx.shadowColor = '#4444ff';
+            ctx.shadowBlur = 30;
+            
+            // Main structure
+            ctx.fillStyle = '#4444ff';
+            ctx.fillRect(-60, -40, 120, 80);
+            
+            // Control tower
+            ctx.fillStyle = '#6666ff';
+            ctx.fillRect(-20, -60, 40, 20);
+            
+            // Docking bay
+            ctx.fillStyle = '#000';
+            ctx.fillRect(-50, 20, 100, 20);
+            
+            // Fuel tanks
+            ctx.fillStyle = '#00ff00';
+            ctx.fillRect(-50, -30, 15, 20);
+            ctx.fillRect(35, -30, 15, 20);
+            
+            // Starbase symbol
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🏠', 0, 0);
+            
+            // Docking zone indicator
+            if (starbase.speed === 0) {
+                ctx.strokeStyle = '#00ffff';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.strokeRect(-60, 40, 120, 40);
+                ctx.setLineDash([]);
+            }
+            
+            ctx.restore();
+        }
     </script>
 </body>
 </html>

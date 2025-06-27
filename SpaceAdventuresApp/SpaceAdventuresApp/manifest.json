@@ -1,0 +1,28 @@
+{
+  "name": "Kaden & Adelynn Space Adventures",
+  "short_name": "Space Adventures",
+  "description": "An exciting space shooter game with multiple weapons and fuel management",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "theme_color": "#000011",
+  "background_color": "#000000",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23000011'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='%234444ff'>🚀</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23000011'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='%234444ff'>🚀</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "entertainment"],
+  "lang": "en",
+  "scope": "./",
+  "prefer_related_applications": false
+} 
