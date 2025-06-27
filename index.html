@@ -1486,9 +1486,17 @@
         });
         
         // --- Sound Effects ---
-        const shootSound = new Audio('https://cdn.jsdelivr.net/gh/ronb12/sfx@main/shoot.wav');
-        const explosionSound = new Audio('https://cdn.jsdelivr.net/gh/ronb12/sfx@main/explosion.wav');
-        const powerupSound = new Audio('https://cdn.jsdelivr.net/gh/ronb12/sfx@main/powerup.wav');
+        // Create silent audio objects to prevent 404 errors
+        const shootSound = new Audio();
+        const explosionSound = new Audio();
+        const powerupSound = new Audio();
+        
+        // Set up error handling for audio
+        [shootSound, explosionSound, powerupSound].forEach(audio => {
+            audio.addEventListener('error', (e) => {
+                console.log('Audio file not available, continuing without sound');
+            });
+        });
 
         // --- Combo System ---
         let combo = 0;
@@ -2124,9 +2132,6 @@
                 }
                 player.lastShot = Date.now();
                 shootSound.currentTime = 0; shootSound.play();
-                if (touchControls.shoot) {
-                    console.log('Shooting from touch control! Bullets:', player.bullets.length);
-                }
             }
             if (player.shield) {
                 player.shieldTimer--;
@@ -2249,7 +2254,7 @@
                             comboTimer = 60;
                             if (combo > maxCombo) maxCombo = combo;
                             showCombo();
-                            console.log(`Enemy destroyed! Total: ${enemiesDestroyed}, Big: ${bigEnemiesDestroyed}, Score: ${score}`);
+                            // Removed debug logging
                             return false;
                         }
                     }
@@ -2472,9 +2477,7 @@
             lifePods.forEach(drawLifePod);
             refuelerShips.forEach(drawRefuelerShip);
             drawStarbase();
-            if (enemies.length > 0) {
-                console.log(`Enemies on screen: ${enemies.length}, Bullets: ${player.bullets.length}`);
-            }
+            // Removed excessive debug logging
             requestAnimationFrame(gameLoop);
         }
         
