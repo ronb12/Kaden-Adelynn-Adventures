@@ -1260,7 +1260,7 @@
         // Fuel system
         let fuelLevel = 100;
         let maxFuel = 100;
-        let fuelConsumptionRate = 0.1; // Fuel consumed per frame
+        let fuelConsumptionRate = 0.03; // Fuel consumed per frame (reduced from 0.1)
         let fuelPods = [];
         let refuelerShips = [];
         let starbase = null;
@@ -2518,7 +2518,7 @@
         }
         
         function spawnFuelPod() {
-            if (Math.random() < 0.003) { // Rare spawn
+            if (Math.random() < 0.006) { // Increased spawn rate (was 0.003)
                 fuelPods.push({
                     x: Math.random() * (canvas.width - 30) + 15,
                     y: -30,
@@ -2541,7 +2541,7 @@
         }
         
         function spawnRefuelerShip() {
-            if (Math.random() < 0.001 && refuelerShips.length === 0) { // Very rare spawn
+            if (Math.random() < 0.002 && refuelerShips.length === 0) { // Increased spawn rate (was 0.001)
                 refuelerShips.push({
                     x: Math.random() * (canvas.width - 80) + 40,
                     y: -80,
@@ -2581,7 +2581,7 @@
                 
                 // Check collision with player
                 if (Math.abs(player.x - pod.x) < 25 && Math.abs(player.y - pod.y) < 25 && !pod.collected) {
-                    fuelLevel = Math.min(maxFuel, fuelLevel + 30);
+                    fuelLevel = Math.min(maxFuel, fuelLevel + 40); // Increased from 30 to 40
                     fuelPodsCollected++;
                     powerupSound.currentTime = 0; powerupSound.play();
                     pod.collected = true;
