@@ -46,8 +46,8 @@
 
         .game-container {
             position: relative;
-            width: min(100vw, 1200px);
-            height: min(100vh, 800px);
+            width: min(100vw, 800px);
+            height: min(100vh, 500px);
             background: linear-gradient(to bottom, #000011, #000033, #000011);
             overflow: hidden;
             display: flex;
@@ -59,10 +59,10 @@
             box-shadow: 0 0 20px rgba(68,68,255,0.3);
         }
 
-        @media (max-width: 1000px), (max-height: 800px) {
+        @media (max-width: 900px), (max-height: 600px) {
             .game-container {
-                width: min(100vw, 900px);
-                height: min(100vh, 600px);
+                width: min(100vw, 600px);
+                height: min(100vh, 400px);
                 border-radius: 8px;
             }
         }
@@ -583,7 +583,8 @@
         // Game state
         let gameRunning = false;
         let score = 0;
-        let lives = 3;
+        let lives = 10;
+        let maxLives = 20;
         let level = 1;
         let gameStartTime = 0;
         let enemiesDestroyed = 0;
@@ -755,6 +756,9 @@
         let fuelPodsCollected = 0;
         let refuelerVisits = 0;
         
+        // Add to fuel system variables
+        let lifePods = [];
+
         // Scoreboard system
         let scoreboard = JSON.parse(localStorage.getItem('spaceAdventuresScoreboard') || '[]');
         let currentPlayerName = localStorage.getItem('spaceAdventuresPlayerName') || 'Pilot';
@@ -1021,7 +1025,8 @@
         function startGame() {
             gameRunning = true;
             score = 0;
-            lives = 3;
+            lives = 10;
+            maxLives = 20;
             level = 1;
             gameStartTime = Date.now();
             enemiesDestroyed = 0;
@@ -1775,7 +1780,7 @@
         
         function updateUI() {
             document.getElementById('score').textContent = `Score: ${score}`;
-            document.getElementById('lives').textContent = `Lives: ${lives}`;
+            document.getElementById('lives').textContent = `Lives: ${lives} / ${maxLives}`;
             document.getElementById('level').textContent = `Level: ${level}`;
             document.getElementById('fuel').textContent = `Fuel: ${fuelLevel}%`;
             // Power-up indicators
@@ -1807,6 +1812,7 @@
             spawnRefuelerShip();
             spawnStarbase();
             updateFuelPods();
+            updateLifePods();
             updateRefuelerShips();
             updateStarbase();
             // --- GAME OBJECTS ---
@@ -1825,6 +1831,7 @@
             player.bullets.forEach(drawBullet);
             particles.forEach(drawParticle);
             fuelPods.forEach(drawFuelPod);
+            lifePods.forEach(drawLifePod);
             refuelerShips.forEach(drawRefuelerShip);
             drawStarbase();
             if (enemies.length > 0) {
@@ -1880,6 +1887,16 @@
                     width: 30,
                     height: 30,
                     speed: 3,
+                    collected: false
+                });
+            }
+            if (Math.random() < 0.001) { // Even rarer for life pod
+                lifePods.push({
+                    x: Math.random() * (canvas.width - 30) + 15,
+                    y: -30,
+                    width: 30,
+                    height: 30,
+                    speed: 2.5,
                     collected: false
                 });
             }
@@ -2148,6 +2165,54 @@
                 ctx.setLineDash([]);
             }
             
+            ctx.restore();
+        }
+
+        // Update life pods
+        function updateLifePods() {
+            lifePods = lifePods.filter(pod => {
+                pod.y += pod.speed;
+                // Check collision with player
+                if (Math.abs(player.x - pod.x) < 25 && Math.abs(player.y - pod.y) < 25 && !pod.collected) {
+                    if (lives < maxLives) {
+                        lives++;
+                    }
+                    pod.collected = true;
+                    powerupSound.currentTime = 0; powerupSound.play();
+                    // Collection effect
+                    for (let i = 0; i < 10; i++) {
+                        particles.push({
+                            x: pod.x,
+                            y: pod.y,
+                            vx: (Math.random() - 0.5) * 6,
+                            vy: (Math.random() - 0.5) * 6,
+                            size: Math.random() * 3 + 2,
+                            color: '#ff4444',
+                            alpha: 1,
+                            life: 30
+                        });
+                    }
+                    return false;
+                }
+                return pod.y < canvas.height + 30;
+            });
+        }
+
+        // Draw life pod
+        function drawLifePod(pod) {
+            ctx.save();
+            ctx.translate(pod.x, pod.y);
+            ctx.shadowColor = '#ff4444';
+            ctx.shadowBlur = 15;
+            ctx.fillStyle = '#ff4444';
+            ctx.beginPath();
+            ctx.arc(0, 0, 12, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('❤️', 0, 0);
             ctx.restore();
         }
     </script>
