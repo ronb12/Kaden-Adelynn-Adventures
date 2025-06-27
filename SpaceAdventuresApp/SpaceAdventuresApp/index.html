@@ -473,11 +473,18 @@
         </div>
         <div id="startScreen">
             <h1>🚀 Kaden & Adelynn Space Adventures</h1>
-            <p style="font-size: 12px; color: #00ffff; margin-bottom: 20px;">Version 2.0 - Enhanced Weapon System</p>
+            <p style="font-size: 12px; color: #00ffff; margin-bottom: 20px;">Version 3.0 - Enhanced Weapons & Scoreboard</p>
             <p>Use WASD or Arrow Keys to move<br>Spacebar to shoot<br>Destroy enemies to survive!</p>
-            <p style="font-size: 14px; color: #00ffff; margin-top: 10px;">🔫 Weapons: Press 1-5 to switch weapons</p>
+            <p style="font-size: 14px; color: #00ffff; margin-top: 10px;">🔫 Weapons: Press 1-0 to switch weapons</p>
             <p style="font-size: 12px; color: #888; margin-top: 5px;">1: Laser | 2: Plasma | 3: Missile | 4: Spread | 5: Rapid Laser</p>
+            <p style="font-size: 12px; color: #888; margin-top: 5px;">6: Lightning | 7: Fireball | 8: Ice Beam | 9: Vortex | 0: Quantum</p>
             <p style="font-size: 14px; color: #888; margin-top: 10px;">📱 Mobile: Use on-screen controls</p>
+            
+            <div class="score-section" style="margin: 20px 0; max-height: 200px; overflow-y: auto;">
+                <h3>🏆 Top Scores</h3>
+                <div id="topScores"></div>
+            </div>
+            
             <button onclick="startGame()">START GAME</button>
         </div>
         <div id="gameOver">
@@ -591,11 +598,16 @@
                 plasma: 200,
                 missile: 400,
                 spread: 150,
-                laser: 80
+                rapid: 80,
+                lightning: 300,
+                fireball: 500,
+                ice: 250,
+                vortex: 600,
+                quantum: 350
             }
         };
         
-        // Weapon configurations
+        // Weapon configurations - Enhanced with more weapons
         const weapons = {
             laser: {
                 name: 'Laser',
@@ -603,7 +615,8 @@
                 speed: 12,
                 damage: 1,
                 size: 3,
-                sound: 'laser'
+                sound: 'laser',
+                unlockLevel: 1
             },
             plasma: {
                 name: 'Plasma',
@@ -611,7 +624,8 @@
                 speed: 8,
                 damage: 2,
                 size: 6,
-                sound: 'plasma'
+                sound: 'plasma',
+                unlockLevel: 2
             },
             missile: {
                 name: 'Missile',
@@ -620,7 +634,8 @@
                 damage: 3,
                 size: 8,
                 sound: 'missile',
-                homing: true
+                homing: true,
+                unlockLevel: 3
             },
             spread: {
                 name: 'Spread',
@@ -629,23 +644,93 @@
                 damage: 1,
                 size: 4,
                 sound: 'spread',
-                spread: 3
+                spread: 3,
+                unlockLevel: 4
             },
-            laser: {
+            rapid: {
                 name: 'Rapid Laser',
                 color: '#ff0080',
                 speed: 15,
                 damage: 1,
                 size: 2,
-                sound: 'rapid'
+                sound: 'rapid',
+                unlockLevel: 5
+            },
+            lightning: {
+                name: 'Lightning',
+                color: '#00ff00',
+                speed: 20,
+                damage: 2,
+                size: 5,
+                sound: 'lightning',
+                chain: true,
+                unlockLevel: 6
+            },
+            fireball: {
+                name: 'Fireball',
+                color: '#ff4400',
+                speed: 7,
+                damage: 4,
+                size: 10,
+                sound: 'fireball',
+                explosion: true,
+                unlockLevel: 7
+            },
+            ice: {
+                name: 'Ice Beam',
+                color: '#00ccff',
+                speed: 9,
+                damage: 2,
+                size: 4,
+                sound: 'ice',
+                freeze: true,
+                unlockLevel: 8
+            },
+            vortex: {
+                name: 'Vortex',
+                color: '#9900ff',
+                speed: 5,
+                damage: 5,
+                size: 12,
+                sound: 'vortex',
+                gravity: true,
+                unlockLevel: 9
+            },
+            quantum: {
+                name: 'Quantum',
+                color: '#ff00aa',
+                speed: 25,
+                damage: 3,
+                size: 3,
+                sound: 'quantum',
+                teleport: true,
+                unlockLevel: 10
             }
         };
-        
+
+        // Level configurations
+        const levelConfigs = {
+            1: { enemySpeed: 2, spawnRate: 0.015, bigEnemyChance: 0.1, powerupRate: 0.005, background: '#000011' },
+            2: { enemySpeed: 2.5, spawnRate: 0.018, bigEnemyChance: 0.15, powerupRate: 0.006, background: '#000022' },
+            3: { enemySpeed: 3, spawnRate: 0.02, bigEnemyChance: 0.2, powerupRate: 0.007, background: '#000033' },
+            4: { enemySpeed: 3.5, spawnRate: 0.022, bigEnemyChance: 0.25, powerupRate: 0.008, background: '#000044' },
+            5: { enemySpeed: 4, spawnRate: 0.025, bigEnemyChance: 0.3, powerupRate: 0.009, background: '#000055' },
+            6: { enemySpeed: 4.5, spawnRate: 0.028, bigEnemyChance: 0.35, powerupRate: 0.01, background: '#000066' },
+            7: { enemySpeed: 5, spawnRate: 0.03, bigEnemyChance: 0.4, powerupRate: 0.011, background: '#000077' },
+            8: { enemySpeed: 5.5, spawnRate: 0.032, bigEnemyChance: 0.45, powerupRate: 0.012, background: '#000088' },
+            9: { enemySpeed: 6, spawnRate: 0.035, bigEnemyChance: 0.5, powerupRate: 0.013, background: '#000099' },
+            10: { enemySpeed: 7, spawnRate: 0.04, bigEnemyChance: 0.6, powerupRate: 0.015, background: '#0000aa' }
+        };
+
         // Game objects
         let enemies = [];
         let particles = [];
         let powerups = [];
         let weaponPowerups = [];
+        
+        // Scoreboard system
+        let scoreboard = JSON.parse(localStorage.getItem('spaceAdventuresScoreboard') || '[]');
+        let currentPlayerName = localStorage.getItem('spaceAdventuresPlayerName') || 'Pilot';
         
         // Input
         const keys = {};
@@ -661,21 +746,36 @@
         document.addEventListener('keydown', (e) => {
             keys[e.code] = true;
             
-            // Weapon switching
-            if (e.code === 'Digit1') {
+            // Enhanced weapon switching (1-0 keys)
+            if (e.code === 'Digit1' && level >= weapons.laser.unlockLevel) {
                 player.weaponType = 'laser';
                 updateWeaponDisplay();
-            } else if (e.code === 'Digit2') {
+            } else if (e.code === 'Digit2' && level >= weapons.plasma.unlockLevel) {
                 player.weaponType = 'plasma';
                 updateWeaponDisplay();
-            } else if (e.code === 'Digit3') {
+            } else if (e.code === 'Digit3' && level >= weapons.missile.unlockLevel) {
                 player.weaponType = 'missile';
                 updateWeaponDisplay();
-            } else if (e.code === 'Digit4') {
+            } else if (e.code === 'Digit4' && level >= weapons.spread.unlockLevel) {
                 player.weaponType = 'spread';
                 updateWeaponDisplay();
-            } else if (e.code === 'Digit5') {
-                player.weaponType = 'laser';
+            } else if (e.code === 'Digit5' && level >= weapons.rapid.unlockLevel) {
+                player.weaponType = 'rapid';
+                updateWeaponDisplay();
+            } else if (e.code === 'Digit6' && level >= weapons.lightning.unlockLevel) {
+                player.weaponType = 'lightning';
+                updateWeaponDisplay();
+            } else if (e.code === 'Digit7' && level >= weapons.fireball.unlockLevel) {
+                player.weaponType = 'fireball';
+                updateWeaponDisplay();
+            } else if (e.code === 'Digit8' && level >= weapons.ice.unlockLevel) {
+                player.weaponType = 'ice';
+                updateWeaponDisplay();
+            } else if (e.code === 'Digit9' && level >= weapons.vortex.unlockLevel) {
+                player.weaponType = 'vortex';
+                updateWeaponDisplay();
+            } else if (e.code === 'Digit0' && level >= weapons.quantum.unlockLevel) {
+                player.weaponType = 'quantum';
                 updateWeaponDisplay();
             }
         });
@@ -835,6 +935,62 @@
         comboPopup.style.display = 'none';
         document.body.appendChild(comboPopup);
         
+        // Scoreboard functions
+        function loadScoreboard() {
+            scoreboard = JSON.parse(localStorage.getItem('spaceAdventuresScoreboard') || '[]');
+            displayTopScores();
+        }
+        
+        function saveScore(score, level, survivalTime) {
+            const newScore = {
+                player: currentPlayerName,
+                score: score,
+                level: level,
+                time: survivalTime,
+                date: new Date().toLocaleDateString(),
+                timestamp: Date.now()
+            };
+            
+            scoreboard.push(newScore);
+            scoreboard.sort((a, b) => b.score - a.score);
+            scoreboard = scoreboard.slice(0, 10); // Keep top 10
+            
+            localStorage.setItem('spaceAdventuresScoreboard', JSON.stringify(scoreboard));
+            displayTopScores();
+        }
+        
+        function displayTopScores() {
+            const topScoresDiv = document.getElementById('topScores');
+            if (!topScoresDiv) return;
+            
+            topScoresDiv.innerHTML = '';
+            if (scoreboard.length === 0) {
+                topScoresDiv.innerHTML = '<p style="color: #888; font-style: italic;">No scores yet. Be the first!</p>';
+                return;
+            }
+            
+            scoreboard.forEach((score, index) => {
+                const scoreDiv = document.createElement('div');
+                scoreDiv.style.cssText = `
+                    display: flex;
+                    justify-content: space-between;
+                    padding: 5px 0;
+                    border-bottom: 1px solid rgba(255,255,255,0.1);
+                    font-size: 14px;
+                `;
+                scoreDiv.innerHTML = `
+                    <span style="color: ${index < 3 ? '#ffd700' : '#fff'}; font-weight: bold;">${index + 1}.</span>
+                    <span style="color: #00ffff;">${score.player}</span>
+                    <span style="color: #00ff00;">${score.score.toLocaleString()}</span>
+                    <span style="color: #888;">Lv.${score.level}</span>
+                `;
+                topScoresDiv.appendChild(scoreDiv);
+            });
+        }
+        
+        // Load scoreboard on page load
+        loadScoreboard();
+        
         function startGame() {
             gameRunning = true;
             score = 0;
@@ -865,6 +1021,9 @@
             const survivalTime = Math.floor((Date.now() - gameStartTime) / 1000);
             const grade = calculateGrade(score, enemiesDestroyed, maxCombo, survivalTime);
             const achievements = calculateAchievements();
+            
+            // Save score to scoreboard
+            saveScore(score, level, survivalTime);
             
             // Update final score display
             document.getElementById('finalScore').textContent = `Final Score: ${score.toLocaleString()}`;
@@ -1108,6 +1267,98 @@
                     ctx.fillRect(-1, -bullet.size * 0.8, 2, bullet.size * 0.4);
                     ctx.restore();
                 }
+            } else if (bullet.type === 'lightning') {
+                // Lightning with electric effect
+                ctx.beginPath();
+                ctx.arc(0, 0, bullet.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Electric arcs
+                ctx.globalAlpha = 0.8;
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                for (let i = 0; i < 3; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(-bullet.size * 0.8, -bullet.size * 0.8);
+                    ctx.lineTo(bullet.size * 0.8, bullet.size * 0.8);
+                    ctx.stroke();
+                }
+            } else if (bullet.type === 'fireball') {
+                // Fireball with flame effect
+                ctx.beginPath();
+                ctx.arc(0, 0, bullet.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Flame effect
+                ctx.globalAlpha = 0.7;
+                ctx.fillStyle = '#ffaa00';
+                ctx.beginPath();
+                ctx.arc(0, 0, bullet.size * 0.7, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Inner core
+                ctx.globalAlpha = 0.9;
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(0, 0, bullet.size * 0.3, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (bullet.type === 'ice') {
+                // Ice beam with crystal effect
+                ctx.beginPath();
+                ctx.arc(0, 0, bullet.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Crystal facets
+                ctx.globalAlpha = 0.8;
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < 6; i++) {
+                    ctx.save();
+                    ctx.rotate(i * Math.PI / 3);
+                    ctx.beginPath();
+                    ctx.moveTo(0, -bullet.size * 0.8);
+                    ctx.lineTo(0, bullet.size * 0.8);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            } else if (bullet.type === 'vortex') {
+                // Vortex with spiral effect
+                ctx.beginPath();
+                ctx.arc(0, 0, bullet.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Spiral effect
+                ctx.globalAlpha = 0.6;
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                for (let i = 0; i < 8; i++) {
+                    const angle = i * Math.PI / 4 + Date.now() * 0.01;
+                    const radius = bullet.size * (0.3 + i * 0.1);
+                    const x = Math.cos(angle) * radius;
+                    const y = Math.sin(angle) * radius;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            } else if (bullet.type === 'quantum') {
+                // Quantum with teleport effect
+                ctx.beginPath();
+                ctx.arc(0, 0, bullet.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Quantum particles
+                ctx.globalAlpha = 0.7;
+                ctx.fillStyle = '#fff';
+                for (let i = 0; i < 5; i++) {
+                    const angle = i * Math.PI * 2 / 5 + Date.now() * 0.02;
+                    const radius = bullet.size * 0.6;
+                    const x = Math.cos(angle) * radius;
+                    const y = Math.sin(angle) * radius;
+                    ctx.beginPath();
+                    ctx.arc(x, y, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
             } else {
                 // Default laser effect
                 ctx.beginPath();
@@ -1240,15 +1491,15 @@
         }
         
         function spawnEnemy() {
-            if (Math.random() < 0.018 + level * 0.004) {
+            if (Math.random() < levelConfigs[level].spawnRate) {
                 // 80% normal, 20% big enemy
-                if (Math.random() < 0.2) {
+                if (Math.random() < levelConfigs[level].bigEnemyChance) {
                     enemies.push({
                         x: Math.random() * (canvas.width - 60) + 30,
                         y: -60,
                         width: 60,
                         height: 60,
-                        speed: 2.5 + Math.random() * 1.5,
+                        speed: levelConfigs[level].enemySpeed + Math.random() * 1.5,
                         big: true,
                         health: 3
                     });
@@ -1258,7 +1509,7 @@
                         y: -40,
                         width: 30,
                         height: 30,
-                        speed: 4 + Math.random() * 2,
+                        speed: levelConfigs[level].enemySpeed + Math.random() * 2,
                         big: false,
                         health: 1
                     });
@@ -1266,7 +1517,7 @@
             }
             
             // Power-up spawn
-            if (Math.random() < 0.005) {
+            if (Math.random() < levelConfigs[level].powerupRate) {
                 const types = ['shield', 'rapid', 'double', 'weapon'];
                 const type = types[Math.floor(Math.random() * types.length)];
                 powerups.push({
@@ -1514,7 +1765,7 @@
             if (!gameRunning) return;
             
             // Clear canvas with solid background (no blur effect)
-            ctx.fillStyle = '#000011';
+            ctx.fillStyle = levelConfigs[level].background;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             // Update game objects
