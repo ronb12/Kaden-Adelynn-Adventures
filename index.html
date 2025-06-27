@@ -752,22 +752,6 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
-        // Set canvas size to fit the game container
-        function resizeCanvas() {
-            const gameContainer = document.querySelector('.game-container');
-            const rect = gameContainer.getBoundingClientRect();
-            canvas.width = rect.width;
-            canvas.height = rect.height;
-            
-            // Update player position to stay within new bounds
-            if (player) {
-                player.x = Math.max(player.width/2, Math.min(canvas.width - player.width/2, player.x));
-                player.y = Math.max(player.height/2, Math.min(canvas.height - player.height/2, player.y));
-            }
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-        
         // Game state
         let gameRunning = false;
         let score = 0;
@@ -784,6 +768,52 @@
         let currentRank = 'Cadet';
         let rankProgress = 0;
         let totalExperience = 0;
+        
+        // Player - Define this before resizeCanvas
+        const player = {
+            x: 0, // Will be set properly in resizeCanvas
+            y: 0, // Will be set properly in resizeCanvas
+            width: 40,
+            height: 40,
+            speed: 8,
+            bullets: [],
+            lastShot: 0,
+            shotCooldown: 120,
+            shield: false,
+            shieldTimer: 0,
+            weaponType: 'laser',
+            weaponLevel: 1,
+            maxWeaponLevel: 3,
+            weaponCooldowns: {
+                laser: 120,
+                plasma: 200,
+                missile: 400,
+                spread: 150,
+                rapid: 80,
+                lightning: 300,
+                fireball: 500,
+                ice: 250,
+                vortex: 600,
+                quantum: 350
+            },
+            shipType: 0 // Index in ships array
+        };
+        
+        // Set canvas size to fit the game container
+        function resizeCanvas() {
+            const gameContainer = document.querySelector('.game-container');
+            const rect = gameContainer.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            
+            // Update player position to stay within new bounds
+            if (player) {
+                player.x = Math.max(player.width/2, Math.min(canvas.width - player.width/2, player.x || canvas.width / 2));
+                player.y = Math.max(player.height/2, Math.min(canvas.height - player.height/2, player.y || canvas.height - 100));
+            }
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
         
         // Rank System - Space Fighter Ranks
         const ranks = [
@@ -1074,36 +1104,6 @@
             const rankIndex = ranks.findIndex(r => r.name === currentRank);
             return ships.filter(ship => rankIndex >= ranks.findIndex(r => r.name === ship.unlockRank));
         }
-        
-        // Player
-        const player = {
-            x: canvas.width / 2,
-            y: canvas.height - 100,
-            width: 40,
-            height: 40,
-            speed: 8,
-            bullets: [],
-            lastShot: 0,
-            shotCooldown: 120,
-            shield: false,
-            shieldTimer: 0,
-            weaponType: 'laser',
-            weaponLevel: 1,
-            maxWeaponLevel: 3,
-            weaponCooldowns: {
-                laser: 120,
-                plasma: 200,
-                missile: 400,
-                spread: 150,
-                rapid: 80,
-                lightning: 300,
-                fireball: 500,
-                ice: 250,
-                vortex: 600,
-                quantum: 350
-            },
-            shipType: 0 // Index in ships array
-        };
         
         // Weapon configurations - Enhanced with more weapons
         const weapons = {
@@ -1585,13 +1585,8 @@
         
         function startGame() {
             console.log('🚀 startGame() called');
-            console.log('Canvas:', canvas);
-            console.log('Player:', player);
-            console.log('Game running before:', gameRunning);
             
             gameRunning = true;
-            console.log('Game running after:', gameRunning);
-            
             score = 0;
             lives = 10;
             maxLives = 20;
@@ -1606,16 +1601,21 @@
             combo = 0;
             maxCombo = 0;
             
-            console.log('Player position before:', player.x, player.y);
+            // Reset player position
             player.x = Math.max(player.width/2, Math.min(canvas.width - player.width/2, canvas.width / 2));
             player.y = Math.max(player.height/2, Math.min(canvas.height - player.height/2, canvas.height - 100));
-            console.log('Player position after:', player.x, player.y);
-            
             player.bullets = [];
+            player.shield = false;
+            player.shieldTimer = 0;
+            player.weaponType = 'laser';
+            player.weaponLevel = 1;
+            
+            // Clear all game objects
             enemies = [];
             particles = [];
             powerups = [];
             weaponPowerups = [];
+            
             // Fuel system reset
             fuelLevel = maxFuel;
             fuelPods = [];
@@ -1624,24 +1624,31 @@
             starbaseSpawned = false;
             fuelPodsCollected = 0;
             refuelerVisits = 0;
+            lifePods = [];
             
             // Load rank data and update display
             loadRankData();
             updateRank();
             
-            player.shipType = selectedShipIndex;
+            // Set player ship type
+            if (typeof selectedShipIndex !== 'undefined') {
+                player.shipType = selectedShipIndex;
+            }
+            
+            // Initialize wingmen
             spawnWingmen();
             
-            console.log('Hiding start screen...');
+            // Hide start screen
             const startScreen = document.getElementById('startScreen');
             if (startScreen) {
                 startScreen.style.display = 'none';
-                console.log('Start screen hidden successfully');
-            } else {
-                console.error('Start screen element not found!');
+                console.log('✅ Start screen hidden');
             }
             
-            console.log('Starting game loop...');
+            // Update UI
+            updateUI();
+            
+            console.log('🎮 Game started successfully');
             gameLoop();
         }
         
