@@ -1,149 +1,230 @@
-// Game Feature Test Script - Run this in browser console
-console.log("🚀 Kaden & Adelynn Space Adventures - Feature Test");
-console.log("================================================");
+// Automated Test Suite for Kaden & Adelynn Space Adventures
+console.log('🧪 Starting Automated Tests...');
 
-// Test 1: Check game elements
-console.log("
-�� Test 1: Game Elements");
-const elements = {
-    canvas: document.getElementById("gameCanvas"),
-    ui: document.getElementById("ui"),
-    startScreen: document.getElementById("startScreen"),
-    gameOver: document.getElementById("gameOver"),
-    mobileControls: document.querySelector(".mobile-controls"),
-    gameContainer: document.querySelector(".game-container")
-};
-
-let allElementsExist = true;
-for (const [name, element] of Object.entries(elements)) {
-    const exists = element !== null;
-    console.log(`${exists ? "✅" : "❌"} ${name}: ${exists ? "Found" : "Missing"}`);
-    if (!exists) allElementsExist = false;
-}
-
-// Test 2: Check mobile detection
-console.log("
-📱 Test 2: Mobile Detection");
-const userAgent = navigator.userAgent;
-const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
-const hasTouch = "ontouchstart" in window;
-const screenWidth = window.innerWidth;
-
-console.log(`✅ User Agent: ${userAgent.substring(0, 50)}...`);
-console.log(`✅ Mobile Device: ${isMobile ? "Yes" : "No"}`);
-console.log(`✅ Touch Support: ${hasTouch ? "Yes" : "No"}`);
-console.log(`✅ Screen Width: ${screenWidth}px`);
-
-const mobileControls = document.querySelector(".mobile-controls");
-const controlsVisible = mobileControls && mobileControls.style.display === "flex";
-console.log(`✅ Mobile Controls Visible: ${controlsVisible ? "Yes" : "No"}`);
-
-// Test 3: Check touch controls
-console.log("
-👆 Test 3: Touch Controls");
-const controlButtons = ["upBtn", "downBtn", "leftBtn", "rightBtn", "upBtn2", "downBtn2", "shootBtn"];
-let allButtonsExist = true;
-for (const btnId of controlButtons) {
-    const button = document.getElementById(btnId);
-    const exists = button !== null;
-    console.log(`${exists ? "✅" : "❌"} ${btnId}: ${exists ? "Found" : "Missing"}`);
-    if (!exists) allButtonsExist = false;
-}
-
-// Test 4: Check game functions
-console.log("
-⚙️ Test 4: Game Functions");
-const functions = ["startGame", "gameOver", "restartGame", "updatePlayer", "updateEnemies", "updateBullets", "spawnEnemy", "gameLoop"];
-let allFunctionsExist = true;
-for (const funcName of functions) {
-    try {
-        const exists = typeof window[funcName] === "function";
-        console.log(`${exists ? "✅" : "❌"} ${funcName}(): ${exists ? "Defined" : "Missing"}`);
-        if (!exists) allFunctionsExist = false;
-    } catch (e) {
-        console.log(`❌ ${funcName}(): Error accessing`);
-        allFunctionsExist = false;
-    }
-}
-
-// Test 5: Check power-up system
-console.log("
-⚡ Test 5: Power-Up System");
-const powerUpVars = ["rapidFireActive", "rapidFireTimer", "doubleScoreActive", "doubleScoreTimer", "shieldPowerups", "rapidPowerups", "doublePowerups"];
-let allPowerUpsExist = true;
-for (const varName of powerUpVars) {
-    try {
-        const exists = typeof window[varName] !== "undefined";
-        console.log(`${exists ? "✅" : "❌"} ${varName}: ${exists ? "Defined" : "Missing"}`);
-        if (!exists) allPowerUpsExist = false;
-    } catch (e) {
-        console.log(`❌ ${varName}: Error accessing`);
-        allPowerUpsExist = false;
-    }
-}
-
-// Test 6: Check scoring system
-console.log("
-🏆 Test 6: Scoring System");
-const scoringElements = ["enemiesDestroyed", "bigEnemiesDestroyed", "powerupsCollected", "maxCombo", "levelReached", "survivalTime"];
-let allScoringElementsExist = true;
-for (const elementId of scoringElements) {
-    const element = document.getElementById(elementId);
-    const exists = element !== null;
-    console.log(`${exists ? "✅" : "❌"} ${elementId}: ${exists ? "Found" : "Missing"}`);
-    if (!exists) allScoringElementsExist = false;
-}
-
-// Test 7: Check responsive design
-console.log("
-📐 Test 7: Responsive Design");
-const screenWidth2 = window.innerWidth;
-const screenHeight = window.innerHeight;
-const gameContainer = document.querySelector(".game-container");
-
-console.log(`✅ Screen Size: ${screenWidth2}x${screenHeight}`);
-
-if (gameContainer) {
-    const containerWidth = gameContainer.offsetWidth;
-    const containerHeight = gameContainer.offsetHeight;
-    console.log(`✅ Container Size: ${containerWidth}x${containerHeight}`);
+// Test 1: Check if game loads properly
+function testGameLoad() {
+    console.log('📋 Test 1: Game Load Check');
     
-    const isResponsive = containerWidth <= screenWidth2 && containerHeight <= screenHeight;
-    console.log(`✅ Responsive Layout: ${isResponsive ? "Yes" : "No"}`);
+    // Check if canvas exists
+    const canvas = document.getElementById('gameCanvas');
+    if (canvas) {
+        console.log('✅ Canvas found');
+    } else {
+        console.error('❌ Canvas not found');
+        return false;
+    }
+    
+    // Check if game container exists
+    const gameContainer = document.querySelector('.game-container');
+    if (gameContainer) {
+        console.log('✅ Game container found');
+    } else {
+        console.error('❌ Game container not found');
+        return false;
+    }
+    
+    // Check if start screen exists
+    const startScreen = document.getElementById('startScreen');
+    if (startScreen) {
+        console.log('✅ Start screen found');
+    } else {
+        console.error('❌ Start screen not found');
+        return false;
+    }
+    
+    return true;
+}
+
+// Test 2: Check if game state variables are initialized
+function testGameState() {
+    console.log('📋 Test 2: Game State Check');
+    
+    // Check if game is not running initially
+    if (typeof gameRunning !== 'undefined') {
+        console.log('✅ Game running state initialized');
+    } else {
+        console.error('❌ Game running state not found');
+        return false;
+    }
+    
+    // Check if player object exists
+    if (typeof player !== 'undefined' && player) {
+        console.log('✅ Player object initialized');
+    } else {
+        console.error('❌ Player object not found');
+        return false;
+    }
+    
+    // Check if score is initialized
+    if (typeof score !== 'undefined') {
+        console.log('✅ Score initialized');
+    } else {
+        console.error('❌ Score not found');
+        return false;
+    }
+    
+    return true;
+}
+
+// Test 3: Check if UI elements are present
+function testUIElements() {
+    console.log('📋 Test 3: UI Elements Check');
+    
+    const uiElements = ['score', 'lives', 'level', 'fuel', 'weapon', 'rank'];
+    let allFound = true;
+    
+    uiElements.forEach(elementId => {
+        const element = document.getElementById(elementId);
+        if (element) {
+            console.log(`✅ ${elementId} element found`);
+        } else {
+            console.error(`❌ ${elementId} element not found`);
+            allFound = false;
+        }
+    });
+    
+    return allFound;
+}
+
+// Test 4: Check if mobile controls are present
+function testMobileControls() {
+    console.log('📋 Test 4: Mobile Controls Check');
+    
+    const mobileControls = document.querySelector('.mobile-controls');
+    if (mobileControls) {
+        console.log('✅ Mobile controls found');
+    } else {
+        console.error('❌ Mobile controls not found');
+        return false;
+    }
+    
+    const controlButtons = ['upBtn', 'leftBtn', 'rightBtn', 'downBtn', 'shootBtn'];
+    let allFound = true;
+    
+    controlButtons.forEach(btnId => {
+        const btn = document.getElementById(btnId);
+        if (btn) {
+            console.log(`✅ ${btnId} button found`);
+        } else {
+            console.error(`❌ ${btnId} button not found`);
+            allFound = false;
+        }
+    });
+    
+    return allFound;
+}
+
+// Test 5: Check if PWA elements are present
+function testPWAElements() {
+    console.log('📋 Test 5: PWA Elements Check');
+    
+    // Check manifest link
+    const manifestLink = document.querySelector('link[rel="manifest"]');
+    if (manifestLink) {
+        console.log('✅ Manifest link found');
+    } else {
+        console.error('❌ Manifest link not found');
+        return false;
+    }
+    
+    // Check theme color meta tag
+    const themeColor = document.querySelector('meta[name="theme-color"]');
+    if (themeColor) {
+        console.log('✅ Theme color meta tag found');
+    } else {
+        console.error('❌ Theme color meta tag not found');
+        return false;
+    }
+    
+    return true;
+}
+
+// Test 6: Check if game functions are defined
+function testGameFunctions() {
+    console.log('📋 Test 6: Game Functions Check');
+    
+    const requiredFunctions = ['startGame', 'gameOver', 'restartGame', 'updateUI'];
+    let allFound = true;
+    
+    requiredFunctions.forEach(funcName => {
+        if (typeof window[funcName] === 'function') {
+            console.log(`✅ ${funcName} function found`);
+        } else {
+            console.error(`❌ ${funcName} function not found`);
+            allFound = false;
+        }
+    });
+    
+    return allFound;
+}
+
+// Test 7: Check CSS compatibility fix
+function testCSSCompatibility() {
+    console.log('📋 Test 7: CSS Compatibility Check');
+    
+    // Check if the body has both user-select and -webkit-user-select
+    const bodyStyle = window.getComputedStyle(document.body);
+    const userSelect = bodyStyle.getPropertyValue('user-select');
+    const webkitUserSelect = bodyStyle.getPropertyValue('-webkit-user-select');
+    
+    if (userSelect === 'none' || webkitUserSelect === 'none') {
+        console.log('✅ User-select CSS properties found');
+    } else {
+        console.error('❌ User-select CSS properties not found');
+        return false;
+    }
+    
+    return true;
+}
+
+// Run all tests
+function runAllTests() {
+    console.log('🚀 Starting comprehensive game test suite...\n');
+    
+    const tests = [
+        testGameLoad,
+        testGameState,
+        testUIElements,
+        testMobileControls,
+        testPWAElements,
+        testGameFunctions,
+        testCSSCompatibility
+    ];
+    
+    let passedTests = 0;
+    let totalTests = tests.length;
+    
+    tests.forEach((test, index) => {
+        try {
+            const result = test();
+            if (result) {
+                passedTests++;
+            }
+        } catch (error) {
+            console.error(`❌ Test ${index + 1} failed with error:`, error);
+        }
+        console.log(''); // Add spacing between tests
+    });
+    
+    console.log('📊 Test Results Summary:');
+    console.log(`✅ Passed: ${passedTests}/${totalTests}`);
+    console.log(`❌ Failed: ${totalTests - passedTests}/${totalTests}`);
+    
+    if (passedTests === totalTests) {
+        console.log('🎉 All tests passed! Game is working correctly.');
+        return true;
+    } else {
+        console.log('⚠️ Some tests failed. Please check the issues above.');
+        return false;
+    }
+}
+
+// Auto-run tests when script loads
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', runAllTests);
 } else {
-    console.log("❌ Game Container: Not found");
+    runAllTests();
 }
 
-// Test 8: Check favicon
-console.log("
-🎨 Test 8: Favicon");
-const faviconLinks = document.querySelectorAll("link[rel*=\"icon\"]");
-const hasFavicon = faviconLinks.length > 0;
-
-console.log(`✅ Favicon Links: ${faviconLinks.length} found`);
-
-for (let i = 0; i < faviconLinks.length; i++) {
-    const link = faviconLinks[i];
-    console.log(`  - ${link.rel}: ${link.href.substring(0, 50)}...`);
-}
-
-// Summary
-console.log("
-📊 Test Results Summary");
-console.log("========================");
-const totalTests = 8;
-const passedTests = [allElementsExist, allButtonsExist, allFunctionsExist, allPowerUpsExist, allScoringElementsExist, hasFavicon].filter(Boolean).length;
-console.log(`✅ Passed: ${passedTests}/${totalTests}`);
-console.log(`❌ Failed: ${totalTests - passedTests}/${totalTests}`);
-console.log(`📈 Success Rate: ${Math.round((passedTests / totalTests) * 100)}%`);
-
-if (passedTests === totalTests) {
-    console.log("
-🎉 All tests passed! The game is ready to play!");
-} else {
-    console.log("
-⚠️ Some tests failed. Check the details above.");
-}
-
-console.log("
-💡 To run individual tests, use the functions above.");
+// Export for manual testing
+window.runGameTests = runAllTests; 
