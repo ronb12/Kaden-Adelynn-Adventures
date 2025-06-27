@@ -1,7 +1,7 @@
 {
-  "name": "Kaden & Adelynn Space Adventures",
+  "name": "Kaden & Adelynn Space Adventures v4.3",
   "short_name": "Space Adventures",
-  "description": "An exciting space shooter game with multiple weapons and fuel management",
+  "description": "An epic space shooter adventure featuring advanced gameplay mechanics, multiple game modes, and a comprehensive progression system",
   "start_url": "./index.html",
   "display": "fullscreen",
   "orientation": "landscape",
@@ -24,5 +24,10 @@
   "categories": ["games", "entertainment"],
   "lang": "en",
   "scope": "./",
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "features": [
+    "Cross Platform",
+    "fast",
+    "simple"
+  ]
 } 
