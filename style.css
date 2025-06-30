@@ -1,0 +1,234 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+    color: white;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+.game-container {
+    position: relative;
+    border: 2px solid #4a90e2;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(74, 144, 226, 0.3);
+    overflow: hidden;
+    background: #000;
+}
+#gameCanvas {
+    display: block;
+    background: #000;
+    border-radius: 8px;
+    max-width: 100%;
+    max-height: 100vh;
+}
+.ui-overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    z-index: 10;
+}
+.score, .lives, .level, .high-score, .weapon, .sound {
+    margin-bottom: 5px;
+    color: #4a90e2;
+}
+.high-score {
+    color: #ffd700 !important;
+}
+.weapon {
+    color: #00ff00 !important;
+}
+.sound {
+    color: #ff8800 !important;
+}
+.game-over, .start-screen {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    border: 2px solid #4a90e2;
+    box-shadow: 0 0 30px rgba(74, 144, 226, 0.5);
+    z-index: 20;
+}
+.game-over h2, .start-screen h1 {
+    color: #4a90e2;
+    margin-bottom: 20px;
+    font-size: 2em;
+}
+.game-over p, .start-screen p {
+    margin-bottom: 15px;
+    font-size: 1.2em;
+}
+.game-button {
+    background: linear-gradient(45deg, #4a90e2, #357abd);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 160px;
+    justify-content: center;
+}
+
+.game-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.game-button:hover::before {
+    left: 100%;
+}
+
+.game-button:hover {
+    background: linear-gradient(45deg, #357abd, #4a90e2);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(74, 144, 226, 0.5);
+}
+
+.game-button:active {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
+}
+
+.button-text {
+    z-index: 1;
+    position: relative;
+}
+
+.button-icon {
+    font-size: 20px;
+    z-index: 1;
+    position: relative;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* Fallback for older browsers */
+button {
+    background: linear-gradient(45deg, #4a90e2, #357abd);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 16px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+}
+
+button:hover {
+    background: linear-gradient(45deg, #357abd, #4a90e2);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+}
+
+button:active {
+    transform: translateY(0);
+}
+.hidden {
+    display: none;
+}
+
+/* Achievement notifications */
+.achievement-notification {
+    position: fixed;
+    top: 20px;
+    right: -400px;
+    background: linear-gradient(45deg, #ffd700, #ffed4e);
+    color: #000;
+    padding: 15px 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.5);
+    z-index: 1000;
+    transition: right 0.5s ease;
+    max-width: 350px;
+    border: 2px solid #ffb700;
+}
+
+.achievement-notification.show {
+    right: 20px;
+}
+
+.achievement-content h3 {
+    margin: 0 0 5px 0;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.achievement-content p {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.achievements-earned {
+    margin: 15px 0;
+    padding: 10px;
+    background: rgba(255, 215, 0, 0.1);
+    border-radius: 8px;
+    border: 1px solid #ffd700;
+}
+
+.achievements-earned h4 {
+    color: #ffd700;
+    margin: 0 0 10px 0;
+    font-size: 16px;
+}
+
+.achievement-item {
+    color: #ffd700;
+    font-size: 14px;
+    margin: 5px 0;
+}
+@media (max-width: 850px) {
+    .game-container {
+        width: 100vw;
+        height: 100vh;
+        border: none;
+        border-radius: 0;
+        max-width: none;
+        max-height: none;
+    }
+    #gameCanvas {
+        width: 100%;
+        height: 100%;
+        max-width: none;
+        max-height: none;
+        border-radius: 0;
+    }
+    .ui-overlay {
+        font-size: 16px;
+    }
+} 
