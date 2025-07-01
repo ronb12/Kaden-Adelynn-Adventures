@@ -58,30 +58,15 @@
         <canvas id="gameCanvas" width="800" height="600"></canvas>
         <div class="ui-overlay">
             <div class="score">Score: <span id="score">0</span></div>
-            <div class="high-score">🏆 High Score: <span id="highScore">0</span></div>
-            <div class="lives">Lives: <span id="lives">50</span></div>
+            <div class="lives">❤️ <span id="lives">50</span></div>
             <div class="level">Level: <span id="level">1</span></div>
-            <div class="weapon">🔫 Weapon: <span id="weaponLevel">1</span></div>
-            <div class="sound">🔊 Sound: <span id="soundStatus">ON</span></div>
-            <div class="shield">🛡️ Shield: <span id="shieldLevel">100%</span></div>
             <div class="money">💰 <span id="money">0</span></div>
-            <div class="wingmen">🛩️ Wingmen: <span id="wingmanCount">0/4</span></div>
-            <div class="character-info" id="characterInfo">
-                <div class="character-name">Kaden</div>
-                <div class="character-ability">Rapid Fire</div>
-            </div>
-            <div class="ship-info" id="shipInfo">
-                <div class="ship-name">🚀 Interceptor</div>
-                <div class="ship-ability">Rapid Fire</div>
-                <div class="ship-stats">Speed: 11 | Firepower: 6 | Shield: 30/30</div>
-            </div>
+            <div class="wingmen">🛩️ <span id="wingmanCount">0/4</span></div>
             <div class="mission-info" id="currentMission">
                 <div class="mission-title">🚀 Training Day</div>
-                <div class="mission-objective">Destroy 5 enemy ships</div>
-                <div class="mission-progress">Progress: 0/5</div>
+                <div class="mission-progress">0/5</div>
             </div>
             <div class="pause-status" id="pauseStatus"></div>
-            <div class="mobile-indicator" id="mobileIndicator"></div>
         </div>
         <div id="gameOver" class="game-over hidden">
             <h2>Game Over!</h2>
@@ -103,6 +88,7 @@
                 <button class="tab-button" data-tab="controls">🎮 Controls</button>
                 <button class="tab-button" data-tab="features">⭐ Features</button>
                 <button class="tab-button" data-tab="ships">🚀 Ships</button>
+                <button class="tab-button" id="radioChatterTabBtn">📡 Radio</button>
             </div>
             
             <!-- Tab Content -->
@@ -387,6 +373,7 @@
         <button class="mobile-tab-btn" data-tab="controls">🎮</button>
         <button class="mobile-tab-btn" data-tab="features">⭐</button>
         <button class="mobile-tab-btn" data-tab="ships">🚀</button>
+        <button class="mobile-tab-btn" id="radioChatterMobileBtn">📡</button>
     </div>
 </body>
 </html> 

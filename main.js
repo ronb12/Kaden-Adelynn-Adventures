@@ -15,6 +15,7 @@ let lives = 50; // Increased to 50 lives
 let level = 1;
 let gameLoop;
 let lastUIUpdate = 0; // Performance optimization for UI updates
+let lastWingmanUpdate = 0; // Performance optimization for wingman updates
 let lastFrameTime = 0; // Performance tracking for frame rate
 let lastSpeechTime = 0; // Throttle speech synthesis
 let highScore = localStorage.getItem('spaceAdventuresHighScore') || 0;
@@ -708,6 +709,12 @@ function purchaseWingman() {
         return;
     }
     
+    // Performance safety check: limit wingmen to prevent freezing
+    if (wingmen.length >= 8) {
+        showNotification('Too many wingmen active! Wait for some to be removed.', 'warning');
+        return;
+    }
+    
     money -= WINGMAN_COST;
     wingmanCount++;
     
@@ -806,6 +813,7 @@ function showStoryNotification(title, message, type = 'story') {
 }
 
 function checkMissionProgress() {
+    if (!currentMission) return;
     const mission = STORY_MISSIONS[currentMission];
     if (!mission) return;
     
@@ -838,6 +846,7 @@ function checkMissionProgress() {
 }
 
 function completeMission() {
+    if (!currentMission) return;
     const mission = STORY_MISSIONS[currentMission];
     if (!mission) return;
     
@@ -1549,6 +1558,20 @@ function setupButtonListeners() {
         });
     }
     
+    // Radio chatter tab button
+    const radioChatterTabBtn = document.getElementById('radioChatterTabBtn');
+    if (radioChatterTabBtn) {
+        radioChatterTabBtn.addEventListener('click', toggleRadioChatter);
+        radioChatterTabBtn.addEventListener('touchstart', toggleRadioChatter);
+    }
+    
+    // Radio chatter mobile button
+    const radioChatterMobileBtn = document.getElementById('radioChatterMobileBtn');
+    if (radioChatterMobileBtn) {
+        radioChatterMobileBtn.addEventListener('click', toggleRadioChatter);
+        radioChatterMobileBtn.addEventListener('touchstart', toggleRadioChatter);
+    }
+    
     // Keyboard shortcut is now handled in the global event listener
 }
 
@@ -1628,16 +1651,18 @@ function startGame() {
     
     // Show story introduction only if it's the first time playing or mission just started
     const lastMissionShown = localStorage.getItem('spaceAdventuresLastMissionShown') || 0;
-    if (currentMission <= 5 && currentMission > parseInt(lastMissionShown)) {
+    if (currentMission && currentMission <= 5 && currentMission > parseInt(lastMissionShown)) {
         const mission = STORY_MISSIONS[currentMission];
-        setTimeout(() => {
-            showStoryNotification(
-                `🎖️ ${playerRank} - Mission ${currentMission}: ${mission.title}`,
-                mission.description,
-                'info'
-            );
-        }, 1000);
-        localStorage.setItem('spaceAdventuresLastMissionShown', currentMission);
+        if (mission) {
+            setTimeout(() => {
+                showStoryNotification(
+                    `🎖️ ${playerRank} - Mission ${currentMission}: ${mission.title}`,
+                    mission.description,
+                    'info'
+                );
+            }, 1000);
+            localStorage.setItem('spaceAdventuresLastMissionShown', currentMission);
+        }
     }
     
     if (gameLoop) cancelAnimationFrame(gameLoop);
@@ -1809,36 +1834,27 @@ function enemyShoot(enemy) {
 
 function wingmanShoot(wingman) {
     const currentTime = Date.now();
-    if (currentTime - wingman.lastShot < 500) return; // Wingmen shoot every 500ms
+    if (currentTime - wingman.lastShot < 800) return; // Increased to 800ms between shots
     
     wingman.lastShot = currentTime;
     
-    // Performance check: limit total bullets
-    if (bullets.length >= MAX_BULLETS) {
-        // Remove oldest bullets to make room
-        bullets.splice(0, Math.min(10, bullets.length - MAX_BULLETS + 10));
+    // Performance check: limit total bullets more aggressively
+    if (bullets.length >= MAX_BULLETS - 20) {
+        // Remove more bullets to make room
+        bullets.splice(0, Math.min(20, bullets.length - MAX_BULLETS + 30));
     }
     
-    // Wingmen have maximum weapon capacity (level 6)
+    // Wingmen have reduced firepower to prevent performance issues
     const centerX = wingman.x + wingman.width / 2;
     const centerY = wingman.y;
     
-    // Create maximum firepower spread for wingmen
+    // Create reduced firepower for wingmen (3 bullets instead of 9)
     bullets.push(
         // Center laser
         { x: centerX - MISSILE_TYPES.LASER.width / 2, y: centerY, width: MISSILE_TYPES.LASER.width, height: MISSILE_TYPES.LASER.height, speed: MISSILE_TYPES.LASER.speed, color: MISSILE_TYPES.LASER.color, type: 'laser' },
         // Side missiles
         { x: centerX - 8, y: centerY + 2, width: MISSILE_TYPES.MISSILE.width, height: MISSILE_TYPES.MISSILE.height, speed: MISSILE_TYPES.MISSILE.speed - 1, color: MISSILE_TYPES.MISSILE.color, type: 'missile' },
-        { x: centerX + 4, y: centerY + 2, width: MISSILE_TYPES.MISSILE.width, height: MISSILE_TYPES.MISSILE.height, speed: MISSILE_TYPES.MISSILE.speed - 1, color: MISSILE_TYPES.MISSILE.color, type: 'missile' },
-        // Outer plasma
-        { x: centerX - 12, y: centerY + 4, width: MISSILE_TYPES.PLASMA.width, height: MISSILE_TYPES.PLASMA.height, speed: MISSILE_TYPES.PLASMA.speed - 2, color: MISSILE_TYPES.PLASMA.color, type: 'plasma' },
-        { x: centerX + 8, y: centerY + 4, width: MISSILE_TYPES.PLASMA.width, height: MISSILE_TYPES.PLASMA.height, speed: MISSILE_TYPES.PLASMA.speed - 2, color: MISSILE_TYPES.PLASMA.color, type: 'plasma' },
-        // Heavy missiles
-        { x: centerX - 16, y: centerY + 6, width: MISSILE_TYPES.HEAVY.width, height: MISSILE_TYPES.HEAVY.height, speed: MISSILE_TYPES.HEAVY.speed - 3, color: MISSILE_TYPES.HEAVY.color, type: 'heavy' },
-        { x: centerX + 12, y: centerY + 6, width: MISSILE_TYPES.HEAVY.width, height: MISSILE_TYPES.HEAVY.height, speed: MISSILE_TYPES.HEAVY.speed - 3, color: MISSILE_TYPES.HEAVY.color, type: 'heavy' },
-        // Spread shots
-        { x: centerX - 20, y: centerY + 8, width: MISSILE_TYPES.SPREAD.width, height: MISSILE_TYPES.SPREAD.height, speed: MISSILE_TYPES.SPREAD.speed - 4, color: MISSILE_TYPES.SPREAD.color, type: 'spread' },
-        { x: centerX + 16, y: centerY + 8, width: MISSILE_TYPES.SPREAD.width, height: MISSILE_TYPES.SPREAD.height, speed: MISSILE_TYPES.SPREAD.speed - 4, color: MISSILE_TYPES.SPREAD.color, type: 'spread' }
+        { x: centerX + 4, y: centerY + 2, width: MISSILE_TYPES.MISSILE.width, height: MISSILE_TYPES.MISSILE.height, speed: MISSILE_TYPES.MISSILE.speed - 1, color: MISSILE_TYPES.MISSILE.color, type: 'missile' }
     );
     
     // Wingmen shoot silently - no sound to avoid conflicts
@@ -1859,6 +1875,9 @@ function spawnEnemy() {
         
         // Check if we should spawn a boss
         if (isBossMission && enemies.length === 0 && !enemies.some(e => e.isBoss)) {
+            // Safety check for currentMission
+            const missionTitle = currentMission && currentMission.title ? currentMission.title : 'Mission';
+            
             // Spawn boss enemy
             const bossEnemy = {
                 x: Math.random() * (canvas.width - 80),
@@ -1869,23 +1888,23 @@ function spawnEnemy() {
                 health: 50, // Boss has much more health
                 maxHealth: 50,
                 isBoss: true,
-                bossType: currentMission.title.includes('Drone Commander') ? 'drone' :
-                         currentMission.title.includes('Battle Cruiser') ? 'cruiser' :
-                         currentMission.title.includes('Fire Lord') ? 'fire' :
-                         currentMission.title.includes('Space King') ? 'king' :
-                         currentMission.title.includes('Cosmic Emperor') ? 'emperor' :
-                         currentMission.title.includes('Galaxy Master') ? 'galaxy' : 'boss',
-                color: currentMission.title.includes('Fire Lord') ? '#ff4500' :
-                       currentMission.title.includes('Space King') ? '#ffd700' :
-                       currentMission.title.includes('Cosmic Emperor') ? '#9400d3' :
-                       currentMission.title.includes('Galaxy Master') ? '#ff1493' : '#ff4444',
+                bossType: missionTitle.includes('Drone Commander') ? 'drone' :
+                         missionTitle.includes('Battle Cruiser') ? 'cruiser' :
+                         missionTitle.includes('Fire Lord') ? 'fire' :
+                         missionTitle.includes('Space King') ? 'king' :
+                         missionTitle.includes('Cosmic Emperor') ? 'emperor' :
+                         missionTitle.includes('Galaxy Master') ? 'galaxy' : 'boss',
+                color: missionTitle.includes('Fire Lord') ? '#ff4500' :
+                       missionTitle.includes('Space King') ? '#ffd700' :
+                       missionTitle.includes('Cosmic Emperor') ? '#9400d3' :
+                       missionTitle.includes('Galaxy Master') ? '#ff1493' : '#ff4444',
                 shootCooldown: 0,
                 lastShot: 0
             };
             enemies.push(bossEnemy);
             // Only show boss alert when game is actually playing
             if (gameState === 'playing') {
-                showStoryNotification("BOSS ALERT!", `A ${currentMission.title.split(':')[1] || 'Boss'} has appeared!`, 'boss');
+                showStoryNotification("BOSS ALERT!", `A ${missionTitle.split(':')[1] || 'Boss'} has appeared!`, 'boss');
                 // Boss alert
                 radioChatterEvent('bossSpawn');
                 radioChatterEvent('bossSpawn');
@@ -2405,38 +2424,20 @@ function updateUI() {
     if (!scoreElement || !livesElement || !levelElement) return;
     
     // Update basic stats
-    scoreElement.textContent = `Score: ${score}`;
-    livesElement.textContent = `Lives: ${lives}`;
-    levelElement.textContent = `Level: ${level}`;
+    scoreElement.textContent = score;
+    livesElement.textContent = lives;
+    levelElement.textContent = level;
     
     // Update money display
     const moneyElement = document.getElementById('money');
     if (moneyElement) {
-        moneyElement.textContent = `💰 ${money}`;
-    }
-    
-    // Update weapon level display
-    const weaponElement = document.getElementById('weaponLevel');
-    if (weaponElement) {
-        weaponElement.textContent = `🔫 Weapon: ${weaponLevel}`;
+        moneyElement.textContent = money;
     }
     
     // Update wingman count display
     const wingmanElement = document.getElementById('wingmanCount');
     if (wingmanElement) {
-        wingmanElement.textContent = `🛩️ Wingmen: ${wingmanCount}/${MAX_WINGMEN}`;
-    }
-    
-    // Update high score display
-    const highScoreElement = document.getElementById('highScore');
-    if (highScoreElement) {
-        highScoreElement.textContent = `🏆 High Score: ${highScore}`;
-    }
-    
-    // Update sound status
-    const soundElement = document.getElementById('soundStatus');
-    if (soundElement) {
-        soundElement.textContent = soundEnabled ? '🔊 Sound: ON' : '🔇 Sound: OFF';
+        wingmanElement.textContent = `${wingmanCount}/${MAX_WINGMEN}`;
     }
     
     // Update current mission display
@@ -2445,72 +2446,21 @@ function updateUI() {
         const mission = STORY_MISSIONS[currentMission];
         if (mission) {
             const progress = mission.boss ? 
-                (enemies.some(e => e.isBoss) ? 'Boss Active!' : 'Boss Defeated!') :
+                (enemies.some(e => e.isBoss) ? 'Boss!' : 'Done!') :
                 `${missionProgress}/${mission.target}`;
             
-            missionElement.innerHTML = `
-                <div class="mission-info">
-                    <div class="mission-title">${mission.title}</div>
-                    <div class="mission-objective">${mission.objective}</div>
-                    <div class="mission-progress">Progress: ${progress}</div>
-                </div>
-            `;
+            const missionTitle = missionElement.querySelector('.mission-title');
+            const missionProgress = missionElement.querySelector('.mission-progress');
+            
+            if (missionTitle) missionTitle.textContent = `🚀 ${mission.title}`;
+            if (missionProgress) missionProgress.textContent = progress;
         }
-    }
-    
-    // Update character info
-    const characterElement = document.getElementById('characterInfo');
-    if (characterElement) {
-        const character = CHARACTERS[selectedCharacter];
-        let accentClass = '';
-        if (selectedCharacter === 'adelynn') accentClass = ' adelynn-accent';
-        if (selectedCharacter === 'kaden') accentClass = ' kaden-accent';
-        if (selectedCharacter === 'blaze') accentClass = ' blaze-accent';
-        if (character) {
-            characterElement.innerHTML = `
-                <div class="character-info${accentClass}">
-                    <div class="character-name">${character.name}</div>
-                    <div class="character-ability">${character.specialAbility}</div>
-                </div>
-            `;
-        }
-    }
-    
-    // Update ship info
-    const shipElement = document.getElementById('shipInfo');
-    if (shipElement && player.shipType) {
-        const shipStats = getCurrentShipStats();
-        shipElement.innerHTML = `
-            <div class="ship-info">
-                <div class="ship-name">🚀 ${shipStats.name}</div>
-                <div class="ship-ability">${shipStats.special}</div>
-                <div class="ship-stats">Speed: ${player.speed} | Firepower: ${player.firepower} | Shield: ${Math.round(player.shield)}/${player.maxShield}</div>
-            </div>
-        `;
-    }
-    
-    // Update shield display
-    const shieldElement = document.getElementById('shieldLevel');
-    if (shieldElement) {
-        const shieldPercentage = player.maxShield ? Math.round((player.shield / player.maxShield) * 100) : 0;
-        shieldElement.textContent = `🛡️ Shield: ${shieldPercentage}%`;
     }
     
     // Update pause status
     const pauseElement = document.getElementById('pauseStatus');
     if (pauseElement) {
         pauseElement.textContent = gameState === 'paused' ? '⏸️ PAUSED' : '';
-    }
-    
-    // Update mobile detection indicator
-    const mobileIndicator = document.getElementById('mobileIndicator');
-    if (mobileIndicator) {
-        if (isMobile) {
-            mobileIndicator.textContent = '📱 Mobile Mode';
-            mobileIndicator.style.display = 'block';
-        } else {
-            mobileIndicator.style.display = 'none';
-        }
     }
 }
 
@@ -2559,6 +2509,58 @@ function render() {
     if (gameState === 'paused') {
         drawPauseOverlay();
     }
+    
+    // Draw mobile joystick overlay
+    if (isMobile && gameState === 'playing') {
+        drawMobileJoystick();
+    }
+}
+
+function drawMobileJoystick() {
+    if (!touchControls.joystickActive) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const canvasScaleX = canvas.width / rect.width;
+    const canvasScaleY = canvas.height / rect.height;
+    
+    // Draw joystick base
+    const baseX = touchControls.joystickCenter.x * canvasScaleX;
+    const baseY = touchControls.joystickCenter.y * canvasScaleY;
+    const radius = touchControls.joystickRadius * canvasScaleX;
+    
+    ctx.save();
+    
+    // Joystick base circle
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.beginPath();
+    ctx.arc(baseX, baseY, radius, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Joystick base border
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(baseX, baseY, radius, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    // Joystick handle
+    const handleX = touchControls.joystickPosition.x * canvasScaleX;
+    const handleY = touchControls.joystickPosition.y * canvasScaleY;
+    const handleRadius = radius * 0.4;
+    
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.beginPath();
+    ctx.arc(handleX, handleY, handleRadius, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Joystick handle border
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(handleX, handleY, handleRadius, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    ctx.restore();
 }
 
 function drawBullet(bullet) {
@@ -3235,12 +3237,22 @@ function update() {
     const currentTime = Date.now();
     const shouldUpdateUI = !lastUIUpdate || (currentTime - lastUIUpdate) > 100; // Update UI every 100ms
     
+    // Performance optimization: limit wingman updates when many are active
+    const wingmanUpdateInterval = wingmen.length > 3 ? 2 : 1; // Update wingmen less frequently when many are active
+    const shouldUpdateWingmen = !lastWingmanUpdate || (currentTime - lastWingmanUpdate) > (wingmanUpdateInterval * 16); // 16ms = 60fps
+    
     updatePlayer();
     updateBullets();
     updateEnemyBullets();
     updateEnemies();
     updatePowerUps();
-    updateWingmen();
+    
+    // Only update wingmen at reduced frequency when many are active
+    if (shouldUpdateWingmen) {
+        updateWingmen();
+        lastWingmanUpdate = currentTime;
+    }
+    
     updateExplosions();
     updateSpecialEffects();
     checkCollisions();
@@ -3270,7 +3282,14 @@ let touchControls = {
     isShooting: false,
     shootInterval: null,
     lastTapTime: 0,
-    tapCount: 0
+    tapCount: 0,
+    joystickRadius: 60,
+    joystickCenter: { x: 0, y: 0 },
+    joystickActive: false,
+    joystickPosition: { x: 0, y: 0 },
+    autoShoot: true,
+    touchDeadZone: 20,
+    directShipControl: false
 };
 
 // Initialize touch controls
@@ -3285,6 +3304,8 @@ function initTouchControls() {
         const touch = e.touches[0];
         const rect = canvas.getBoundingClientRect();
         const currentTime = Date.now();
+        const touchX = touch.clientX - rect.left;
+        const touchY = touch.clientY - rect.top;
         
         // Check for double tap
         if (currentTime - touchControls.lastTapTime < 300) {
@@ -3300,43 +3321,133 @@ function initTouchControls() {
         }
         touchControls.lastTapTime = currentTime;
         
-        touchControls.isActive = true;
-        touchControls.startX = touch.clientX - rect.left;
-        touchControls.startY = touch.clientY - rect.top;
-        touchControls.currentX = touchControls.startX;
-        touchControls.currentY = touchControls.startY;
+        // Check if touch is near the player ship for direct control
+        const canvasScaleX = canvas.width / rect.width;
+        const canvasScaleY = canvas.height / rect.height;
+        const touchCanvasX = touchX * canvasScaleX;
+        const touchCanvasY = touchY * canvasScaleY;
+        const shipCenterX = player.x + player.width / 2;
+        const shipCenterY = player.y + player.height / 2;
+        const distanceToShip = Math.sqrt(
+            Math.pow(touchCanvasX - shipCenterX, 2) + 
+            Math.pow(touchCanvasY - shipCenterY, 2)
+        );
         
-        // Start shooting on touch
-        if (!touchControls.isShooting) {
-            touchControls.isShooting = true;
-            touchControls.shootInterval = setInterval(() => {
-                if (gameState === 'playing' && touchControls.isShooting) {
-                    shoot();
+        // If touching near the ship, use direct ship control
+        if (distanceToShip < 80) {
+            touchControls.isActive = true;
+            touchControls.directShipControl = true;
+            touchControls.startX = touchX;
+            touchControls.startY = touchY;
+            touchControls.currentX = touchX;
+            touchControls.currentY = touchY;
+            
+            // Start shooting when touching the ship
+            if (!touchControls.isShooting && touchControls.autoShoot) {
+                touchControls.isShooting = true;
+                touchControls.shootInterval = setInterval(() => {
+                    if (gameState === 'playing' && touchControls.isShooting) {
+                        shoot();
+                    }
+                }, 150); // Faster shooting for mobile
+            }
+        } else {
+            // Determine if this is a joystick touch (left side of screen)
+            if (touchX < canvas.width * 0.4) {
+                // Joystick area
+                touchControls.joystickActive = true;
+                touchControls.joystickCenter = { x: touchX, y: touchY };
+                touchControls.joystickPosition = { x: touchX, y: touchY };
+            } else {
+                // Shooting area (right side)
+                touchControls.isActive = true;
+                touchControls.directShipControl = false;
+                touchControls.startX = touchX;
+                touchControls.startY = touchY;
+                touchControls.currentX = touchX;
+                touchControls.currentY = touchY;
+                
+                // Start shooting on touch
+                if (!touchControls.isShooting && touchControls.autoShoot) {
+                    touchControls.isShooting = true;
+                    touchControls.shootInterval = setInterval(() => {
+                        if (gameState === 'playing' && touchControls.isShooting) {
+                            shoot();
+                        }
+                    }, 150); // Faster shooting for mobile
                 }
-            }, 200); // Shoot every 200ms while touching
+            }
         }
     }, { passive: false });
     
     // Touch move
     canvas.addEventListener('touchmove', function(e) {
         e.preventDefault();
-        if (gameState !== 'playing' || !touchControls.isActive) return;
+        if (gameState !== 'playing') return;
         
         const touch = e.touches[0];
         const rect = canvas.getBoundingClientRect();
-        touchControls.currentX = touch.clientX - rect.left;
-        touchControls.currentY = touch.clientY - rect.top;
+        const touchX = touch.clientX - rect.left;
+        const touchY = touch.clientY - rect.top;
         
-        // Update player position based on touch
-        const canvasScaleX = canvas.width / rect.width;
-        const canvasScaleY = canvas.height / rect.height;
-        
-        player.x = (touchControls.currentX * canvasScaleX) - (player.width / 2);
-        player.y = (touchControls.currentY * canvasScaleY) - (player.height / 2);
-        
-        // Keep player within bounds
-        player.x = Math.max(PLAYER_MARGIN, Math.min(canvas.width - player.width - PLAYER_MARGIN, player.x));
-        player.y = Math.max(PLAYER_MARGIN, Math.min(canvas.height - player.height - PLAYER_MARGIN, player.y));
+        if (touchControls.joystickActive) {
+            // Handle joystick movement
+            const deltaX = touchX - touchControls.joystickCenter.x;
+            const deltaY = touchY - touchControls.joystickCenter.y;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            
+            if (distance > touchControls.touchDeadZone) {
+                // Normalize joystick position
+                const normalizedDistance = Math.min(distance, touchControls.joystickRadius);
+                const normalizedX = (deltaX / distance) * normalizedDistance;
+                const normalizedY = (deltaY / distance) * normalizedDistance;
+                
+                touchControls.joystickPosition = {
+                    x: touchControls.joystickCenter.x + normalizedX,
+                    y: touchControls.joystickCenter.y + normalizedY
+                };
+                
+                // Move player based on joystick
+                const canvasScaleX = canvas.width / rect.width;
+                const canvasScaleY = canvas.height / rect.height;
+                const joystickCanvasX = touchControls.joystickPosition.x * canvasScaleX;
+                const joystickCanvasY = touchControls.joystickPosition.y * canvasScaleY;
+                
+                // Calculate player movement based on joystick position
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height - 100;
+                const maxMoveX = canvas.width * 0.3;
+                const maxMoveY = canvas.height * 0.4;
+                
+                const moveX = ((joystickCanvasX - centerX) / maxMoveX) * player.speed * 2;
+                const moveY = ((joystickCanvasY - centerY) / maxMoveY) * player.speed * 2;
+                
+                player.x = Math.max(PLAYER_MARGIN, Math.min(canvas.width - player.width - PLAYER_MARGIN, player.x + moveX));
+                player.y = Math.max(PLAYER_MARGIN, Math.min(canvas.height - player.height - PLAYER_MARGIN, player.y + moveY));
+            }
+        } else if (touchControls.isActive) {
+            // Handle direct touch movement
+            touchControls.currentX = touchX;
+            touchControls.currentY = touchY;
+            
+            // Update player position based on touch
+            const canvasScaleX = canvas.width / rect.width;
+            const canvasScaleY = canvas.height / rect.height;
+            
+            if (touchControls.directShipControl) {
+                // Direct ship control - ship follows finger exactly
+                player.x = (touchControls.currentX * canvasScaleX) - (player.width / 2);
+                player.y = (touchControls.currentY * canvasScaleY) - (player.height / 2);
+            } else {
+                // Regular touch movement
+                player.x = (touchControls.currentX * canvasScaleX) - (player.width / 2);
+                player.y = (touchControls.currentY * canvasScaleY) - (player.height / 2);
+            }
+            
+            // Keep player within bounds
+            player.x = Math.max(PLAYER_MARGIN, Math.min(canvas.width - player.width - PLAYER_MARGIN, player.x));
+            player.y = Math.max(PLAYER_MARGIN, Math.min(canvas.height - player.height - PLAYER_MARGIN, player.y));
+        }
     }, { passive: false });
     
     // Touch end
@@ -3346,6 +3457,8 @@ function initTouchControls() {
         
         touchControls.isActive = false;
         touchControls.isShooting = false;
+        touchControls.joystickActive = false;
+        touchControls.directShipControl = false;
         
         if (touchControls.shootInterval) {
             clearInterval(touchControls.shootInterval);
@@ -3358,7 +3471,7 @@ function initTouchControls() {
         e.preventDefault();
     });
     
-    console.log('Touch controls initialized for mobile devices');
+    console.log('Enhanced touch controls initialized for mobile devices');
 }
 
 // Initialize game elements after DOM loads
@@ -3591,6 +3704,12 @@ function setupMobileTabBar() {
     const tabButtons = tabBar.querySelectorAll('.mobile-tab-btn');
     tabButtons.forEach(btn => {
         btn.addEventListener('click', () => {
+            // Check if this is the radio chatter button
+            if (btn.id === 'radioChatterMobileBtn') {
+                toggleRadioChatter();
+                return;
+            }
+            
             // Remove selected from all
             tabButtons.forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
@@ -4069,524 +4188,4 @@ function renderShipsGrid() {
         // Stats
         const stats = document.createElement('div');
         stats.className = 'ship-stats';
-        stats.innerHTML = `Speed: ${ship.speed} | Firepower: ${ship.firepower} | Shield: ${ship.shield}<br>Special: ${ship.special}`;
-        card.appendChild(stats);
-        // Select button
-        const btn = document.createElement('button');
-        btn.className = 'ship-select-btn' + (selectedShip === key ? ' selected' : '');
-        btn.textContent = selectedShip === key ? 'Selected' : 'Select';
-        btn.onclick = () => {
-            selectedShip = key;
-            localStorage.setItem('spaceAdventuresSelectedShip', key);
-            renderShipsGrid();
-        };
-        card.appendChild(btn);
-        grid.appendChild(card);
-    });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    renderShipsGrid();
-});
-
-// Integrate selected ship into gameplay
-function getCurrentShipStats() {
-    return SHIPS[selectedShip] || SHIPS.interceptor;
-}
-// In initializeGameElements or startGame, set player.speed, etc. from getCurrentShipStats()
-
-// PWA Installation Functions
-function initializePWA() {
-    // Only initialize PWA on HTTPS or localhost
-    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-        console.log('PWA: Not supported on file:// protocol');
-        return;
-    }
-
-    // Listen for the beforeinstallprompt event
-    window.addEventListener('beforeinstallprompt', (e) => {
-        console.log('PWA: Install prompt triggered');
-        e.preventDefault();
-        deferredPrompt = e;
-        
-        // Show install button if it exists
-        if (installButton) {
-            installButton.style.display = 'block';
-        }
-        
-        // Show install notification
-        showNotification('🚀 Install Space Adventures for the best experience!', 'info');
-    });
-
-    // Listen for app installed event
-    window.addEventListener('appinstalled', (evt) => {
-        console.log('PWA: App was installed');
-        deferredPrompt = null;
-        
-        // Hide install button
-        if (installButton) {
-            installButton.style.display = 'none';
-        }
-        
-        // Show success notification
-        showNotification('🎉 Space Adventures installed successfully!', 'success');
-        
-        // Track installation
-        if (typeof gtag !== 'undefined') {
-            gtag('event', 'pwa_install', {
-                'event_category': 'engagement',
-                'event_label': 'app_installed'
-            });
-        }
-    });
-
-    // Check if app is already installed
-    if (window.matchMedia('(display-mode: standalone)').matches || 
-        window.navigator.standalone === true) {
-        console.log('PWA: App is running in standalone mode');
-        document.body.classList.add('pwa-installed');
-    }
-}
-
-// Install PWA function
-async function installPWA() {
-    // Only install on HTTPS or localhost
-    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-        console.log('PWA: Install not supported on file:// protocol');
-        return;
-    }
-
-    if (!deferredPrompt) {
-        console.log('PWA: No install prompt available');
-        return;
-    }
-
-    try {
-        // Show the install prompt
-        deferredPrompt.prompt();
-        
-        // Wait for the user to respond to the prompt
-        const { outcome } = await deferredPrompt.userChoice;
-        
-        if (outcome === 'accepted') {
-            console.log('PWA: User accepted the install prompt');
-        } else {
-            console.log('PWA: User dismissed the install prompt');
-        }
-        
-        // Clear the deferredPrompt
-        deferredPrompt = null;
-        
-        // Hide install button
-        if (installButton) {
-            installButton.style.display = 'none';
-        }
-    } catch (error) {
-        console.error('PWA: Install failed:', error);
-    }
-}
-
-// Add PWA installation button to the start screen
-function addInstallButton() {
-    // Only add install button on HTTPS or localhost
-    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-        console.log('PWA: Install button not supported on file:// protocol');
-        return;
-    }
-
-    const startScreen = document.getElementById('startScreen');
-    if (!startScreen) return;
-
-    // Create install button
-    installButton = document.createElement('button');
-    installButton.id = 'installButton';
-    installButton.className = 'install-button';
-    installButton.innerHTML = `
-        <span class="button-text">📱 Install App</span>
-        <span class="button-icon">⬇️</span>
-    `;
-    installButton.style.display = 'none';
-    installButton.addEventListener('click', installPWA);
-
-    // Insert before the start button
-    const startBtn = document.getElementById('startBtn');
-    if (startBtn) {
-        startScreen.insertBefore(installButton, startBtn);
-    }
-}
-
-// Add radio chatter toggle button to UI
-function addRadioChatterButton() {
-    // Check if button already exists
-    if (document.getElementById('toggleRadioChatter')) {
-        console.log('Radio chatter button already exists');
-        return;
-    }
-    
-    const btn = document.createElement('button');
-    btn.id = 'toggleRadioChatter';
-    btn.textContent = '📡 Radio Chatter';
-    btn.style.position = 'fixed';
-    btn.style.bottom = '16px';
-    btn.style.right = '16px';
-    btn.style.zIndex = 1000;
-    btn.style.background = '#222';
-    btn.style.color = '#00ff00';
-    btn.style.border = '2px solid #00ff00';
-    btn.style.borderRadius = '8px';
-    btn.style.padding = '6px 12px';
-    btn.style.fontSize = '0.9em';
-    btn.style.fontWeight = 'bold';
-    btn.style.cursor = 'pointer';
-    btn.style.fontFamily = 'monospace';
-    btn.onclick = toggleRadioChatter;
-    
-    // Add to body
-    document.body.appendChild(btn);
-    
-    // Verify button is visible
-    setTimeout(() => {
-        const button = document.getElementById('toggleRadioChatter');
-        if (button && button.offsetParent === null) {
-            console.log('Radio chatter button is not visible, trying alternative positioning');
-            button.style.position = 'absolute';
-            button.style.top = '20px';
-            button.style.right = '20px';
-            button.style.bottom = 'auto';
-        }
-    }, 100);
-    
-    console.log('Radio chatter button added:', btn);
-}
-
-// Initialize PWA when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    initializePWA();
-    addInstallButton();
-    addRadioChatterButton();
-});
-
-// --- RADIO CHATTER GAMEPLAY EVENTS ---
-function radioChatterEvent(event) {
-    let message = '';
-    let type = 'command';
-    
-    switch(event) {
-        case 'missionStart':
-            message = getRandomRadioMessage('command');
-            type = 'command';
-            break;
-        case 'bossSpawn':
-            message = getRandomRadioMessage('alerts');
-            type = 'alerts';
-            break;
-        case 'missionComplete':
-            message = getRandomRadioMessage('alerts');
-            type = 'alerts';
-            break;
-        case 'wingmanLost':
-            message = getRandomRadioMessage('alerts');
-            type = 'alerts';
-            break;
-        case 'powerup':
-            message = "Power-up detected nearby!";
-            type = 'pilot';
-            break;
-        case 'enemyAce':
-            message = "Enemy ace pilot spotted!";
-            type = 'alerts';
-            break;
-        default:
-            message = getRandomRadioMessage('command');
-            type = 'command';
-    }
-    
-    speakRadioChatter(message, type);
-}
-
-// Radio chatter messages - Authentic military-style communications
-const RADIO_CHATTER = {
-    command: [
-        "Command to all units, maintain tactical formation.",
-        "Base to fighters, enemy forces detected in sector Alpha.",
-        "Mission control to squadron, weapons free, repeat weapons free.",
-        "Command center here, all pilots report status.",
-        "Base to all units, enemy reinforcements incoming.",
-        "Mission control to fighters, maintain radio discipline.",
-        "Command to squadron, enemy forces retreating.",
-        "Base to all pilots, mission objectives updated.",
-        "Mission control to fighters, maintain defensive positions.",
-        "Command center monitoring all frequencies.",
-        "Base to squadron, enemy capital ship detected.",
-        "Mission control to all units, prepare for heavy resistance.",
-        "Command to fighters, maintain formation integrity.",
-        "Base to pilots, enemy forces regrouping.",
-        "Mission control to squadron, mission status green.",
-        "Command center to all units, maintain tactical advantage.",
-        "Base to fighters, enemy formation breaking.",
-        "Mission control to pilots, mission parameters confirmed.",
-        "Command to squadron, maintain radio silence unless necessary.",
-        "Base to all units, enemy forces neutralized.",
-        "Mission control to fighters, return to base when ready.",
-        "Command center to squadron, mission accomplished.",
-        "Base to pilots, maintain defensive perimeter.",
-        "Mission control to all units, enemy activity increasing.",
-        "Command to fighters, maintain tactical spacing.",
-        "Base to squadron, mission objectives achieved.",
-        "Mission control to pilots, maintain formation discipline.",
-        "Command center to all units, enemy forces eliminated.",
-        "Base to fighters, mission success confirmed.",
-        "Mission control to squadron, maintain tactical awareness.",
-        "Command to pilots, enemy forces detected.",
-        "Base to all units, maintain radio protocol.",
-        "Mission control to fighters, mission status nominal.",
-        "Command center to squadron, enemy forces retreating.",
-        "Base to pilots, maintain tactical advantage.",
-        "Mission control to all units, mission parameters updated.",
-        "Command to fighters, maintain formation integrity.",
-        "Base to squadron, enemy forces neutralized.",
-        "Mission control to pilots, mission objectives clear.",
-        "Command center to all units, maintain tactical spacing.",
-        "Base to fighters, mission success confirmed.",
-        "Mission control to squadron, maintain radio discipline.",
-        "Command to pilots, enemy forces eliminated.",
-        "Base to all units, mission accomplished.",
-        "Mission control to fighters, maintain tactical awareness.",
-        "Command center to squadron, mission status green.",
-        "Base to pilots, enemy forces detected.",
-        "Mission control to all units, maintain formation integrity.",
-        "Command to fighters, mission objectives achieved.",
-        "Base to squadron, maintain tactical advantage.",
-        "Mission control to pilots, mission success confirmed.",
-        "Command center to all units, enemy forces neutralized.",
-        "Base to fighters, maintain radio protocol.",
-        "Mission control to squadron, mission accomplished."
-    ],
-    wingmen: [
-        "Alpha wingman, covering your six o'clock!",
-        "Bravo here, enemy on your left flank!",
-        "Charlie reporting, I've got your back!",
-        "Delta wingman, enemy formation detected!",
-        "Alpha to leader, engaging hostiles!",
-        "Bravo wingman, enemy retreating!",
-        "Charlie here, power-up spotted!",
-        "Delta to leader, enemy forces eliminated!",
-        "Alpha reporting, mission objectives clear!",
-        "Bravo wingman, maintaining formation!",
-        "Charlie here, enemy reinforcements!",
-        "Delta to leader, covering your approach!",
-        "Alpha wingman, enemy formation breaking!",
-        "Bravo here, power-up collected!",
-        "Charlie reporting, mission success!",
-        "Delta wingman, enemy forces neutralized!",
-        "Alpha to leader, maintaining position!",
-        "Bravo here, enemy detected!",
-        "Charlie wingman, covering your six!",
-        "Delta to leader, mission objectives achieved!",
-        "Alpha reporting, enemy retreat!",
-        "Bravo wingman, power-up available!",
-        "Charlie here, formation maintained!",
-        "Delta to leader, enemy eliminated!",
-        "Alpha wingman, mission parameters clear!",
-        "Bravo here, covering approach!",
-        "Charlie reporting, enemy forces!",
-        "Delta wingman, mission success!",
-        "Alpha to leader, maintaining formation!",
-        "Bravo here, enemy detected!",
-        "Charlie wingman, power-up spotted!",
-        "Delta to leader, mission objectives!",
-        "Alpha reporting, enemy retreat!",
-        "Bravo wingman, covering your six!",
-        "Charlie here, formation maintained!",
-        "Delta to leader, enemy neutralized!",
-        "Alpha wingman, mission success!",
-        "Bravo here, power-up collected!",
-        "Charlie reporting, enemy forces!",
-        "Delta wingman, maintaining position!",
-        "Alpha to leader, mission clear!",
-        "Bravo here, enemy eliminated!",
-        "Charlie wingman, covering approach!",
-        "Delta to leader, mission objectives!",
-        "Alpha reporting, formation maintained!",
-        "Bravo wingman, enemy detected!",
-        "Charlie here, mission success!",
-        "Delta to leader, power-up available!",
-        "Alpha wingman, enemy forces!",
-        "Bravo here, covering your six!",
-        "Charlie reporting, mission clear!",
-        "Delta wingman, enemy eliminated!",
-        "Alpha to leader, power-up spotted!",
-        "Bravo here, mission objectives!",
-        "Charlie wingman, formation maintained!",
-        "Delta to leader, enemy retreat!",
-        "Alpha reporting, power-up available!",
-        "Bravo wingman, mission success!",
-        "Charlie here, enemy neutralized!",
-        "Delta to leader, mission objectives!",
-        "Alpha wingman, power-up collected!",
-        "Bravo here, enemy forces!",
-        "Charlie reporting, mission success!"
-    ],
-    pilot: [
-        "Pilot to command, engaging enemy forces!",
-        "This is the pilot, enemy formation detected!",
-        "Pilot reporting, power-up collected!",
-        "Pilot to base, enemy forces eliminated!",
-        "This is the pilot, mission objectives clear!",
-        "Pilot reporting, maintaining formation!",
-        "Pilot to command, enemy retreat detected!",
-        "This is the pilot, power-up spotted!",
-        "Pilot reporting, mission success!",
-        "Pilot to base, enemy reinforcements!",
-        "This is the pilot, covering wingmen!",
-        "Pilot reporting, enemy formation breaking!",
-        "Pilot to command, mission parameters updated!",
-        "This is the pilot, power-up available!",
-        "Pilot reporting, enemy forces neutralized!",
-        "Pilot to base, mission objectives achieved!",
-        "This is the pilot, maintaining tactical advantage!",
-        "Pilot reporting, enemy detected!",
-        "Pilot to command, formation maintained!",
-        "This is the pilot, power-up collected!",
-        "Pilot reporting, mission success!",
-        "Pilot to base, enemy eliminated!",
-        "This is the pilot, covering approach!",
-        "Pilot reporting, mission objectives clear!",
-        "Pilot to command, enemy forces!",
-        "This is the pilot, power-up spotted!",
-        "Pilot reporting, mission success!",
-        "Pilot to base, enemy retreat!",
-        "This is the pilot, maintaining position!",
-        "Pilot reporting, power-up available!",
-        "Pilot to command, enemy neutralized!",
-        "This is the pilot, mission objectives!",
-        "Pilot reporting, formation maintained!",
-        "Pilot to base, enemy detected!",
-        "This is the pilot, power-up collected!",
-        "Pilot reporting, mission success!",
-        "Pilot to command, enemy forces!",
-        "This is the pilot, covering six!",
-        "Pilot reporting, mission clear!",
-        "Pilot to base, enemy eliminated!",
-        "This is the pilot, power-up spotted!",
-        "Pilot reporting, mission objectives!",
-        "Pilot to command, formation maintained!",
-        "This is the pilot, enemy retreat!",
-        "Pilot reporting, power-up available!",
-        "Pilot to base, mission success!",
-        "This is the pilot, enemy neutralized!",
-        "Pilot reporting, mission objectives!",
-        "Pilot to command, power-up collected!",
-        "This is the pilot, enemy forces!",
-        "Pilot reporting, mission success!"
-    ],
-    alerts: [
-        "ALERT! Enemy boss detected in your sector!",
-        "WARNING! Multiple hostiles approaching!",
-        "URGENT! Enemy reinforcements incoming!",
-        "ALERT! Boss ship powering up weapons!",
-        "WARNING! Enemy formation closing in!",
-        "URGENT! Multiple enemy fighters detected!",
-        "ALERT! Boss ship shields at maximum!",
-        "WARNING! Enemy forces regrouping!",
-        "URGENT! Boss ship launching missiles!",
-        "ALERT! Enemy reinforcements detected!",
-        "WARNING! Multiple hostiles on radar!",
-        "URGENT! Boss ship charging weapons!",
-        "ALERT! Enemy formation attacking!",
-        "WARNING! Boss ship shields regenerating!",
-        "URGENT! Multiple enemy fighters!",
-        "ALERT! Enemy reinforcements incoming!",
-        "WARNING! Boss ship powering up!",
-        "URGENT! Enemy forces detected!",
-        "ALERT! Multiple hostiles approaching!",
-        "WARNING! Boss ship launching attack!",
-        "URGENT! Enemy formation closing!",
-        "ALERT! Boss ship shields active!",
-        "WARNING! Multiple enemy fighters!",
-        "URGENT! Enemy reinforcements!",
-        "ALERT! Boss ship charging weapons!",
-        "WARNING! Enemy forces attacking!",
-        "URGENT! Multiple hostiles detected!",
-        "ALERT! Boss ship powering up!",
-        "WARNING! Enemy formation incoming!",
-        "URGENT! Boss ship launching missiles!",
-        "ALERT! Multiple enemy fighters!",
-        "WARNING! Enemy reinforcements!",
-        "URGENT! Boss ship charging attack!",
-        "ALERT! Enemy forces detected!",
-        "WARNING! Multiple hostiles!",
-        "URGENT! Boss ship powering up!",
-        "ALERT! Enemy formation attacking!",
-        "WARNING! Boss ship shields active!",
-        "URGENT! Multiple enemy fighters!",
-        "ALERT! Enemy reinforcements incoming!",
-        "WARNING! Boss ship charging weapons!",
-        "URGENT! Enemy forces detected!",
-        "ALERT! Multiple hostiles approaching!",
-        "WARNING! Boss ship launching attack!",
-        "URGENT! Enemy formation closing!",
-        "ALERT! Boss ship shields regenerating!",
-        "WARNING! Multiple enemy fighters!",
-        "URGENT! Enemy reinforcements detected!",
-        "ALERT! Boss ship powering up weapons!",
-        "WARNING! Enemy forces attacking!",
-        "URGENT! Multiple hostiles on radar!"
-    ]
-};
-
-// Radio chatter tracking to prevent repetition
-let radioChatterHistory = {
-    command: [],
-    wingmen: [],
-    pilot: [],
-    alerts: []
-};
-
-// Time-based message rotation
-let lastMessageRotation = 0;
-
-// Get a random message that hasn't been used recently
-function getRandomRadioMessage(type) {
-    const messages = RADIO_CHATTER[type];
-    const history = radioChatterHistory[type];
-    const currentTime = Date.now();
-    
-    // Rotate messages every 30 seconds to ensure variety
-    if (currentTime - lastMessageRotation > 30000) {
-        radioChatterHistory = {
-            command: [],
-            wingmen: [],
-            pilot: [],
-            alerts: []
-        };
-        lastMessageRotation = currentTime;
-        console.log('Radio chatter: Message rotation reset');
-    }
-    
-    // If we've used most messages, reset history
-    if (history.length >= messages.length * 0.7) {
-        radioChatterHistory[type] = [];
-        console.log(`Radio chatter: ${type} history reset (${history.length}/${messages.length} used)`);
-    }
-    
-    // Find messages that haven't been used recently
-    const availableMessages = messages.filter((_, index) => !history.includes(index));
-    
-    // If all messages have been used, reset history and use any message
-    if (availableMessages.length === 0) {
-        radioChatterHistory[type] = [];
-        const randomIndex = Math.floor(Math.random() * messages.length);
-        radioChatterHistory[type].push(randomIndex);
-        console.log(`Radio chatter: ${type} all messages used, resetting`);
-        return messages[randomIndex];
-    }
-    
-    // Select a random message from available ones
-    const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
-    const messageIndex = messages.indexOf(randomMessage);
-    radioChatterHistory[type].push(messageIndex);
-    
-    console.log(`Radio chatter: ${type} message ${messageIndex + 1}/${messages.length} (${availableMessages.length} available)`);
-    return randomMessage;
-}
+        stats.innerHTML = `
