@@ -62,6 +62,7 @@ const CHARACTERS = {
         color: '#ff69b4',
         specialAbility: "Shield Burst",
         description: "The tactical genius with defensive mastery",
+        avatar: "👩🏼‍🚀",
         speed: 7,
         shieldBonus: 1.5,
         specialCooldown: 0
@@ -71,6 +72,7 @@ const CHARACTERS = {
         color: '#00ffff',
         specialAbility: "Time Warp",
         description: "The mysterious pilot with reality-bending powers",
+        avatar: "👨🏼‍🚀",
         speed: 9,
         timeBonus: 1.3,
         specialCooldown: 0
@@ -83,6 +85,66 @@ const CHARACTERS = {
         avatar: "🔥",
         speed: 6,
         damageBonus: 1.6,
+        specialCooldown: 0
+    },
+    zara: {
+        name: "Zara",
+        color: '#9932cc',
+        specialAbility: "Star Burst",
+        description: "The cosmic explorer with stellar powers",
+        avatar: "👩🏽‍🚀",
+        speed: 8,
+        starBonus: 1.4,
+        specialCooldown: 0
+    },
+    max: {
+        name: "Max",
+        color: '#32cd32',
+        specialAbility: "Speed Boost",
+        description: "The fastest pilot in the galaxy",
+        avatar: "👨🏿‍🚀",
+        speed: 10,
+        speedBonus: 1.3,
+        specialCooldown: 0
+    },
+    luna: {
+        name: "Luna",
+        color: '#87ceeb',
+        specialAbility: "Moon Shield",
+        description: "The lunar guardian with protective magic",
+        avatar: "👩🏾‍🚀",
+        speed: 7,
+        moonBonus: 1.5,
+        specialCooldown: 0
+    },
+    rocket: {
+        name: "Rocket",
+        color: '#ff6347',
+        specialAbility: "Rocket Boost",
+        description: "The energetic pilot with explosive power",
+        avatar: "👨🏼‍🚀",
+        speed: 9,
+        rocketBonus: 1.4,
+        specialCooldown: 0
+    },
+    stella: {
+        name: "Stella",
+        color: '#ffd700',
+        specialAbility: "Star Power",
+        description: "The shining star with celestial abilities",
+        avatar: "👩🏼‍🚀",
+        speed: 8,
+        stellaBonus: 1.3,
+        specialCooldown: 0
+    },
+    thunder: {
+        name: "Thunder",
+        color: '#4169e1',
+        specialAbility: "Lightning Strike",
+        description: "The electric pilot with thunderous attacks",
+        avatar: "👨🏽‍🚀",
+        speed: 8,
+        thunderBonus: 1.5,
         specialCooldown: 0
     }
 };
@@ -636,6 +698,30 @@ function activateSpecialAbility() {
             // Inferno Fury - Massive explosion damage
             activateInfernoBlast();
             break;
+        case 'zara':
+            // Star Burst - Cosmic explosion with star particles
+            activateStarBurst();
+            break;
+        case 'max':
+            // Speed Boost - Ultra fast movement and shooting
+            activateSpeedBoost();
+            break;
+        case 'luna':
+            // Moon Shield - Enhanced protective barrier
+            activateMoonShield();
+            break;
+        case 'rocket':
+            // Rocket Boost - Explosive propulsion and damage
+            activateRocketBoost();
+            break;
+        case 'stella':
+            // Star Power - Celestial energy beam
+            activateStarPower();
+            break;
+        case 'thunder':
+            // Lightning Strike - Electric chain lightning
+            activateLightningStrike();
+            break;
     }
     
     showNotification(`${character.name}'s ${character.specialAbility} activated!`, 'success');
@@ -877,6 +963,185 @@ function activateSquadBoost() {
     specialEffects.push({
         type: 'squadBoost',
         duration: 10000,
+        startTime: Date.now()
+    });
+}
+
+// New character special abilities
+function activateStarBurst() {
+    // Create cosmic explosion with star particles
+    createExplosion(player.x + player.width / 2, player.y + player.height / 2, 120);
+    
+    // Create star particles
+    for (let i = 0; i < 12; i++) {
+        const angle = (i / 12) * Math.PI * 2;
+        const speed = 8;
+        bullets.push({
+            x: player.x + player.width / 2 - 2,
+            y: player.y + player.height / 2 - 2,
+            width: 4,
+            height: 4,
+            speedX: Math.cos(angle) * speed,
+            speedY: Math.sin(angle) * speed,
+            color: '#9932cc',
+            type: 'star',
+            damage: 3,
+            life: 60
+        });
+    }
+    
+    // Damage nearby enemies
+    enemies.forEach(enemy => {
+        const dx = enemy.x - player.x;
+        const dy = enemy.y - player.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < 150) {
+            enemy.health = Math.max(0, enemy.health - 2);
+        }
+    });
+    
+    specialEffects.push({
+        type: 'starBurst',
+        duration: 3000,
+        startTime: Date.now()
+    });
+}
+
+function activateSpeedBoost() {
+    // Ultra fast movement and shooting
+    const originalSpeed = player.speed;
+    const originalDelay = SHOT_DELAY;
+    
+    player.speed *= 2;
+    SHOT_DELAY = 30;
+    
+    specialEffects.push({
+        type: 'speedBoost',
+        duration: 8000,
+        startTime: Date.now(),
+        originalSpeed: originalSpeed,
+        originalDelay: originalDelay
+    });
+}
+
+function activateMoonShield() {
+    // Enhanced protective barrier
+    player.shield = player.maxShield;
+    player.isShieldActive = true;
+    
+    // Create moon shield effect
+    specialEffects.push({
+        type: 'moonShield',
+        duration: 12000,
+        startTime: Date.now()
+    });
+    
+    // Push enemies away with lunar force
+    enemies.forEach(enemy => {
+        const dx = enemy.x - player.x;
+        const dy = enemy.y - player.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < 250) {
+            enemy.x += (dx / distance) * 150;
+            enemy.y += (dy / distance) * 150;
+        }
+    });
+}
+
+function activateRocketBoost() {
+    // Explosive propulsion and damage
+    // Boost player forward
+    player.y -= 100;
+    
+    // Create rocket trail
+    for (let i = 0; i < 8; i++) {
+        createExplosion(player.x + Math.random() * player.width, player.y + player.height + i * 10, 20);
+    }
+    
+    // Damage enemies in path
+    enemies.forEach(enemy => {
+        if (enemy.y > player.y && enemy.y < player.y + 150) {
+            enemy.health = Math.max(0, enemy.health - 3);
+        }
+    });
+    
+    specialEffects.push({
+        type: 'rocketBoost',
+        duration: 2000,
+        startTime: Date.now()
+    });
+}
+
+function activateStarPower() {
+    // Celestial energy beam
+    const centerX = player.x + player.width / 2;
+    bullets.push({
+        x: centerX - 3,
+        y: 0,
+        width: 6,
+        height: canvas.height,
+        speed: 0,
+        color: '#ffd700',
+        type: 'starBeam',
+        damage: 4,
+        life: 120
+    });
+    
+    // Create star power effect
+    specialEffects.push({
+        type: 'starPower',
+        duration: 4000,
+        startTime: Date.now()
+    });
+}
+
+function activateLightningStrike() {
+    // Electric chain lightning
+    // Find closest enemy
+    let closestEnemy = null;
+    let closestDistance = Infinity;
+    
+    enemies.forEach(enemy => {
+        const dx = enemy.x - player.x;
+        const dy = enemy.y - player.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < closestDistance) {
+            closestDistance = distance;
+            closestEnemy = enemy;
+        }
+    });
+    
+    if (closestEnemy) {
+        // Create lightning bolt
+        bullets.push({
+            x: player.x + player.width / 2 - 2,
+            y: player.y,
+            width: 4,
+            height: closestDistance,
+            speed: 0,
+            color: '#4169e1',
+            type: 'lightning',
+            damage: 5,
+            target: closestEnemy,
+            life: 30
+        });
+        
+        // Chain to other enemies
+        enemies.forEach(enemy => {
+            if (enemy !== closestEnemy) {
+                const dx = enemy.x - closestEnemy.x;
+                const dy = enemy.y - closestEnemy.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    enemy.health = Math.max(0, enemy.health - 2);
+                }
+            }
+        });
+    }
+    
+    specialEffects.push({
+        type: 'lightningStrike',
+        duration: 2000,
         startTime: Date.now()
     });
 }
@@ -1386,7 +1651,11 @@ function updatePlayer() {
 function updateBullets() {
     bullets = bullets.filter(bullet => {
         // Update bullet position based on type
-        if (bullet.angle) {
+        if (bullet.speedX && bullet.speedY) {
+            // Star particles and other directional bullets
+            bullet.x += bullet.speedX;
+            bullet.y += bullet.speedY;
+        } else if (bullet.angle) {
             // Angled bullets (spread shot)
             bullet.x += Math.sin(bullet.angle) * bullet.speed;
             bullet.y -= Math.cos(bullet.angle) * bullet.speed;
@@ -1401,9 +1670,20 @@ function updateBullets() {
             } else {
                 bullet.y -= bullet.speed;
             }
+        } else if (bullet.type === 'starBeam' || bullet.type === 'lightning') {
+            // Stationary beams
+            // No movement needed
         } else {
             // Standard bullets
             bullet.y -= bullet.speed;
+        }
+        
+        // Handle bullet life for special bullets
+        if (bullet.life !== undefined) {
+            bullet.life--;
+            if (bullet.life <= 0) {
+                return false;
+            }
         }
         
         // Check if bullet is off screen
@@ -1549,6 +1829,13 @@ function updateSpecialEffects() {
                     wingmen.forEach(wingman => {
                         wingman.boosted = false;
                     });
+                    break;
+                case 'speedBoost':
+                    player.speed = effect.originalSpeed;
+                    SHOT_DELAY = effect.originalDelay;
+                    break;
+                case 'moonShield':
+                    player.isShieldActive = false;
                     break;
             }
             return false;
@@ -1899,6 +2186,33 @@ function drawBullet(bullet) {
             ctx.fillRect(x + w/2 + 1, y + h + 2, 2, 4);
             break;
             
+        case 'star':
+            // Star particles with twinkling effect
+            ctx.shadowColor = bullet.color;
+            ctx.shadowBlur = 6;
+            ctx.fillStyle = bullet.color;
+            ctx.fillRect(x, y, w, h);
+            ctx.shadowBlur = 0;
+            break;
+            
+        case 'starBeam':
+            // Celestial energy beam
+            ctx.shadowColor = bullet.color;
+            ctx.shadowBlur = 15;
+            ctx.fillStyle = bullet.color;
+            ctx.fillRect(x, y, w, h);
+            ctx.shadowBlur = 0;
+            break;
+            
+        case 'lightning':
+            // Electric lightning bolt
+            ctx.shadowColor = bullet.color;
+            ctx.shadowBlur = 10;
+            ctx.fillStyle = bullet.color;
+            ctx.fillRect(x, y, w, h);
+            ctx.shadowBlur = 0;
+            break;
+            
         default: // basic
             // Basic bullet with simple glow
             ctx.shadowColor = bullet.color;
@@ -1944,7 +2258,16 @@ function drawPlayer() {
     } else {
         // Default ship design
         const character = CHARACTERS[player.character];
-        const shipColor = (player.character === 'adelynn') ? '#ff69b4' : (player.character === 'kaden') ? '#3b2e2a' : (player.character === 'blaze') ? '#ff4500' : character.color;
+        const shipColor = (player.character === 'adelynn') ? '#ff69b4' : 
+                         (player.character === 'kaden') ? '#3b2e2a' : 
+                         (player.character === 'blaze') ? '#ff4500' : 
+                         (player.character === 'zara') ? '#9932cc' :
+                         (player.character === 'max') ? '#32cd32' :
+                         (player.character === 'luna') ? '#87ceeb' :
+                         (player.character === 'rocket') ? '#ff6347' :
+                         (player.character === 'stella') ? '#ffd700' :
+                         (player.character === 'thunder') ? '#4169e1' :
+                         character.color;
         ctx.fillStyle = shipColor;
         
         // Main triangle body
@@ -2016,6 +2339,78 @@ function drawPlayer() {
             ctx.beginPath();
             ctx.arc(pilotX, pilotY + 5, 4, 0, Math.PI, true);
             ctx.strokeStyle = '#ff69b4';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        } else if (player.character === 'zara') {
+            // Zara: purple cosmic explorer
+            ctx.beginPath();
+            ctx.arc(pilotX, pilotY, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffe0e6';
+            ctx.fill();
+            // Purple helmet
+            ctx.beginPath();
+            ctx.arc(pilotX, pilotY, 7, 0, Math.PI * 2);
+            ctx.strokeStyle = '#9932cc';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        } else if (player.character === 'max') {
+            // Max: green speed demon
+            ctx.beginPath();
+            ctx.arc(pilotX, pilotY, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#7a4a21';
+            ctx.fill();
+            // Green helmet
+            ctx.beginPath();
+            ctx.arc(pilotX, pilotY, 7, 0, Math.PI * 2);
+            ctx.strokeStyle = '#32cd32';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        } else if (player.character === 'luna') {
+            // Luna: blue lunar guardian
+            ctx.beginPath();
+            ctx.arc(pilotX, pilotY, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffe0e6';
+            ctx.fill();
+            // Blue helmet
+            ctx.beginPath();
+            ctx.arc(pilotX, pilotY, 7, 0, Math.PI * 2);
+            ctx.strokeStyle = '#87ceeb';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        } else if (player.character === 'rocket') {
+            // Rocket: orange energetic pilot
+            ctx.beginPath();
+            ctx.arc(pilotX, pilotY, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffe0b2';
+            ctx.fill();
+            // Orange helmet
+            ctx.beginPath();
+            ctx.arc(pilotX, pilotY, 7, 0, Math.PI * 2);
+            ctx.strokeStyle = '#ff6347';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        } else if (player.character === 'stella') {
+            // Stella: golden shining star
+            ctx.beginPath();
+            ctx.arc(pilotX, pilotY, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffe0e6';
+            ctx.fill();
+            // Golden helmet
+            ctx.beginPath();
+            ctx.arc(pilotX, pilotY, 7, 0, Math.PI * 2);
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        } else if (player.character === 'thunder') {
+            // Thunder: blue electric pilot
+            ctx.beginPath();
+            ctx.arc(pilotX, pilotY, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffe0b2';
+            ctx.fill();
+            // Blue helmet
+            ctx.beginPath();
+            ctx.arc(pilotX, pilotY, 7, 0, Math.PI * 2);
+            ctx.strokeStyle = '#4169e1';
             ctx.lineWidth = 2;
             ctx.stroke();
         } else {
