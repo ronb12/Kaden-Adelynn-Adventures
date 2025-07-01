@@ -166,9 +166,15 @@ function speakRadioChatter(message, type = 'command') {
     console.log('Attempting to speak radio chatter:', message, 'type:', type);
     console.log('Speech synthesis available:', !!speechSynthesis);
     console.log('Radio chatter enabled:', radioChatterEnabled);
+    console.log('Game state:', gameState);
     
-    if (!speechSynthesis || !radioChatterEnabled) {
-        console.log('Speech synthesis or radio chatter not available');
+    if (!speechSynthesis) {
+        console.log('Speech synthesis not available');
+        return;
+    }
+    
+    if (!radioChatterEnabled) {
+        console.log('Radio chatter disabled');
         return;
     }
     
@@ -205,6 +211,15 @@ function speakRadioChatter(message, type = 'command') {
     utterance.rate = 1.2;
     utterance.pitch = 1.1;
     utterance.volume = 0.8;
+    
+    // Add error handling
+    utterance.onerror = (event) => {
+        console.error('Speech synthesis error:', event.error);
+    };
+    
+    utterance.onend = () => {
+        console.log('Speech utterance completed:', message);
+    };
     
     // Speak the message
     speechSynthesis.speak(utterance);
@@ -1552,6 +1567,10 @@ if (!window.gameEventListenersInitialized) {
     
     document.addEventListener('keydown', (e) => {
         keys[e.key] = true;
+        
+        // Test radio chatter on first key press
+        testRadioChatter();
+        
         if (e.key === ' ' && gameState === 'playing') {
             e.preventDefault();
             shoot();
@@ -1564,6 +1583,11 @@ if (!window.gameEventListenersInitialized) {
         // Toggle music with 'N' key
         if (e.key === 'n' || e.key === 'N') {
             toggleMusic();
+        }
+        // Test radio chatter with 'R' key
+        if (e.key === 'r' || e.key === 'R') {
+            console.log('Manual radio chatter test triggered');
+            speakRadioChatter('Radio chatter test! Can you hear me?', 'command');
         }
         // Keyboard shortcut to start game
         if (e.key === 'Enter' && gameState === 'start') {
@@ -1741,7 +1765,14 @@ function startGame() {
     
     // Start radio chatter (music disabled)
     if (radioChatterEnabled) {
+        console.log('Starting radio chatter in startGame...');
         startRadioChatter();
+        // Test radio chatter immediately
+        setTimeout(() => {
+            if (radioChatterEnabled) {
+                speakRadioChatter('Mission started! Radio chatter active!', 'command');
+            }
+        }, 1000);
     }
 }
 
@@ -3528,7 +3559,17 @@ function initializeGameElements() {
     setupTabNavigation();
     
     // Initialize radio chatter system
-    initSpeechVoices();
+initSpeechVoices();
+
+// Test radio chatter on first user interaction
+let radioChatterTestDone = false;
+function testRadioChatter() {
+    if (!radioChatterTestDone && radioChatterEnabled) {
+        console.log('Testing radio chatter on first user interaction...');
+        speakRadioChatter('Radio chatter online!', 'command');
+        radioChatterTestDone = true;
+    }
+}
     
     console.log('=== GAME INITIALIZATION COMPLETE ===');
     resizeCanvas();
