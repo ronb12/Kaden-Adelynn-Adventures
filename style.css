@@ -1016,6 +1016,18 @@ button:active {
     .desktop-only {
         display: none;
     }
+    .ui-overlay {
+        font-size: 0.9em;
+        padding: 0.2em 0.2em 0 0.2em;
+        max-height: 30vh;
+        overflow-y: auto;
+    }
+    .ui-overlay > div {
+        margin-bottom: 0.2em;
+    }
+    body {
+        padding-top: env(safe-area-inset-top, 0);
+    }
 }
 
 /* Mobile indicator */
