@@ -270,10 +270,11 @@ function speakRadioChatter(message, type = 'command') {
     }
 }
 
-// Radio chatter messages - TWO-WAY MILITARY CONVERSATION
+// Radio chatter messages - ENHANCED TWO-WAY MILITARY CONVERSATION
 const RADIO_CHATTER = {
     // PILOT messages (responses to command)
     pilot: [
+        // Standard acknowledgments
         "Roger that, Command!",
         "Copy that, Control!",
         "Affirmative, Base!",
@@ -284,6 +285,8 @@ const RADIO_CHATTER = {
         "Roger, Mission Control!",
         "Copy, Command Center!",
         "Affirmative, Base Station!",
+        
+        // Status reports
         "Status green, Command!",
         "All systems operational!",
         "Weapons hot and ready!",
@@ -303,10 +306,34 @@ const RADIO_CHATTER = {
         "All stations reporting!",
         "Battle stations manned!",
         "Weapons locked and loaded!",
-        "Combat systems green!"
+        "Combat systems green!",
+        
+        // More detailed responses
+        "Alpha One reporting in, all systems check out!",
+        "This is Alpha One, standing by for orders!",
+        "Alpha One here, ready to engage!",
+        "Copy that, Command. Alpha One is green across the board!",
+        "Roger, Command. Alpha One is combat ready!",
+        "Affirmative, Base. All systems are go!",
+        "Alpha One to Command, we're locked and loaded!",
+        "This is Alpha One, weapons are hot and ready!",
+        "Alpha One reporting, shields are at full strength!",
+        "Command, this is Alpha One. We're good to go!",
+        "Alpha One to Base, all systems are operational!",
+        "Roger that, Command. Alpha One is ready for action!",
+        "Copy, Control. Alpha One is standing by!",
+        "Alpha One here, awaiting your orders!",
+        "This is Alpha One, all systems are green!",
+        "Command, Alpha One is ready to proceed!",
+        "Alpha One to Mission Control, we're good to go!",
+        "Roger, Base. Alpha One is combat ready!",
+        "This is Alpha One, standing by for instructions!",
+        "Alpha One reporting, all systems are nominal!"
     ],
+    
     // COMMAND messages (orders and responses to pilot)
     command: [
+        // Status checks
         "Alpha One, this is Command. Status check.",
         "Command to Alpha One. Report your position.",
         "Alpha One, Command. Weapons status?",
@@ -319,6 +346,8 @@ const RADIO_CHATTER = {
         "Command to Alpha One. Combat readiness?",
         "Alpha One, Command. All systems green?",
         "Command here. Any enemy activity?",
+        
+        // Orders and instructions
         "Alpha One, this is Command. Proceed to sector.",
         "Command to Alpha One. Maintain formation.",
         "Alpha One, Command. Weapons free.",
@@ -327,19 +356,65 @@ const RADIO_CHATTER = {
         "Command to Alpha One. Mission parameters updated.",
         "Alpha One, Command. New orders incoming.",
         "Command here. Stand by for instructions.",
+        "Alpha One, this is Command. Proceed with mission.",
+        "Command to Alpha One. You are cleared for combat.",
+        "Alpha One, Command. Maintain tactical formation.",
+        "Command here. Execute mission parameters.",
+        "Alpha One, this is Command. You have weapons clearance.",
+        "Command to Alpha One. Proceed to designated sector.",
+        "Alpha One, Command. Maintain combat readiness.",
+        "Command here. You are authorized to engage.",
+        "Alpha One, this is Command. Mission is a go.",
+        "Command to Alpha One. Maintain defensive posture.",
+        
+        // Encouragement and feedback
         "Alpha One, this is Command. Good work.",
         "Command to Alpha One. Keep it up.",
         "Alpha One, Command. Excellent flying.",
         "Command here. You're doing great.",
         "Alpha One, this is Command. Stay sharp.",
         "Command to Alpha One. Watch your six.",
+        "Alpha One, Command. Outstanding performance.",
+        "Command here. Keep up the good work.",
+        "Alpha One, this is Command. You're making us proud.",
+        "Command to Alpha One. Excellent combat skills.",
+        "Alpha One, Command. You're handling this perfectly.",
+        "Command here. Outstanding piloting.",
+        "Alpha One, this is Command. You're a natural.",
+        "Command to Alpha One. Keep that energy up.",
+        "Alpha One, Command. You're doing exactly right.",
+        "Command here. Outstanding work, Alpha One.",
+        "Alpha One, this is Command. You're making history.",
+        "Command to Alpha One. Keep fighting the good fight.",
+        "Alpha One, Command. You're our best pilot.",
+        "Command here. Outstanding performance, Alpha One.",
+        
+        // Tactical warnings
         "Alpha One, Command. Enemy on your tail!",
         "Command here. Break left!",
         "Alpha One, this is Command. Evasive maneuvers!",
         "Command to Alpha One. Return to base.",
-        "Alpha One, Command. Mission accomplished."
+        "Alpha One, Command. Mission accomplished.",
+        "Alpha One, Command. Multiple contacts detected!",
+        "Command here. Incoming hostiles!",
+        "Alpha One, this is Command. Enemy formation approaching!",
+        "Command to Alpha One. Hostiles on radar!",
+        "Alpha One, Command. Threat assessment required!",
+        "Command here. Enemy forces detected!",
+        "Alpha One, this is Command. Multiple contacts!",
+        "Command to Alpha One. Hostile activity detected!",
+        "Alpha One, Command. Enemy ships incoming!",
+        "Command here. Threat level increasing!",
+        "Alpha One, this is Command. Multiple hostiles!",
+        "Command to Alpha One. Enemy formation spotted!",
+        "Alpha One, Command. Hostile forces detected!",
+        "Command here. Enemy activity confirmed!",
+        "Alpha One, this is Command. Multiple threats detected!"
     ],
+    
+    // Context-aware combat messages
     combat: [
+        // Pilot combat calls
         "Enemy contact!",
         "Hostiles detected!",
         "Incoming fire!",
@@ -349,8 +424,42 @@ const RADIO_CHATTER = {
         "Enemy destroyed!",
         "Clear skies ahead!",
         "Threat neutralized!",
-        "Combat status green!"
+        "Combat status green!",
+        "Alpha One engaging hostiles!",
+        "This is Alpha One, engaging enemy forces!",
+        "Alpha One to Command, enemy contact!",
+        "Command, Alpha One is in combat!",
+        "Alpha One here, engaging multiple targets!",
+        "This is Alpha One, hostiles neutralized!",
+        "Alpha One to Base, threat eliminated!",
+        "Command, Alpha One has cleared the area!",
+        "Alpha One reporting, combat successful!",
+        "This is Alpha One, all threats eliminated!",
+        
+        // Command combat responses
+        "Command to Alpha One. Good shooting!",
+        "Alpha One, Command. Excellent work!",
+        "Command here. Keep up the pressure!",
+        "Alpha One, this is Command. Outstanding!",
+        "Command to Alpha One. You're on fire!",
+        "Alpha One, Command. That's the way!",
+        "Command here. Keep it up, Alpha One!",
+        "Alpha One, this is Command. Perfect execution!",
+        "Command to Alpha One. You're unstoppable!",
+        "Alpha One, Command. Outstanding combat skills!",
+        "Command here. You're making us proud!",
+        "Alpha One, this is Command. Excellent work!",
+        "Command to Alpha One. Keep fighting!",
+        "Alpha One, Command. You're doing great!",
+        "Command here. Outstanding performance!",
+        "Alpha One, this is Command. You're a legend!",
+        "Command to Alpha One. Keep up the good work!",
+        "Alpha One, Command. You're unstoppable!",
+        "Command here. Outstanding combat skills!",
+        "Alpha One, this is Command. You're the best!"
     ],
+    
+    // Mission-specific messages
     mission: [
         "Mission objective clear!",
         "Proceeding to target!",
@@ -361,9 +470,44 @@ const RADIO_CHATTER = {
         "Objective complete!",
         "Mission accomplished!",
         "All objectives met!",
-        "Mission successful!"
+        "Mission successful!",
+        "Alpha One to Command, mission objective acquired!",
+        "This is Alpha One, proceeding to target zone!",
+        "Command, Alpha One has reached the objective!",
+        "Alpha One to Base, mission parameters confirmed!",
+        "This is Alpha One, target zone is in sight!",
+        "Command, Alpha One is executing mission!",
+        "Alpha One to Mission Control, objective complete!",
+        "This is Alpha One, mission accomplished!",
+        "Command, Alpha One has completed all objectives!",
+        "Alpha One to Base, mission successful!",
+        
+        // Command mission responses
+        "Command to Alpha One. Excellent mission execution!",
+        "Alpha One, Command. Mission accomplished!",
+        "Command here. Outstanding mission completion!",
+        "Alpha One, this is Command. Perfect execution!",
+        "Command to Alpha One. Mission successful!",
+        "Alpha One, Command. Excellent work!",
+        "Command here. Mission parameters met!",
+        "Alpha One, this is Command. Outstanding!",
+        "Command to Alpha One. Mission complete!",
+        "Alpha One, Command. Perfect execution!",
+        "Command here. Mission accomplished!",
+        "Alpha One, this is Command. Excellent work!",
+        "Command to Alpha One. Mission successful!",
+        "Alpha One, Command. Outstanding performance!",
+        "Command here. Mission complete!",
+        "Alpha One, this is Command. Perfect execution!",
+        "Command to Alpha One. Mission accomplished!",
+        "Alpha One, Command. Excellent work!",
+        "Command here. Mission successful!",
+        "Alpha One, this is Command. Outstanding!"
     ],
+    
+    // Enhanced boss battle messages
     boss: [
+        // Urgent pilot warnings
         "URGENT! Enemy reinforcements!",
         "ALERT! Boss ship charging weapons!",
         "WARNING! Enemy forces attacking!",
@@ -391,7 +535,81 @@ const RADIO_CHATTER = {
         "URGENT! Enemy reinforcements detected!",
         "ALERT! Boss ship powering up weapons!",
         "WARNING! Enemy forces attacking!",
-        "URGENT! Multiple hostiles on radar!"
+        "URGENT! Multiple hostiles on radar!",
+        
+        // Command boss battle responses
+        "Alpha One, Command. This is a critical situation!",
+        "Command to Alpha One. Maximum effort required!",
+        "Alpha One, this is Command. This is your moment!",
+        "Command here. Alpha One, you can do this!",
+        "Alpha One, Command. You're our only hope!",
+        "Command to Alpha One. Give it everything you've got!",
+        "Alpha One, this is Command. This is what you trained for!",
+        "Command here. Alpha One, you're our best pilot!",
+        "Alpha One, Command. The fate of the mission depends on you!",
+        "Command to Alpha One. You're our ace in the hole!",
+        "Alpha One, this is Command. This is your destiny!",
+        "Command here. Alpha One, you're unstoppable!",
+        "Alpha One, Command. You're the hero we need!",
+        "Command to Alpha One. This is your time to shine!",
+        "Alpha One, this is Command. You're making history!",
+        "Command here. Alpha One, you're legendary!",
+        "Alpha One, Command. You're the best of the best!",
+        "Command to Alpha One. You're our champion!",
+        "Alpha One, this is Command. You're unstoppable!",
+        "Command here. Alpha One, you're our hero!"
+    ],
+    
+    // New: Power-up related messages
+    powerup: [
+        "Alpha One to Command, power-up acquired!",
+        "This is Alpha One, enhanced systems online!",
+        "Command, Alpha One has new capabilities!",
+        "Alpha One to Base, weapon systems upgraded!",
+        "This is Alpha One, power-up activated!",
+        "Command, Alpha One is enhanced!",
+        "Alpha One to Mission Control, systems boosted!",
+        "This is Alpha One, new weapons online!",
+        "Command, Alpha One has special abilities!",
+        "Alpha One to Base, power-up successful!",
+        
+        // Command power-up responses
+        "Command to Alpha One. Excellent power-up usage!",
+        "Alpha One, Command. Use those enhancements wisely!",
+        "Command here. Alpha One, your new abilities are impressive!",
+        "Alpha One, this is Command. Power-up well utilized!",
+        "Command to Alpha One. Those enhancements look good!",
+        "Alpha One, Command. Your upgraded systems are working!",
+        "Command here. Alpha One, power-up successful!",
+        "Alpha One, this is Command. Enhanced capabilities confirmed!",
+        "Command to Alpha One. Your upgrades are operational!",
+        "Alpha One, Command. Power-up integration complete!"
+    ],
+    
+    // New: Wingman related messages
+    wingman: [
+        "Alpha One to Command, wingman deployed!",
+        "This is Alpha One, backup is online!",
+        "Command, Alpha One has wingman support!",
+        "Alpha One to Base, wingman operational!",
+        "This is Alpha One, backup systems active!",
+        "Command, Alpha One is not alone!",
+        "Alpha One to Mission Control, wingman ready!",
+        "This is Alpha One, backup acquired!",
+        "Command, Alpha One has support!",
+        "Alpha One to Base, wingman deployed!",
+        
+        // Command wingman responses
+        "Command to Alpha One. Excellent wingman deployment!",
+        "Alpha One, Command. Your backup is impressive!",
+        "Command here. Alpha One, wingman support confirmed!",
+        "Alpha One, this is Command. Backup systems operational!",
+        "Command to Alpha One. Your wingman is ready!",
+        "Alpha One, Command. Support systems active!",
+        "Command here. Alpha One, wingman deployed successfully!",
+        "Alpha One, this is Command. Backup confirmed!",
+        "Command to Alpha One. Your support is online!",
+        "Alpha One, Command. Wingman integration complete!"
     ]
 };
 
@@ -491,19 +709,19 @@ function startRadioChatter() {
         clearInterval(radioChatterInterval);
     }
     
-    // Start the interval for regular radio chatter - TWO-WAY CONVERSATION
+    // Start the interval for enhanced context-aware radio chatter
     radioChatterInterval = setInterval(() => {
         console.log('Radio chatter interval triggered - checking conditions...');
         console.log('Game state:', gameState, 'Radio chatter enabled:', radioChatterEnabled);
         
         if (gameState === 'playing' && radioChatterEnabled) {
-            const radioData = getAlternatingRadioChatter();
+            const radioData = getContextAwareRadioChatter();
             console.log(`Speaking ${radioData.speaker} radio chatter:`, radioData.message);
             speakRadioChatter(radioData.message, radioData.speaker);
         } else {
             console.log('Radio chatter conditions not met - game state:', gameState, 'enabled:', radioChatterEnabled);
         }
-    }, 3000 + Math.random() * 2000); // 3-5 seconds between messages for conversation flow
+    }, 4000 + Math.random() * 3000); // 4-7 seconds between messages for enhanced conversation flow
     
     console.log('Regular radio chatter interval started successfully');
     console.log('Next radio chatter in 4-6 seconds...');
@@ -998,6 +1216,9 @@ function purchaseWingman() {
     showNotification(`Wingman ${wingmanCount} purchased!`, 'success');
     playWingmanSound();
     
+    // Trigger context-aware radio chatter for wingman deployment
+    triggerContextRadioChatter('wingman');
+    
     // Update UI and story progress
     updateUI();
     updateStoryProgress();
@@ -1136,6 +1357,9 @@ function completeMission() {
         showStoryNotification("🏆 GALAXY MASTER!", "You've completed all missions! You are the ultimate hero!", 'achievement');
         currentMission = 20; // Stay on final mission
     }
+    
+    // Trigger context-aware radio chatter for mission completion
+    triggerContextRadioChatter('mission');
     
     // Reset enemies for next mission
     enemies = [];
@@ -2180,6 +2404,10 @@ function spawnEnemy() {
                 // Stop music and start intense boss radio chatter
                 stopBackgroundMusic();
                 startBossRadioChatter();
+                
+                // Trigger context-aware radio chatter for boss battle
+                bossActive = true;
+                triggerContextRadioChatter('boss');
             }
             return;
         }
@@ -2593,6 +2821,11 @@ function checkCollisions() {
                         showMoneyNotification(`+${bossReward}`, enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
                         showStoryNotification("BOSS DEFEATED!", `You earned ${bossReward} coins!`, 'achievement');
                         playExplosionSound();
+                        
+                        // Update boss status and trigger radio chatter
+                        bossActive = false;
+                        triggerContextRadioChatter('combat');
+                        
                         // Resume normal radio chatter after boss defeat
                         if (radioChatterEnabled) {
                             stopRadioChatter();
@@ -2669,6 +2902,9 @@ function checkCollisions() {
             }
             
             playPowerUpSound();
+            
+            // Trigger context-aware radio chatter for power-up collection
+            triggerContextRadioChatter('powerup');
         }
     }
 }
@@ -4568,3 +4804,123 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Music disabled - only radio chatter plays
 });
+
+// Enhanced context-aware radio chatter system
+let lastRadioEvent = null;
+let radioEventCooldown = 0;
+let bossActive = false; // Track boss battle status
+
+// Get context-aware radio chatter based on game events
+function getContextAwareRadioChatter() {
+    const currentTime = Date.now();
+    
+    // Check for specific game events that should trigger radio chatter
+    if (currentTime - radioEventCooldown < 5000) {
+        // Use regular alternating chatter if in cooldown
+        return getAlternatingRadioChatter();
+    }
+    
+    // Check for power-up collection
+    if (lastRadioEvent === 'powerup' && currentTime - radioEventCooldown < 10000) {
+        const radioData = getRandomRadioChatter('powerup');
+        radioEventCooldown = currentTime;
+        return { message: radioData, speaker: 'pilot' };
+    }
+    
+    // Check for wingman deployment
+    if (lastRadioEvent === 'wingman' && currentTime - radioEventCooldown < 10000) {
+        const radioData = getRandomRadioChatter('wingman');
+        radioEventCooldown = currentTime;
+        return { message: radioData, speaker: 'pilot' };
+    }
+    
+    // Check for boss battle
+    if (bossActive && currentTime - radioEventCooldown > 8000) {
+        const radioData = getRandomRadioChatter('boss');
+        radioEventCooldown = currentTime;
+        return { message: radioData, speaker: Math.random() > 0.5 ? 'pilot' : 'command' };
+    }
+    
+    // Check for intense combat (many enemies)
+    if (enemies.length > 5 && currentTime - radioEventCooldown > 6000) {
+        const radioData = getRandomRadioChatter('combat');
+        radioEventCooldown = currentTime;
+        return { message: radioData, speaker: Math.random() > 0.5 ? 'pilot' : 'command' };
+    }
+    
+    // Check for mission completion
+    if (lastRadioEvent === 'mission' && currentTime - radioEventCooldown < 15000) {
+        const radioData = getRandomRadioChatter('mission');
+        radioEventCooldown = currentTime;
+        return { message: radioData, speaker: Math.random() > 0.5 ? 'pilot' : 'command' };
+    }
+    
+    // Default to alternating conversation
+    return getAlternatingRadioChatter();
+}
+
+// Trigger context-aware radio chatter for specific events
+function triggerContextRadioChatter(eventType) {
+    if (!radioChatterEnabled || gameState !== 'playing') return;
+    
+    lastRadioEvent = eventType;
+    radioEventCooldown = Date.now();
+    
+    let radioData;
+    switch (eventType) {
+        case 'powerup':
+            radioData = getRandomRadioChatter('powerup');
+            speakRadioChatter(radioData, 'pilot');
+            // Command response after delay
+            setTimeout(() => {
+                const commandResponse = getRandomRadioChatter('powerup');
+                speakRadioChatter(commandResponse, 'command');
+            }, 2000);
+            break;
+            
+        case 'wingman':
+            radioData = getRandomRadioChatter('wingman');
+            speakRadioChatter(radioData, 'pilot');
+            // Command response after delay
+            setTimeout(() => {
+                const commandResponse = getRandomRadioChatter('wingman');
+                speakRadioChatter(commandResponse, 'command');
+            }, 2000);
+            break;
+            
+        case 'boss':
+            radioData = getRandomRadioChatter('boss');
+            speakRadioChatter(radioData, 'pilot');
+            // Command response after delay
+            setTimeout(() => {
+                const commandResponse = getRandomRadioChatter('boss');
+                speakRadioChatter(commandResponse, 'command');
+            }, 3000);
+            break;
+            
+        case 'combat':
+            radioData = getRandomRadioChatter('combat');
+            speakRadioChatter(radioData, 'pilot');
+            // Command response after delay
+            setTimeout(() => {
+                const commandResponse = getRandomRadioChatter('combat');
+                speakRadioChatter(commandResponse, 'command');
+            }, 2000);
+            break;
+            
+        case 'mission':
+            radioData = getRandomRadioChatter('mission');
+            speakRadioChatter(radioData, 'pilot');
+            // Command response after delay
+            setTimeout(() => {
+                const commandResponse = getRandomRadioChatter('mission');
+                speakRadioChatter(commandResponse, 'command');
+            }, 2500);
+            break;
+            
+        default:
+            // Regular alternating chatter
+            const regularData = getAlternatingRadioChatter();
+            speakRadioChatter(regularData.message, regularData.speaker);
+    }
+}
