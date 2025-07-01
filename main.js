@@ -62,6 +62,7 @@ let enemyBullets = []; // New array for enemy bullets
 let enemies = [];
 let explosions = [];
 let powerUps = [];
+let wingmen = []; // New array for wingman fighters
 
 // Input handling
 const keys = {};
@@ -78,6 +79,11 @@ const POWERUP_SPEED = 2;
 const ENEMY_SPAWN_RATE = 0.03;
 const POWERUP_SPAWN_RATE = 0.008;
 const ENEMY_SHOOT_RATE = 0.005; // Chance per frame for enemy to shoot
+
+// Wingman system
+const WINGMAN_COST = 100; // Cost to purchase a wingman
+const MAX_WINGMEN = 4; // Maximum number of wingmen
+let wingmanCount = 0; // Current number of wingmen
 
 // Enhanced weapon system with rapid fire
 let weaponLevel = 1;
@@ -264,6 +270,65 @@ function showMoneyNotification(amount, x, y) {
     }, 2000);
 }
 
+function purchaseWingman() {
+    if (wingmanCount >= MAX_WINGMEN) {
+        showNotification('Maximum wingmen reached!', 'warning');
+        return;
+    }
+    
+    if (money < WINGMAN_COST) {
+        showNotification('Not enough money! Need 100 coins', 'warning');
+        return;
+    }
+    
+    money -= WINGMAN_COST;
+    wingmanCount++;
+    
+    // Create new wingman
+    const wingman = {
+        x: player.x + (wingmanCount * 80) - 160, // Spread them out
+        y: player.y + 20,
+        width: 50,
+        height: 50,
+        speed: 8,
+        color: '#00ff00',
+        lastShot: 0,
+        formation: wingmanCount // Position in formation
+    };
+    
+    wingmen.push(wingman);
+    showNotification(`Wingman ${wingmanCount} purchased!`, 'success');
+    playPowerUpSound();
+    
+    // Update UI
+    updateUI();
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `game-notification ${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 100);
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 500);
+    }, 3000);
+}
+
 // Global event listeners (only set up once)
 if (!window.gameEventListenersInitialized) {
     window.gameEventListenersInitialized = true;
@@ -283,6 +348,12 @@ if (!window.gameEventListenersInitialized) {
         if (e.key === 'Enter' && gameState === 'start') {
             e.preventDefault();
             startGame();
+        }
+        // Purchase wingman with 'B' key
+        if (e.key === 'b' || e.key === 'B') {
+            if (gameState === 'playing') {
+                purchaseWingman();
+            }
         }
     });
 
@@ -366,6 +437,8 @@ function startGame() {
     enemies = [];
     explosions = [];
     powerUps = [];
+    wingmen = [];
+    wingmanCount = 0;
     
     // Center player with boundary constraints
     player.x = Math.max(PLAYER_MARGIN, Math.min(canvas.width - player.width - PLAYER_MARGIN, canvas.width / 2));
@@ -495,6 +568,38 @@ function enemyShoot(enemy) {
             type: 'enemy'
         });
     }
+}
+
+function wingmanShoot(wingman) {
+    const currentTime = Date.now();
+    if (currentTime - wingman.lastShot < 500) return; // Wingmen shoot every 500ms
+    
+    wingman.lastShot = currentTime;
+    
+    // Wingmen have maximum weapon capacity (level 6)
+    const centerX = wingman.x + wingman.width / 2;
+    const centerY = wingman.y;
+    
+    // Create maximum firepower spread for wingmen
+    bullets.push(
+        // Center laser
+        { x: centerX - MISSILE_TYPES.LASER.width / 2, y: centerY, width: MISSILE_TYPES.LASER.width, height: MISSILE_TYPES.LASER.height, speed: MISSILE_TYPES.LASER.speed, color: MISSILE_TYPES.LASER.color, type: 'laser' },
+        // Side missiles
+        { x: centerX - 8, y: centerY + 2, width: MISSILE_TYPES.MISSILE.width, height: MISSILE_TYPES.MISSILE.height, speed: MISSILE_TYPES.MISSILE.speed - 1, color: MISSILE_TYPES.MISSILE.color, type: 'missile' },
+        { x: centerX + 4, y: centerY + 2, width: MISSILE_TYPES.MISSILE.width, height: MISSILE_TYPES.MISSILE.height, speed: MISSILE_TYPES.MISSILE.speed - 1, color: MISSILE_TYPES.MISSILE.color, type: 'missile' },
+        // Outer plasma
+        { x: centerX - 12, y: centerY + 4, width: MISSILE_TYPES.PLASMA.width, height: MISSILE_TYPES.PLASMA.height, speed: MISSILE_TYPES.PLASMA.speed - 2, color: MISSILE_TYPES.PLASMA.color, type: 'plasma' },
+        { x: centerX + 8, y: centerY + 4, width: MISSILE_TYPES.PLASMA.width, height: MISSILE_TYPES.PLASMA.height, speed: MISSILE_TYPES.PLASMA.speed - 2, color: MISSILE_TYPES.PLASMA.color, type: 'plasma' },
+        // Heavy missiles
+        { x: centerX - 16, y: centerY + 6, width: MISSILE_TYPES.HEAVY.width, height: MISSILE_TYPES.HEAVY.height, speed: MISSILE_TYPES.HEAVY.speed - 3, color: MISSILE_TYPES.HEAVY.color, type: 'heavy' },
+        { x: centerX + 12, y: centerY + 6, width: MISSILE_TYPES.HEAVY.width, height: MISSILE_TYPES.HEAVY.height, speed: MISSILE_TYPES.HEAVY.speed - 3, color: MISSILE_TYPES.HEAVY.color, type: 'heavy' },
+        // Spread shots
+        { x: centerX - 20, y: centerY + 8, width: MISSILE_TYPES.SPREAD.width, height: MISSILE_TYPES.SPREAD.height, speed: MISSILE_TYPES.SPREAD.speed - 4, color: MISSILE_TYPES.SPREAD.color, type: 'spread' },
+        { x: centerX + 16, y: centerY + 8, width: MISSILE_TYPES.SPREAD.width, height: MISSILE_TYPES.SPREAD.height, speed: MISSILE_TYPES.SPREAD.speed - 4, color: MISSILE_TYPES.SPREAD.color, type: 'spread' }
+    );
+    
+    // Play wingman missile sound (slightly different pitch)
+    playSound(800, 50, 'square');
 }
 
 function spawnEnemy() {
@@ -708,6 +813,27 @@ function updatePowerUps() {
     });
 }
 
+function updateWingmen() {
+    for (let i = wingmen.length - 1; i >= 0; i--) {
+        const wingman = wingmen[i];
+        
+        // Update wingman position to follow player in formation
+        const targetX = player.x + (wingman.formation * 80) - 160;
+        const targetY = player.y + 20;
+        
+        // Smooth movement towards formation position
+        wingman.x += (targetX - wingman.x) * 0.1;
+        wingman.y += (targetY - wingman.y) * 0.1;
+        
+        // Keep wingmen within canvas bounds
+        wingman.x = Math.max(0, Math.min(canvas.width - wingman.width, wingman.x));
+        wingman.y = Math.max(0, Math.min(canvas.height - wingman.height, wingman.y));
+        
+        // Wingmen shoot automatically
+        wingmanShoot(wingman);
+    }
+}
+
 function updateExplosions() {
     explosions = explosions.filter(explosion => {
         explosion.radius += 1;
@@ -775,6 +901,10 @@ function updateUI() {
     const soundElement = document.getElementById('sound');
     if (soundElement) soundElement.textContent = soundEnabled ? 'ON' : 'OFF';
     
+    // Update wingman count display
+    const wingmenElement = document.getElementById('wingmen');
+    if (wingmenElement) wingmenElement.textContent = wingmanCount;
+    
     // Update shield display if shield element exists
     const shieldElement = document.getElementById('shield');
     if (shieldElement) {
@@ -801,6 +931,11 @@ function render() {
     
     drawStars();
     drawPlayer();
+    
+    // Draw wingmen
+    wingmen.forEach(wingman => {
+        drawWingman(wingman);
+    });
     
     bullets.forEach(bullet => {
         drawBullet(bullet);
@@ -967,6 +1102,55 @@ function drawPlayer() {
         ctx.stroke();
         ctx.restore();
     }
+}
+
+function drawWingman(wingman) {
+    const x = wingman.x;
+    const y = wingman.y;
+    
+    // Wingman fighter design - smaller, sleeker version of player ship
+    // Main body (green)
+    ctx.fillStyle = "#00ff00";
+    ctx.fillRect(x + 10, y + 10, 30, 20);
+    
+    // Nose (dark green)
+    ctx.fillStyle = "#00cc00";
+    ctx.fillRect(x + 15, y + 8, 20, 8);
+    
+    // Cockpit (black)
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(x + 16, y + 12, 18, 6);
+    
+    // Wings (lighter green)
+    ctx.fillStyle = "#00dd00";
+    ctx.fillRect(x + 5, y + 15, 8, 6);
+    ctx.fillRect(x + 37, y + 15, 8, 6);
+    
+    // Engine (bright green)
+    ctx.fillStyle = "#00ff88";
+    ctx.fillRect(x + 15, y + 25, 20, 4);
+    
+    // Wing tips (yellow)
+    ctx.fillStyle = "#ffff00";
+    ctx.fillRect(x + 3, y + 16, 4, 2);
+    ctx.fillRect(x + 43, y + 16, 4, 2);
+    
+    // Side details (cyan)
+    ctx.fillStyle = "#00ffff";
+    ctx.fillRect(x + 8, y + 20, 3, 4);
+    ctx.fillRect(x + 39, y + 20, 3, 4);
+    
+    // Glow effect for wingman
+    ctx.shadowColor = '#00ff00';
+    ctx.shadowBlur = 6;
+    ctx.fillRect(x + 10, y + 10, 30, 20);
+    ctx.shadowBlur = 0;
+    
+    // Formation indicator
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(wingman.formation, x + 25, y + 35);
 }
 
 function drawEnemy(enemy) {
@@ -1151,6 +1335,7 @@ function update() {
     updateEnemyBullets();
     updateEnemies();
     updatePowerUps();
+    updateWingmen();
     updateExplosions();
     checkCollisions();
     updateLevel();

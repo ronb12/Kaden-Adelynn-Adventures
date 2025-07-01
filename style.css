@@ -57,6 +57,11 @@ body {
     color: #ffd700 !important;
     font-weight: bold;
 }
+
+.wingmen {
+    color: #00ff00 !important;
+    font-weight: bold;
+}
 .game-over, .start-screen {
     position: absolute;
     top: 50%;
@@ -259,6 +264,49 @@ button:active {
 
 .money-amount {
     font-weight: bold;
+}
+
+/* Game notifications */
+.game-notification {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 15px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    transition: all 0.3s ease;
+    opacity: 0;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    border: 2px solid #4a90e2;
+}
+
+.game-notification.show {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+}
+
+.game-notification.success {
+    border-color: #00ff00;
+    background: rgba(0, 0, 0, 0.9);
+    color: #00ff00;
+}
+
+.game-notification.warning {
+    border-color: #ff8800;
+    background: rgba(0, 0, 0, 0.9);
+    color: #ff8800;
+}
+
+.game-notification.info {
+    border-color: #4a90e2;
+    background: rgba(0, 0, 0, 0.9);
+    color: #4a90e2;
 }
 @media (max-width: 850px) {
     .game-container {
