@@ -962,10 +962,11 @@ function wingmanShoot(wingman) {
 }
 
 function spawnEnemy() {
+    if (typeof currentMission === 'undefined' || !STORY_MISSIONS[currentMission]) return;
     const spawnRate = isMobile ? (window.enemySpawnRate || 0.02) : ENEMY_SPAWN_RATE;
     if (Math.random() < spawnRate) {
-        const currentMission = STORY_MISSIONS[currentMission] || STORY_MISSIONS[1];
-        const isBossMission = currentMission.boss;
+        const mission = STORY_MISSIONS[currentMission] || STORY_MISSIONS[1];
+        const isBossMission = mission.boss;
         
         // Check if we should spawn a boss
         if (isBossMission && enemies.length === 0 && !enemies.some(e => e.isBoss)) {
