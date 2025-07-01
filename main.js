@@ -2191,7 +2191,6 @@ function updateWingmen() {
         // Wingmen shoot automatically
         wingmanShoot(wingman);
     }
-    radioChatterEvent('wingmanLost');
 }
 
 function updateExplosions() {
@@ -4286,7 +4285,7 @@ function radioChatterEvent(event) {
             type = 'alerts';
             break;
         case 'wingmanLost':
-            message = "Wingman down! Stay focused, pilot!";
+            message = getRandomRadioMessage('alerts');
             type = 'alerts';
             break;
         case 'powerup':
