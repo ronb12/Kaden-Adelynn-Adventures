@@ -35,12 +35,14 @@ let lastRadioChatter = 0;
 let speechSynthesis = window.speechSynthesis;
 let voices = [];
 let radioChatterHistory = {
+    pilot: [],
     command: [],
     combat: [],
     mission: [],
     boss: []
 };
 let lastMessageRotation = 0;
+let lastSpeaker = 'command'; // Track who spoke last to alternate
 
 // Performance optimization constants
 const MAX_BULLETS = 200; // Limit total bullets to prevent memory issues
@@ -210,12 +212,28 @@ function speakRadioChatter(message, type = 'command') {
     // Create speech utterance
     const utterance = new SpeechSynthesisUtterance(message);
     
-    // Set voice based on type
+    // Set voice based on speaker type
     if (voices.length > 0) {
-        // Prefer US English voices
-        const usVoice = voices.find(v => v.lang.includes('en-US'));
-        if (usVoice) {
-            utterance.voice = usVoice;
+        if (type === 'command') {
+            // Use a deeper, more authoritative voice for command
+            const commandVoice = voices.find(v => v.name.includes('Gordon') || v.name.includes('Fred') || v.name.includes('Aaron'));
+            if (commandVoice) {
+                utterance.voice = commandVoice;
+                utterance.pitch = 0.9; // Deeper pitch for command
+            }
+        } else if (type === 'pilot') {
+            // Use a clearer, younger voice for pilot
+            const pilotVoice = voices.find(v => v.name.includes('Samantha') || v.name.includes('Alex') || v.name.includes('Nicky'));
+            if (pilotVoice) {
+                utterance.voice = pilotVoice;
+                utterance.pitch = 1.1; // Higher pitch for pilot
+            }
+        } else {
+            // Default US English voice
+            const usVoice = voices.find(v => v.lang.includes('en-US'));
+            if (usVoice) {
+                utterance.voice = usVoice;
+            }
         }
     }
     
@@ -252,9 +270,10 @@ function speakRadioChatter(message, type = 'command') {
     }
 }
 
-// Radio chatter messages - MILITARY STYLE
+// Radio chatter messages - TWO-WAY MILITARY CONVERSATION
 const RADIO_CHATTER = {
-    command: [
+    // PILOT messages (responses to command)
+    pilot: [
         "Roger that, Command!",
         "Copy that, Control!",
         "Affirmative, Base!",
@@ -285,6 +304,40 @@ const RADIO_CHATTER = {
         "Battle stations manned!",
         "Weapons locked and loaded!",
         "Combat systems green!"
+    ],
+    // COMMAND messages (orders and responses to pilot)
+    command: [
+        "Alpha One, this is Command. Status check.",
+        "Command to Alpha One. Report your position.",
+        "Alpha One, Command. Weapons status?",
+        "Command here. How's your fuel level?",
+        "Alpha One, this is Command. Any contacts?",
+        "Command to Alpha One. Mission status?",
+        "Alpha One, Command. Shield integrity?",
+        "Command here. Engine performance?",
+        "Alpha One, this is Command. Ready for orders?",
+        "Command to Alpha One. Combat readiness?",
+        "Alpha One, Command. All systems green?",
+        "Command here. Any enemy activity?",
+        "Alpha One, this is Command. Proceed to sector.",
+        "Command to Alpha One. Maintain formation.",
+        "Alpha One, Command. Weapons free.",
+        "Command here. Engage at will.",
+        "Alpha One, this is Command. Clear to engage.",
+        "Command to Alpha One. Mission parameters updated.",
+        "Alpha One, Command. New orders incoming.",
+        "Command here. Stand by for instructions.",
+        "Alpha One, this is Command. Good work.",
+        "Command to Alpha One. Keep it up.",
+        "Alpha One, Command. Excellent flying.",
+        "Command here. You're doing great.",
+        "Alpha One, this is Command. Stay sharp.",
+        "Command to Alpha One. Watch your six.",
+        "Alpha One, Command. Enemy on your tail!",
+        "Command here. Break left!",
+        "Alpha One, this is Command. Evasive maneuvers!",
+        "Command to Alpha One. Return to base.",
+        "Alpha One, Command. Mission accomplished."
     ],
     combat: [
         "Enemy contact!",
@@ -342,7 +395,51 @@ const RADIO_CHATTER = {
     ]
 };
 
-// Get random radio chatter message with history tracking
+// Get alternating radio chatter between command and pilot
+function getAlternatingRadioChatter() {
+    // Alternate between command and pilot
+    const speaker = lastSpeaker === 'command' ? 'pilot' : 'command';
+    lastSpeaker = speaker;
+    
+    const messages = RADIO_CHATTER[speaker] || RADIO_CHATTER.command;
+    const history = radioChatterHistory[speaker] || [];
+    const currentTime = Date.now();
+    
+    // Rotate messages every 30 seconds to ensure variety
+    if (currentTime - lastMessageRotation > 30000) {
+        radioChatterHistory[speaker] = [];
+        lastMessageRotation = currentTime;
+        console.log(`Radio chatter: ${speaker} message rotation reset`);
+    }
+    
+    // If we've used most messages, reset history
+    if (history.length >= messages.length * 0.7) {
+        radioChatterHistory[speaker] = [];
+        console.log(`Radio chatter: ${speaker} history reset (${history.length}/${messages.length} used)`);
+    }
+    
+    // Find messages that haven't been used recently
+    const availableMessages = messages.filter((_, index) => !history.includes(index));
+    
+    // If all messages have been used, reset history and use any message
+    if (availableMessages.length === 0) {
+        radioChatterHistory[speaker] = [];
+        const randomIndex = Math.floor(Math.random() * messages.length);
+        radioChatterHistory[speaker].push(randomIndex);
+        console.log(`Radio chatter: ${speaker} all messages used, resetting`);
+        return { message: messages[randomIndex], speaker: speaker };
+    }
+    
+    // Select a random message from available ones
+    const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
+    const messageIndex = messages.indexOf(randomMessage);
+    radioChatterHistory[speaker].push(messageIndex);
+    
+    console.log(`Radio chatter: ${speaker} message ${messageIndex + 1}/${messages.length} (${availableMessages.length} available)`);
+    return { message: randomMessage, speaker: speaker };
+}
+
+// Get random radio chatter message with history tracking (for specific types)
 function getRandomRadioChatter(type = 'command') {
     const messages = RADIO_CHATTER[type] || RADIO_CHATTER.command;
     const history = radioChatterHistory[type] || [];
@@ -394,19 +491,19 @@ function startRadioChatter() {
         clearInterval(radioChatterInterval);
     }
     
-    // Start the interval for regular radio chatter - MORE FREQUENT
+    // Start the interval for regular radio chatter - TWO-WAY CONVERSATION
     radioChatterInterval = setInterval(() => {
         console.log('Radio chatter interval triggered - checking conditions...');
         console.log('Game state:', gameState, 'Radio chatter enabled:', radioChatterEnabled);
         
         if (gameState === 'playing' && radioChatterEnabled) {
-            const message = getRandomRadioChatter('command');
-            console.log('Speaking regular radio chatter:', message);
-            speakRadioChatter(message, 'command');
+            const radioData = getAlternatingRadioChatter();
+            console.log(`Speaking ${radioData.speaker} radio chatter:`, radioData.message);
+            speakRadioChatter(radioData.message, radioData.speaker);
         } else {
             console.log('Radio chatter conditions not met - game state:', gameState, 'enabled:', radioChatterEnabled);
         }
-    }, 2000 + Math.random() * 1000); // More frequent: 2-3 seconds
+    }, 3000 + Math.random() * 2000); // 3-5 seconds between messages for conversation flow
     
     console.log('Regular radio chatter interval started successfully');
     console.log('Next radio chatter in 4-6 seconds...');
@@ -3645,7 +3742,7 @@ initSpeechVoices();
 // Test radio chatter on first user interaction
 let radioChatterTestDone = false;
 function testRadioChatter() {
-    console.log('=== RADIO CHATTER TEST FUNCTION CALLED ===');
+    console.log('=== TWO-WAY RADIO CHATTER TEST FUNCTION CALLED ===');
     console.log('Test done:', radioChatterTestDone);
     console.log('Radio chatter enabled:', radioChatterEnabled);
     console.log('Speech synthesis available:', !!speechSynthesis);
@@ -3658,7 +3755,7 @@ function testRadioChatter() {
     
     // Force speech synthesis to work by creating a simple test
     if (speechSynthesis) {
-        const testUtterance = new SpeechSynthesisUtterance('Radio chatter test');
+        const testUtterance = new SpeechSynthesisUtterance('Two-way radio chatter test');
         testUtterance.rate = 1.0;
         testUtterance.volume = 1.0;
         speechSynthesis.speak(testUtterance);
@@ -3666,10 +3763,20 @@ function testRadioChatter() {
     }
     
     if (!radioChatterTestDone && radioChatterEnabled) {
-        console.log('Testing radio chatter on first user interaction...');
-        speakRadioChatter('Radio chatter online!', 'command');
+        console.log('Testing two-way radio chatter on first user interaction...');
+        
+        // Test command message first
+        const commandData = getAlternatingRadioChatter();
+        speakRadioChatter(commandData.message, commandData.speaker);
+        
+        // Test pilot response after delay
+        setTimeout(() => {
+            const pilotData = getAlternatingRadioChatter();
+            speakRadioChatter(pilotData.message, pilotData.speaker);
+        }, 3000);
+        
         radioChatterTestDone = true;
-        console.log('Radio chatter test completed');
+        console.log('Two-way radio chatter test completed');
     } else {
         console.log('Radio chatter test skipped - already done or disabled');
     }
