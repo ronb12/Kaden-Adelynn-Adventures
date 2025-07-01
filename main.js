@@ -4166,24 +4166,62 @@ function addInstallButton() {
 
 // Add radio chatter toggle button to UI
 function addRadioChatterButton() {
+    // Remove existing button if it exists
+    const existingBtn = document.getElementById('toggleRadioChatter');
+    if (existingBtn) {
+        existingBtn.remove();
+    }
+    
     const btn = document.createElement('button');
     btn.id = 'toggleRadioChatter';
     btn.textContent = '📡 Radio Chatter';
     btn.style.position = 'fixed';
-    btn.style.bottom = '16px';
+    btn.style.bottom = '80px'; // Moved up to avoid conflicts
     btn.style.right = '16px';
-    btn.style.zIndex = 1000;
-    btn.style.background = '#222';
+    btn.style.zIndex = 9999; // Higher z-index
+    btn.style.background = '#1a1a1a';
     btn.style.color = '#00ff00';
-    btn.style.border = '2px solid #00ff00';
-    btn.style.borderRadius = '8px';
-    btn.style.padding = '10px 18px';
-    btn.style.fontSize = '1.1em';
+    btn.style.border = '3px solid #00ff00';
+    btn.style.borderRadius = '12px';
+    btn.style.padding = '12px 20px';
+    btn.style.fontSize = '1.2em';
     btn.style.fontWeight = 'bold';
     btn.style.cursor = 'pointer';
     btn.style.fontFamily = 'monospace';
+    btn.style.boxShadow = '0 4px 8px rgba(0, 255, 0, 0.3)';
+    btn.style.transition = 'all 0.3s ease';
+    btn.style.display = 'block'; // Ensure it's visible
+    
+    // Add hover effects
+    btn.onmouseenter = () => {
+        btn.style.background = '#00ff00';
+        btn.style.color = '#000';
+        btn.style.transform = 'scale(1.05)';
+    };
+    
+    btn.onmouseleave = () => {
+        btn.style.background = '#1a1a1a';
+        btn.style.color = '#00ff00';
+        btn.style.transform = 'scale(1)';
+    };
+    
     btn.onclick = toggleRadioChatter;
+    
+    // Add to body
     document.body.appendChild(btn);
+    
+    // Debug log
+    console.log('Radio chatter button added:', btn);
+    
+    // Force visibility check
+    setTimeout(() => {
+        if (btn.offsetParent === null) {
+            console.warn('Radio chatter button is not visible, trying alternative positioning');
+            btn.style.position = 'absolute';
+            btn.style.top = '20px';
+            btn.style.right = '20px';
+        }
+    }, 1000);
 }
 
 // Initialize PWA when DOM is loaded
@@ -4192,6 +4230,15 @@ document.addEventListener('DOMContentLoaded', () => {
     addInstallButton();
     addRadioChatterButton();
 });
+
+// Fallback for radio chatter button if DOMContentLoaded doesn't fire
+if (document.readyState === 'loading') {
+    // DOM is still loading, wait for it
+    document.addEventListener('DOMContentLoaded', addRadioChatterButton);
+} else {
+    // DOM is already loaded, add button immediately
+    setTimeout(addRadioChatterButton, 100);
+}
 
 // --- RADIO CHATTER GAMEPLAY EVENTS ---
 function radioChatterEvent(event) {

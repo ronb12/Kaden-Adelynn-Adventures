@@ -1687,34 +1687,46 @@ button:active {
 
 /* Radio Chatter Button */
 #toggleRadioChatter {
-    position: fixed;
-    bottom: 16px;
-    right: 16px;
-    z-index: 1000;
-    background: rgba(0, 0, 0, 0.8);
-    color: #00ff00;
-    border: 2px solid #00ff00;
-    border-radius: 8px;
-    padding: 10px 18px;
-    font-size: 1.1em;
-    font-weight: bold;
-    cursor: pointer;
-    font-family: 'Courier New', monospace;
-    text-shadow: 0 0 10px #00ff00;
-    box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
-    transition: all 0.3s ease;
-    backdrop-filter: blur(5px);
+    position: fixed !important;
+    bottom: 80px !important;
+    right: 16px !important;
+    z-index: 9999 !important;
+    background: #1a1a1a !important;
+    color: #00ff00 !important;
+    border: 3px solid #00ff00 !important;
+    border-radius: 12px !important;
+    padding: 12px 20px !important;
+    font-size: 1.2em !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+    font-family: monospace !important;
+    box-shadow: 0 4px 8px rgba(0, 255, 0, 0.3) !important;
+    transition: all 0.3s ease !important;
+    display: block !important;
+    min-width: 140px !important;
+    text-align: center !important;
 }
 
 #toggleRadioChatter:hover {
-    background: rgba(0, 255, 0, 0.1);
-    box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
-    transform: scale(1.05);
+    background: #00ff00 !important;
+    color: #000 !important;
+    transform: scale(1.05) !important;
+    box-shadow: 0 6px 12px rgba(0, 255, 0, 0.5) !important;
 }
 
 #toggleRadioChatter:active {
-    transform: scale(0.95);
-    box-shadow: 0 0 15px rgba(0, 255, 0, 0.4);
+    transform: scale(0.95) !important;
+}
+
+/* Mobile adjustments for radio chatter button */
+@media (max-width: 768px) {
+    #toggleRadioChatter {
+        bottom: 100px !important;
+        right: 12px !important;
+        font-size: 1em !important;
+        padding: 10px 16px !important;
+        min-width: 120px !important;
+    }
 }
 
 /* Radio chatter notification styling */
@@ -1726,23 +1738,4 @@ button:active {
     font-weight: bold !important;
     text-shadow: 0 0 10px #00ff00 !important;
     box-shadow: 0 0 20px rgba(0, 255, 0, 0.3) !important;
-}
-
-/* Mobile responsive radio chatter button */
-@media (max-width: 850px) {
-    #toggleRadioChatter {
-        bottom: 80px; /* Above mobile tab bar */
-        right: 10px;
-        font-size: 1em;
-        padding: 8px 14px;
-    }
-}
-
-@media (max-width: 600px) {
-    #toggleRadioChatter {
-        bottom: 70px;
-        right: 8px;
-        font-size: 0.9em;
-        padding: 6px 12px;
-    }
 } 
