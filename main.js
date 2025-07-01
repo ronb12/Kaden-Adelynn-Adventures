@@ -3151,26 +3151,35 @@ function setupMobileTabBar() {
             btn.classList.add('selected');
             // Switch tab
             const tab = btn.getAttribute('data-tab');
-            if (tab === 'story') {
-                // Show start screen (home)
-                if (startScreen) {
-                    startScreen.classList.remove('hidden');
-                    window.scrollTo(0, 0);
-                }
-            } else {
-                // Show start screen and switch to tab
-                if (startScreen) {
-                    startScreen.classList.remove('hidden');
-                    // Switch tab
-                    const tabBtns = document.querySelectorAll('.tab-button');
-                    tabBtns.forEach(tb => {
-                        if (tb.getAttribute('data-tab') === tab) {
-                            tb.click();
-                        }
-                    });
-                    window.scrollTo(0, 0);
-                }
+            
+            // Show start screen first
+            if (startScreen) {
+                startScreen.classList.remove('hidden');
             }
+            
+            // Switch to the appropriate tab
+            const tabBtns = document.querySelectorAll('.tab-button');
+            const tabPanels = document.querySelectorAll('.tab-panel');
+            
+            // Remove active class from all buttons and panels
+            tabBtns.forEach(tb => tb.classList.remove('active'));
+            tabPanels.forEach(panel => panel.classList.remove('active'));
+            
+            // Find and activate the correct tab button
+            tabBtns.forEach(tb => {
+                if (tb.getAttribute('data-tab') === tab) {
+                    tb.classList.add('active');
+                }
+            });
+            
+            // Find and activate the correct tab panel
+            const targetPanel = document.getElementById(`${tab}-tab`);
+            if (targetPanel) {
+                targetPanel.classList.add('active');
+            }
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
         });
     });
 }
