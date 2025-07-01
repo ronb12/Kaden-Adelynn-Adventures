@@ -238,7 +238,7 @@ body {
     font-weight: normal !important;
 }
 
-/* Character-specific colors */
+/* Character-specific colors with unique space suit themes */
 .character-card[data-character="kaden"] {
     border-color: #3b2e2a;
     background: rgba(59, 46, 42, 0.15);
@@ -248,6 +248,10 @@ body {
 .character-card[data-character="kaden"].selected {
     background: rgba(59, 46, 42, 0.3);
     box-shadow: 0 0 20px 4px #3b2e2aaa;
+}
+
+.character-card[data-character="kaden"] .character-avatar {
+    filter: hue-rotate(0deg) saturate(1.2);
 }
 
 .kaden-accent {
@@ -267,8 +271,23 @@ body {
     box-shadow: 0 0 20px 4px #ff69b4aa;
 }
 
+.character-card[data-character="adelynn"] .character-avatar {
+    filter: hue-rotate(320deg) saturate(1.3);
+}
+
 .character-card[data-character="nova"] {
     border-color: #00ffff;
+    background: rgba(0, 255, 255, 0.15);
+    box-shadow: 0 0 12px 2px #00ffff33;
+}
+
+.character-card[data-character="nova"].selected {
+    background: rgba(0, 255, 255, 0.3);
+    box-shadow: 0 0 20px 4px #00ffffaa;
+}
+
+.character-card[data-character="nova"] .character-avatar {
+    filter: hue-rotate(180deg) saturate(1.4);
 }
 
 .character-card[data-character="blaze"] {
@@ -282,14 +301,109 @@ body {
     box-shadow: 0 0 20px 4px #ff4500aa;
 }
 
+.character-card[data-character="blaze"] .character-avatar {
+    filter: hue-rotate(15deg) saturate(1.5) brightness(1.2);
+}
+
 .blaze-accent {
     color: #ff4500 !important;
     border-color: #ff4500 !important;
     background: rgba(255, 69, 0, 0.15) !important;
 }
 
+.character-card[data-character="zara"] {
+    border-color: #9932cc;
+    background: rgba(153, 50, 204, 0.15);
+    box-shadow: 0 0 12px 2px #9932cc33;
+}
+
+.character-card[data-character="zara"].selected {
+    background: rgba(153, 50, 204, 0.3);
+    box-shadow: 0 0 20px 4px #9932ccaa;
+}
+
+.character-card[data-character="zara"] .character-avatar {
+    filter: hue-rotate(270deg) saturate(1.3);
+}
+
+.character-card[data-character="max"] {
+    border-color: #32cd32;
+    background: rgba(50, 205, 50, 0.15);
+    box-shadow: 0 0 12px 2px #32cd3233;
+}
+
+.character-card[data-character="max"].selected {
+    background: rgba(50, 205, 50, 0.3);
+    box-shadow: 0 0 20px 4px #32cd32aa;
+}
+
+.character-card[data-character="max"] .character-avatar {
+    filter: hue-rotate(120deg) saturate(1.2);
+}
+
+.character-card[data-character="luna"] {
+    border-color: #87ceeb;
+    background: rgba(135, 206, 235, 0.15);
+    box-shadow: 0 0 12px 2px #87ceeb33;
+}
+
+.character-card[data-character="luna"].selected {
+    background: rgba(135, 206, 235, 0.3);
+    box-shadow: 0 0 20px 4px #87ceebaa;
+}
+
+.character-card[data-character="luna"] .character-avatar {
+    filter: hue-rotate(200deg) saturate(1.1);
+}
+
+.character-card[data-character="rocket"] {
+    border-color: #ff6347;
+    background: rgba(255, 99, 71, 0.15);
+    box-shadow: 0 0 12px 2px #ff634733;
+}
+
+.character-card[data-character="rocket"].selected {
+    background: rgba(255, 99, 71, 0.3);
+    box-shadow: 0 0 20px 4px #ff6347aa;
+}
+
+.character-card[data-character="rocket"] .character-avatar {
+    filter: hue-rotate(25deg) saturate(1.4);
+}
+
+.character-card[data-character="stella"] {
+    border-color: #ffd700;
+    background: rgba(255, 215, 0, 0.15);
+    box-shadow: 0 0 12px 2px #ffd70033;
+}
+
+.character-card[data-character="stella"].selected {
+    background: rgba(255, 215, 0, 0.3);
+    box-shadow: 0 0 20px 4px #ffd700aa;
+}
+
+.character-card[data-character="stella"] .character-avatar {
+    filter: hue-rotate(45deg) saturate(1.3) brightness(1.1);
+}
+
+.character-card[data-character="thunder"] {
+    border-color: #4169e1;
+    background: rgba(65, 105, 225, 0.15);
+    box-shadow: 0 0 12px 2px #4169e133;
+}
+
+.character-card[data-character="thunder"].selected {
+    background: rgba(65, 105, 225, 0.3);
+    box-shadow: 0 0 20px 4px #4169e1aa;
+}
+
+.character-card[data-character="thunder"] .character-avatar {
+    filter: hue-rotate(240deg) saturate(1.2);
+}
+
+/* Hover effects with matching colors */
 .character-card[data-character="kaden"]:hover {
-    box-shadow: 0 8px 25px rgba(74, 144, 226, 0.4);
+    box-shadow: 0 8px 25px rgba(59, 46, 42, 0.4);
 }
 
 .character-card[data-character="adelynn"]:hover {
@@ -304,49 +418,24 @@ body {
     box-shadow: 0 8px 25px rgba(255, 69, 0, 0.4);
 }
 
-/* New character card styling */
-.character-card[data-character="zara"] {
-    border-color: rgba(153, 50, 204, 0.5);
-}
-
 .character-card[data-character="zara"]:hover {
     box-shadow: 0 8px 25px rgba(153, 50, 204, 0.4);
-}
-
-.character-card[data-character="max"] {
-    border-color: rgba(50, 205, 50, 0.5);
 }
 
 .character-card[data-character="max"]:hover {
     box-shadow: 0 8px 25px rgba(50, 205, 50, 0.4);
 }
 
-.character-card[data-character="luna"] {
-    border-color: rgba(135, 206, 235, 0.5);
-}
-
 .character-card[data-character="luna"]:hover {
     box-shadow: 0 8px 25px rgba(135, 206, 235, 0.4);
-}
-
-.character-card[data-character="rocket"] {
-    border-color: rgba(255, 99, 71, 0.5);
 }
 
 .character-card[data-character="rocket"]:hover {
     box-shadow: 0 8px 25px rgba(255, 99, 71, 0.4);
 }
 
-.character-card[data-character="stella"] {
-    border-color: rgba(255, 215, 0, 0.5);
-}
-
 .character-card[data-character="stella"]:hover {
     box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
-}
-
-.character-card[data-character="thunder"] {
-    border-color: rgba(65, 105, 225, 0.5);
 }
 
 .character-card[data-character="thunder"]:hover {
