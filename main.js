@@ -151,9 +151,9 @@ function toggleMusic() {
     showNotification('Music disabled - Radio chatter only!', 'info');
 }
 
-// Initialize speech synthesis voices
+// Initialize speech synthesis voices with enhanced voice detection
 function initSpeechVoices() {
-    console.log('=== INITIALIZING SPEECH VOICES ===');
+    console.log('=== INITIALIZING ENHANCED SPEECH VOICES ===');
     console.log('Initial speechSynthesis:', !!speechSynthesis);
     
     // Force initialize speech synthesis
@@ -166,8 +166,32 @@ function initSpeechVoices() {
         // Wait for voices to load
         speechSynthesis.onvoiceschanged = () => {
             voices = speechSynthesis.getVoices();
-            console.log('Speech voices loaded:', voices.length);
-            console.log('Available voices:', voices.map(v => `${v.name} (${v.lang})`));
+            console.log('Enhanced speech voices loaded:', voices.length);
+            
+            // Log available voices with gender and quality info
+            console.log('Available voices:');
+            voices.forEach((voice, index) => {
+                const gender = voice.gender || 'unknown';
+                const quality = voice.localService ? 'local' : 'remote';
+                console.log(`  ${index + 1}. ${voice.name} (${voice.lang}) - ${gender} - ${quality}`);
+            });
+            
+            // Find and log best male and female voices
+            const maleVoices = voices.filter(v => 
+                (v.lang.startsWith('en') && v.gender === 'male') ||
+                (v.name && /Matthew|David|Alex|Fred|Gordon|John|James|Paul|Mike|Mark|Brian|Tom|Aaron|Daniel|Robert|Michael|Christopher|Joshua|Andrew|Kevin|Steven|Timothy|Jeffrey|Ryan|Jacob|Gary|Nicholas|Eric|Stephen|Jonathan|Larry|Justin|Scott|Brandon|Benjamin|Samuel|Gregory|Frank|Raymond|Alexander|Patrick|Jack|Dennis|Jerry|Tyler|Jose|Adam|Nathan|Henry|Douglas|Zachary|Peter|Kyle|Walter|Ethan|Jeremy|Harold|Seth|Christian|Sean|Albert|Lawrence|Dylan|Jesse|Bryan|Joe|Jordan|Billy|Bruce|Gabriel|Logan|Carl|Wayne|Roy|Ralph|Randy|Eugene|Vincent|Russell|Elijah|Louis|Bobby|Philip|Johnny/i.test(v.name))
+            );
+            
+            const femaleVoices = voices.filter(v => 
+                (v.lang.startsWith('en') && v.gender === 'female') ||
+                (v.name && /Samantha|Karen|Victoria|Zira|Susan|Linda|Jenny|Allison|Anna|Tessa|Joanna|Sara|Sarah|Emily|Emma|Olivia|Ava|Isabella|Sophia|Charlotte|Mia|Amelia|Harper|Evelyn|Abigail|Elizabeth|Sofia|Madison|Avery|Ella|Scarlett|Grace|Chloe|Victoria|Riley|Aria|Lily|Aubrey|Zoey|Penelope|Layla|Nora|Eleanor|Hannah|Luna|Savannah|Brooklyn|Leah|Zoe|Stella|Hazel|Ellie|Paisley|Audrey|Skylar|Violet|Claire|Bella|Aurora|Lucy|Natalie|Alice|Helen|Sandra|Donna|Carol|Ruth|Sharon|Michelle|Laura|Kimberly|Deborah|Dorothy|Lisa|Nancy|Betty/i.test(v.name))
+            );
+            
+            console.log(`Best male voices found: ${maleVoices.length}`);
+            maleVoices.forEach(v => console.log(`  - ${v.name} (${v.lang})`));
+            
+            console.log(`Best female voices found: ${femaleVoices.length}`);
+            femaleVoices.forEach(v => console.log(`  - ${v.name} (${v.lang})`));
         };
         voices = speechSynthesis.getVoices();
         console.log('Initial voices loaded:', voices.length);
@@ -212,35 +236,49 @@ function speakRadioChatter(message, type = 'command') {
     // Create speech utterance
     const utterance = new SpeechSynthesisUtterance(message);
     
-    // Set voice based on speaker type
+    // Set voice based on speaker type with realistic female/male voices
     if (voices.length > 0) {
         if (type === 'command') {
-            // Use a deeper, more authoritative voice for command
-            const commandVoice = voices.find(v => v.name.includes('Gordon') || v.name.includes('Fred') || v.name.includes('Aaron'));
+            // Prefer a realistic US English male voice for command
+            const commandVoice = voices.find(v =>
+                (v.lang.startsWith('en') && v.gender === 'male') ||
+                (v.name && /Matthew|David|Alex|Fred|Gordon|John|James|Paul|Mike|Mark|Brian|Tom|Aaron|Daniel|Robert|Michael|Christopher|Joshua|Andrew|Kevin|Steven|Timothy|Jeffrey|Ryan|Jacob|Gary|Nicholas|Eric|Stephen|Jonathan|Larry|Justin|Scott|Brandon|Benjamin|Samuel|Gregory|Frank|Raymond|Alexander|Patrick|Jack|Dennis|Jerry|Tyler|Aaron|Jose|Adam|Nathan|Henry|Douglas|Zachary|Peter|Kyle|Walter|Ethan|Jeremy|Harold|Seth|Christian|Sean|Andrew|Albert|Lawrence|Dylan|Jesse|Bryan|Joe|Jordan|Billy|Bruce|Gabriel|Logan|Carl|Wayne|Roy|Ralph|Randy|Eugene|Vincent|Russell|Elijah|Louis|Bobby|Philip|Johnny/i.test(v.name))
+            );
             if (commandVoice) {
                 utterance.voice = commandVoice;
-                utterance.pitch = 0.9; // Deeper pitch for command
+                utterance.pitch = 0.95; // Slightly deeper for male command
+                utterance.rate = 0.95; // Slightly slower for authority
             }
         } else if (type === 'pilot') {
-            // Use a clearer, younger voice for pilot
-            const pilotVoice = voices.find(v => v.name.includes('Samantha') || v.name.includes('Alex') || v.name.includes('Nicky'));
+            // Prefer a realistic US English female voice for pilot
+            const pilotVoice = voices.find(v =>
+                (v.lang.startsWith('en') && v.gender === 'female') ||
+                (v.name && /Samantha|Karen|Victoria|Zira|Susan|Linda|Jenny|Allison|Anna|Tessa|Joanna|Sara|Sarah|Emily|Emma|Olivia|Ava|Isabella|Sophia|Charlotte|Mia|Amelia|Harper|Evelyn|Abigail|Emily|Elizabeth|Sofia|Madison|Avery|Ella|Scarlett|Grace|Chloe|Victoria|Riley|Aria|Lily|Aubrey|Zoey|Penelope|Layla|Nora|Lily|Eleanor|Hannah|Luna|Savannah|Brooklyn|Leah|Zoe|Stella|Hazel|Ellie|Paisley|Audrey|Skylar|Violet|Claire|Bella|Aurora|Lucy|Anna|Samantha|Natalie|Leah|Alice|Sarah|Nora|Helen|Sandra|Donna|Carol|Ruth|Sharon|Michelle|Laura|Emily|Kimberly|Deborah|Dorothy|Lisa|Nancy|Karen|Betty|Helen|Sandra|Donna|Carol|Ruth|Sharon|Michelle|Laura|Emily|Kimberly|Deborah|Dorothy|Lisa|Nancy|Karen|Betty|Helen|Sandra|Donna|Carol|Ruth|Sharon|Michelle|Laura|Emily|Kimberly|Deborah|Dorothy|Lisa|Nancy|Karen|Betty/i.test(v.name))
+            );
             if (pilotVoice) {
                 utterance.voice = pilotVoice;
-                utterance.pitch = 1.1; // Higher pitch for pilot
+                utterance.pitch = 1.05; // Slightly higher for female pilot
+                utterance.rate = 1.05; // Slightly faster for pilot energy
             }
-        } else {
-            // Default US English voice
+        }
+        
+        // Fallback to any US English voice if not found
+        if (!utterance.voice) {
             const usVoice = voices.find(v => v.lang.includes('en-US'));
             if (usVoice) {
                 utterance.voice = usVoice;
+                // Set gender-appropriate pitch based on voice name
+                if (usVoice.name && /Samantha|Karen|Victoria|Zira|Susan|Linda|Jenny|Allison|Anna|Tessa|Joanna|Sara|Sarah|Emily|Emma|Olivia|Ava|Isabella|Sophia|Charlotte|Mia|Amelia|Harper|Evelyn|Abigail|Elizabeth|Sofia|Madison|Avery|Ella|Scarlett|Grace|Chloe|Victoria|Riley|Aria|Lily|Aubrey|Zoey|Penelope|Layla|Nora|Eleanor|Hannah|Luna|Savannah|Brooklyn|Leah|Zoe|Stella|Hazel|Ellie|Paisley|Audrey|Skylar|Violet|Claire|Bella|Aurora|Lucy|Natalie|Alice|Helen|Sandra|Donna|Carol|Ruth|Sharon|Michelle|Laura|Kimberly|Deborah|Dorothy|Lisa|Nancy|Betty/i.test(usVoice.name)) {
+                    utterance.pitch = 1.05; // Female voice
+                } else {
+                    utterance.pitch = 0.95; // Male voice
+                }
             }
         }
     }
     
-    // Set speech properties
-    utterance.rate = 1.2;
-    utterance.pitch = 1.1;
-    utterance.volume = 0.8;
+    // Set speech properties for natural sound
+    utterance.volume = 0.85; // Slightly lower for radio effect
     
     // Add error handling
     utterance.onerror = (event) => {
