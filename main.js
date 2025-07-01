@@ -151,26 +151,44 @@ function toggleMusic() {
 
 // Initialize speech synthesis voices
 function initSpeechVoices() {
+    console.log('=== INITIALIZING SPEECH VOICES ===');
+    console.log('Initial speechSynthesis:', !!speechSynthesis);
+    
+    // Force initialize speech synthesis
+    if (!speechSynthesis) {
+        speechSynthesis = window.speechSynthesis;
+        console.log('Forced speechSynthesis initialization:', !!speechSynthesis);
+    }
+    
     if (speechSynthesis) {
         // Wait for voices to load
         speechSynthesis.onvoiceschanged = () => {
             voices = speechSynthesis.getVoices();
             console.log('Speech voices loaded:', voices.length);
+            console.log('Available voices:', voices.map(v => `${v.name} (${v.lang})`));
         };
         voices = speechSynthesis.getVoices();
+        console.log('Initial voices loaded:', voices.length);
+    } else {
+        console.error('Speech synthesis not available in this browser');
     }
 }
 
-// Speak radio chatter with voice
+// Speak radio chatter with voice - AGGRESSIVE APPROACH
 function speakRadioChatter(message, type = 'command') {
     console.log('Attempting to speak radio chatter:', message, 'type:', type);
     console.log('Speech synthesis available:', !!speechSynthesis);
     console.log('Radio chatter enabled:', radioChatterEnabled);
     console.log('Game state:', gameState);
     
+    // Force initialize speech synthesis if not available
     if (!speechSynthesis) {
-        console.log('Speech synthesis not available');
-        return;
+        console.log('Speech synthesis not available, trying to initialize...');
+        speechSynthesis = window.speechSynthesis;
+        if (!speechSynthesis) {
+            console.log('Speech synthesis still not available');
+            return;
+        }
     }
     
     if (!radioChatterEnabled) {
@@ -184,11 +202,11 @@ function speakRadioChatter(message, type = 'command') {
         return;
     }
     
-    // Throttle speech to prevent overlapping
+    // Reduced throttle for more frequent radio chatter
     const now = Date.now();
-    if (now - lastSpeechTime < 2000) {
+    if (now - lastSpeechTime < 1000) {
         console.log('Speech throttled, too soon since last speech');
-        return; // Minimum 2 seconds between speech
+        return; // Minimum 1 second between speech
     }
     lastSpeechTime = now;
     
@@ -221,12 +239,26 @@ function speakRadioChatter(message, type = 'command') {
         console.log('Speech utterance completed:', message);
     };
     
-    // Speak the message
-    speechSynthesis.speak(utterance);
-    console.log('Speech utterance created and speaking:', message);
+    // Speak the message with retry logic
+    try {
+        speechSynthesis.speak(utterance);
+        console.log('Speech utterance created and speaking:', message);
+    } catch (error) {
+        console.error('Speech synthesis error:', error);
+        // Try again with a simpler approach
+        try {
+            const simpleUtterance = new SpeechSynthesisUtterance(message);
+            simpleUtterance.rate = 1.0;
+            simpleUtterance.volume = 1.0;
+            speechSynthesis.speak(simpleUtterance);
+            console.log('Retry with simple utterance:', message);
+        } catch (retryError) {
+            console.error('Speech synthesis retry failed:', retryError);
+        }
+    }
 }
 
-// Radio chatter messages
+// Radio chatter messages - MILITARY STYLE
 const RADIO_CHATTER = {
     command: [
         "Roger that, Command!",
@@ -238,7 +270,27 @@ const RADIO_CHATTER = {
         "Got it, Control Tower!",
         "Roger, Mission Control!",
         "Copy, Command Center!",
-        "Affirmative, Base Station!"
+        "Affirmative, Base Station!",
+        "Status green, Command!",
+        "All systems operational!",
+        "Weapons hot and ready!",
+        "Shields at maximum!",
+        "Engines running smooth!",
+        "Radar clear, no contacts!",
+        "Fuel levels optimal!",
+        "Navigation systems online!",
+        "Communications established!",
+        "Ready for combat operations!",
+        "All systems nominal!",
+        "Weapon systems armed!",
+        "Defensive systems active!",
+        "Tactical display operational!",
+        "Mission parameters confirmed!",
+        "Combat readiness verified!",
+        "All stations reporting!",
+        "Battle stations manned!",
+        "Weapons locked and loaded!",
+        "Combat systems green!"
     ],
     combat: [
         "Enemy contact!",
@@ -348,7 +400,7 @@ function startRadioChatter() {
         clearInterval(radioChatterInterval);
     }
     
-    // Start the interval for regular radio chatter
+    // Start the interval for regular radio chatter - MORE FREQUENT
     radioChatterInterval = setInterval(() => {
         console.log('Radio chatter interval triggered - checking conditions...');
         console.log('Game state:', gameState, 'Radio chatter enabled:', radioChatterEnabled);
@@ -360,7 +412,7 @@ function startRadioChatter() {
         } else {
             console.log('Radio chatter conditions not met - game state:', gameState, 'enabled:', radioChatterEnabled);
         }
-    }, 4000 + Math.random() * 2000); // Random interval between 4-6 seconds
+    }, 2000 + Math.random() * 1000); // More frequent: 2-3 seconds
     
     console.log('Regular radio chatter interval started successfully');
     console.log('Next radio chatter in 4-6 seconds...');
@@ -3604,6 +3656,12 @@ function testRadioChatter() {
     console.log('Radio chatter enabled:', radioChatterEnabled);
     console.log('Speech synthesis available:', !!speechSynthesis);
     
+    // Force reinitialize speech synthesis
+    if (!speechSynthesis) {
+        speechSynthesis = window.speechSynthesis;
+        console.log('Reinitialized speechSynthesis:', !!speechSynthesis);
+    }
+    
     if (!radioChatterTestDone && radioChatterEnabled) {
         console.log('Testing radio chatter on first user interaction...');
         speakRadioChatter('Radio chatter online!', 'command');
@@ -3615,6 +3673,21 @@ function testRadioChatter() {
 }
     
     console.log('=== GAME INITIALIZATION COMPLETE ===');
+    
+    // Test speech synthesis immediately
+    setTimeout(() => {
+        console.log('=== IMMEDIATE SPEECH TEST ===');
+        if (speechSynthesis) {
+            const testUtterance = new SpeechSynthesisUtterance('Speech synthesis test');
+            testUtterance.rate = 1.0;
+            testUtterance.volume = 1.0;
+            speechSynthesis.speak(testUtterance);
+            console.log('Immediate speech test completed');
+        } else {
+            console.log('Speech synthesis not available for immediate test');
+        }
+    }, 2000);
+    
     resizeCanvas();
     return true;
 }
