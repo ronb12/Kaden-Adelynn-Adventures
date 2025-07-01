@@ -196,23 +196,32 @@ function showAchievementNotification(achievement) {
     }, 3000);
 }
 
-// Event listeners
-document.addEventListener('keydown', (e) => {
-    keys[e.key] = true;
-    if (e.key === ' ' && gameState === 'playing') {
-        e.preventDefault();
-        shoot();
-    }
-    // Toggle sound with 'M' key
-    if (e.key === 'm' || e.key === 'M') {
-        soundEnabled = !soundEnabled;
-        console.log('Sound:', soundEnabled ? 'ON' : 'OFF');
-    }
-});
+// Global event listeners (only set up once)
+if (!window.gameEventListenersInitialized) {
+    window.gameEventListenersInitialized = true;
+    
+    document.addEventListener('keydown', (e) => {
+        keys[e.key] = true;
+        if (e.key === ' ' && gameState === 'playing') {
+            e.preventDefault();
+            shoot();
+        }
+        // Toggle sound with 'M' key
+        if (e.key === 'm' || e.key === 'M') {
+            soundEnabled = !soundEnabled;
+            console.log('Sound:', soundEnabled ? 'ON' : 'OFF');
+        }
+        // Keyboard shortcut to start game
+        if (e.key === 'Enter' && gameState === 'start') {
+            e.preventDefault();
+            startGame();
+        }
+    });
 
-document.addEventListener('keyup', (e) => {
-    keys[e.key] = false;
-});
+    document.addEventListener('keyup', (e) => {
+        keys[e.key] = false;
+    });
+}
 
 canvas.addEventListener('mousemove', (e) => {
     const rect = canvas.getBoundingClientRect();
@@ -264,13 +273,7 @@ function setupButtonListeners() {
         });
     }
     
-    // Add keyboard shortcut to start game
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && gameState === 'start') {
-            e.preventDefault();
-            startGame();
-        }
-    });
+    // Keyboard shortcut is now handled in the global event listener
 }
 
 // Setup button listeners when DOM is ready
