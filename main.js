@@ -150,7 +150,12 @@ function toggleMusic() {
         playBackgroundMusic('menu');
     } else if (gameState === 'playing') {
         const hasBoss = enemies.some(e => e.isBoss);
-        playBackgroundMusic(hasBoss ? 'boss' : 'gameplay');
+        if (hasBoss) {
+            // Don't play music during boss battles - only radio chatter
+            stopBackgroundMusic();
+        } else {
+            playBackgroundMusic('gameplay');
+        }
     }
     showNotification(`Music ${musicEnabled ? 'ON' : 'OFF'}`, 'info');
 }
@@ -169,14 +174,27 @@ function initSpeechVoices() {
 
 // Speak radio chatter with voice
 function speakRadioChatter(message, type = 'command') {
-    if (!speechSynthesis || !radioChatterEnabled) return;
+    console.log('Attempting to speak radio chatter:', message, 'type:', type);
+    console.log('Speech synthesis available:', !!speechSynthesis);
+    console.log('Radio chatter enabled:', radioChatterEnabled);
+    
+    if (!speechSynthesis || !radioChatterEnabled) {
+        console.log('Speech synthesis or radio chatter not available');
+        return;
+    }
     
     // Performance check - don't speak if game is lagging
-    if (gameLoop && performance.now() - lastFrameTime > 50) return;
+    if (gameLoop && performance.now() - lastFrameTime > 50) {
+        console.log('Game lagging, skipping speech');
+        return;
+    }
     
     // Throttle speech to prevent overlapping
     const now = Date.now();
-    if (now - lastSpeechTime < 2000) return; // Minimum 2 seconds between speech
+    if (now - lastSpeechTime < 2000) {
+        console.log('Speech throttled, too soon since last speech');
+        return; // Minimum 2 seconds between speech
+    }
     lastSpeechTime = now;
     
     // Stop any current speech
@@ -201,6 +219,7 @@ function speakRadioChatter(message, type = 'command') {
     
     // Speak the message
     speechSynthesis.speak(utterance);
+    console.log('Speech utterance created and speaking:', message);
 }
 
 // Radio chatter messages
@@ -315,6 +334,10 @@ function getRandomRadioChatter(type = 'command') {
 
 // Start radio chatter
 function startRadioChatter() {
+    console.log('Starting regular radio chatter...');
+    console.log('Radio chatter enabled:', radioChatterEnabled);
+    console.log('Game state:', gameState);
+    
     if (radioChatterInterval) {
         clearInterval(radioChatterInterval);
     }
@@ -322,9 +345,12 @@ function startRadioChatter() {
     radioChatterInterval = setInterval(() => {
         if (gameState === 'playing' && radioChatterEnabled) {
             const message = getRandomRadioChatter('command');
+            console.log('Speaking regular radio chatter:', message);
             speakRadioChatter(message, 'command');
         }
     }, 4000 + Math.random() * 2000); // Random interval between 4-6 seconds
+    
+    console.log('Regular radio chatter started successfully');
 }
 
 // Stop radio chatter
@@ -361,22 +387,36 @@ function triggerRadioChatter(type = 'command') {
 
 // Start boss radio chatter (more frequent and intense)
 function startBossRadioChatter() {
-    if (!radioChatterEnabled || gameState !== 'playing') return;
+    console.log('Starting boss radio chatter...');
+    console.log('Radio chatter enabled:', radioChatterEnabled);
+    console.log('Game state:', gameState);
+    
+    if (!radioChatterEnabled || gameState !== 'playing') {
+        console.log('Boss radio chatter not started - conditions not met');
+        return;
+    }
     
     // Stop regular radio chatter
     stopRadioChatter();
     
     // Start intense boss radio chatter
     radioChatterInterval = setInterval(() => {
-        if (gameState === 'playing' && radioChatterEnabled && enemies.some(e => e.isBoss)) {
+        const hasBoss = enemies.some(e => e.isBoss);
+        console.log('Boss radio chatter check - hasBoss:', hasBoss, 'enabled:', radioChatterEnabled);
+        
+        if (gameState === 'playing' && radioChatterEnabled && hasBoss) {
             const message = getRandomRadioChatter('boss');
+            console.log('Speaking boss radio chatter:', message);
             speakRadioChatter(message, 'boss');
-        } else if (gameState === 'playing' && radioChatterEnabled && !enemies.some(e => e.isBoss)) {
+        } else if (gameState === 'playing' && radioChatterEnabled && !hasBoss) {
             // Boss defeated, return to normal radio chatter
+            console.log('Boss defeated, returning to normal radio chatter');
             stopRadioChatter();
             startRadioChatter();
         }
     }, 2000 + Math.random() * 1500); // More frequent: 2-3.5 seconds
+    
+    console.log('Boss radio chatter started successfully');
 }
 
 // Achievement system
