@@ -2333,14 +2333,8 @@ if (isIOS) {
 // Dynamic canvas resizing for responsive game
 function resizeCanvas() {
     if (!canvas) return;
-    if (window.innerWidth < 1000) {
-        canvas.width = window.innerWidth;
-        canvas.height = Math.max(window.innerHeight * 0.7, 250); // 70% of height, min 250px
-    } else {
-        canvas.width = 800;
-        canvas.height = 600;
-    }
-    // Optionally, re-render or adjust game elements here
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
     render();
 }
 
