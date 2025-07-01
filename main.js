@@ -181,71 +181,103 @@ function speakRadioChatter(message, type = 'command') {
     showRadioChatter(message, type);
 }
 
-// Start radio chatter system
+// Military-style radio chatter system
+let radioChatterIntervals = {
+    command: null,
+    wingmen: null,
+    pilot: null,
+    alerts: null
+};
+
+// Start military-style radio chatter
 function startRadioChatter() {
     if (!radioChatterEnabled || gameState === 'gameOver') return;
     
-    // Clear any existing interval
-    if (radioChatterInterval) {
-        clearInterval(radioChatterInterval);
-    }
+    // Clear any existing intervals
+    Object.values(radioChatterIntervals).forEach(interval => {
+        if (interval) clearInterval(interval);
+    });
     
-    // Start periodic radio chatter with reduced frequency to prevent slow motion
-    radioChatterInterval = setInterval(() => {
-        if (!radioChatterEnabled || gameState === 'gameOver') {
-            clearInterval(radioChatterInterval);
-            return;
-        }
+    // Command channel - authoritative communications
+    radioChatterIntervals.command = setInterval(() => {
+        if (!radioChatterEnabled || gameState === 'gameOver') return;
         
         const now = Date.now();
-        if (now - lastRadioChatter < 15000) return; // Increased to 15 seconds between messages
+        if (now - lastRadioChatter < 3000) return; // 3 seconds between command messages
         
-        // Performance check - don't trigger radio chatter if game is lagging
-        if (gameLoop && performance.now() - lastFrameTime > 50) return; // Skip if frame rate is low
-        
-        // Choose chatter type based on game state
-        let chatterType = 'command';
-        let message = '';
-        
-        if (gameState === 'playing') {
-            const hasBoss = enemies.some(e => e.isBoss);
-            const enemyCount = enemies.length;
-            const wingmanCount = wingmen.length;
-            
-                    if (hasBoss) {
-            chatterType = 'alerts';
-            message = getRandomRadioMessage('alerts');
-        } else if (enemyCount > 5) {
-            chatterType = 'pilot';
-            message = getRandomRadioMessage('pilot');
-        } else if (wingmanCount > 0) {
-            chatterType = 'wingmen';
-            message = getRandomRadioMessage('wingmen');
-        } else {
-            chatterType = 'command';
-            message = getRandomRadioMessage('command');
-        }
-        } else {
-            chatterType = 'command';
-            message = getRandomRadioMessage('command');
-        }
-        
-        // Speak and show radio chatter
-        speakRadioChatter(message, chatterType);
+        const message = getRandomRadioMessage('command');
+        speakRadioChatter(message, 'command');
         lastRadioChatter = now;
+    }, 4000); // Check every 4 seconds
+    
+    // Wingmen channel - tactical communications
+    radioChatterIntervals.wingmen = setInterval(() => {
+        if (!radioChatterEnabled || gameState === 'gameOver') return;
+        if (wingmen.length === 0) return; // Only if wingmen are present
         
-    }, 8000); // Increased interval to 8 seconds to reduce performance impact
+        const now = Date.now();
+        if (now - lastRadioChatter < 2000) return; // 2 seconds between wingmen messages
+        
+        const message = getRandomRadioMessage('wingmen');
+        speakRadioChatter(message, 'wingmen');
+        lastRadioChatter = now;
+    }, 3000); // Check every 3 seconds
+    
+    // Pilot channel - personal communications
+    radioChatterIntervals.pilot = setInterval(() => {
+        if (!radioChatterEnabled || gameState === 'gameOver') return;
+        
+        const now = Date.now();
+        if (now - lastRadioChatter < 2500) return; // 2.5 seconds between pilot messages
+        
+        const message = getRandomRadioMessage('pilot');
+        speakRadioChatter(message, 'pilot');
+        lastRadioChatter = now;
+    }, 3500); // Check every 3.5 seconds
+    
+    // Alerts channel - urgent communications
+    radioChatterIntervals.alerts = setInterval(() => {
+        if (!radioChatterEnabled || gameState === 'gameOver') return;
+        
+        const hasBoss = enemies.some(e => e.isBoss);
+        const enemyCount = enemies.length;
+        
+        // Only trigger alerts when there's action
+        if (!hasBoss && enemyCount < 3) return;
+        
+        const now = Date.now();
+        if (now - lastRadioChatter < 1500) return; // 1.5 seconds between alerts
+        
+        const message = getRandomRadioMessage('alerts');
+        speakRadioChatter(message, 'alerts');
+        lastRadioChatter = now;
+    }, 2000); // Check every 2 seconds
+    
+    console.log('Military radio chatter system activated');
 }
 
 function stopRadioChatter() {
-    if (radioChatterInterval) {
-        clearInterval(radioChatterInterval);
-        radioChatterInterval = null;
-    }
+    // Clear all radio chatter intervals
+    Object.values(radioChatterIntervals).forEach(interval => {
+        if (interval) {
+            clearInterval(interval);
+        }
+    });
+    
+    // Reset intervals object
+    radioChatterIntervals = {
+        command: null,
+        wingmen: null,
+        pilot: null,
+        alerts: null
+    };
+    
     // Stop any current speech
     if (speechSynthesis) {
         speechSynthesis.cancel();
     }
+    
+    console.log('Military radio chatter system deactivated');
 }
 
 // Show radio chatter notification (visual only)
@@ -1675,6 +1707,16 @@ function shoot() {
     // Play missile sound
     playMissileSound();
     
+    // Military radio chatter during combat
+    if (radioChatterEnabled && Math.random() < 0.1) { // 10% chance per shot
+        setTimeout(() => {
+            if (radioChatterEnabled && gameState === 'playing') {
+                const chatterType = Math.random() < 0.4 ? 'pilot' : 'wingmen';
+                speakRadioChatter(getRandomRadioMessage(chatterType), chatterType);
+            }
+        }, 500 + Math.random() * 1000);
+    }
+    
     // Apply ship-specific firepower bonuses
     let firepowerMultiplier = 1;
     if (player.firepower) {
@@ -2271,6 +2313,16 @@ function checkCollisions() {
                         money += reward;
                         showMoneyNotification(`+${reward}`, enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
                         playMissileSound();
+                        
+                        // Military radio chatter on enemy destruction
+                        if (radioChatterEnabled && Math.random() < 0.15) { // 15% chance
+                            setTimeout(() => {
+                                if (radioChatterEnabled && gameState === 'playing') {
+                                    const chatterType = Math.random() < 0.5 ? 'pilot' : 'wingmen';
+                                    speakRadioChatter(getRandomRadioMessage(chatterType), chatterType);
+                                }
+                            }, 200 + Math.random() * 800);
+                        }
                     }
                     
                     // Update mission progress
@@ -4278,107 +4330,128 @@ function radioChatterEvent(event) {
     speakRadioChatter(message, type);
 }
 
-// Radio chatter messages - 50+ different phrases to prevent repetition
+// Radio chatter messages - Authentic military-style communications
 const RADIO_CHATTER = {
     command: [
-        "Mission control to pilot, status check requested.",
-        "Command center here, how's the situation looking?",
-        "Base to fighter, report your current status.",
-        "Mission control checking in, all systems operational?",
-        "Command to pilot, enemy activity detected in your sector.",
-        "Base command here, maintain formation with wingmen.",
-        "Mission control to all units, stay alert for enemy reinforcements.",
-        "Command center monitoring your progress, keep up the good work.",
-        "Base to fighter squadron, enemy forces are regrouping.",
-        "Mission control advises caution, multiple hostiles detected.",
-        "Command to pilot, power-up detected in your area.",
-        "Base command here, mission objectives are clear.",
-        "Mission control to fighter, maintain defensive position.",
-        "Command center reports increased enemy activity.",
-        "Base to pilot, mission parameters updated.",
-        "Mission control advises tactical approach.",
-        "Command to fighter, enemy formation detected.",
-        "Base command here, maintain radio silence unless necessary.",
-        "Mission control to pilot, weather conditions nominal.",
+        "Command to all units, maintain tactical formation.",
+        "Base to fighters, enemy forces detected in sector Alpha.",
+        "Mission control to squadron, weapons free, repeat weapons free.",
+        "Command center here, all pilots report status.",
+        "Base to all units, enemy reinforcements incoming.",
+        "Mission control to fighters, maintain radio discipline.",
+        "Command to squadron, enemy forces retreating.",
+        "Base to all pilots, mission objectives updated.",
+        "Mission control to fighters, maintain defensive positions.",
         "Command center monitoring all frequencies.",
-        "Base to fighter, enemy retreat detected.",
-        "Mission control to pilot, mission success confirmed.",
-        "Command to fighter, return to base when ready.",
-        "Base command here, all systems green.",
-        "Mission control to pilot, enemy reinforcements incoming.",
-        "Command center advises evasive maneuvers.",
-        "Base to fighter, mission objectives achieved.",
-        "Mission control to pilot, maintain current heading.",
-        "Command to fighter, enemy forces neutralized.",
-        "Base command here, mission status updated.",
-        "Mission control to pilot, proceed with caution.",
-        "Command center reports mission progress.",
-        "Base to fighter, enemy activity increasing.",
-        "Mission control to pilot, maintain formation.",
-        "Command to fighter, mission parameters confirmed.",
-        "Base command here, all systems operational.",
-        "Mission control to pilot, enemy forces detected.",
-        "Command center monitoring mission progress.",
-        "Base to fighter, maintain tactical advantage.",
-        "Mission control to pilot, mission objectives clear.",
-        "Command to fighter, enemy formation breaking.",
-        "Base command here, mission status nominal.",
-        "Mission control to pilot, proceed with mission.",
-        "Command center reports all clear.",
-        "Base to fighter, enemy forces eliminated.",
-        "Mission control to pilot, mission success.",
-        "Command to fighter, return to base.",
-        "Base command here, mission complete."
+        "Base to squadron, enemy capital ship detected.",
+        "Mission control to all units, prepare for heavy resistance.",
+        "Command to fighters, maintain formation integrity.",
+        "Base to pilots, enemy forces regrouping.",
+        "Mission control to squadron, mission status green.",
+        "Command center to all units, maintain tactical advantage.",
+        "Base to fighters, enemy formation breaking.",
+        "Mission control to pilots, mission parameters confirmed.",
+        "Command to squadron, maintain radio silence unless necessary.",
+        "Base to all units, enemy forces neutralized.",
+        "Mission control to fighters, return to base when ready.",
+        "Command center to squadron, mission accomplished.",
+        "Base to pilots, maintain defensive perimeter.",
+        "Mission control to all units, enemy activity increasing.",
+        "Command to fighters, maintain tactical spacing.",
+        "Base to squadron, mission objectives achieved.",
+        "Mission control to pilots, maintain formation discipline.",
+        "Command center to all units, enemy forces eliminated.",
+        "Base to fighters, mission success confirmed.",
+        "Mission control to squadron, maintain tactical awareness.",
+        "Command to pilots, enemy forces detected.",
+        "Base to all units, maintain radio protocol.",
+        "Mission control to fighters, mission status nominal.",
+        "Command center to squadron, enemy forces retreating.",
+        "Base to pilots, maintain tactical advantage.",
+        "Mission control to all units, mission parameters updated.",
+        "Command to fighters, maintain formation integrity.",
+        "Base to squadron, enemy forces neutralized.",
+        "Mission control to pilots, mission objectives clear.",
+        "Command center to all units, maintain tactical spacing.",
+        "Base to fighters, mission success confirmed.",
+        "Mission control to squadron, maintain radio discipline.",
+        "Command to pilots, enemy forces eliminated.",
+        "Base to all units, mission accomplished.",
+        "Mission control to fighters, maintain tactical awareness.",
+        "Command center to squadron, mission status green.",
+        "Base to pilots, enemy forces detected.",
+        "Mission control to all units, maintain formation integrity.",
+        "Command to fighters, mission objectives achieved.",
+        "Base to squadron, maintain tactical advantage.",
+        "Mission control to pilots, mission success confirmed.",
+        "Command center to all units, enemy forces neutralized.",
+        "Base to fighters, maintain radio protocol.",
+        "Mission control to squadron, mission accomplished."
     ],
     wingmen: [
-        "Wingman Alpha here, covering your six!",
-        "This is Bravo, enemy on your left flank!",
-        "Charlie reporting in, I've got your back!",
-        "Delta here, enemy formation detected!",
-        "Alpha wingman, engaging hostiles!",
-        "Bravo to leader, enemy retreating!",
+        "Alpha wingman, covering your six o'clock!",
+        "Bravo here, enemy on your left flank!",
+        "Charlie reporting, I've got your back!",
+        "Delta wingman, enemy formation detected!",
+        "Alpha to leader, engaging hostiles!",
+        "Bravo wingman, enemy retreating!",
         "Charlie here, power-up spotted!",
-        "Delta wingman, enemy forces eliminated!",
+        "Delta to leader, enemy forces eliminated!",
         "Alpha reporting, mission objectives clear!",
-        "Bravo here, maintaining formation!",
-        "Charlie wingman, enemy reinforcements!",
+        "Bravo wingman, maintaining formation!",
+        "Charlie here, enemy reinforcements!",
         "Delta to leader, covering your approach!",
-        "Alpha here, enemy formation breaking!",
-        "Bravo wingman, power-up collected!",
+        "Alpha wingman, enemy formation breaking!",
+        "Bravo here, power-up collected!",
         "Charlie reporting, mission success!",
-        "Delta here, enemy forces neutralized!",
-        "Alpha wingman, maintaining position!",
-        "Bravo to leader, enemy detected!",
-        "Charlie here, covering your six!",
-        "Delta wingman, mission objectives achieved!",
-        "Alpha reporting, enemy retreat!",
-        "Bravo here, power-up available!",
-        "Charlie wingman, formation maintained!",
-        "Delta to leader, enemy eliminated!",
-        "Alpha here, mission parameters clear!",
-        "Bravo wingman, covering approach!",
-        "Charlie reporting, enemy forces!",
-        "Delta here, mission success!",
-        "Alpha wingman, maintaining formation!",
-        "Bravo to leader, enemy detected!",
-        "Charlie here, power-up spotted!",
-        "Delta wingman, mission objectives!",
-        "Alpha reporting, enemy retreat!",
-        "Bravo here, covering your six!",
-        "Charlie wingman, formation maintained!",
-        "Delta to leader, enemy neutralized!",
-        "Alpha here, mission success!",
-        "Bravo wingman, power-up collected!",
-        "Charlie reporting, enemy forces!",
-        "Delta here, maintaining position!",
-        "Alpha wingman, mission clear!",
-        "Bravo to leader, enemy eliminated!",
-        "Charlie here, covering approach!",
-        "Delta wingman, mission objectives!",
-        "Alpha reporting, formation maintained!",
+        "Delta wingman, enemy forces neutralized!",
+        "Alpha to leader, maintaining position!",
         "Bravo here, enemy detected!",
-        "Charlie wingman, mission success!",
-        "Delta to leader, power-up available!"
+        "Charlie wingman, covering your six!",
+        "Delta to leader, mission objectives achieved!",
+        "Alpha reporting, enemy retreat!",
+        "Bravo wingman, power-up available!",
+        "Charlie here, formation maintained!",
+        "Delta to leader, enemy eliminated!",
+        "Alpha wingman, mission parameters clear!",
+        "Bravo here, covering approach!",
+        "Charlie reporting, enemy forces!",
+        "Delta wingman, mission success!",
+        "Alpha to leader, maintaining formation!",
+        "Bravo here, enemy detected!",
+        "Charlie wingman, power-up spotted!",
+        "Delta to leader, mission objectives!",
+        "Alpha reporting, enemy retreat!",
+        "Bravo wingman, covering your six!",
+        "Charlie here, formation maintained!",
+        "Delta to leader, enemy neutralized!",
+        "Alpha wingman, mission success!",
+        "Bravo here, power-up collected!",
+        "Charlie reporting, enemy forces!",
+        "Delta wingman, maintaining position!",
+        "Alpha to leader, mission clear!",
+        "Bravo here, enemy eliminated!",
+        "Charlie wingman, covering approach!",
+        "Delta to leader, mission objectives!",
+        "Alpha reporting, formation maintained!",
+        "Bravo wingman, enemy detected!",
+        "Charlie here, mission success!",
+        "Delta to leader, power-up available!",
+        "Alpha wingman, enemy forces!",
+        "Bravo here, covering your six!",
+        "Charlie reporting, mission clear!",
+        "Delta wingman, enemy eliminated!",
+        "Alpha to leader, power-up spotted!",
+        "Bravo here, mission objectives!",
+        "Charlie wingman, formation maintained!",
+        "Delta to leader, enemy retreat!",
+        "Alpha reporting, power-up available!",
+        "Bravo wingman, mission success!",
+        "Charlie here, enemy neutralized!",
+        "Delta to leader, mission objectives!",
+        "Alpha wingman, power-up collected!",
+        "Bravo here, enemy forces!",
+        "Charlie reporting, mission success!"
     ],
     pilot: [
         "Pilot to command, engaging enemy forces!",
