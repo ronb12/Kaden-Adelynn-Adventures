@@ -85,6 +85,64 @@ const WINGMAN_COST = 100; // Cost to purchase a wingman
 const MAX_WINGMEN = 4; // Maximum number of wingmen
 let wingmanCount = 0; // Current number of wingmen
 
+// Story system
+let storyProgress = parseInt(localStorage.getItem('spaceAdventuresStoryProgress')) || 0;
+let currentMission = parseInt(localStorage.getItem('spaceAdventuresCurrentMission')) || 1;
+let missionProgress = parseInt(localStorage.getItem('spaceAdventuresMissionProgress')) || 0;
+let totalEnemiesDestroyed = parseInt(localStorage.getItem('spaceAdventuresTotalEnemies')) || 0;
+let totalWingmenPurchased = parseInt(localStorage.getItem('spaceAdventuresTotalWingmen')) || 0;
+let playerRank = localStorage.getItem('spaceAdventuresPlayerRank') || 'Cadet';
+let storyUnlocked = JSON.parse(localStorage.getItem('spaceAdventuresStoryUnlocked')) || false;
+
+// Story missions
+const STORY_MISSIONS = {
+    1: {
+        title: "The Awakening",
+        description: "Cadet, you've been chosen for a critical mission. The Zorath Empire has invaded our galaxy. Your training begins now.",
+        objective: "Destroy 10 enemy ships",
+        target: 10,
+        reward: "Promotion to Ensign + 50 coins",
+        enemyType: "Scout",
+        background: "Training simulation"
+    },
+    2: {
+        title: "First Contact",
+        description: "Real combat awaits. The Zorath have established a blockade around Sector Alpha. Break through and establish a foothold.",
+        objective: "Destroy 25 enemy ships",
+        target: 25,
+        reward: "Promotion to Lieutenant + 100 coins",
+        enemyType: "Interceptor",
+        background: "Sector Alpha"
+    },
+    3: {
+        title: "The Battle of Nebula Prime",
+        description: "A massive Zorath fleet has been spotted near Nebula Prime. This is your chance to prove yourself as a true warrior.",
+        objective: "Destroy 50 enemy ships",
+        target: 50,
+        reward: "Promotion to Captain + 200 coins",
+        enemyType: "Destroyer",
+        background: "Nebula Prime"
+    },
+    4: {
+        title: "Wingman Initiative",
+        description: "The Admiral has approved the Wingman Initiative. Recruit AI pilots to form your squadron. The Zorath won't know what hit them.",
+        objective: "Purchase 2 wingmen",
+        target: 2,
+        reward: "Squadron Leader + 300 coins",
+        enemyType: "Battleship",
+        background: "Deep Space"
+    },
+    5: {
+        title: "The Siege of Zorath Prime",
+        description: "We're taking the fight to their homeworld. The fate of the galaxy rests on your shoulders, Commander.",
+        objective: "Destroy 100 enemy ships",
+        target: 100,
+        reward: "Promotion to Admiral + 500 coins",
+        enemyType: "Dreadnought",
+        background: "Zorath Prime"
+    }
+};
+
 // Enhanced weapon system with rapid fire
 let weaponLevel = 1;
 let lastShotTime = 0;
@@ -297,11 +355,15 @@ function purchaseWingman() {
     };
     
     wingmen.push(wingman);
+    totalWingmenPurchased++;
+    localStorage.setItem('spaceAdventuresTotalWingmen', totalWingmenPurchased);
+    
     showNotification(`Wingman ${wingmanCount} purchased!`, 'success');
     playPowerUpSound();
     
-    // Update UI
+    // Update UI and story progress
     updateUI();
+    updateStoryProgress();
 }
 
 function showNotification(message, type = 'info') {
@@ -327,6 +389,132 @@ function showNotification(message, type = 'info') {
             }
         }, 500);
     }, 3000);
+}
+
+function showStoryNotification(title, message, type = 'story') {
+    const notification = document.createElement('div');
+    notification.className = `story-notification ${type}`;
+    notification.innerHTML = `
+        <div class="story-content">
+            <h3>${title}</h3>
+            <p>${message}</p>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 100);
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 500);
+    }, 5000);
+}
+
+function checkMissionProgress() {
+    if (currentMission > 5) return; // All missions completed
+    
+    const mission = STORY_MISSIONS[currentMission];
+    let progress = 0;
+    let completed = false;
+    
+    if (mission.objective.includes('Destroy')) {
+        progress = totalEnemiesDestroyed;
+        if (progress >= mission.target) {
+            completed = true;
+        }
+    } else if (mission.objective.includes('Purchase')) {
+        progress = totalWingmenPurchased;
+        if (progress >= mission.target) {
+            completed = true;
+        }
+    }
+    
+    if (completed) {
+        completeMission();
+    }
+}
+
+function completeMission() {
+    const mission = STORY_MISSIONS[currentMission];
+    
+    // Give rewards
+    if (mission.reward.includes('coins')) {
+        const coinMatch = mission.reward.match(/(\d+) coins/);
+        if (coinMatch) {
+            const coins = parseInt(coinMatch[1]);
+            money += coins;
+            showMoneyNotification(coins, canvas.width / 2, canvas.height / 2);
+        }
+    }
+    
+    // Update rank
+    if (mission.reward.includes('Promotion')) {
+        const rankMatch = mission.reward.match(/Promotion to (\w+)/);
+        if (rankMatch) {
+            playerRank = rankMatch[1];
+            localStorage.setItem('spaceAdventuresPlayerRank', playerRank);
+        }
+    } else if (mission.reward.includes('Squadron Leader')) {
+        playerRank = 'Squadron Leader';
+        localStorage.setItem('spaceAdventuresPlayerRank', playerRank);
+    } else if (mission.reward.includes('Admiral')) {
+        playerRank = 'Admiral';
+        localStorage.setItem('spaceAdventuresPlayerRank', playerRank);
+    }
+    
+    // Show completion notification
+    showStoryNotification(
+        `🎖️ Mission Complete: ${mission.title}`,
+        `Congratulations! You've been promoted to ${playerRank}! ${mission.reward}`,
+        'success'
+    );
+    
+    // Progress to next mission
+    currentMission++;
+    missionProgress = 0;
+    
+    // Save progress
+    localStorage.setItem('spaceAdventuresCurrentMission', currentMission);
+    localStorage.setItem('spaceAdventuresMissionProgress', missionProgress);
+    localStorage.setItem('spaceAdventuresMoney', money);
+    
+    // Show next mission if available
+    if (currentMission <= 5) {
+        setTimeout(() => {
+            const nextMission = STORY_MISSIONS[currentMission];
+            showStoryNotification(
+                `📋 New Mission: ${nextMission.title}`,
+                nextMission.description,
+                'info'
+            );
+        }, 2000);
+    } else {
+        setTimeout(() => {
+            showStoryNotification(
+                '🏆 Galaxy Liberated!',
+                'You have successfully defeated the Zorath Empire and liberated the galaxy! You are now a legend among the stars.',
+                'legend'
+            );
+        }, 2000);
+    }
+}
+
+function updateStoryProgress() {
+    // Update total enemies destroyed
+    if (totalEnemiesDestroyed !== score / 10) {
+        totalEnemiesDestroyed = Math.floor(score / 10);
+        localStorage.setItem('spaceAdventuresTotalEnemies', totalEnemiesDestroyed);
+    }
+    
+    // Check mission progress
+    checkMissionProgress();
 }
 
 // Global event listeners (only set up once)
@@ -449,6 +637,18 @@ function startGame() {
     
     // Initialize UI
     updateUI();
+    
+    // Show story introduction if first time or mission available
+    if (currentMission <= 5) {
+        const mission = STORY_MISSIONS[currentMission];
+        setTimeout(() => {
+            showStoryNotification(
+                `🎖️ ${playerRank} - Mission ${currentMission}: ${mission.title}`,
+                mission.description,
+                'info'
+            );
+        }, 1000);
+    }
     
     if (gameLoop) cancelAnimationFrame(gameLoop);
     gameLoop = requestAnimationFrame(update);
@@ -857,6 +1057,10 @@ function checkCollisions() {
                     const moneyEarned = Math.floor(Math.random() * 5) + 5; // 5-10 coins per ship
                     money += moneyEarned;
                     showMoneyNotification(moneyEarned, enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
+                    
+                    // Update story progress
+                    updateStoryProgress();
+                    
                     return false;
                 }
             }
@@ -904,6 +1108,14 @@ function updateUI() {
     // Update wingman count display
     const wingmenElement = document.getElementById('wingmen');
     if (wingmenElement) wingmenElement.textContent = wingmanCount;
+    
+    // Update rank display
+    const rankElement = document.getElementById('rank');
+    if (rankElement) rankElement.textContent = playerRank;
+    
+    // Update mission display
+    const missionElement = document.getElementById('mission');
+    if (missionElement) missionElement.textContent = currentMission;
     
     // Update shield display if shield element exists
     const shieldElement = document.getElementById('shield');

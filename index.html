@@ -22,6 +22,8 @@
             <div class="shield">Shield: <span id="shield">100%</span></div>
             <div class="money">💰 <span id="money">0</span></div>
             <div class="wingmen">🛩️ <span id="wingmen">0</span></div>
+            <div class="rank">🎖️ <span id="rank">Cadet</span></div>
+            <div class="mission">📋 Mission: <span id="mission">1</span></div>
         </div>
         <div id="gameOver" class="game-over hidden">
             <h2>Game Over!</h2>
@@ -35,12 +37,20 @@
         </div>
         <div id="startScreen" class="start-screen">
             <h1>Kaden & Adelynn<br>Space Adventures</h1>
-            <p>Use arrow keys or WASD to move</p>
-            <p>Spacebar or click to shoot</p>
-            <p>Shift to activate shield</p>
-            <p>M to toggle sound</p>
-            <p>B to buy wingman (100 coins)</p>
-            <p>50 Lives • Enemy Ships Shoot Back • Achievements • Money System</p>
+            <div class="story-intro">
+                <p class="story-tagline">🚀 Defend the Galaxy from the Zorath Empire! 🚀</p>
+                <p class="story-brief">Rise from Cadet to Admiral in this epic space adventure. Complete missions, build your squadron, and become a legend!</p>
+            </div>
+            <div class="controls">
+                <p>Use arrow keys or WASD to move</p>
+                <p>Spacebar or click to shoot</p>
+                <p>Shift to activate shield</p>
+                <p>M to toggle sound</p>
+                <p>B to buy wingman (100 coins)</p>
+            </div>
+            <div class="features">
+                <p>50 Lives • Enemy Ships Shoot Back • Achievements • Money System • Story Missions</p>
+            </div>
             <button id="startBtn" class="game-button">
                 <span class="button-text">Start Game</span>
                 <span class="button-icon">🚀</span>
@@ -57,6 +67,6 @@
             });
         }
     </script>
-    <script src="main.js?v=2.2"></script>
+    <script src="main.js?v=2.3"></script>
 </body>
 </html> 
