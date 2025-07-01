@@ -72,6 +72,16 @@ body {
     color: #4a90e2 !important;
     font-weight: bold;
 }
+
+.character {
+    color: #ff69b4 !important;
+    font-weight: bold;
+}
+
+.special {
+    color: #00ff00 !important;
+    font-weight: bold;
+}
 .game-over, .start-screen {
     position: absolute;
     top: 50%;
@@ -131,6 +141,288 @@ body {
     color: #ffd700;
     font-weight: bold;
     margin: 0;
+}
+
+/* Character selection */
+.character-selection {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.character-selection h3 {
+    color: #ffd700;
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 1.4em;
+    text-shadow: 0 1px 2px rgba(255, 215, 0, 0.5);
+}
+
+.character-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.character-card {
+    background: rgba(74, 144, 226, 0.2);
+    border: 2px solid rgba(74, 144, 226, 0.5);
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.character-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(74, 144, 226, 0.4);
+    border-color: #4a90e2;
+}
+
+.character-card.selected {
+    background: rgba(255, 215, 0, 0.2);
+    border-color: #ffd700;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+.character-avatar {
+    font-size: 3em;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.character-card h4 {
+    color: #ffffff;
+    margin: 0 0 5px 0;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.character-card p {
+    color: #4a90e2;
+    margin: 5px 0;
+    font-weight: bold;
+}
+
+.character-desc {
+    color: #cccccc !important;
+    font-size: 0.9em;
+    font-weight: normal !important;
+}
+
+/* Character-specific colors */
+.character-card[data-character="kaden"] {
+    border-color: #4a90e2;
+}
+
+.character-card[data-character="adelynn"] {
+    border-color: #ff69b4;
+}
+
+.character-card[data-character="nova"] {
+    border-color: #00ffff;
+}
+
+.character-card[data-character="blaze"] {
+    border-color: #ff4500;
+}
+
+.character-card[data-character="kaden"]:hover {
+    box-shadow: 0 8px 25px rgba(74, 144, 226, 0.4);
+}
+
+.character-card[data-character="adelynn"]:hover {
+    box-shadow: 0 8px 25px rgba(255, 105, 180, 0.4);
+}
+
+.character-card[data-character="nova"]:hover {
+    box-shadow: 0 8px 25px rgba(0, 255, 255, 0.4);
+}
+
+.character-card[data-character="blaze"]:hover {
+    box-shadow: 0 8px 25px rgba(255, 69, 0, 0.4);
+}
+
+/* Tab Navigation */
+.tab-navigation {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.tab-button {
+    background: rgba(74, 144, 226, 0.2);
+    border: 2px solid rgba(74, 144, 226, 0.5);
+    color: #4a90e2;
+    padding: 12px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    min-width: 100px;
+}
+
+.tab-button:hover {
+    background: rgba(74, 144, 226, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+}
+
+.tab-button.active {
+    background: rgba(255, 215, 0, 0.2);
+    border-color: #ffd700;
+    color: #ffd700;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+}
+
+/* Tab Content */
+.tab-content {
+    margin-bottom: 20px;
+}
+
+.tab-panel {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Story Highlights */
+.story-highlights {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.highlight-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: rgba(255, 215, 0, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.highlight-icon {
+    font-size: 1.5em;
+}
+
+.highlight-text {
+    color: #ffd700;
+    font-weight: bold;
+}
+
+/* Controls Section */
+.controls-section {
+    padding: 20px;
+    background: rgba(74, 144, 226, 0.1);
+    border-radius: 15px;
+    border: 2px solid rgba(74, 144, 226, 0.3);
+}
+
+.controls-section h3 {
+    color: #4a90e2;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1.4em;
+    text-shadow: 0 1px 2px rgba(74, 144, 226, 0.5);
+}
+
+.control-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.control-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.control-key {
+    background: #4a90e2;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 12px;
+    min-width: 60px;
+    text-align: center;
+}
+
+.control-desc {
+    color: #ffffff;
+    font-weight: bold;
+}
+
+/* Features Section */
+.features-section {
+    padding: 20px;
+    background: rgba(255, 215, 0, 0.1);
+    border-radius: 15px;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.features-section h3 {
+    color: #ffd700;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1.4em;
+    text-shadow: 0 1px 2px rgba(255, 215, 0, 0.5);
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+}
+
+.feature-icon {
+    font-size: 1.5em;
+}
+
+.feature-text {
+    color: #ffffff;
+    font-weight: bold;
 }
 .game-over p, .start-screen p {
     margin-bottom: 15px;

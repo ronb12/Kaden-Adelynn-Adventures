@@ -43,6 +43,48 @@ const achievements = {
 
 let earnedAchievements = [];
 
+// Character system
+let selectedCharacter = localStorage.getItem('spaceAdventuresCharacter') || 'kaden';
+
+const CHARACTERS = {
+    kaden: {
+        name: "Kaden",
+        color: '#4a90e2',
+        specialAbility: "Rapid Fire",
+        description: "The fearless leader with enhanced firepower",
+        speed: 8,
+        weaponBonus: 1.2,
+        specialCooldown: 0
+    },
+    adelynn: {
+        name: "Adelynn", 
+        color: '#ff69b4',
+        specialAbility: "Shield Burst",
+        description: "The tactical genius with defensive mastery",
+        speed: 7,
+        shieldBonus: 1.5,
+        specialCooldown: 0
+    },
+    nova: {
+        name: "Nova",
+        color: '#00ffff',
+        specialAbility: "Time Warp",
+        description: "The mysterious pilot with reality-bending powers",
+        speed: 9,
+        timeBonus: 1.3,
+        specialCooldown: 0
+    },
+    blaze: {
+        name: "Blaze",
+        color: '#ff4500',
+        specialAbility: "Inferno Blast",
+        description: "The fiery warrior with explosive attacks",
+        speed: 6,
+        damageBonus: 1.4,
+        specialCooldown: 0
+    }
+};
+
 // Player - Fighter jet design with shield
 const player = {
     x: 400, // Will be updated when canvas loads
@@ -53,7 +95,8 @@ const player = {
     color: '#4a90e2',
     shield: 100,
     shieldRecharge: 0,
-    isShieldActive: false
+    isShieldActive: false,
+    character: selectedCharacter
 };
 
 // Arrays for game objects
@@ -63,6 +106,7 @@ let enemies = [];
 let explosions = [];
 let powerUps = [];
 let wingmen = []; // New array for wingman fighters
+let specialEffects = []; // New array for special ability effects
 
 // Input handling
 const keys = {};
@@ -517,6 +561,124 @@ function updateStoryProgress() {
     checkMissionProgress();
 }
 
+function pauseGame() {
+    gameState = 'paused';
+    cancelAnimationFrame(gameLoop);
+    showNotification('Game Paused - Press P to Resume', 'info');
+}
+
+function resumeGame() {
+    gameState = 'playing';
+    gameLoop = requestAnimationFrame(update);
+    showNotification('Game Resumed!', 'success');
+}
+
+function activateSpecialAbility() {
+    const character = CHARACTERS[player.character];
+    const currentTime = Date.now();
+    
+    if (currentTime - character.specialCooldown < 10000) { // 10 second cooldown
+        const remainingTime = Math.ceil((10000 - (currentTime - character.specialCooldown)) / 1000);
+        showNotification(`Special ability recharging: ${remainingTime}s`, 'warning');
+        return;
+    }
+    
+    character.specialCooldown = currentTime;
+    
+    switch (player.character) {
+        case 'kaden':
+            // Rapid Fire - Triple fire rate for 5 seconds
+            activateRapidFire();
+            break;
+        case 'adelynn':
+            // Shield Burst - Full shield + push enemies away
+            activateShieldBurst();
+            break;
+        case 'nova':
+            // Time Warp - Slow down enemies for 5 seconds
+            activateTimeWarp();
+            break;
+        case 'blaze':
+            // Inferno Blast - Massive explosion damage
+            activateInfernoBlast();
+            break;
+    }
+    
+    showNotification(`${character.name}'s ${character.specialAbility} activated!`, 'success');
+}
+
+function activateRapidFire() {
+    const originalDelay = SHOT_DELAY;
+    const originalRapidDelay = RAPID_FIRE_DELAY;
+    
+    // Temporarily increase fire rate
+    SHOT_DELAY = 50;
+    RAPID_FIRE_DELAY = 30;
+    
+    // Create rapid fire effect
+    specialEffects.push({
+        type: 'rapidFire',
+        duration: 5000,
+        startTime: Date.now(),
+        originalDelay: originalDelay,
+        originalRapidDelay: originalRapidDelay
+    });
+}
+
+function activateShieldBurst() {
+    player.shield = 100;
+    player.isShieldActive = true;
+    
+    // Push enemies away
+    enemies.forEach(enemy => {
+        const dx = enemy.x - player.x;
+        const dy = enemy.y - player.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < 200) {
+            enemy.x += (dx / distance) * 100;
+            enemy.y += (dy / distance) * 100;
+        }
+    });
+    
+    // Create shield burst effect
+    specialEffects.push({
+        type: 'shieldBurst',
+        duration: 3000,
+        startTime: Date.now()
+    });
+}
+
+function activateTimeWarp() {
+    // Slow down enemies
+    enemies.forEach(enemy => {
+        enemy.speed *= 0.3;
+    });
+    
+    // Create time warp effect
+    specialEffects.push({
+        type: 'timeWarp',
+        duration: 5000,
+        startTime: Date.now()
+    });
+}
+
+function activateInfernoBlast() {
+    // Create massive explosion
+    createExplosion(player.x + player.width / 2, player.y + player.height / 2, 100);
+    
+    // Damage all enemies on screen
+    enemies.forEach(enemy => {
+        enemy.health = 0; // Instant kill
+    });
+    
+    // Create inferno effect
+    specialEffects.push({
+        type: 'infernoBlast',
+        duration: 2000,
+        startTime: Date.now()
+    });
+}
+
 // Global event listeners (only set up once)
 if (!window.gameEventListenersInitialized) {
     window.gameEventListenersInitialized = true;
@@ -541,6 +703,20 @@ if (!window.gameEventListenersInitialized) {
         if (e.key === 'b' || e.key === 'B') {
             if (gameState === 'playing') {
                 purchaseWingman();
+            }
+        }
+        // Pause game with 'P' key
+        if (e.key === 'p' || e.key === 'P') {
+            if (gameState === 'playing') {
+                pauseGame();
+            } else if (gameState === 'paused') {
+                resumeGame();
+            }
+        }
+        // Special ability with 'Q' key
+        if (e.key === 'q' || e.key === 'Q') {
+            if (gameState === 'playing') {
+                activateSpecialAbility();
             }
         }
     });
@@ -627,6 +803,7 @@ function startGame() {
     powerUps = [];
     wingmen = [];
     wingmanCount = 0;
+    specialEffects = [];
     
     // Center player with boundary constraints
     player.x = Math.max(PLAYER_MARGIN, Math.min(canvas.width - player.width - PLAYER_MARGIN, canvas.width / 2));
@@ -1042,6 +1219,32 @@ function updateExplosions() {
     });
 }
 
+function updateSpecialEffects() {
+    const currentTime = Date.now();
+    
+    specialEffects = specialEffects.filter(effect => {
+        const elapsed = currentTime - effect.startTime;
+        
+        if (elapsed >= effect.duration) {
+            // Effect expired, restore normal state
+            switch (effect.type) {
+                case 'rapidFire':
+                    SHOT_DELAY = effect.originalDelay;
+                    RAPID_FIRE_DELAY = effect.originalRapidDelay;
+                    break;
+                case 'timeWarp':
+                    // Restore enemy speeds
+                    enemies.forEach(enemy => {
+                        enemy.speed = ENEMY_SPEED + level * 0.8;
+                    });
+                    break;
+            }
+            return false;
+        }
+        return true;
+    });
+}
+
 function checkCollisions() {
     bullets = bullets.filter(bullet => {
         let bulletHit = false;
@@ -1117,6 +1320,30 @@ function updateUI() {
     const missionElement = document.getElementById('mission');
     if (missionElement) missionElement.textContent = currentMission;
     
+    // Update character display
+    const characterElement = document.getElementById('character');
+    if (characterElement) {
+        const character = CHARACTERS[player.character];
+        characterElement.textContent = character.name;
+    }
+    
+    // Update special ability display
+    const specialElement = document.getElementById('special');
+    if (specialElement) {
+        const character = CHARACTERS[player.character];
+        const currentTime = Date.now();
+        const cooldownRemaining = Math.max(0, 10000 - (currentTime - character.specialCooldown));
+        
+        if (cooldownRemaining > 0) {
+            const seconds = Math.ceil(cooldownRemaining / 1000);
+            specialElement.textContent = `${seconds}s`;
+            specialElement.style.color = '#ff8800';
+        } else {
+            specialElement.textContent = 'Ready';
+            specialElement.style.color = '#00ff00';
+        }
+    }
+    
     // Update shield display if shield element exists
     const shieldElement = document.getElementById('shield');
     if (shieldElement) {
@@ -1168,6 +1395,14 @@ function render() {
     explosions.forEach(explosion => {
         drawExplosion(explosion);
     });
+    
+    // Draw special effects
+    drawSpecialEffects();
+    
+    // Draw pause overlay
+    if (gameState === 'paused') {
+        drawPauseOverlay();
+    }
 }
 
 function drawBullet(bullet) {
@@ -1539,6 +1774,55 @@ function drawStars() {
     }
 }
 
+function drawSpecialEffects() {
+    specialEffects.forEach(effect => {
+        switch (effect.type) {
+            case 'rapidFire':
+                // Draw rapid fire indicator
+                ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                break;
+            case 'shieldBurst':
+                // Draw shield burst effect
+                ctx.save();
+                ctx.globalAlpha = 0.5;
+                ctx.strokeStyle = '#00ffff';
+                ctx.lineWidth = 5;
+                ctx.beginPath();
+                ctx.arc(player.x + player.width/2, player.y + player.height/2, 150, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+                break;
+            case 'timeWarp':
+                // Draw time warp effect
+                ctx.fillStyle = 'rgba(0, 255, 255, 0.2)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                break;
+            case 'infernoBlast':
+                // Draw inferno effect
+                ctx.fillStyle = 'rgba(255, 69, 0, 0.4)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                break;
+        }
+    });
+}
+
+function drawPauseOverlay() {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '48px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2 - 50);
+    
+    ctx.font = '24px Arial';
+    ctx.fillText('Press P to Resume', canvas.width / 2, canvas.height / 2 + 20);
+    
+    ctx.font = '18px Arial';
+    ctx.fillText('Press Q for Special Ability', canvas.width / 2, canvas.height / 2 + 60);
+}
+
 function update() {
     if (gameState !== 'playing') return;
     
@@ -1549,6 +1833,7 @@ function update() {
     updatePowerUps();
     updateWingmen();
     updateExplosions();
+    updateSpecialEffects();
     checkCollisions();
     updateLevel();
     updateUI();
@@ -1639,6 +1924,12 @@ function initializeGameElements() {
         isMouseDown = false;
     });
     
+    // Set up character selection
+    setupCharacterSelection();
+    
+    // Set up tab navigation
+    setupTabNavigation();
+    
     console.log('Canvas event listeners set up');
     
     // Initialize UI
@@ -1649,6 +1940,60 @@ function initializeGameElements() {
     if (highScoreElement) highScoreElement.textContent = highScore;
     
     return true;
+}
+
+function setupCharacterSelection() {
+    const characterCards = document.querySelectorAll('.character-card');
+    
+    // Set initial selection
+    characterCards.forEach(card => {
+        if (card.dataset.character === selectedCharacter) {
+            card.classList.add('selected');
+        }
+        
+        card.addEventListener('click', () => {
+            // Remove previous selection
+            characterCards.forEach(c => c.classList.remove('selected'));
+            
+            // Add selection to clicked card
+            card.classList.add('selected');
+            
+            // Update selected character
+            selectedCharacter = card.dataset.character;
+            player.character = selectedCharacter;
+            player.color = CHARACTERS[selectedCharacter].color;
+            player.speed = CHARACTERS[selectedCharacter].speed;
+            
+            // Save selection
+            localStorage.setItem('spaceAdventuresCharacter', selectedCharacter);
+            
+            // Show character info
+            const character = CHARACTERS[selectedCharacter];
+            showNotification(`Selected ${character.name}: ${character.specialAbility}`, 'info');
+        });
+    });
+}
+
+function setupTabNavigation() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabPanels = document.querySelectorAll('.tab-panel');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetTab = button.dataset.tab;
+            
+            // Remove active class from all buttons and panels
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabPanels.forEach(panel => panel.classList.remove('active'));
+            
+            // Add active class to clicked button and corresponding panel
+            button.classList.add('active');
+            const targetPanel = document.getElementById(`${targetTab}-tab`);
+            if (targetPanel) {
+                targetPanel.classList.add('active');
+            }
+        });
+    });
 }
 
 // Wait for DOM to be ready

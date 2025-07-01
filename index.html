@@ -24,6 +24,8 @@
             <div class="wingmen">🛩️ <span id="wingmen">0</span></div>
             <div class="rank">🎖️ <span id="rank">Cadet</span></div>
             <div class="mission">📋 Mission: <span id="mission">1</span></div>
+            <div class="character">👤 <span id="character">Kaden</span></div>
+            <div class="special">⚡ <span id="special">Ready</span></div>
         </div>
         <div id="gameOver" class="game-over hidden">
             <h2>Game Over!</h2>
@@ -37,20 +39,156 @@
         </div>
         <div id="startScreen" class="start-screen">
             <h1>Kaden & Adelynn<br>Space Adventures</h1>
-            <div class="story-intro">
-                <p class="story-tagline">🚀 Defend the Galaxy from the Zorath Empire! 🚀</p>
-                <p class="story-brief">Rise from Cadet to Admiral in this epic space adventure. Complete missions, build your squadron, and become a legend!</p>
+            
+            <!-- Tab Navigation -->
+            <div class="tab-navigation">
+                <button class="tab-button active" data-tab="story">📖 Story</button>
+                <button class="tab-button" data-tab="characters">👥 Characters</button>
+                <button class="tab-button" data-tab="controls">🎮 Controls</button>
+                <button class="tab-button" data-tab="features">⭐ Features</button>
             </div>
-            <div class="controls">
-                <p>Use arrow keys or WASD to move</p>
-                <p>Spacebar or click to shoot</p>
-                <p>Shift to activate shield</p>
-                <p>M to toggle sound</p>
-                <p>B to buy wingman (100 coins)</p>
+            
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Story Tab -->
+                <div class="tab-panel active" id="story-tab">
+                    <div class="story-intro">
+                        <p class="story-tagline">🚀 Defend the Galaxy from the Zorath Empire! 🚀</p>
+                        <p class="story-brief">Rise from Cadet to Admiral in this epic space adventure. Complete missions, build your squadron, and become a legend!</p>
+                    </div>
+                    <div class="story-highlights">
+                        <div class="highlight-item">
+                            <span class="highlight-icon">🎖️</span>
+                            <span class="highlight-text">5 Epic Missions</span>
+                        </div>
+                        <div class="highlight-item">
+                            <span class="highlight-icon">🏆</span>
+                            <span class="highlight-text">Rank Progression</span>
+                        </div>
+                        <div class="highlight-item">
+                            <span class="highlight-icon">💰</span>
+                            <span class="highlight-text">Money System</span>
+                        </div>
+                        <div class="highlight-item">
+                            <span class="highlight-icon">🛩️</span>
+                            <span class="highlight-text">Wingman Squadrons</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Characters Tab -->
+                <div class="tab-panel" id="characters-tab">
+                    <div class="character-selection">
+                        <h3>Choose Your Hero:</h3>
+                        <div class="character-grid">
+                            <div class="character-card" data-character="kaden">
+                                <div class="character-avatar">👨‍🚀</div>
+                                <h4>Kaden</h4>
+                                <p>Rapid Fire</p>
+                                <p class="character-desc">Enhanced firepower</p>
+                            </div>
+                            <div class="character-card" data-character="adelynn">
+                                <div class="character-avatar">👩‍🚀</div>
+                                <h4>Adelynn</h4>
+                                <p>Shield Burst</p>
+                                <p class="character-desc">Defensive mastery</p>
+                            </div>
+                            <div class="character-card" data-character="nova">
+                                <div class="character-avatar">👾</div>
+                                <h4>Nova</h4>
+                                <p>Time Warp</p>
+                                <p class="character-desc">Reality-bending powers</p>
+                            </div>
+                            <div class="character-card" data-character="blaze">
+                                <div class="character-avatar">🔥</div>
+                                <h4>Blaze</h4>
+                                <p>Inferno Blast</p>
+                                <p class="character-desc">Explosive attacks</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Controls Tab -->
+                <div class="tab-panel" id="controls-tab">
+                    <div class="controls-section">
+                        <h3>🎮 Game Controls</h3>
+                        <div class="control-grid">
+                            <div class="control-item">
+                                <span class="control-key">↑↓←→</span>
+                                <span class="control-desc">Move Ship</span>
+                            </div>
+                            <div class="control-item">
+                                <span class="control-key">SPACE</span>
+                                <span class="control-desc">Shoot</span>
+                            </div>
+                            <div class="control-item">
+                                <span class="control-key">SHIFT</span>
+                                <span class="control-desc">Activate Shield</span>
+                            </div>
+                            <div class="control-item">
+                                <span class="control-key">Q</span>
+                                <span class="control-desc">Special Ability</span>
+                            </div>
+                            <div class="control-item">
+                                <span class="control-key">P</span>
+                                <span class="control-desc">Pause Game</span>
+                            </div>
+                            <div class="control-item">
+                                <span class="control-key">B</span>
+                                <span class="control-desc">Buy Wingman</span>
+                            </div>
+                            <div class="control-item">
+                                <span class="control-key">M</span>
+                                <span class="control-desc">Toggle Sound</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Features Tab -->
+                <div class="tab-panel" id="features-tab">
+                    <div class="features-section">
+                        <h3>⭐ Game Features</h3>
+                        <div class="feature-grid">
+                            <div class="feature-item">
+                                <span class="feature-icon">❤️</span>
+                                <span class="feature-text">50 Lives</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">🎯</span>
+                                <span class="feature-text">Enemy Ships Shoot Back</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">🏆</span>
+                                <span class="feature-text">Achievement System</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">💰</span>
+                                <span class="feature-text">Money & Economy</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">📋</span>
+                                <span class="feature-text">Story Missions</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">⚡</span>
+                                <span class="feature-text">Special Abilities</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">🛩️</span>
+                                <span class="feature-text">Wingman System</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">🎖️</span>
+                                <span class="feature-text">Rank Progression</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="features">
-                <p>50 Lives • Enemy Ships Shoot Back • Achievements • Money System • Story Missions</p>
-            </div>
+            
+            <!-- Start Button -->
             <button id="startBtn" class="game-button">
                 <span class="button-text">Start Game</span>
                 <span class="button-icon">🚀</span>
@@ -67,6 +205,6 @@
             });
         }
     </script>
-    <script src="main.js?v=2.3"></script>
+    <script src="main.js?v=2.5"></script>
 </body>
 </html> 
