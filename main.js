@@ -1,4 +1,4 @@
-// Version 3.0 - Added 20 epic missions with boss battles, triangle fighter jets, enhanced UI, and fun for kids!
+// Version 3.1 - Added full mobile support with touch controls, iOS optimization, and responsive design!
 // Game variables - Will be initialized after DOM loads
 let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, startScreen, finalScoreElement, restartBtn, startBtn;
 
@@ -962,7 +962,8 @@ function wingmanShoot(wingman) {
 }
 
 function spawnEnemy() {
-    if (Math.random() < ENEMY_SPAWN_RATE) {
+    const spawnRate = isMobile ? (window.enemySpawnRate || 0.02) : ENEMY_SPAWN_RATE;
+    if (Math.random() < spawnRate) {
         const currentMission = STORY_MISSIONS[currentMission] || STORY_MISSIONS[1];
         const isBossMission = currentMission.boss;
         
@@ -1015,7 +1016,8 @@ function spawnEnemy() {
 }
 
 function spawnPowerUp() {
-    if (Math.random() < POWERUP_SPAWN_RATE) {
+    const spawnRate = isMobile ? (window.powerUpSpawnRate || 0.005) : POWERUP_SPAWN_RATE;
+    if (Math.random() < spawnRate) {
         const type = Math.random() < 0.5 ? 'health' : 'weapon';
         powerUps.push({
             x: Math.random() * (canvas.width - 20),
@@ -1930,7 +1932,8 @@ function drawExplosion(explosion) {
 
 function drawStars() {
     ctx.fillStyle = '#fff';
-    for (let i = 0; i < 50; i++) {
+    const starCount = isMobile ? (window.maxStars || 25) : 50;
+    for (let i = 0; i < starCount; i++) {
         const x = (i * 37) % canvas.width;
         const y = (i * 73 + Date.now() * 0.01) % canvas.height;
         ctx.fillRect(x, y, 1, 1);
@@ -1979,11 +1982,17 @@ function drawPauseOverlay() {
     ctx.textAlign = 'center';
     ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2 - 50);
     
-    ctx.font = '24px Arial';
-    ctx.fillText('Press P to Resume', canvas.width / 2, canvas.height / 2 + 20);
-    
-    ctx.font = '18px Arial';
-    ctx.fillText('Press Q for Special Ability', canvas.width / 2, canvas.height / 2 + 60);
+    if (isMobile) {
+        ctx.font = '20px Arial';
+        ctx.fillText('Tap to Resume', canvas.width / 2, canvas.height / 2 + 20);
+        ctx.font = '16px Arial';
+        ctx.fillText('Double tap for Special Ability', canvas.width / 2, canvas.height / 2 + 50);
+    } else {
+        ctx.font = '24px Arial';
+        ctx.fillText('Press P to Resume', canvas.width / 2, canvas.height / 2 + 20);
+        ctx.font = '18px Arial';
+        ctx.fillText('Press Q for Special Ability', canvas.width / 2, canvas.height / 2 + 60);
+    }
 }
 
 function update() {
@@ -2007,6 +2016,107 @@ function update() {
     render();
     
     gameLoop = requestAnimationFrame(update);
+}
+
+// Touch controls for mobile devices
+let touchControls = {
+    isActive: false,
+    startX: 0,
+    startY: 0,
+    currentX: 0,
+    currentY: 0,
+    isShooting: false,
+    shootInterval: null,
+    lastTapTime: 0,
+    tapCount: 0
+};
+
+// Initialize touch controls
+function initTouchControls() {
+    if (!canvas) return;
+    
+    // Touch start
+    canvas.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        if (gameState !== 'playing') return;
+        
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        const currentTime = Date.now();
+        
+        // Check for double tap
+        if (currentTime - touchControls.lastTapTime < 300) {
+            touchControls.tapCount++;
+            if (touchControls.tapCount === 2) {
+                // Double tap detected - activate special ability
+                activateSpecialAbility();
+                touchControls.tapCount = 0;
+                return;
+            }
+        } else {
+            touchControls.tapCount = 1;
+        }
+        touchControls.lastTapTime = currentTime;
+        
+        touchControls.isActive = true;
+        touchControls.startX = touch.clientX - rect.left;
+        touchControls.startY = touch.clientY - rect.top;
+        touchControls.currentX = touchControls.startX;
+        touchControls.currentY = touchControls.startY;
+        
+        // Start shooting on touch
+        if (!touchControls.isShooting) {
+            touchControls.isShooting = true;
+            touchControls.shootInterval = setInterval(() => {
+                if (gameState === 'playing' && touchControls.isShooting) {
+                    shoot();
+                }
+            }, 200); // Shoot every 200ms while touching
+        }
+    }, { passive: false });
+    
+    // Touch move
+    canvas.addEventListener('touchmove', function(e) {
+        e.preventDefault();
+        if (gameState !== 'playing' || !touchControls.isActive) return;
+        
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        touchControls.currentX = touch.clientX - rect.left;
+        touchControls.currentY = touch.clientY - rect.top;
+        
+        // Update player position based on touch
+        const canvasScaleX = canvas.width / rect.width;
+        const canvasScaleY = canvas.height / rect.height;
+        
+        player.x = (touchControls.currentX * canvasScaleX) - (player.width / 2);
+        player.y = (touchControls.currentY * canvasScaleY) - (player.height / 2);
+        
+        // Keep player within bounds
+        player.x = Math.max(PLAYER_MARGIN, Math.min(canvas.width - player.width - PLAYER_MARGIN, player.x));
+        player.y = Math.max(PLAYER_MARGIN, Math.min(canvas.height - player.height - PLAYER_MARGIN, player.y));
+    }, { passive: false });
+    
+    // Touch end
+    canvas.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        if (gameState !== 'playing') return;
+        
+        touchControls.isActive = false;
+        touchControls.isShooting = false;
+        
+        if (touchControls.shootInterval) {
+            clearInterval(touchControls.shootInterval);
+            touchControls.shootInterval = null;
+        }
+    }, { passive: false });
+    
+    // Prevent context menu on long press
+    canvas.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+    });
+    
+    console.log('Touch controls initialized for mobile devices');
 }
 
 // Initialize game elements after DOM loads
@@ -2087,21 +2197,16 @@ function initializeGameElements() {
         isMouseDown = false;
     });
     
+    // Initialize touch controls for mobile devices
+    initTouchControls();
+    
     // Set up character selection
     setupCharacterSelection();
     
     // Set up tab navigation
     setupTabNavigation();
     
-    console.log('Canvas event listeners set up');
-    
-    // Initialize UI
-    updateUI();
-    
-    // Initialize high score display
-    const highScoreElement = document.getElementById('highScore');
-    if (highScoreElement) highScoreElement.textContent = highScore;
-    
+    console.log('=== GAME INITIALIZATION COMPLETE ===');
     return true;
 }
 
@@ -2170,4 +2275,44 @@ if (document.readyState === 'loading') {
     if (initializeGameElements()) {
         setupButtonListeners();
     }
+} 
+
+// Mobile device detection and optimization
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+// Optimize for mobile devices
+if (isMobile) {
+    console.log('Mobile device detected, optimizing game...');
+    
+    // Reduce particle effects for better performance
+    const MOBILE_OPTIMIZATIONS = {
+        maxStars: 25, // Reduced from 50
+        maxExplosions: 5, // Reduced from 10
+        bulletSpeed: 10, // Slightly reduced
+        enemySpawnRate: 0.02, // Reduced from 0.03
+        powerUpSpawnRate: 0.005 // Reduced from 0.008
+    };
+    
+    // Apply mobile optimizations
+    Object.assign(window, MOBILE_OPTIMIZATIONS);
+}
+
+if (isIOS) {
+    console.log('iOS device detected, applying iOS-specific optimizations...');
+    
+    // iOS-specific optimizations
+    document.addEventListener('touchstart', function(e) {
+        // Prevent zoom on double tap
+        if (e.touches.length > 1) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+    
+    // Prevent pull-to-refresh
+    document.addEventListener('touchmove', function(e) {
+        if (e.touches.length > 1) {
+            e.preventDefault();
+        }
+    }, { passive: false });
 } 
