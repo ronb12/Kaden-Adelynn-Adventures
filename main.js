@@ -2357,3 +2357,43 @@ document.addEventListener('DOMContentLoaded', () => {
 // Also call after initializing game elements
 // (add this at the end of initializeGameElements)
 // resizeCanvas();
+
+// Mobile tab bar navigation
+function setupMobileTabBar() {
+    const tabBar = document.querySelector('.mobile-tab-bar');
+    if (!tabBar) return;
+    const tabButtons = tabBar.querySelectorAll('.mobile-tab-btn');
+    tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Remove selected from all
+            tabButtons.forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            // Switch tab
+            const tab = btn.getAttribute('data-tab');
+            if (tab === 'story') {
+                // Show start screen (home)
+                if (startScreen) {
+                    startScreen.classList.remove('hidden');
+                    window.scrollTo(0, 0);
+                }
+            } else {
+                // Show start screen and switch to tab
+                if (startScreen) {
+                    startScreen.classList.remove('hidden');
+                    // Switch tab
+                    const tabBtns = document.querySelectorAll('.tab-button');
+                    tabBtns.forEach(tb => {
+                        if (tb.getAttribute('data-tab') === tab) {
+                            tb.click();
+                        }
+                    });
+                    window.scrollTo(0, 0);
+                }
+            }
+        });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    setupMobileTabBar();
+});

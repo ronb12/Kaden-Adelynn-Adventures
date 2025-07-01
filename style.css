@@ -1071,4 +1071,43 @@ button:active {
     color: #ff69b4 !important;
     border-color: #ff69b4 !important;
     background: rgba(255, 105, 180, 0.15) !important;
+}
+
+.mobile-tab-bar {
+    display: none;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    background: rgba(20, 20, 40, 0.98);
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.3);
+    z-index: 1002;
+    padding: 0.2em 0;
+    justify-content: space-around;
+    align-items: center;
+    gap: 0.2em;
+}
+.mobile-tab-btn {
+    flex: 1 1 20%;
+    background: none;
+    border: none;
+    color: #ffd700;
+    font-size: 2em;
+    padding: 0.3em 0.2em;
+    margin: 0 0.2em;
+    border-radius: 12px;
+    transition: background 0.2s;
+}
+.mobile-tab-btn:active, .mobile-tab-btn.selected {
+    background: #4a90e2;
+    color: #fff;
+}
+@media (max-width: 850px) {
+    .mobile-tab-bar {
+        display: flex;
+    }
+    body {
+        padding-bottom: 60px;
+    }
 } 
