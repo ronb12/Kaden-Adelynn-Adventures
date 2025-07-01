@@ -14,18 +14,24 @@
         <canvas id="gameCanvas" width="800" height="600"></canvas>
         <div class="ui-overlay">
             <div class="score">Score: <span id="score">0</span></div>
-            <div class="high-score">High Score: <span id="highScore">0</span></div>
+            <div class="high-score">🏆 High Score: <span id="highScore">0</span></div>
             <div class="lives">Lives: <span id="lives">50</span></div>
             <div class="level">Level: <span id="level">1</span></div>
-            <div class="weapon">Weapon: <span id="weapon">1</span></div>
-            <div class="sound">Sound: <span id="sound">ON</span></div>
-            <div class="shield">Shield: <span id="shield">100%</span></div>
+            <div class="weapon">🔫 Weapon: <span id="weaponLevel">1</span></div>
+            <div class="sound">🔊 Sound: <span id="soundStatus">ON</span></div>
+            <div class="shield">🛡️ Shield: <span id="shieldLevel">100%</span></div>
             <div class="money">💰 <span id="money">0</span></div>
-            <div class="wingmen">🛩️ <span id="wingmen">0</span></div>
-            <div class="rank">🎖️ <span id="rank">Cadet</span></div>
-            <div class="mission">📋 Mission: <span id="mission">1</span></div>
-            <div class="character">👤 <span id="character">Kaden</span></div>
-            <div class="special">⚡ <span id="special">Ready</span></div>
+            <div class="wingmen">🛩️ Wingmen: <span id="wingmanCount">0/4</span></div>
+            <div class="character-info" id="characterInfo">
+                <div class="character-name">Kaden</div>
+                <div class="character-ability">Rapid Fire</div>
+            </div>
+            <div class="mission-info" id="currentMission">
+                <div class="mission-title">🚀 Training Day</div>
+                <div class="mission-objective">Destroy 5 enemy ships</div>
+                <div class="mission-progress">Progress: 0/5</div>
+            </div>
+            <div class="pause-status" id="pauseStatus"></div>
         </div>
         <div id="gameOver" class="game-over hidden">
             <h2>Game Over!</h2>
@@ -59,11 +65,11 @@
                     <div class="story-highlights">
                         <div class="highlight-item">
                             <span class="highlight-icon">🎖️</span>
-                            <span class="highlight-text">5 Epic Missions</span>
+                            <span class="highlight-text">20 Epic Missions</span>
                         </div>
                         <div class="highlight-item">
-                            <span class="highlight-icon">🏆</span>
-                            <span class="highlight-text">Rank Progression</span>
+                            <span class="highlight-icon">👾</span>
+                            <span class="highlight-text">Epic Boss Battles</span>
                         </div>
                         <div class="highlight-item">
                             <span class="highlight-icon">💰</span>
@@ -72,6 +78,14 @@
                         <div class="highlight-item">
                             <span class="highlight-icon">🛩️</span>
                             <span class="highlight-text">Wingman Squadrons</span>
+                        </div>
+                        <div class="highlight-item">
+                            <span class="highlight-icon">⚡</span>
+                            <span class="highlight-text">Special Abilities</span>
+                        </div>
+                        <div class="highlight-item">
+                            <span class="highlight-icon">🏆</span>
+                            <span class="highlight-text">Achievements</span>
                         </div>
                     </div>
                 </div>

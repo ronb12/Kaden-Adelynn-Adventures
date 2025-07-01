@@ -1,4 +1,4 @@
-// Version 2.0 - Added missile sounds, enemy shooting, 50 lives, achievements, scoring board, and enhanced weapons
+// Version 3.0 - Added 20 epic missions with boss battles, triangle fighter jets, enhanced UI, and fun for kids!
 // Game variables - Will be initialized after DOM loads
 let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, startScreen, finalScoreElement, restartBtn, startBtn;
 
@@ -139,53 +139,28 @@ let playerRank = localStorage.getItem('spaceAdventuresPlayerRank') || 'Cadet';
 let storyUnlocked = JSON.parse(localStorage.getItem('spaceAdventuresStoryUnlocked')) || false;
 let storyNotificationsEnabled = JSON.parse(localStorage.getItem('spaceAdventuresStoryNotifications')) !== false; // Default to true
 
-// Story missions
+// Story missions - 20 exciting missions for kids!
 const STORY_MISSIONS = {
-    1: {
-        title: "The Awakening",
-        description: "Cadet, you've been chosen for a critical mission. The Zorath Empire has invaded our galaxy. Your training begins now.",
-        objective: "Destroy 10 enemy ships",
-        target: 10,
-        reward: "Promotion to Ensign + 50 coins",
-        enemyType: "Scout",
-        background: "Training simulation"
-    },
-    2: {
-        title: "First Contact",
-        description: "Real combat awaits. The Zorath have established a blockade around Sector Alpha. Break through and establish a foothold.",
-        objective: "Destroy 25 enemy ships",
-        target: 25,
-        reward: "Promotion to Lieutenant + 100 coins",
-        enemyType: "Interceptor",
-        background: "Sector Alpha"
-    },
-    3: {
-        title: "The Battle of Nebula Prime",
-        description: "A massive Zorath fleet has been spotted near Nebula Prime. This is your chance to prove yourself as a true warrior.",
-        objective: "Destroy 50 enemy ships",
-        target: 50,
-        reward: "Promotion to Captain + 200 coins",
-        enemyType: "Destroyer",
-        background: "Nebula Prime"
-    },
-    4: {
-        title: "Wingman Initiative",
-        description: "The Admiral has approved the Wingman Initiative. Recruit AI pilots to form your squadron. The Zorath won't know what hit them.",
-        objective: "Purchase 2 wingmen",
-        target: 2,
-        reward: "Squadron Leader + 300 coins",
-        enemyType: "Battleship",
-        background: "Deep Space"
-    },
-    5: {
-        title: "The Siege of Zorath Prime",
-        description: "We're taking the fight to their homeworld. The fate of the galaxy rests on your shoulders, Commander.",
-        objective: "Destroy 100 enemy ships",
-        target: 100,
-        reward: "Promotion to Admiral + 500 coins",
-        enemyType: "Dreadnought",
-        background: "Zorath Prime"
-    }
+    1: { title: "🚀 Training Day", description: "Welcome to the Space Academy! Learn to fly your awesome triangle fighter jet!", objective: "Destroy 5 enemy ships", target: 5, reward: "Cadet Badge + 25 coins", enemyType: "Training Drones", background: "Space Academy", boss: false },
+    2: { title: "⚡ First Flight", description: "Time for your first real mission! Show them what you've got!", objective: "Destroy 10 enemy ships", target: 10, reward: "Ensign Rank + 50 coins", enemyType: "Scout Fighters", background: "Sector Alpha", boss: false },
+    3: { title: "🎯 Target Practice", description: "The Zorath are invading! Time to defend our space!", objective: "Destroy 15 enemy ships", target: 15, reward: "Lieutenant Rank + 75 coins", enemyType: "Interceptor Squad", background: "Defense Zone", boss: false },
+    4: { title: "🔥 Hot Pursuit", description: "Chase down the enemy fighters! Don't let them escape!", objective: "Destroy 20 enemy ships", target: 20, reward: "Captain Rank + 100 coins", enemyType: "Pursuit Fighters", background: "Asteroid Belt", boss: false },
+    5: { title: "👾 BOSS BATTLE: Drone Commander", description: "A massive enemy commander has appeared! This is your first boss fight!", objective: "Defeat the Boss", target: 1, reward: "Boss Slayer + 200 coins", enemyType: "Boss Enemy", background: "Boss Arena", boss: true },
+    6: { title: "🛩️ Wingman Time!", description: "You've earned your first wingman! Build your squadron!", objective: "Purchase 1 wingman", target: 1, reward: "Squadron Leader + 150 coins", enemyType: "Elite Fighters", background: "Deep Space", boss: false },
+    7: { title: "💥 Explosive Action", description: "The enemy is getting tougher! Use your special abilities!", objective: "Destroy 30 enemy ships", target: 30, reward: "Combat Expert + 125 coins", enemyType: "Heavy Fighters", background: "Nebula Zone", boss: false },
+    8: { title: "🌟 Star Defender", description: "Protect the star system from invasion!", objective: "Destroy 35 enemy ships", target: 35, reward: "Star Defender + 150 coins", enemyType: "Invasion Force", background: "Star System", boss: false },
+    9: { title: "⚔️ BOSS BATTLE: Battle Cruiser", description: "A massive battle cruiser is attacking! Take it down!", objective: "Defeat the Boss", target: 1, reward: "Cruiser Destroyer + 300 coins", enemyType: "Boss Enemy", background: "Boss Arena", boss: true },
+    10: { title: "🛸 Fleet Commander", description: "You're leading the fleet now! Show your leadership!", objective: "Purchase 2 wingmen", target: 2, reward: "Fleet Commander + 200 coins", enemyType: "Fleet Attack", background: "Fleet Battle", boss: false },
+    11: { title: "🌌 Galactic Hero", description: "You're becoming a legend! The galaxy needs you!", objective: "Destroy 50 enemy ships", target: 50, reward: "Galactic Hero + 250 coins", enemyType: "Elite Squadron", background: "Galactic Core", boss: false },
+    12: { title: "🔥 BOSS BATTLE: Fire Lord", description: "The Fire Lord has appeared! This is an epic battle!", objective: "Defeat the Boss", target: 1, reward: "Fire Slayer + 400 coins", enemyType: "Boss Enemy", background: "Fire Realm", boss: true },
+    13: { title: "⚡ Speed Demon", description: "Ultra-fast enemies! Can you keep up?", objective: "Destroy 60 enemy ships", target: 60, reward: "Speed Demon + 300 coins", enemyType: "Speed Fighters", background: "Speed Zone", boss: false },
+    14: { title: "🛡️ Shield Master", description: "Enemies with shields! Break through their defenses!", objective: "Destroy 70 enemy ships", target: 70, reward: "Shield Master + 350 coins", enemyType: "Shielded Fighters", background: "Shield Zone", boss: false },
+    15: { title: "👑 BOSS BATTLE: Space King", description: "The Space King himself! The ultimate challenge!", objective: "Defeat the Boss", target: 1, reward: "King Slayer + 500 coins", enemyType: "Boss Enemy", background: "Royal Arena", boss: true },
+    16: { title: "🚀 Ultimate Squadron", description: "Build the ultimate squadron! Maximum firepower!", objective: "Purchase 4 wingmen", target: 4, reward: "Ultimate Commander + 400 coins", enemyType: "Ultimate Force", background: "Ultimate Zone", boss: false },
+    17: { title: "💫 Star Legend", description: "You're a legend now! The final challenge awaits!", objective: "Destroy 100 enemy ships", target: 100, reward: "Star Legend + 500 coins", enemyType: "Legendary Force", background: "Legend Zone", boss: false },
+    18: { title: "🌠 BOSS BATTLE: Cosmic Emperor", description: "The Cosmic Emperor! The most powerful enemy ever!", objective: "Defeat the Boss", target: 1, reward: "Emperor Slayer + 750 coins", enemyType: "Boss Enemy", background: "Cosmic Arena", boss: true },
+    19: { title: "🏆 Championship", description: "The final championship! Prove you're the best!", objective: "Destroy 150 enemy ships", target: 150, reward: "Champion + 1000 coins", enemyType: "Championship Force", background: "Championship Arena", boss: false },
+    20: { title: "👑 BOSS BATTLE: Galaxy Master", description: "The final boss! The Galaxy Master awaits! Can you become the ultimate hero?", objective: "Defeat the Final Boss", target: 1, reward: "Galaxy Master + 2000 coins", enemyType: "Final Boss", background: "Final Arena", boss: true }
 };
 
 // Enhanced weapon system with rapid fire
@@ -468,92 +443,86 @@ function showStoryNotification(title, message, type = 'story') {
 }
 
 function checkMissionProgress() {
-    if (currentMission > 5) return; // All missions completed
-    
     const mission = STORY_MISSIONS[currentMission];
-    let progress = 0;
-    let completed = false;
+    if (!mission) return;
     
-    if (mission.objective.includes('Destroy')) {
-        progress = totalEnemiesDestroyed;
-        if (progress >= mission.target) {
-            completed = true;
+    let missionComplete = false;
+    
+    if (mission.boss) {
+        // Boss mission - check if boss is defeated
+        const bossDefeated = !enemies.some(enemy => enemy.isBoss);
+        if (bossDefeated && missionProgress >= mission.target) {
+            missionComplete = true;
         }
-    } else if (mission.objective.includes('Purchase')) {
-        progress = totalWingmenPurchased;
-        if (progress >= mission.target) {
-            completed = true;
+    } else {
+        // Regular mission - check target
+        if (mission.objective.includes('Destroy')) {
+            // Destroy mission
+            if (missionProgress >= mission.target) {
+                missionComplete = true;
+            }
+        } else if (mission.objective.includes('Purchase')) {
+            // Purchase mission
+            if (totalWingmenPurchased >= mission.target) {
+                missionComplete = true;
+            }
         }
     }
     
-    if (completed) {
+    if (missionComplete) {
         completeMission();
     }
 }
 
 function completeMission() {
     const mission = STORY_MISSIONS[currentMission];
+    if (!mission) return;
     
-    // Give rewards
-    if (mission.reward.includes('coins')) {
-        const coinMatch = mission.reward.match(/(\d+) coins/);
-        if (coinMatch) {
-            const coins = parseInt(coinMatch[1]);
-            money += coins;
-            showMoneyNotification(coins, canvas.width / 2, canvas.height / 2);
-        }
-    }
+    // Calculate rewards
+    let coinReward = 0;
+    if (mission.reward.includes('25 coins')) coinReward = 25;
+    else if (mission.reward.includes('50 coins')) coinReward = 50;
+    else if (mission.reward.includes('75 coins')) coinReward = 75;
+    else if (mission.reward.includes('100 coins')) coinReward = 100;
+    else if (mission.reward.includes('125 coins')) coinReward = 125;
+    else if (mission.reward.includes('150 coins')) coinReward = 150;
+    else if (mission.reward.includes('200 coins')) coinReward = 200;
+    else if (mission.reward.includes('250 coins')) coinReward = 250;
+    else if (mission.reward.includes('300 coins')) coinReward = 300;
+    else if (mission.reward.includes('350 coins')) coinReward = 350;
+    else if (mission.reward.includes('400 coins')) coinReward = 400;
+    else if (mission.reward.includes('500 coins')) coinReward = 500;
+    else if (mission.reward.includes('750 coins')) coinReward = 750;
+    else if (mission.reward.includes('1000 coins')) coinReward = 1000;
+    else if (mission.reward.includes('2000 coins')) coinReward = 2000;
     
-    // Update rank
-    if (mission.reward.includes('Promotion')) {
-        const rankMatch = mission.reward.match(/Promotion to (\w+)/);
-        if (rankMatch) {
-            playerRank = rankMatch[1];
-            localStorage.setItem('spaceAdventuresPlayerRank', playerRank);
-        }
-    } else if (mission.reward.includes('Squadron Leader')) {
-        playerRank = 'Squadron Leader';
-        localStorage.setItem('spaceAdventuresPlayerRank', playerRank);
-    } else if (mission.reward.includes('Admiral')) {
-        playerRank = 'Admiral';
-        localStorage.setItem('spaceAdventuresPlayerRank', playerRank);
-    }
+    // Add rewards
+    money += coinReward;
+    score += coinReward * 10;
     
     // Show completion notification
-    showStoryNotification(
-        `🎖️ Mission Complete: ${mission.title}`,
-        `Congratulations! You've been promoted to ${playerRank}! ${mission.reward}`,
-        'success'
-    );
+    const title = mission.boss ? "🎉 BOSS MISSION COMPLETE!" : "🎉 MISSION COMPLETE!";
+    const message = `${mission.title}\nReward: ${coinReward} coins`;
+    showStoryNotification(title, message, 'achievement');
     
-    // Progress to next mission
+    // Update progress
     currentMission++;
     missionProgress = 0;
     
     // Save progress
-    localStorage.setItem('spaceAdventuresCurrentMission', currentMission);
-    localStorage.setItem('spaceAdventuresMissionProgress', missionProgress);
-    localStorage.setItem('spaceAdventuresMoney', money);
+    localStorage.setItem('spaceAdventuresCurrentMission', currentMission.toString());
+    localStorage.setItem('spaceAdventuresMissionProgress', missionProgress.toString());
+    localStorage.setItem('spaceAdventuresMoney', money.toString());
     
-    // Show next mission if available
-    if (currentMission <= 5) {
-        setTimeout(() => {
-            const nextMission = STORY_MISSIONS[currentMission];
-            showStoryNotification(
-                `📋 New Mission: ${nextMission.title}`,
-                nextMission.description,
-                'info'
-            );
-        }, 2000);
-    } else {
-        setTimeout(() => {
-            showStoryNotification(
-                '🏆 Galaxy Liberated!',
-                'You have successfully defeated the Zorath Empire and liberated the galaxy! You are now a legend among the stars.',
-                'legend'
-            );
-        }, 2000);
+    // Check if all missions completed
+    if (currentMission > 20) {
+        showStoryNotification("🏆 GALAXY MASTER!", "You've completed all missions! You are the ultimate hero!", 'achievement');
+        currentMission = 20; // Stay on final mission
     }
+    
+    // Reset enemies for next mission
+    enemies = [];
+    enemyBullets = [];
 }
 
 function updateStoryProgress() {
@@ -994,16 +963,54 @@ function wingmanShoot(wingman) {
 
 function spawnEnemy() {
     if (Math.random() < ENEMY_SPAWN_RATE) {
-        enemies.push({
-            x: Math.random() * (canvas.width - 50),
+        const currentMission = STORY_MISSIONS[currentMission] || STORY_MISSIONS[1];
+        const isBossMission = currentMission.boss;
+        
+        // Check if we should spawn a boss
+        if (isBossMission && enemies.length === 0 && !enemies.some(e => e.isBoss)) {
+            // Spawn boss enemy
+            const bossEnemy = {
+                x: Math.random() * (canvas.width - 80),
+                y: -100,
+                width: 120,
+                height: 120,
+                speed: 2,
+                health: 50, // Boss has much more health
+                maxHealth: 50,
+                isBoss: true,
+                bossType: currentMission.title.includes('Drone Commander') ? 'drone' :
+                         currentMission.title.includes('Battle Cruiser') ? 'cruiser' :
+                         currentMission.title.includes('Fire Lord') ? 'fire' :
+                         currentMission.title.includes('Space King') ? 'king' :
+                         currentMission.title.includes('Cosmic Emperor') ? 'emperor' :
+                         currentMission.title.includes('Galaxy Master') ? 'galaxy' : 'boss',
+                color: currentMission.title.includes('Fire Lord') ? '#ff4500' :
+                       currentMission.title.includes('Space King') ? '#ffd700' :
+                       currentMission.title.includes('Cosmic Emperor') ? '#9400d3' :
+                       currentMission.title.includes('Galaxy Master') ? '#ff1493' : '#ff4444',
+                shootCooldown: 0,
+                lastShot: 0
+            };
+            enemies.push(bossEnemy);
+            showStoryNotification("BOSS ALERT!", `A ${currentMission.title.split(':')[1] || 'Boss'} has appeared!`, 'boss');
+            return;
+        }
+        
+        // Spawn regular enemies
+        const enemy = {
+            x: Math.random() * (canvas.width - 40),
             y: -50,
-            width: 50,
-            height: 50,
-            speed: ENEMY_SPEED + level * 0.8,
-            color: '#ff6666',
+            width: 40,
+            height: 40,
+            speed: ENEMY_SPEED + (level * 0.5),
             health: 1,
-            lastShot: 0 // Track when enemy last shot
-        });
+            maxHealth: 1,
+            isBoss: false,
+            color: ['#ff4444', '#ff8800', '#ff00ff', '#00ff00', '#0088ff'][Math.floor(Math.random() * 5)],
+            shootCooldown: 0,
+            lastShot: 0
+        };
+        enemies.push(enemy);
     }
 }
 
@@ -1259,31 +1266,105 @@ function updateSpecialEffects() {
 }
 
 function checkCollisions() {
-    bullets = bullets.filter(bullet => {
-        let bulletHit = false;
-        enemies = enemies.filter(enemy => {
-            if (checkCollision(bullet, enemy)) {
-                enemy.health--;
-                bulletHit = true;
-                if (enemy.health <= 0) {
+    // Check bullet-enemy collisions
+    for (let i = bullets.length - 1; i >= 0; i--) {
+        for (let j = enemies.length - 1; j >= 0; j--) {
+            if (checkCollision(bullets[i], enemies[j])) {
+                // Remove bullet
+                bullets.splice(i, 1);
+                
+                // Damage enemy
+                enemies[j].health--;
+                
+                // Check if enemy is destroyed
+                if (enemies[j].health <= 0) {
+                    const enemy = enemies[j];
+                    const isBoss = enemy.isBoss;
+                    
+                    // Remove enemy
+                    enemies.splice(j, 1);
+                    
+                    // Create explosion
                     createExplosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
-                    playExplosionSound();
-                    score += 10;
-                    // Earn money from destroying enemy ships
-                    const moneyEarned = Math.floor(Math.random() * 5) + 5; // 5-10 coins per ship
-                    money += moneyEarned;
-                    showMoneyNotification(moneyEarned, enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
                     
-                    // Update story progress
-                    updateStoryProgress();
+                    // Update score and money
+                    if (isBoss) {
+                        // Boss gives massive rewards
+                        const bossReward = 100 + (level * 50);
+                        score += bossReward;
+                        money += bossReward;
+                        showMoneyNotification(`+${bossReward}`, enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
+                        showStoryNotification("BOSS DEFEATED!", `You earned ${bossReward} coins!`, 'achievement');
+                        playExplosionSound();
+                    } else {
+                        // Regular enemy rewards
+                        const reward = 5 + Math.floor(Math.random() * 6); // 5-10 coins
+                        score += 10;
+                        money += reward;
+                        showMoneyNotification(`+${reward}`, enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
+                        playMissileSound();
+                    }
                     
-                    return false;
+                    // Update mission progress
+                    totalEnemiesDestroyed++;
+                    missionProgress++;
+                    
+                    break;
                 }
+                break;
             }
-            return true;
-        });
-        return !bulletHit;
-    });
+        }
+    }
+    
+    // Check enemy bullet-player collisions
+    for (let i = enemyBullets.length - 1; i >= 0; i--) {
+        if (checkCollision(enemyBullets[i], player)) {
+            enemyBullets.splice(i, 1);
+            lives--;
+            createExplosion(player.x + player.width / 2, player.y + player.height / 2);
+            playExplosionSound();
+            
+            if (lives <= 0) {
+                gameOver();
+            }
+        }
+    }
+    
+    // Check enemy-player collisions
+    for (let i = enemies.length - 1; i >= 0; i--) {
+        if (checkCollision(enemies[i], player)) {
+            enemies.splice(i, 1);
+            lives--;
+            createExplosion(player.x + player.width / 2, player.y + player.height / 2);
+            playExplosionSound();
+            
+            if (lives <= 0) {
+                gameOver();
+            }
+        }
+    }
+    
+    // Check powerup collisions
+    for (let i = powerUps.length - 1; i >= 0; i--) {
+        if (checkCollision(powerUps[i], player)) {
+            const powerUp = powerUps[i];
+            powerUps.splice(i, 1);
+            
+            // Apply powerup effect
+            if (powerUp.type === 'health') {
+                lives = Math.min(lives + 5, 50);
+                showNotification('Health restored! +5 lives', 'powerup');
+            } else if (powerUp.type === 'weapon') {
+                weaponLevel = Math.min(weaponLevel + 1, 6);
+                showNotification('Weapon upgraded!', 'powerup');
+            } else if (powerUp.type === 'shield') {
+                player.shield = Math.min(player.shield + 50, 100);
+                showNotification('Shield restored!', 'powerup');
+            }
+            
+            playPowerUpSound();
+        }
+    }
 }
 
 function checkCollision(rect1, rect2) {
@@ -1301,80 +1382,87 @@ function updateLevel() {
 }
 
 function updateUI() {
-    if (scoreElement) scoreElement.textContent = score;
-    if (livesElement) livesElement.textContent = lives;
-    if (levelElement) levelElement.textContent = level;
+    if (!scoreElement || !livesElement || !levelElement) return;
+    
+    // Update basic stats
+    scoreElement.textContent = `Score: ${score}`;
+    livesElement.textContent = `Lives: ${lives}`;
+    levelElement.textContent = `Level: ${level}`;
     
     // Update money display
     const moneyElement = document.getElementById('money');
-    if (moneyElement) moneyElement.textContent = money;
+    if (moneyElement) {
+        moneyElement.textContent = `💰 ${money}`;
+    }
+    
+    // Update weapon level display
+    const weaponElement = document.getElementById('weaponLevel');
+    if (weaponElement) {
+        weaponElement.textContent = `🔫 Weapon: ${weaponLevel}`;
+    }
+    
+    // Update wingman count display
+    const wingmanElement = document.getElementById('wingmanCount');
+    if (wingmanElement) {
+        wingmanElement.textContent = `🛩️ Wingmen: ${wingmanCount}/${MAX_WINGMEN}`;
+    }
     
     // Update high score display
     const highScoreElement = document.getElementById('highScore');
-    if (highScoreElement) highScoreElement.textContent = highScore;
+    if (highScoreElement) {
+        highScoreElement.textContent = `🏆 High Score: ${highScore}`;
+    }
     
-    // Update weapon level display
-    const weaponElement = document.getElementById('weapon');
-    if (weaponElement) weaponElement.textContent = weaponLevel;
+    // Update sound status
+    const soundElement = document.getElementById('soundStatus');
+    if (soundElement) {
+        soundElement.textContent = soundEnabled ? '🔊 Sound: ON' : '🔇 Sound: OFF';
+    }
     
-    // Update sound status display
-    const soundElement = document.getElementById('sound');
-    if (soundElement) soundElement.textContent = soundEnabled ? 'ON' : 'OFF';
+    // Update current mission display
+    const missionElement = document.getElementById('currentMission');
+    if (missionElement) {
+        const mission = STORY_MISSIONS[currentMission];
+        if (mission) {
+            const progress = mission.boss ? 
+                (enemies.some(e => e.isBoss) ? 'Boss Active!' : 'Boss Defeated!') :
+                `${missionProgress}/${mission.target}`;
+            
+            missionElement.innerHTML = `
+                <div class="mission-info">
+                    <div class="mission-title">${mission.title}</div>
+                    <div class="mission-objective">${mission.objective}</div>
+                    <div class="mission-progress">Progress: ${progress}</div>
+                </div>
+            `;
+        }
+    }
     
-    // Update wingman count display
-    const wingmenElement = document.getElementById('wingmen');
-    if (wingmenElement) wingmenElement.textContent = wingmanCount;
-    
-    // Update rank display
-    const rankElement = document.getElementById('rank');
-    if (rankElement) rankElement.textContent = playerRank;
-    
-    // Update mission display
-    const missionElement = document.getElementById('mission');
-    if (missionElement) missionElement.textContent = currentMission;
-    
-    // Update character display
-    const characterElement = document.getElementById('character');
+    // Update character info
+    const characterElement = document.getElementById('characterInfo');
     if (characterElement) {
-        const character = CHARACTERS[player.character];
-        characterElement.textContent = character.name;
-    }
-    
-    // Update special ability display
-    const specialElement = document.getElementById('special');
-    if (specialElement) {
-        const character = CHARACTERS[player.character];
-        const currentTime = Date.now();
-        const cooldownRemaining = Math.max(0, 10000 - (currentTime - character.specialCooldown));
-        
-        if (cooldownRemaining > 0) {
-            const seconds = Math.ceil(cooldownRemaining / 1000);
-            specialElement.textContent = `${seconds}s`;
-            specialElement.style.color = '#ff8800';
-        } else {
-            specialElement.textContent = 'Ready';
-            specialElement.style.color = '#00ff00';
+        const character = CHARACTERS[selectedCharacter];
+        if (character) {
+            characterElement.innerHTML = `
+                <div class="character-info">
+                    <div class="character-name">${character.name}</div>
+                    <div class="character-ability">${character.specialAbility}</div>
+                </div>
+            `;
         }
     }
     
-    // Update shield display if shield element exists
-    const shieldElement = document.getElementById('shield');
+    // Update shield display
+    const shieldElement = document.getElementById('shieldLevel');
     if (shieldElement) {
-        shieldElement.textContent = Math.round(player.shield);
-        // Change color based on shield status
-        if (player.isShieldActive) {
-            shieldElement.style.color = '#00ffff';
-        } else if (player.shield > 50) {
-            shieldElement.style.color = '#00ff00';
-        } else if (player.shield > 25) {
-            shieldElement.style.color = '#ffff00';
-        } else {
-            shieldElement.style.color = '#ff4444';
-        }
+        shieldElement.textContent = `🛡️ Shield: ${Math.round(player.shield)}%`;
     }
     
-    // Check achievements
-    checkAchievements();
+    // Update pause status
+    const pauseElement = document.getElementById('pauseStatus');
+    if (pauseElement) {
+        pauseElement.textContent = gameState === 'paused' ? '⏸️ PAUSED' : '';
+    }
 }
 
 function render() {
@@ -1508,48 +1596,45 @@ function drawEnemyBullet(bullet) {
 function drawPlayer() {
     const x = player.x;
     const y = player.y;
+    const character = CHARACTERS[player.character];
     
-    // Fighter jet design - Sleek and aerodynamic
-    // Main body (blue) - Longer and sleeker
-    ctx.fillStyle = "#4a90e2";
-    ctx.fillRect(x + 15, y + 20, 30, 20);
+    // Sleek triangle fighter jet design
+    ctx.fillStyle = character.color;
     
-    // Nose cone (light blue) - Pointed and longer
-    ctx.fillStyle = "#87ceeb";
-    ctx.fillRect(x + 20, y + 15, 20, 10);
+    // Main triangle body
+    ctx.beginPath();
+    ctx.moveTo(x + 30, y + 10); // Top point
+    ctx.lineTo(x + 10, y + 50); // Bottom left
+    ctx.lineTo(x + 50, y + 50); // Bottom right
+    ctx.closePath();
+    ctx.fill();
     
-    // Cockpit (white) - Sleek canopy
+    // Cockpit (darker shade)
+    ctx.fillStyle = "#1a1a2e";
+    ctx.beginPath();
+    ctx.moveTo(x + 30, y + 15);
+    ctx.lineTo(x + 20, y + 35);
+    ctx.lineTo(x + 40, y + 35);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Wing tips with missile rails
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(x + 22, y + 22, 16, 8);
+    ctx.fillRect(x + 5, y + 30, 8, 4);  // Left missile rail
+    ctx.fillRect(x + 47, y + 30, 8, 4); // Right missile rail
     
-    // Wings (darker blue) - Swept back design
-    ctx.fillStyle = "#357abd";
-    ctx.fillRect(x + 10, y + 25, 8, 10);
-    ctx.fillRect(x + 42, y + 25, 8, 10);
+    // Engine exhausts (orange glow)
+    ctx.shadowColor = '#ff6600';
+    ctx.shadowBlur = 8;
+    ctx.fillStyle = '#ffaa00';
+    ctx.fillRect(x + 20, y + 45, 6, 8);
+    ctx.fillRect(x + 34, y + 45, 6, 8);
+    ctx.shadowBlur = 0;
     
-    // Tail fins (darker blue)
-    ctx.fillStyle = "#357abd";
-    ctx.fillRect(x + 18, y + 35, 4, 8);
-    ctx.fillRect(x + 38, y + 35, 4, 8);
-    
-    // Engine exhaust (yellow) - Dual engines
-    ctx.fillStyle = "#ffff00";
-    ctx.fillRect(x + 22, y + 40, 6, 8);
-    ctx.fillRect(x + 32, y + 40, 6, 8);
-    
-    // Wing tips (light blue) - Missile rails
-    ctx.fillStyle = "#87ceeb";
-    ctx.fillRect(x + 8, y + 27, 4, 6);
-    ctx.fillRect(x + 48, y + 27, 4, 6);
-    
-    // Side thrusters (orange)
-    ctx.fillStyle = "#ff8800";
-    ctx.fillRect(x + 12, y + 38, 5, 6);
-    ctx.fillRect(x + 43, y + 38, 5, 6);
-    
-    // Front details (silver) - Radar and sensors
+    // Side weapon pods
     ctx.fillStyle = "#cccccc";
-    ctx.fillRect(x + 25, y + 17, 10, 3);
+    ctx.fillRect(x + 8, y + 25, 4, 6);   // Left weapon pod
+    ctx.fillRect(x + 48, y + 25, 4, 6);  // Right weapon pod
     
     // Shield effect if active
     if (player.isShieldActive && player.shield > 0) {
@@ -1568,91 +1653,156 @@ function drawWingman(wingman) {
     const x = wingman.x;
     const y = wingman.y;
     
-    // Wingman fighter design - smaller, sleeker version of player ship
-    // Main body (green)
+    // Wingman triangle fighter jet design
     ctx.fillStyle = "#00ff00";
-    ctx.fillRect(x + 10, y + 10, 30, 20);
     
-    // Nose (dark green)
-    ctx.fillStyle = "#00cc00";
-    ctx.fillRect(x + 15, y + 8, 20, 8);
+    // Main triangle body (smaller than player)
+    ctx.beginPath();
+    ctx.moveTo(x + 20, y + 8);  // Top point
+    ctx.lineTo(x + 8, y + 32);  // Bottom left
+    ctx.lineTo(x + 32, y + 32); // Bottom right
+    ctx.closePath();
+    ctx.fill();
     
-    // Cockpit (black)
-    ctx.fillStyle = "#000000";
-    ctx.fillRect(x + 16, y + 12, 18, 6);
+    // Cockpit (darker shade)
+    ctx.fillStyle = "#1a1a2e";
+    ctx.beginPath();
+    ctx.moveTo(x + 20, y + 12);
+    ctx.lineTo(x + 14, y + 24);
+    ctx.lineTo(x + 26, y + 24);
+    ctx.closePath();
+    ctx.fill();
     
-    // Wings (lighter green)
-    ctx.fillStyle = "#00dd00";
-    ctx.fillRect(x + 5, y + 15, 8, 6);
-    ctx.fillRect(x + 37, y + 15, 8, 6);
+    // Wing tips with missile rails
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(x + 4, y + 20, 6, 3);   // Left missile rail
+    ctx.fillRect(x + 30, y + 20, 6, 3);  // Right missile rail
     
-    // Engine (bright green)
-    ctx.fillStyle = "#00ff88";
-    ctx.fillRect(x + 15, y + 25, 20, 4);
-    
-    // Wing tips (yellow)
-    ctx.fillStyle = "#ffff00";
-    ctx.fillRect(x + 3, y + 16, 4, 2);
-    ctx.fillRect(x + 43, y + 16, 4, 2);
-    
-    // Side details (cyan)
-    ctx.fillStyle = "#00ffff";
-    ctx.fillRect(x + 8, y + 20, 3, 4);
-    ctx.fillRect(x + 39, y + 20, 3, 4);
-    
-    // Glow effect for wingman
+    // Engine exhausts (green glow)
     ctx.shadowColor = '#00ff00';
-    ctx.shadowBlur = 6;
-    ctx.fillRect(x + 10, y + 10, 30, 20);
+    ctx.shadowBlur = 4;
+    ctx.fillStyle = '#00ff88';
+    ctx.fillRect(x + 14, y + 28, 4, 6);
+    ctx.fillRect(x + 22, y + 28, 4, 6);
     ctx.shadowBlur = 0;
+    
+    // Side weapon pods
+    ctx.fillStyle = "#cccccc";
+    ctx.fillRect(x + 6, y + 16, 3, 4);   // Left weapon pod
+    ctx.fillRect(x + 31, y + 16, 3, 4);  // Right weapon pod
     
     // Formation indicator
     ctx.fillStyle = '#ffffff';
-    ctx.font = '12px Arial';
+    ctx.font = '10px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText(wingman.formation, x + 25, y + 35);
+    ctx.fillText(wingman.formation, x + 20, y + 38);
 }
 
 function drawEnemy(enemy) {
-    const x = enemy.x;
-    const y = enemy.y;
+    if (!enemy) return;
     
-    // Gradius-style enemy ship (Zub-like) - Bigger and more detailed
-    // Main body (red) - Bigger
-    ctx.fillStyle = "#ff6666";
-    ctx.fillRect(x + 15, y + 15, 20, 24);
+    ctx.save();
     
-    // Nose (dark red) - Bigger
-    ctx.fillStyle = "#cc3333";
-    ctx.fillRect(x + 18, y + 12, 14, 12);
+    if (enemy.isBoss) {
+        // Draw boss enemy with epic design
+        const centerX = enemy.x + enemy.width / 2;
+        const centerY = enemy.y + enemy.height / 2;
+        
+        // Boss glow effect
+        ctx.shadowColor = enemy.color;
+        ctx.shadowBlur = 20;
+        ctx.lineWidth = 3;
+        
+        // Draw boss triangle (larger and more detailed)
+        ctx.beginPath();
+        ctx.moveTo(centerX, enemy.y + 10);
+        ctx.lineTo(enemy.x + 10, enemy.y + enemy.height - 10);
+        ctx.lineTo(enemy.x + enemy.width - 10, enemy.y + enemy.height - 10);
+        ctx.closePath();
+        ctx.fillStyle = enemy.color;
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
+        
+        // Boss weapon pods
+        ctx.fillStyle = '#ff0000';
+        ctx.fillRect(enemy.x + 15, enemy.y + enemy.height - 25, 8, 15);
+        ctx.fillRect(enemy.x + enemy.width - 23, enemy.y + enemy.height - 25, 8, 15);
+        
+        // Boss cockpit
+        ctx.fillStyle = '#00ffff';
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 8, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Boss health bar
+        const healthBarWidth = enemy.width;
+        const healthBarHeight = 8;
+        const healthPercentage = enemy.health / enemy.maxHealth;
+        
+        ctx.fillStyle = '#ff0000';
+        ctx.fillRect(enemy.x, enemy.y - 15, healthBarWidth, healthBarHeight);
+        ctx.fillStyle = '#00ff00';
+        ctx.fillRect(enemy.x, enemy.y - 15, healthBarWidth * healthPercentage, healthBarHeight);
+        
+        // Boss label
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('BOSS', centerX, enemy.y - 20);
+        
+        // Boss special effects
+        if (enemy.bossType === 'fire') {
+            // Fire effects
+            ctx.fillStyle = '#ff6600';
+            for (let i = 0; i < 5; i++) {
+                ctx.beginPath();
+                ctx.arc(centerX + (Math.random() - 0.5) * 20, enemy.y + enemy.height + Math.random() * 10, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        } else if (enemy.bossType === 'king') {
+            // Crown effect
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(centerX - 15, enemy.y - 5, 30, 8);
+            ctx.fillRect(centerX - 10, enemy.y - 12, 20, 8);
+            ctx.fillRect(centerX - 5, enemy.y - 19, 10, 8);
+        }
+        
+    } else {
+        // Draw regular enemy triangle fighter jet
+        const centerX = enemy.x + enemy.width / 2;
+        const centerY = enemy.y + enemy.height / 2;
+        
+        // Main triangle body
+        ctx.beginPath();
+        ctx.moveTo(centerX, enemy.y + 5);
+        ctx.lineTo(enemy.x + 5, enemy.y + enemy.height - 5);
+        ctx.lineTo(enemy.x + enemy.width - 5, enemy.y + enemy.height - 5);
+        ctx.closePath();
+        ctx.fillStyle = enemy.color;
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Weapon pods
+        ctx.fillStyle = '#ff0000';
+        ctx.fillRect(enemy.x + 8, enemy.y + enemy.height - 15, 6, 10);
+        ctx.fillRect(enemy.x + enemy.width - 14, enemy.y + enemy.height - 15, 6, 10);
+        
+        // Cockpit
+        ctx.fillStyle = '#00ffff';
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 4, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Exhaust trails
+        ctx.fillStyle = '#ffaa00';
+        ctx.fillRect(enemy.x + 12, enemy.y + enemy.height, 4, 8);
+        ctx.fillRect(enemy.x + enemy.width - 16, enemy.y + enemy.height, 4, 8);
+    }
     
-    // Cockpit (black) - Bigger
-    ctx.fillStyle = "#000000";
-    ctx.fillRect(x + 17, y + 18, 16, 12);
-    
-    // Wings (darker red) - Bigger
-    ctx.fillStyle = "#cc3333";
-    ctx.fillRect(x + 9, y + 21, 9, 9);
-    ctx.fillRect(x + 32, y + 21, 9, 9);
-    
-    // Engine (orange) - Bigger
-    ctx.fillStyle = "#ff8800";
-    ctx.fillRect(x + 18, y + 33, 14, 8);
-    
-    // Wing tips (light red) - Bigger
-    ctx.fillStyle = "#ffaaaa";
-    ctx.fillRect(x + 6, y + 24, 6, 3);
-    ctx.fillRect(x + 38, y + 24, 6, 3);
-    
-    // Additional details for bigger enemy ship
-    // Side cannons (dark gray)
-    ctx.fillStyle = "#666666";
-    ctx.fillRect(x + 12, y + 28, 4, 6);
-    ctx.fillRect(x + 34, y + 28, 4, 6);
-    
-    // Front details (silver)
-    ctx.fillStyle = "#cccccc";
-    ctx.fillRect(x + 22, y + 16, 6, 4);
+    ctx.restore();
 }
 
 function drawPowerUp(powerUp) {
