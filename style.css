@@ -1037,7 +1037,10 @@ button:active {
     .start-screen h1 {
         font-size: 1.3em;
     }
-    .tab-navigation, .tab-content {
+    .tab-navigation {
+        display: none !important;
+    }
+    .tab-content {
         font-size: 1em;
     }
 }
