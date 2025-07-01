@@ -2,12 +2,56 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#4a90e2">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Space Adventures">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Space Adventures">
+    <meta name="msapplication-TileColor" content="#4a90e2">
+    <meta name="msapplication-config" content="none">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Epic space shooter game with missions, characters, and boss battles. Defend the galaxy from the Zorath Empire!">
+    <meta name="keywords" content="space shooter, game, adventure, missions, characters, boss battles, offline game">
+    <meta name="author" content="Kaden & Adelynn Adventures">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Kaden & Adelynn Space Adventures">
+    <meta property="og:description" content="Epic space shooter game with missions, characters, and boss battles. Defend the galaxy from the Zorath Empire!">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://space-adventures.game">
+    <meta property="og:image" content="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI2MzAiIHZpZXdCb3g9IjAgMCAxMjAwIDYzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNjMwIiBmaWxsPSIjMDAwMDAwIi8+Cjx0ZXh0IHg9IjYwMCIgeT0iMzE1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iNDgiIGZpbGw9IiNmZmZmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkthZGVuICYgQWRlbHlubiBTcGFjZSBBZHZlbnR1cmVzPC90ZXh0Pgo8dGV4dCB4PSI2MDAiIHk9IjM3NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjI0IiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5FcGljIFNwYWNlIFNob290ZXIgR2FtZTwvdGV4dD4KPC9zdmc+">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Kaden & Adelynn Space Adventures">
+    <meta name="twitter:description" content="Epic space shooter game with missions, characters, and boss battles. Defend the galaxy from the Zorath Empire!">
+    <meta name="twitter:image" content="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI2MzAiIHZpZXdCb3g9IjAgMCAxMjAwIDYzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNjMwIiBmaWxsPSIjMDAwMDAwIi8+Cjx0ZXh0IHg9IjYwMCIgeT0iMzE1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iNDgiIGZpbGw9IiNmZmZmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkthZGVuICYgQWRlbHlubiBTcGFjZSBBZHZlbnR1cmVzPC90ZXh0Pgo8dGV4dCB4PSI2MDAiIHk9IjM3NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjI0IiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5FcGljIFNwYWNlIFNob290ZXIgR2FtZTwvdGV4dD4KPC9zdmc+">
 
     <title>Kaden & Adelynn Space Adventures</title>
-    <link rel="stylesheet" href="style.css?v=3.0">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>'">
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Icons -->
+    <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiM0YTkwZTIiLz4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTIiIGZpbGw9IiMxYTFhMmUiLz4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iOCIgZmlsbD0iIzNiMmUyYSIvPgo8cGF0aCBkPSJNMTYgN0wyMCAxM0gxMkwxNiA3WiIgZmlsbD0iI2ZmNDQ0NCIvPgo8cGF0aCBkPSJNMTYgMjVMMTIgMTlIMjBMMTYgMjVaIiBmaWxsPSIjZmY0NDQ0Ii8+CjxwYXRoIGQ9Ik03IDE2TDEzIDEyVjIwTDcgMTZaIiBmaWxsPSIjZmY0NDQ0Ii8+CjxwYXRoIGQ9Ik0yNSAxNkwxOSAyMFYxMkwyNSAxNloiIGZpbGw9IiNmZjQ0NDQiLz4KPC9zdmc+">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiM0YTkwZTIiLz4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTIiIGZpbGw9IiMxYTFhMmUiLz4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iOCIgZmlsbD0iIzNiMmUyYSIvPgo8cGF0aCBkPSJNMTYgN0wyMCAxM0gxMkwxNiA3WiIgZmlsbD0iI2ZmNDQ0NCIvPgo8cGF0aCBkPSJNMTYgMjVMMTIgMTlIMjBMMTYgMjVaIiBmaWxsPSIjZmY0NDQ0Ii8+CjxwYXRoIGQ9Ik03IDE2TDEzIDEyVjIwTDcgMTZaIiBmaWxsPSIjZmY0NDQ0Ii8+CjxwYXRoIGQ9Ik0yNSAxNkwxOSAyMFYxMkwyNSAxNloiIGZpbGw9IiNmZjQ0NDQiLz4KPC9zdmc+">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDE4MCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiByeD0iMjIiIGZpbGw9IiMwMDAwMDAiLz4KPGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNzUiIGZpbGw9IiM0YTkwZTIiLz4KPGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNTYiIGZpbGw9IiMxYTFhMmUiLz4KPGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iMzciIGZpbGw9IiMzYjJlMmEiLz4KPHBhdGggZD0iTTkwIDM3TDExMyA3NUg2N0w5MCAzN1oiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTkwIDE0M0w2NyAxMDVIMTEzTDkwIDE0M1oiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTM3IDkwTDc1IDY3VjExM0wzNyA5MFoiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTE0MyA5MEwxMDUgMTEzVjY3TDE0MyA5MFoiIGZpbGw9IiNmZjQ0NDQiLz4KPC9zdmc+">
+    <link rel="apple-touch-icon" sizes="152x152" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUyIiBoZWlnaHQ9IjE1MiIgdmlld0JveD0iMCAwIDE1MiAxNTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTIiIGhlaWdodD0iMTUyIiByeD0iMTgiIGZpbGw9IiMwMDAwMDAiLz4KPGNpcmNsZSBjeD0iNzYiIGN5PSI3NiIgcj0iNjMiIGZpbGw9IiM0YTkwZTIiLz4KPGNpcmNsZSBjeD0iNzYiIGN5PSI3NiIgcj0iNDciIGZpbGw9IiMxYTFhMmUiLz4KPGNpcmNsZSBjeD0iNzYiIGN5PSI3NiIgcj0iMzEiIGZpbGw9IiMzYjJlMmEiLz4KPHBhdGggZD0iTTc2IDMxTDk2IDYzSDU2TDc2IDMxWiIgZmlsbD0iI2ZmNDQ0NCIvPgo8cGF0aCBkPSJNNzYgMTIxTDU2IDg5SDk2TDc2IDEyMVoiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTMxIDc2TDU5IDU2Vjk2TDMxIDc2WiIgZmlsbD0iI2ZmNDQ0NCIvPgo8cGF0aCBkPSJNMTIxIDc2TDkzIDk2VjU2TDEyMSA3NloiIGZpbGw9IiNmZjQ0NDQiLz4KPC9zdmc+">
+    <link rel="apple-touch-icon" sizes="167x167" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTY3IiBoZWlnaHQ9IjE2NyIgdmlld0JveD0iMCAwIDE2NyAxNjciIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNjciIGhlaWdodD0iMTY3IiByeD0iMjAiIGZpbGw9IiMwMDAwMDAiLz4KPGNpcmNsZSBjeD0iODMuNSIgY3k9IjgzLjUiIHI9IjY5IiBmaWxsPSIjNGE5MGUyIi8+CjxjaXJjbGUgY3g9IjgzLjUiIGN5PSI4My41IiByPSI1MSIgZmlsbD0iIzFhMWEyZSIvPgo8Y2lyY2xlIGN4PSI4My41IiBjeT0iODMuNSIgcj0iMzMiIGZpbGw9IiMzYjJlMmEiLz4KPHBhdGggZD0iTTgzLjUgMzRMMTA0IDY5SDYzTDgzLjUgMzRaIiBmaWxsPSIjZmY0NDQ0Ii8+CjxwYXRoIGQ9Ik04My41IDEzM0w2MyA5OEgxMDRMODMuNSAxMzNaIiBmaWxsPSIjZmY0NDQ0Ii8+CjxwYXRoIGQ9Ik0zNCA4My41TDY0IDYxVjEwNkwzNCA4My41WiIgZmlsbD0iI2ZmNDQ0NCIvPgo8cGF0aCBkPSJNMTMzIDgzLjVMMTAzIDEwNlY2MUwxMzMgODMuNVoiIGZpbGw9IiNmZjQ0NDQiLz4KPC9zdmc+">
+    <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDE4MCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiByeD0iMjIiIGZpbGw9IiMwMDAwMDAiLz4KPGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNzUiIGZpbGw9IiM0YTkwZTIiLz4KPGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNTYiIGZpbGw9IiMxYTFhMmUiLz4KPGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iMzciIGZpbGw9IiMzYjJlMmEiLz4KPHBhdGggZD0iTTkwIDM3TDExMyA3NUg2N0w5MCAzN1oiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTkwIDE0M0w2NyAxMDVIMTEzTDkwIDE0M1oiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTM3IDkwTDc1IDY3VjExM0wzNyA5MFoiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTE0MyA5MEwxMDUgMTEzVjY3TDE0MyA5MFoiIGZpbGw9IiNmZjQ0NDQiLz4KPC9zdmc+">
+    
+    <!-- Microsoft Tiles -->
+    <meta name="msapplication-TileImage" content="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQ0IiBoZWlnaHQ9IjE0NCIgdmlld0JveD0iMCAwIDE0NCAxNDQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNDQiIGhlaWdodD0iMTQ0IiBmaWxsPSIjMDAwMDAwIi8+CjxjaXJjbGUgY3g9IjcyIiBjeT0iNzIiIHI9IjYwIiBmaWxsPSIjNGE5MGUyIi8+CjxjaXJjbGUgY3g9IjcyIiBjeT0iNzIiIHI9IjQ1IiBmaWxsPSIjMWExYTJlIi8+CjxjaXJjbGUgY3g9IjcyIiBjeT0iNzIiIHI9IjMwIiBmaWxsPSIjM2IyZTJhIi8+CjxwYXRoIGQ9Ik03MiAyOUw5MCA1OUg1NEw3MiAyOVoiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTcyIDExNUw1NCA4NUg5MEw3MiAxMTVaIiBmaWxsPSIjZmY0NDQ0Ii8+CjxwYXRoIGQ9Ik0yOSA3Mkw1OSA1NFY5MEwyOSA3MloiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTExNSA3Mkw4NSA5MFY1NEwxMTUgNzJaIiBmaWxsPSIjZmY0NDQ0Ii8+Cjwvc3ZnPg==">
+    
+    <link rel="stylesheet" href="style.css?v=3.1">
 </head>
 <body>
     <div class="game-container">
@@ -284,16 +328,50 @@
         </div>
     </div>
     <script>
-        // Simple cache busting without aggressive reloading
+        // PWA Service Worker Registration
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) {
-                    registration.unregister();
-                }
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('Service Worker registered successfully:', registration.scope);
+                        
+                        // Check for updates
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // New version available
+                                    showUpdateNotification();
+                                }
+                            });
+                        });
+                    })
+                    .catch((error) => {
+                        console.error('Service Worker registration failed:', error);
+                    });
             });
         }
+
+        // Show update notification
+        function showUpdateNotification() {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('Space Adventures Updated!', {
+                    body: 'A new version is available. Refresh to update!',
+                    icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5yIiB2aWV3Qm94PSIwIDAgMTkyIDE5MiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIHJ4PSIyNCIgZmlsbD0iIzAwMDAwMCIvPgo8Y2lyY2xlIGN4PSI5NiIgY3k9Ijk2IiByPSI4MCIgZmlsbD0iIzRhOTBlMiIvPgo8L3N2Zz4=',
+                    tag: 'update-notification'
+                });
+            }
+        }
+
+        // Request notification permission
+        if ('Notification' in window && Notification.permission === 'default') {
+            // Request permission when user interacts with the page
+            document.addEventListener('click', () => {
+                Notification.requestPermission();
+            }, { once: true });
+        }
     </script>
-    <script src="main.js?v=3.0"></script>
+    <script src="main.js?v=3.1"></script>
     <!-- Scroll hint for mobile -->
     <div class="scroll-hint">⬆️ Scroll to see more ⬇️</div>
     <!-- Mobile Tab Bar for navigation -->

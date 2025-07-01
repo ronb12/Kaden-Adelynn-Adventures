@@ -1,0 +1,77 @@
+{
+  "name": "Kaden & Adelynn Space Adventures",
+  "short_name": "Space Adventures",
+  "description": "Epic space shooter game with missions, characters, and boss battles. Defend the galaxy from the Zorath Empire!",
+  "version": "3.1.0",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#4a90e2",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["games", "entertainment", "action"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iMjQiIGZpbGw9IiMwMDAwMDAiLz4KPGNpcmNsZSBjeD0iOTYiIGN5PSI5NiIgcj0iODAiIGZpbGw9IiM0YTkwZTIiLz4KPGNpcmNsZSBjeD0iOTYiIGN5PSI5NiIgcj0iNjAiIGZpbGw9IiMxYTFhMmUiLz4KPGNpcmNsZSBjeD0iOTYiIGN5PSI5NiIgcj0iNDAiIGZpbGw9IiMzYjJlMmEiLz4KPHBhdGggZD0iTTk2IDQwTDEyMCA4MEg3Mkw5NiA0MFoiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTk2IDE1Mkw3MiAxMTJIMTIwTDk2IDE1MloiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTQwIDk2TDgwIDcyVjEyMEw0MCA5NloiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTE1MiA5NkwxMTIgMTIwVjcyTDE1MiA5NloiIGZpbGw9IiNmZjQ0NDQiLz4KPC9zdmc+",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiByeD0iNjQiIGZpbGw9IiMwMDAwMDAiLz4KPGNpcmNsZSBjeD0iMjU2IiBjeT0iMjU2IiByPSIyMTQiIGZpbGw9IiM0YTkwZTIiLz4KPGNpcmNsZSBjeD0iMjU2IiBjeT0iMjU2IiByPSIxNjAiIGZpbGw9IiMxYTFhMmUiLz4KPGNpcmNsZSBjeD0iMjU2IiBjeT0iMjU2IiByPSIxMDYiIGZpbGw9IiMzYjJlMmEiLz4KPHBhdGggZD0iTTI1NiAxMDdMMzIwIDIxNEgxOTJMMjU2IDEwN1oiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTI1NiA0MDVMMTkyIDI5OEgzMjBMMjU2IDQwNVoiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTEwNyAyNTZMMjE0IDE5MlYzMjBMMTA3IDI1NloiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTQwNSAyNTZMMjk4IDMyMFYxOTJMNDA1IDI1NloiIGZpbGw9IiNmZjQ0NDQiLz4KPC9zdmc+",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4MCIgaGVpZ2h0PSI3MjAiIHZpZXdCb3g9IjAgMCAxMjgwIDcyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEyODAiIGhlaWdodD0iNzIwIiBmaWxsPSIjMDAwMDAwIi8+Cjx0ZXh0IHg9IjY0MCIgeT0iMzYwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iNDgiIGZpbGw9IiNmZmZmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkthZGVuICYgQWRlbHlubiBTcGFjZSBBZHZlbnR1cmVzPC90ZXh0Pgo8dGV4dCB4PSI2NDAiIHk9IjQyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjI0IiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5FcGljIFNwYWNlIFNob290ZXIgR2FtZTwvdGV4dD4KPC9zdmc+",
+      "sizes": "1280x720",
+      "type": "image/svg+xml",
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Start New Game",
+      "short_name": "Play",
+      "description": "Start a new space adventure",
+      "url": "/?action=start",
+      "icons": [
+        {
+          "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iNDgiIGN5PSI0OCIgcj0iNDgiIGZpbGw9IiM0YTkwZTIiLz4KPHBhdGggZD0iTTM2IDM2TDU2IDQ4TDM2IDYwVjM2WiIgZmlsbD0iI2ZmZmZmZiIvPgo8L3N2Zz4=",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Character Selection",
+      "short_name": "Characters",
+      "description": "Choose your space pilot",
+      "url": "/?action=characters",
+      "icons": [
+        {
+          "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iNDgiIGN5PSI0OCIgcj0iNDgiIGZpbGw9IiNmZjQ0NDQiLz4KPGNpcmNsZSBjeD0iNDgiIGN5PSIzNiIgcj0iMTIiIGZpbGw9IiNmZmZmZmYiLz4KPHBhdGggZD0iTTI0IDYwQzI0IDUxLjE2MzQgMzEuMTYzNCA0NCA0MCA0NEg1NkM2NC44MzY2IDQ0IDcyIDUxLjE2MzQgNzIgNjBWNjRIMjRWNjBaIiBmaWxsPSIjZmZmZmZmIi8+Cjwvc3ZnPg==",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+  "handle_links": "preferred",
+  "protocol_handlers": [
+    {
+      "protocol": "web+spaceadventures",
+      "url": "/?action=%s"
+    }
+  ]
+} 

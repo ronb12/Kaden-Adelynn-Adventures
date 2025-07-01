@@ -2,6 +2,10 @@
 // Game variables - Will be initialized after DOM loads
 let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, startScreen, finalScoreElement, restartBtn, startBtn;
 
+// PWA variables
+let deferredPrompt;
+let installButton;
+
 // Game state
 let gameState = 'start';
 let listenersInitialized = false;
@@ -10,6 +14,7 @@ let money = 0; // New currency system
 let lives = 50; // Increased to 50 lives
 let level = 1;
 let gameLoop;
+let lastUIUpdate = 0; // Performance optimization for UI updates
 let highScore = localStorage.getItem('spaceAdventuresHighScore') || 0;
 let savedMoney = localStorage.getItem('spaceAdventuresMoney') || 0;
 money = parseInt(savedMoney);
@@ -17,6 +22,15 @@ money = parseInt(savedMoney);
 // Sound system
 let audioContext;
 let soundEnabled = true;
+
+// Performance optimization constants
+const MAX_BULLETS = 200; // Limit total bullets to prevent memory issues
+const MAX_ENEMY_BULLETS = 100; // Limit enemy bullets
+const MAX_EXPLOSIONS = 50; // Limit explosions
+const MAX_POWERUPS = 20; // Limit powerups
+const MAX_ENEMIES = 30; // Limit enemies
+const MAX_WINGMEN = 4; // Maximum number of wingmen
+const MAX_SPECIAL_EFFECTS = 20; // Limit special effects
 
 // Initialize audio context only when needed
 function initAudioContext() {
@@ -1245,6 +1259,12 @@ function startGame() {
     console.log('Canvas available:', !!canvas);
     console.log('Game loop active:', !!gameLoop);
     
+    // Safety check: ensure canvas is available
+    if (!canvas || !ctx) {
+        console.error('Canvas not available for game start');
+        return;
+    }
+    
     // Prevent multiple starts
     if (gameState === 'playing') {
         console.log('Game already in progress, ignoring start request');
@@ -1256,6 +1276,7 @@ function startGame() {
     lives = 50;
     level = 1;
     weaponLevel = 1;
+    lastUIUpdate = 0; // Reset UI update timer for performance optimization
     
     // Reset achievements for new game
     Object.keys(achievements).forEach(key => {
@@ -1359,6 +1380,12 @@ function shoot() {
     if (currentTime - lastShotTime < fireDelay) return;
     lastShotTime = currentTime;
     
+    // Performance check: limit total bullets
+    if (bullets.length >= MAX_BULLETS) {
+        // Remove oldest bullets to make room
+        bullets.splice(0, Math.min(10, bullets.length - MAX_BULLETS + 10));
+    }
+    
     const centerX = player.x + player.width / 2;
     const centerY = player.y;
     
@@ -1436,6 +1463,12 @@ function shoot() {
 
 function enemyShoot(enemy) {
     if (Math.random() < ENEMY_SHOOT_RATE) {
+        // Performance check: limit enemy bullets
+        if (enemyBullets.length >= MAX_ENEMY_BULLETS) {
+            // Remove oldest enemy bullets to make room
+            enemyBullets.splice(0, Math.min(5, enemyBullets.length - MAX_ENEMY_BULLETS + 5));
+        }
+        
         playEnemyMissileSound();
         enemyBullets.push({
             x: enemy.x + enemy.width / 2 - 2,
@@ -1454,6 +1487,12 @@ function wingmanShoot(wingman) {
     if (currentTime - wingman.lastShot < 500) return; // Wingmen shoot every 500ms
     
     wingman.lastShot = currentTime;
+    
+    // Performance check: limit total bullets
+    if (bullets.length >= MAX_BULLETS) {
+        // Remove oldest bullets to make room
+        bullets.splice(0, Math.min(10, bullets.length - MAX_BULLETS + 10));
+    }
     
     // Wingmen have maximum weapon capacity (level 6)
     const centerX = wingman.x + wingman.width / 2;
@@ -1485,6 +1524,10 @@ function spawnEnemy() {
     // Only spawn enemies when the game is actually playing
     if (gameState !== 'playing') return;
     if (typeof currentMission === 'undefined' || !STORY_MISSIONS[currentMission]) return;
+    
+    // Performance check: limit enemies
+    if (enemies.length >= MAX_ENEMIES) return;
+    
     const spawnRate = isMobile ? (window.enemySpawnRate || 0.02) : ENEMY_SPAWN_RATE;
     if (Math.random() < spawnRate) {
         const mission = STORY_MISSIONS[currentMission] || STORY_MISSIONS[1];
@@ -1544,6 +1587,10 @@ function spawnEnemy() {
 function spawnPowerUp() {
     // Only spawn power-ups when the game is actually playing
     if (gameState !== 'playing') return;
+    
+    // Performance check: limit powerups
+    if (powerUps.length >= MAX_POWERUPS) return;
+    
     const spawnRate = isMobile ? (window.powerUpSpawnRate || 0.005) : POWERUP_SPAWN_RATE;
     if (Math.random() < spawnRate) {
         const type = Math.random() < 0.5 ? 'health' : 'weapon';
@@ -1560,6 +1607,12 @@ function spawnPowerUp() {
 }
 
 function createExplosion(x, y) {
+    // Performance check: limit explosions
+    if (explosions.length >= MAX_EXPLOSIONS) {
+        // Remove oldest explosions to make room
+        explosions.splice(0, Math.min(5, explosions.length - MAX_EXPLOSIONS + 5));
+    }
+    
     explosions.push({
         x: x,
         y: y,
@@ -1656,7 +1709,14 @@ function updatePlayer() {
 }
 
 function updateBullets() {
+    // Performance check: limit bullets array size
+    if (bullets.length > MAX_BULLETS) {
+        bullets = bullets.slice(-MAX_BULLETS);
+    }
+    
     bullets = bullets.filter(bullet => {
+        if (!bullet) return false; // Safety check
+        
         // Update bullet position based on type
         if (bullet.speedX && bullet.speedY) {
             // Star particles and other directional bullets
@@ -1700,7 +1760,13 @@ function updateBullets() {
 }
 
 function updateEnemyBullets() {
+    // Performance check: limit enemy bullets array size
+    if (enemyBullets.length > MAX_ENEMY_BULLETS) {
+        enemyBullets = enemyBullets.slice(-MAX_ENEMY_BULLETS);
+    }
+    
     enemyBullets = enemyBullets.filter(bullet => {
+        if (!bullet) return false; // Safety check
         bullet.y += bullet.speed;
         
         // Check collision with player
@@ -1800,7 +1866,13 @@ function updateWingmen() {
 }
 
 function updateExplosions() {
+    // Performance check: limit explosions array size
+    if (explosions.length > MAX_EXPLOSIONS) {
+        explosions = explosions.slice(-MAX_EXPLOSIONS);
+    }
+    
     explosions = explosions.filter(explosion => {
+        if (!explosion) return false; // Safety check
         explosion.radius += 1;
         explosion.alpha -= explosion.decay;
         return explosion.alpha > 0;
@@ -1810,7 +1882,13 @@ function updateExplosions() {
 function updateSpecialEffects() {
     const currentTime = Date.now();
     
+    // Performance check: limit special effects array size
+    if (specialEffects.length > MAX_SPECIAL_EFFECTS) {
+        specialEffects = specialEffects.slice(-MAX_SPECIAL_EFFECTS);
+    }
+    
     specialEffects = specialEffects.filter(effect => {
+        if (!effect) return false; // Safety check
         const elapsed = currentTime - effect.startTime;
         
         if (elapsed >= effect.duration) {
@@ -1862,17 +1940,17 @@ function updateSpecialEffects() {
 }
 
 function checkCollisions() {
-    // Check bullet-enemy collisions
-    for (let i = bullets.length - 1; i >= 0; i--) {
-        for (let j = enemies.length - 1; j >= 0; j--) {
-            if (checkCollision(bullets[i], enemies[j])) {
+    // Check bullet-enemy collisions with safety bounds
+    for (let i = bullets.length - 1; i >= 0 && i < bullets.length; i--) {
+        for (let j = enemies.length - 1; j >= 0 && j < enemies.length; j--) {
+            if (bullets[i] && enemies[j] && checkCollision(bullets[i], enemies[j])) {
                 // Remove bullet (unless piercing)
                 if (!bullets[i].piercing) {
                     bullets.splice(i, 1);
                 }
                 
                 // Damage enemy based on bullet damage
-                const damage = bullets[i].damage || 1;
+                const damage = bullets[i] ? (bullets[i].damage || 1) : 1;
                 enemies[j].health -= damage;
                 
                 // Check if enemy is destroyed
@@ -1915,9 +1993,9 @@ function checkCollisions() {
         }
     }
     
-    // Check enemy bullet-player collisions
-    for (let i = enemyBullets.length - 1; i >= 0; i--) {
-        if (checkCollision(enemyBullets[i], player)) {
+    // Check enemy bullet-player collisions with safety bounds
+    for (let i = enemyBullets.length - 1; i >= 0 && i < enemyBullets.length; i--) {
+        if (enemyBullets[i] && checkCollision(enemyBullets[i], player)) {
             enemyBullets.splice(i, 1);
             lives--;
             createExplosion(player.x + player.width / 2, player.y + player.height / 2);
@@ -1929,9 +2007,9 @@ function checkCollisions() {
         }
     }
     
-    // Check enemy-player collisions
-    for (let i = enemies.length - 1; i >= 0; i--) {
-        if (checkCollision(enemies[i], player)) {
+    // Check enemy-player collisions with safety bounds
+    for (let i = enemies.length - 1; i >= 0 && i < enemies.length; i--) {
+        if (enemies[i] && checkCollision(enemies[i], player)) {
             enemies.splice(i, 1);
             lives--;
             createExplosion(player.x + player.width / 2, player.y + player.height / 2);
@@ -1943,9 +2021,9 @@ function checkCollisions() {
         }
     }
     
-    // Check powerup collisions
-    for (let i = powerUps.length - 1; i >= 0; i--) {
-        if (checkCollision(powerUps[i], player)) {
+    // Check powerup collisions with safety bounds
+    for (let i = powerUps.length - 1; i >= 0 && i < powerUps.length; i--) {
+        if (powerUps[i] && checkCollision(powerUps[i], player)) {
             const powerUp = powerUps[i];
             powerUps.splice(i, 1);
             
@@ -2095,6 +2173,12 @@ function updateUI() {
 }
 
 function render() {
+    // Safety check: ensure canvas and context are available
+    if (!canvas || !ctx) {
+        console.error('Canvas or context not available for rendering');
+        return;
+    }
+    
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
@@ -2103,27 +2187,27 @@ function render() {
     
     // Draw wingmen
     wingmen.forEach(wingman => {
-        drawWingman(wingman);
+        if (wingman) drawWingman(wingman);
     });
     
     bullets.forEach(bullet => {
-        drawBullet(bullet);
+        if (bullet) drawBullet(bullet);
     });
     
     enemyBullets.forEach(bullet => {
-        drawEnemyBullet(bullet);
+        if (bullet) drawEnemyBullet(bullet);
     });
     
     enemies.forEach(enemy => {
-        drawEnemy(enemy);
+        if (enemy) drawEnemy(enemy);
     });
     
     powerUps.forEach(powerUp => {
-        drawPowerUp(powerUp);
+        if (powerUp) drawPowerUp(powerUp);
     });
     
     explosions.forEach(explosion => {
-        drawExplosion(explosion);
+        if (explosion) drawExplosion(explosion);
     });
     
     // Draw special effects
@@ -2801,6 +2885,10 @@ function drawPauseOverlay() {
 function update() {
     if (gameState !== 'playing') return;
     
+    // Performance optimization: limit update frequency for UI
+    const currentTime = Date.now();
+    const shouldUpdateUI = !lastUIUpdate || (currentTime - lastUIUpdate) > 100; // Update UI every 100ms
+    
     updatePlayer();
     updateBullets();
     updateEnemyBullets();
@@ -2811,7 +2899,12 @@ function update() {
     updateSpecialEffects();
     checkCollisions();
     updateLevel();
-    updateUI();
+    
+    // Only update UI periodically to reduce DOM manipulation
+    if (shouldUpdateUI) {
+        updateUI();
+        lastUIUpdate = currentTime;
+    }
     
     spawnEnemy();
     spawnPowerUp();
@@ -3652,3 +3745,111 @@ function getCurrentShipStats() {
     return SHIPS[selectedShip] || SHIPS.interceptor;
 }
 // In initializeGameElements or startGame, set player.speed, etc. from getCurrentShipStats()
+
+// PWA Installation Functions
+function initializePWA() {
+    // Listen for the beforeinstallprompt event
+    window.addEventListener('beforeinstallprompt', (e) => {
+        console.log('PWA: Install prompt triggered');
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        // Show install button if it exists
+        if (installButton) {
+            installButton.style.display = 'block';
+        }
+        
+        // Show install notification
+        showNotification('🚀 Install Space Adventures for the best experience!', 'info');
+    });
+
+    // Listen for app installed event
+    window.addEventListener('appinstalled', (evt) => {
+        console.log('PWA: App was installed');
+        deferredPrompt = null;
+        
+        // Hide install button
+        if (installButton) {
+            installButton.style.display = 'none';
+        }
+        
+        // Show success notification
+        showNotification('🎉 Space Adventures installed successfully!', 'success');
+        
+        // Track installation
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'pwa_install', {
+                'event_category': 'engagement',
+                'event_label': 'app_installed'
+            });
+        }
+    });
+
+    // Check if app is already installed
+    if (window.matchMedia('(display-mode: standalone)').matches || 
+        window.navigator.standalone === true) {
+        console.log('PWA: App is running in standalone mode');
+        document.body.classList.add('pwa-installed');
+    }
+}
+
+// Install PWA function
+async function installPWA() {
+    if (!deferredPrompt) {
+        console.log('PWA: No install prompt available');
+        return;
+    }
+
+    try {
+        // Show the install prompt
+        deferredPrompt.prompt();
+        
+        // Wait for the user to respond to the prompt
+        const { outcome } = await deferredPrompt.userChoice;
+        
+        if (outcome === 'accepted') {
+            console.log('PWA: User accepted the install prompt');
+        } else {
+            console.log('PWA: User dismissed the install prompt');
+        }
+        
+        // Clear the deferredPrompt
+        deferredPrompt = null;
+        
+        // Hide install button
+        if (installButton) {
+            installButton.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('PWA: Install failed:', error);
+    }
+}
+
+// Add PWA installation button to the start screen
+function addInstallButton() {
+    const startScreen = document.getElementById('startScreen');
+    if (!startScreen) return;
+
+    // Create install button
+    installButton = document.createElement('button');
+    installButton.id = 'installButton';
+    installButton.className = 'install-button';
+    installButton.innerHTML = `
+        <span class="button-text">📱 Install App</span>
+        <span class="button-icon">⬇️</span>
+    `;
+    installButton.style.display = 'none';
+    installButton.addEventListener('click', installPWA);
+
+    // Insert before the start button
+    const startBtn = document.getElementById('startBtn');
+    if (startBtn) {
+        startScreen.insertBefore(installButton, startBtn);
+    }
+}
+
+// Initialize PWA when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    initializePWA();
+    addInstallButton();
+});
