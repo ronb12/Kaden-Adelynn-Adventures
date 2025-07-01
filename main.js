@@ -2356,8 +2356,10 @@ function updateSpecialEffects() {
 
 function checkCollisions() {
     // Check bullet-enemy collisions with safety bounds
-    for (let i = bullets.length - 1; i >= 0 && i < bullets.length; i--) {
-        for (let j = enemies.length - 1; j >= 0 && j < enemies.length; j--) {
+    for (let i = bullets.length - 1; i >= 0; i--) {
+        if (i >= bullets.length) continue; // Safety check after array modification
+        for (let j = enemies.length - 1; j >= 0; j--) {
+            if (j >= enemies.length) continue; // Safety check after array modification
             if (bullets[i] && enemies[j] && checkCollision(bullets[i], enemies[j])) {
                 // Remove bullet (unless piercing)
                 if (!bullets[i].piercing) {
@@ -2388,8 +2390,7 @@ function checkCollisions() {
                         showMoneyNotification(`+${bossReward}`, enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
                         showStoryNotification("BOSS DEFEATED!", `You earned ${bossReward} coins!`, 'achievement');
                         playExplosionSound();
-                        // Resume gameplay music and normal radio chatter after boss defeat
-                        playBackgroundMusic('gameplay');
+                        // Resume normal radio chatter after boss defeat
                         if (radioChatterEnabled) {
                             stopRadioChatter();
                             startRadioChatter();
@@ -2415,7 +2416,8 @@ function checkCollisions() {
     }
     
     // Check enemy bullet-player collisions with safety bounds
-    for (let i = enemyBullets.length - 1; i >= 0 && i < enemyBullets.length; i--) {
+    for (let i = enemyBullets.length - 1; i >= 0; i--) {
+        if (i >= enemyBullets.length) continue; // Safety check after array modification
         if (enemyBullets[i] && checkCollision(enemyBullets[i], player)) {
             enemyBullets.splice(i, 1);
             lives--;
@@ -2429,7 +2431,8 @@ function checkCollisions() {
     }
     
     // Check enemy-player collisions with safety bounds
-    for (let i = enemies.length - 1; i >= 0 && i < enemies.length; i--) {
+    for (let i = enemies.length - 1; i >= 0; i--) {
+        if (i >= enemies.length) continue; // Safety check after array modification
         if (enemies[i] && checkCollision(enemies[i], player)) {
             enemies.splice(i, 1);
             lives--;
@@ -2443,7 +2446,8 @@ function checkCollisions() {
     }
     
     // Check powerup collisions with safety bounds
-    for (let i = powerUps.length - 1; i >= 0 && i < powerUps.length; i--) {
+    for (let i = powerUps.length - 1; i >= 0; i--) {
+        if (i >= powerUps.length) continue; // Safety check after array modification
         if (powerUps[i] && checkCollision(powerUps[i], player)) {
             const powerUp = powerUps[i];
             powerUps.splice(i, 1);
