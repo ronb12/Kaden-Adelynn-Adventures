@@ -301,6 +301,55 @@ body {
     box-shadow: 0 8px 25px rgba(255, 69, 0, 0.4);
 }
 
+/* New character card styling */
+.character-card[data-character="zara"] {
+    border-color: rgba(153, 50, 204, 0.5);
+}
+
+.character-card[data-character="zara"]:hover {
+    box-shadow: 0 8px 25px rgba(153, 50, 204, 0.4);
+}
+
+.character-card[data-character="max"] {
+    border-color: rgba(50, 205, 50, 0.5);
+}
+
+.character-card[data-character="max"]:hover {
+    box-shadow: 0 8px 25px rgba(50, 205, 50, 0.4);
+}
+
+.character-card[data-character="luna"] {
+    border-color: rgba(135, 206, 235, 0.5);
+}
+
+.character-card[data-character="luna"]:hover {
+    box-shadow: 0 8px 25px rgba(135, 206, 235, 0.4);
+}
+
+.character-card[data-character="rocket"] {
+    border-color: rgba(255, 99, 71, 0.5);
+}
+
+.character-card[data-character="rocket"]:hover {
+    box-shadow: 0 8px 25px rgba(255, 99, 71, 0.4);
+}
+
+.character-card[data-character="stella"] {
+    border-color: rgba(255, 215, 0, 0.5);
+}
+
+.character-card[data-character="stella"]:hover {
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+}
+
+.character-card[data-character="thunder"] {
+    border-color: rgba(65, 105, 225, 0.5);
+}
+
+.character-card[data-character="thunder"]:hover {
+    box-shadow: 0 8px 25px rgba(65, 105, 225, 0.4);
+}
+
 /* Tab Navigation */
 .tab-navigation {
     display: flex;
@@ -308,6 +357,96 @@ body {
     margin-bottom: 20px;
     gap: 10px;
     flex-wrap: wrap;
+}
+
+/* Desktop-specific tab styling */
+@media (min-width: 851px) {
+    .tab-navigation {
+        gap: 15px;
+        margin-bottom: 30px;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 20px;
+        border-radius: 20px;
+        border: 2px solid rgba(74, 144, 226, 0.3);
+    }
+    
+    .tab-button {
+        padding: 15px 25px;
+        font-size: 16px;
+        min-width: 120px;
+        border-radius: 30px;
+        transition: all 0.3s ease;
+    }
+    
+    .tab-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+    }
+    
+    .tab-content {
+        max-width: 900px;
+        margin: 0 auto 30px auto;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 20px;
+        padding: 30px;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .character-grid {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 20px;
+    }
+    
+    .character-card {
+        padding: 20px;
+        border-radius: 15px;
+        transition: all 0.3s ease;
+    }
+    
+    .character-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
+    }
+    
+    .control-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+    
+    .control-item {
+        padding: 15px;
+        border-radius: 10px;
+    }
+    
+    .feature-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+    
+    .feature-item {
+        padding: 15px;
+        border-radius: 10px;
+    }
+    
+    .ships-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 25px;
+    }
+    
+    .ship-card {
+        padding: 20px;
+        border-radius: 15px;
+    }
+    
+    .story-highlights {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+    
+    .highlight-item {
+        padding: 15px;
+        border-radius: 10px;
+    }
 }
 
 .tab-button {
@@ -334,6 +473,31 @@ body {
     border-color: #ffd700;
     color: #ffd700;
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+}
+
+/* Desktop active tab enhancement */
+@media (min-width: 851px) {
+    .tab-button.active {
+        background: rgba(255, 215, 0, 0.3);
+        border-color: #ffd700;
+        color: #ffd700;
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+        transform: translateY(-2px);
+        position: relative;
+    }
+    
+    .tab-button.active::after {
+        content: '';
+        position: absolute;
+        bottom: -5px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 20px;
+        height: 3px;
+        background: #ffd700;
+        border-radius: 2px;
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+    }
 }
 
 /* Tab Content */
