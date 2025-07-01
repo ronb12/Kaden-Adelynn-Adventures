@@ -826,23 +826,24 @@ body {
     display: block;
 }
 .game-button {
-    background: linear-gradient(45deg, #4a90e2, #357abd);
+    background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
     color: white;
     border: none;
     padding: 15px 30px;
     font-size: 18px;
     font-weight: bold;
-    border-radius: 30px;
+    border-radius: 25px;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
     position: relative;
     overflow: hidden;
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    min-height: 50px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    min-width: 160px;
     justify-content: center;
+    gap: 10px;
 }
 
 .game-button::before {
@@ -1215,46 +1216,92 @@ button:active {
         max-height: 100vh;
     }
     .ui-overlay {
-        font-size: 0.8em;
-        gap: 0.2em;
-        padding: 0.3em;
-        max-width: 180px;
+        font-size: 0.75em;
+        gap: 0.25em;
+        padding: 0.4em;
+        max-width: 200px;
         background: rgba(0,0,0,0.9);
+        border-radius: 12px;
     }
     .ui-overlay > div {
-        font-size: 0.75em;
+        font-size: 0.7em;
+        padding: 0.3em 0.5em;
+        margin-bottom: 0.25em;
     }
     .game-over, .start-screen {
+        font-size: 0.85em;
+        padding: 0.8em;
+        margin: 15px;
+        border-radius: 18px;
+    }
+    .character-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.8em;
+    }
+    .character-card {
+        padding: 0.8em 0.4em;
         font-size: 0.9em;
-        padding: 0.5em;
+    }
+    .character-avatar {
+        font-size: 2em;
+        margin-bottom: 0.3em;
+    }
+    .game-button {
+        padding: 18px 25px;
+        font-size: 16px;
+        min-height: 55px;
+        border-radius: 20px;
     }
 }
 
 @media (max-width: 400px) {
     #gameCanvas {
-        height: calc(100vh - 70px) !important;
-        max-height: calc(100vh - 70px);
+        height: calc(100vh - 80px) !important;
+        max-height: calc(100vh - 80px);
     }
     .ui-overlay {
-        font-size: 0.7em;
-        padding: 0.2em;
-        max-width: 150px;
+        font-size: 0.65em;
+        padding: 0.3em;
+        max-width: 170px;
         background: rgba(0,0,0,0.95);
-        top: 5px;
-        left: 5px;
+        top: 8px;
+        left: 8px;
+        border-radius: 15px;
     }
     .ui-overlay > div {
-        font-size: 0.65em;
-        margin-bottom: 0.1em;
+        font-size: 0.6em;
+        margin-bottom: 0.2em;
+        padding: 0.25em 0.4em;
     }
     .game-over, .start-screen {
-        font-size: 0.8em;
-        padding: 0.2em;
-        max-width: 90vw;
+        font-size: 0.75em;
+        padding: 0.6em;
+        max-width: 92vw;
+        margin: 20px;
+        border-radius: 20px;
     }
     .mobile-tab-btn {
+        font-size: 1.6em;
+        padding: 0.4em 0.3em;
+        min-height: 48px;
+    }
+    .character-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.6em;
+    }
+    .character-card {
+        padding: 0.6em 0.3em;
+        font-size: 0.8em;
+    }
+    .character-avatar {
         font-size: 1.8em;
-        padding: 0.3em 0.2em;
+        margin-bottom: 0.2em;
+    }
+    .game-button {
+        padding: 20px 20px;
+        font-size: 15px;
+        min-height: 60px;
+        border-radius: 18px;
     }
 }
 
@@ -1393,31 +1440,65 @@ button:active {
         display: none;
     }
     .ui-overlay {
-        font-size: 0.9em;
-        padding: 0.2em 0.2em 0 0.2em;
-        max-height: 30vh;
+        font-size: 0.85em;
+        padding: 0.3em;
+        max-height: 35vh;
         overflow-y: auto;
+        background: rgba(0,0,0,0.85);
+        backdrop-filter: blur(8px);
+        border-radius: 10px;
+        border: 1px solid rgba(74, 144, 226, 0.3);
     }
     .ui-overlay > div {
-        margin-bottom: 0.2em;
+        margin-bottom: 0.3em;
+        padding: 0.2em 0.4em;
+        border-radius: 6px;
+        background: rgba(0,0,0,0.4);
     }
     body {
         padding-top: env(safe-area-inset-top, 0);
     }
     .start-screen {
-        max-height: calc(100vh - 60px);
+        max-height: calc(100vh - 80px);
         overflow-y: auto;
-        padding-bottom: 70px;
-        font-size: 0.95em;
+        padding-bottom: 80px;
+        font-size: 0.9em;
+        margin: 10px;
+        border-radius: 15px;
     }
     .start-screen h1 {
-        font-size: 1.3em;
+        font-size: 1.4em;
+        line-height: 1.2;
+        margin-bottom: 15px;
     }
     .tab-navigation {
         display: none !important;
     }
     .tab-content {
-        font-size: 1em;
+        font-size: 0.95em;
+    }
+    .character-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.8em;
+    }
+    .character-card {
+        padding: 0.8em 0.4em;
+        font-size: 0.85em;
+    }
+    .character-avatar {
+        font-size: 2.2em;
+        margin-bottom: 0.3em;
+    }
+    .character-card h4 {
+        font-size: 0.9em;
+        margin-bottom: 0.2em;
+    }
+    .character-card p {
+        font-size: 0.75em;
+        margin-bottom: 0.2em;
+    }
+    .character-desc {
+        font-size: 0.7em;
     }
 }
 
@@ -1489,30 +1570,32 @@ button:active {
     backdrop-filter: blur(10px);
     box-shadow: 0 -2px 12px rgba(0,0,0,0.5);
     z-index: 1002;
-    padding: 0.3em 0;
+    padding: 0.4em 0.2em;
     justify-content: space-around;
     align-items: center;
-    gap: 0.3em;
+    gap: 0.2em;
     border-top: 1px solid rgba(74, 144, 226, 0.3);
 }
 .mobile-tab-btn {
-    flex: 1 1 20%;
+    flex: 1 1 16%;
     background: none;
     border: none;
     color: #ffd700;
-    font-size: 2em;
-    padding: 0.4em 0.3em;
-    margin: 0 0.2em;
+    font-size: 1.8em;
+    padding: 0.5em 0.3em;
+    margin: 0 0.1em;
     border-radius: 12px;
     transition: all 0.2s ease;
-    min-height: 44px;
+    min-height: 50px;
     display: flex;
     align-items: center;
     justify-content: center;
+    -webkit-tap-highlight-color: transparent;
 }
 .mobile-tab-btn:active, .mobile-tab-btn.selected {
     background: #4a90e2;
     color: #fff;
+    transform: scale(0.95);
 }
 @media (max-width: 850px) {
     .mobile-tab-bar {
@@ -1815,5 +1898,40 @@ button:active {
         min-width: 120px;
         width: 100%;
         justify-content: flex-start;
+    }
+}
+
+/* Mobile mission info improvements */
+@media (max-width: 600px) {
+    .mission-info {
+        min-width: 150px;
+        padding: 6px 10px;
+        margin-top: 8px;
+    }
+    .mission-title {
+        font-size: 11px;
+    }
+    .mission-objective {
+        font-size: 9px;
+    }
+    .mission-progress {
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 400px) {
+    .mission-info {
+        min-width: 130px;
+        padding: 5px 8px;
+        margin-top: 6px;
+    }
+    .mission-title {
+        font-size: 10px;
+    }
+    .mission-objective {
+        font-size: 8px;
+    }
+    .mission-progress {
+        font-size: 9px;
     }
 } 
