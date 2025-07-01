@@ -656,27 +656,27 @@ button:active {
 /* Story notifications */
 .story-notification {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.8);
+    top: 20px;
+    right: 20px;
+    transform: translateX(400px);
     background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(20, 20, 40, 0.95));
     color: white;
-    padding: 25px 35px;
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+    padding: 20px 25px;
+    border-radius: 15px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
     z-index: 1000;
     transition: all 0.4s ease;
     opacity: 0;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: bold;
-    text-align: center;
-    border: 3px solid #4a90e2;
-    max-width: 500px;
+    text-align: left;
+    border: 2px solid #4a90e2;
+    max-width: 350px;
     backdrop-filter: blur(10px);
 }
 
 .story-notification.show {
-    transform: translate(-50%, -50%) scale(1);
+    transform: translateX(0);
     opacity: 1;
 }
 
@@ -711,16 +711,16 @@ button:active {
 }
 
 .story-content h3 {
-    margin: 0 0 10px 0;
-    font-size: 20px;
+    margin: 0 0 8px 0;
+    font-size: 16px;
     font-weight: bold;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .story-content p {
     margin: 0;
-    font-size: 14px;
-    line-height: 1.4;
+    font-size: 12px;
+    line-height: 1.3;
     opacity: 0.9;
 }
 @media (max-width: 850px) {

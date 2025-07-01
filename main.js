@@ -137,6 +137,7 @@ let totalEnemiesDestroyed = parseInt(localStorage.getItem('spaceAdventuresTotalE
 let totalWingmenPurchased = parseInt(localStorage.getItem('spaceAdventuresTotalWingmen')) || 0;
 let playerRank = localStorage.getItem('spaceAdventuresPlayerRank') || 'Cadet';
 let storyUnlocked = JSON.parse(localStorage.getItem('spaceAdventuresStoryUnlocked')) || false;
+let storyNotificationsEnabled = JSON.parse(localStorage.getItem('spaceAdventuresStoryNotifications')) !== false; // Default to true
 
 // Story missions
 const STORY_MISSIONS = {
@@ -436,6 +437,9 @@ function showNotification(message, type = 'info') {
 }
 
 function showStoryNotification(title, message, type = 'story') {
+    // Don't show if story notifications are disabled
+    if (!storyNotificationsEnabled) return;
+    
     const notification = document.createElement('div');
     notification.className = `story-notification ${type}`;
     notification.innerHTML = `
@@ -451,6 +455,8 @@ function showStoryNotification(title, message, type = 'story') {
         notification.classList.add('show');
     }, 100);
     
+    // Shorter display time for less interference
+    const displayTime = type === 'legend' ? 4000 : 3000;
     setTimeout(() => {
         notification.classList.remove('show');
         setTimeout(() => {
@@ -458,7 +464,7 @@ function showStoryNotification(title, message, type = 'story') {
                 notification.parentNode.removeChild(notification);
             }
         }, 500);
-    }, 5000);
+    }, displayTime);
 }
 
 function checkMissionProgress() {
@@ -719,6 +725,11 @@ if (!window.gameEventListenersInitialized) {
                 activateSpecialAbility();
             }
         }
+        // Toggle story notifications with 'T' key
+        if (e.key === 't' || e.key === 'T') {
+            storyNotificationsEnabled = !storyNotificationsEnabled;
+            showNotification(`Story notifications: ${storyNotificationsEnabled ? 'ON' : 'OFF'}`, 'info');
+        }
     });
 
     document.addEventListener('keyup', (e) => {
@@ -815,8 +826,9 @@ function startGame() {
     // Initialize UI
     updateUI();
     
-    // Show story introduction if first time or mission available
-    if (currentMission <= 5) {
+    // Show story introduction only if it's the first time playing or mission just started
+    const lastMissionShown = localStorage.getItem('spaceAdventuresLastMissionShown') || 0;
+    if (currentMission <= 5 && currentMission > parseInt(lastMissionShown)) {
         const mission = STORY_MISSIONS[currentMission];
         setTimeout(() => {
             showStoryNotification(
@@ -825,6 +837,7 @@ function startGame() {
                 'info'
             );
         }, 1000);
+        localStorage.setItem('spaceAdventuresLastMissionShown', currentMission);
     }
     
     if (gameLoop) cancelAnimationFrame(gameLoop);
