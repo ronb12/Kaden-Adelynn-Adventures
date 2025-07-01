@@ -22,6 +22,9 @@ money = parseInt(savedMoney);
 // Sound system
 let audioContext;
 let soundEnabled = true;
+let musicEnabled = true;
+let backgroundMusic = null;
+let currentMusicTrack = null;
 
 // Performance optimization constants
 const MAX_BULLETS = 200; // Limit total bullets to prevent memory issues
@@ -31,6 +34,25 @@ const MAX_POWERUPS = 20; // Limit powerups
 const MAX_ENEMIES = 30; // Limit enemies
 const MAX_WINGMEN = 4; // Maximum number of wingmen
 const MAX_SPECIAL_EFFECTS = 20; // Limit special effects
+
+// Retro music tracks
+const MUSIC_TRACKS = {
+    menu: {
+        frequencies: [220, 277, 330, 440, 330, 277], // A major scale
+        tempo: 120,
+        pattern: [0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1]
+    },
+    gameplay: {
+        frequencies: [330, 440, 554, 659, 554, 440], // E major scale
+        tempo: 140,
+        pattern: [0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1]
+    },
+    boss: {
+        frequencies: [220, 277, 330, 440, 330, 277, 220, 165], // Darker scale
+        tempo: 160,
+        pattern: [0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3]
+    }
+};
 
 // Initialize audio context only when needed
 function initAudioContext() {
@@ -42,6 +64,77 @@ function initAudioContext() {
             console.log('Audio context not supported:', error);
         }
     }
+}
+
+// Play retro background music
+function playBackgroundMusic(trackName = 'menu') {
+    if (!musicEnabled || !audioContext) return;
+    
+    const track = MUSIC_TRACKS[trackName];
+    if (!track) return;
+    
+    // Stop current music if playing
+    if (backgroundMusic) {
+        backgroundMusic.stop();
+        backgroundMusic = null;
+    }
+    
+    let noteIndex = 0;
+    const noteDuration = 60000 / track.tempo; // Convert BPM to milliseconds
+    
+    function playNote() {
+        if (!musicEnabled || gameState === 'gameOver') return;
+        
+        const frequency = track.frequencies[track.pattern[noteIndex % track.pattern.length]];
+        
+        try {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            oscillator.type = 'square';
+            
+            gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + noteDuration * 0.8);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + noteDuration * 0.8);
+            
+            noteIndex++;
+            
+            // Schedule next note
+            setTimeout(playNote, noteDuration);
+        } catch (error) {
+            console.log('Music playback error:', error);
+        }
+    }
+    
+    playNote();
+}
+
+// Stop background music
+function stopBackgroundMusic() {
+    if (backgroundMusic) {
+        backgroundMusic.stop();
+        backgroundMusic = null;
+    }
+}
+
+// Toggle music
+function toggleMusic() {
+    musicEnabled = !musicEnabled;
+    if (!musicEnabled) {
+        stopBackgroundMusic();
+    } else if (gameState === 'start') {
+        playBackgroundMusic('menu');
+    } else if (gameState === 'playing') {
+        const hasBoss = enemies.some(e => e.isBoss);
+        playBackgroundMusic(hasBoss ? 'boss' : 'gameplay');
+    }
+    showNotification(`Music ${musicEnabled ? 'ON' : 'OFF'}`, 'info');
 }
 
 // Achievement system
@@ -1180,6 +1273,10 @@ if (!window.gameEventListenersInitialized) {
             soundEnabled = !soundEnabled;
             console.log('Sound:', soundEnabled ? 'ON' : 'OFF');
         }
+        // Toggle music with 'N' key
+        if (e.key === 'n' || e.key === 'N') {
+            toggleMusic();
+        }
         // Keyboard shortcut to start game
         if (e.key === 'Enter' && gameState === 'start') {
             e.preventDefault();
@@ -1319,6 +1416,11 @@ function startGame() {
     if (startScreen) startScreen.classList.add('hidden');
     if (gameOverScreen) gameOverScreen.classList.add('hidden');
     
+    // Start menu music when returning to start screen
+    if (gameState === 'start') {
+        playBackgroundMusic('menu');
+    }
+    
     // Initialize UI
     updateUI();
     
@@ -1338,6 +1440,9 @@ function startGame() {
     
     if (gameLoop) cancelAnimationFrame(gameLoop);
     gameLoop = requestAnimationFrame(update);
+    
+    // Start gameplay music
+    playBackgroundMusic('gameplay');
 }
 
 function gameOver() {
@@ -1371,6 +1476,9 @@ function gameOver() {
     
     if (gameOverScreen) gameOverScreen.classList.remove('hidden');
     cancelAnimationFrame(gameLoop);
+    
+    // Stop music on game over
+    stopBackgroundMusic();
 }
 
 function shoot() {
@@ -1566,6 +1674,8 @@ function spawnEnemy() {
             // Only show boss alert when game is actually playing
             if (gameState === 'playing') {
                 showStoryNotification("BOSS ALERT!", `A ${currentMission.title.split(':')[1] || 'Boss'} has appeared!`, 'boss');
+                // Switch to boss music
+                playBackgroundMusic('boss');
             }
             return;
         }
@@ -1975,8 +2085,10 @@ function checkCollisions() {
                         score += bossReward;
                         money += bossReward;
                         showMoneyNotification(`+${bossReward}`, enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
-                        showStoryNotification("BOSS DEFEATED!", `You earned ${bossReward} coins!`, 'achievement');
-                        playExplosionSound();
+                                            showStoryNotification("BOSS DEFEATED!", `You earned ${bossReward} coins!`, 'achievement');
+                    playExplosionSound();
+                    // Switch back to gameplay music after boss defeat
+                    playBackgroundMusic('gameplay');
                     } else {
                         // Regular enemy rewards
                         const reward = 5 + Math.floor(Math.random() * 6); // 5-10 coins
@@ -3874,4 +3986,9 @@ function addInstallButton() {
 document.addEventListener('DOMContentLoaded', () => {
     initializePWA();
     addInstallButton();
+    
+    // Start menu music
+    setTimeout(() => {
+        playBackgroundMusic('menu');
+    }, 1000);
 });
