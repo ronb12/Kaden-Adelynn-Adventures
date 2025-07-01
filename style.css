@@ -10,10 +10,8 @@ body {
     font-family: 'Arial', sans-serif;
     background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
     color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     min-height: 100vh;
+    min-width: 100vw;
     width: 100vw;
     height: 100vh;
 }
@@ -27,10 +25,8 @@ body {
     border-radius: 0;
     max-width: none;
     max-height: none;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: flex-start;
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
     background: #000;
 }
 
@@ -42,8 +38,10 @@ body {
     max-height: 100vh;
     border-radius: 0;
     display: block;
-    margin: 0 auto;
+    margin: 0;
     background: #000;
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
 }
 
 .ui-overlay {
