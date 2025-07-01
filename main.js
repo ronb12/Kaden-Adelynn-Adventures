@@ -212,22 +212,22 @@ function startRadioChatter() {
             const enemyCount = enemies.length;
             const wingmanCount = wingmen.length;
             
-            if (hasBoss) {
-                chatterType = 'alerts';
-                message = RADIO_CHATTER.alerts[Math.floor(Math.random() * RADIO_CHATTER.alerts.length)];
-            } else if (enemyCount > 5) {
-                chatterType = 'pilot';
-                message = RADIO_CHATTER.pilot[Math.floor(Math.random() * RADIO_CHATTER.pilot.length)];
-            } else if (wingmanCount > 0) {
-                chatterType = 'wingmen';
-                message = RADIO_CHATTER.wingmen[Math.floor(Math.random() * RADIO_CHATTER.wingmen.length)];
-            } else {
-                chatterType = 'command';
-                message = RADIO_CHATTER.command[Math.floor(Math.random() * RADIO_CHATTER.command.length)];
-            }
+                    if (hasBoss) {
+            chatterType = 'alerts';
+            message = getRandomRadioMessage('alerts');
+        } else if (enemyCount > 5) {
+            chatterType = 'pilot';
+            message = getRandomRadioMessage('pilot');
+        } else if (wingmanCount > 0) {
+            chatterType = 'wingmen';
+            message = getRandomRadioMessage('wingmen');
         } else {
             chatterType = 'command';
-            message = RADIO_CHATTER.command[Math.floor(Math.random() * RADIO_CHATTER.command.length)];
+            message = getRandomRadioMessage('command');
+        }
+        } else {
+            chatterType = 'command';
+            message = getRandomRadioMessage('command');
         }
         
         // Speak and show radio chatter
@@ -4247,15 +4247,15 @@ function radioChatterEvent(event) {
     
     switch(event) {
         case 'missionStart':
-            message = RADIO_CHATTER.command[Math.floor(Math.random() * RADIO_CHATTER.command.length)];
+            message = getRandomRadioMessage('command');
             type = 'command';
             break;
         case 'bossSpawn':
-            message = RADIO_CHATTER.alerts[3]; // Boss enemy detected
+            message = getRandomRadioMessage('alerts');
             type = 'alerts';
             break;
         case 'missionComplete':
-            message = RADIO_CHATTER.alerts[7]; // Boss enemy destroyed
+            message = getRandomRadioMessage('alerts');
             type = 'alerts';
             break;
         case 'wingmanLost':
@@ -4271,7 +4271,7 @@ function radioChatterEvent(event) {
             type = 'alerts';
             break;
         default:
-            message = RADIO_CHATTER.command[Math.floor(Math.random() * RADIO_CHATTER.command.length)];
+            message = getRandomRadioMessage('command');
             type = 'command';
     }
     
@@ -4487,3 +4487,59 @@ const RADIO_CHATTER = {
         "URGENT! Multiple hostiles on radar!"
     ]
 };
+
+// Radio chatter tracking to prevent repetition
+let radioChatterHistory = {
+    command: [],
+    wingmen: [],
+    pilot: [],
+    alerts: []
+};
+
+// Time-based message rotation
+let lastMessageRotation = 0;
+
+// Get a random message that hasn't been used recently
+function getRandomRadioMessage(type) {
+    const messages = RADIO_CHATTER[type];
+    const history = radioChatterHistory[type];
+    const currentTime = Date.now();
+    
+    // Rotate messages every 30 seconds to ensure variety
+    if (currentTime - lastMessageRotation > 30000) {
+        radioChatterHistory = {
+            command: [],
+            wingmen: [],
+            pilot: [],
+            alerts: []
+        };
+        lastMessageRotation = currentTime;
+        console.log('Radio chatter: Message rotation reset');
+    }
+    
+    // If we've used most messages, reset history
+    if (history.length >= messages.length * 0.7) {
+        radioChatterHistory[type] = [];
+        console.log(`Radio chatter: ${type} history reset (${history.length}/${messages.length} used)`);
+    }
+    
+    // Find messages that haven't been used recently
+    const availableMessages = messages.filter((_, index) => !history.includes(index));
+    
+    // If all messages have been used, reset history and use any message
+    if (availableMessages.length === 0) {
+        radioChatterHistory[type] = [];
+        const randomIndex = Math.floor(Math.random() * messages.length);
+        radioChatterHistory[type].push(randomIndex);
+        console.log(`Radio chatter: ${type} all messages used, resetting`);
+        return messages[randomIndex];
+    }
+    
+    // Select a random message from available ones
+    const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
+    const messageIndex = messages.indexOf(randomMessage);
+    radioChatterHistory[type].push(messageIndex);
+    
+    console.log(`Radio chatter: ${type} message ${messageIndex + 1}/${messages.length} (${availableMessages.length} available)`);
+    return randomMessage;
+}
