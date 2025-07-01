@@ -1,20 +1,6 @@
 // Version 2.0 - Added missile sounds, enemy shooting, 50 lives, achievements, scoring board, and enhanced weapons
-// Game variables
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-const scoreElement = document.getElementById('score');
-const livesElement = document.getElementById('lives');
-const levelElement = document.getElementById('level');
-const gameOverScreen = document.getElementById('gameOver');
-const startScreen = document.getElementById('startScreen');
-const finalScoreElement = document.getElementById('finalScore');
-const restartBtn = document.getElementById('restartBtn');
-const startBtn = document.getElementById('startBtn');
-
-// Safety check for required elements
-if (!startBtn || !restartBtn || !canvas) {
-    console.error('Required game elements not found!');
-}
+// Game variables - Will be initialized after DOM loads
+let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, startScreen, finalScoreElement, restartBtn, startBtn;
 
 // Game state
 let gameState = 'start';
@@ -44,8 +30,8 @@ let earnedAchievements = [];
 
 // Player - Fighter jet design with shield
 const player = {
-    x: canvas.width / 2,
-    y: canvas.height - 50,
+    x: 400, // Will be updated when canvas loads
+    y: 550, // Will be updated when canvas loads
     width: 60,
     height: 60,
     speed: 8,
@@ -276,12 +262,7 @@ function setupButtonListeners() {
     // Keyboard shortcut is now handled in the global event listener
 }
 
-// Setup button listeners when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupButtonListeners);
-} else {
-    setupButtonListeners();
-}
+// Button listeners are now set up in initializeGameElements()
 
 // Game functions
 function startGame() {
@@ -1103,9 +1084,55 @@ function update() {
     gameLoop = requestAnimationFrame(update);
 }
 
-// Initialize game
-updateUI();
+// Initialize game elements after DOM loads
+function initializeGameElements() {
+    console.log('Initializing game elements...');
+    
+    // Get DOM elements
+    canvas = document.getElementById('gameCanvas');
+    ctx = canvas.getContext('2d');
+    scoreElement = document.getElementById('score');
+    livesElement = document.getElementById('lives');
+    levelElement = document.getElementById('level');
+    gameOverScreen = document.getElementById('gameOver');
+    startScreen = document.getElementById('startScreen');
+    finalScoreElement = document.getElementById('finalScore');
+    restartBtn = document.getElementById('restartBtn');
+    startBtn = document.getElementById('startBtn');
+    
+    // Safety check for required elements
+    if (!startBtn || !restartBtn || !canvas) {
+        console.error('Required game elements not found!');
+        return false;
+    }
+    
+    // Update player position based on canvas size
+    player.x = canvas.width / 2;
+    player.y = canvas.height - 50;
+    
+    console.log('Game elements initialized successfully');
+    console.log('Canvas size:', canvas.width, 'x', canvas.height);
+    console.log('Player position:', player.x, player.y);
+    
+    // Initialize UI
+    updateUI();
+    
+    // Initialize high score display
+    const highScoreElement = document.getElementById('highScore');
+    if (highScoreElement) highScoreElement.textContent = highScore;
+    
+    return true;
+}
 
-// Initialize high score display
-const highScoreElement = document.getElementById('highScore');
-if (highScoreElement) highScoreElement.textContent = highScore; 
+// Wait for DOM to be ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        if (initializeGameElements()) {
+            setupButtonListeners();
+        }
+    });
+} else {
+    if (initializeGameElements()) {
+        setupButtonListeners();
+    }
+} 
