@@ -1069,17 +1069,7 @@ button:active {
     animation: legendGlow 2s ease-in-out infinite alternate;
 }
 
-.story-notification.boss {
-    border-color: #ff4444;
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(40, 0, 0, 0.95));
-    color: #ff4444;
-    animation: bossGlow 1.5s ease-in-out infinite alternate;
-}
-
-@keyframes bossGlow {
-    0% { box-shadow: 0 10px 40px rgba(255, 68, 68, 0.3); }
-    100% { box-shadow: 0 15px 50px rgba(255, 68, 68, 0.6); }
-}
+/* Boss notification styling removed */
 
 @keyframes legendGlow {
     0% { box-shadow: 0 10px 40px rgba(255, 215, 0, 0.3); }
@@ -1327,6 +1317,7 @@ button:active {
     box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
     z-index: 15;
     animation: pulse 1.5s infinite;
+    display: none; /* Hide by default, only show when game is paused */
 }
 
 /* Boss battle effects - REMOVED */
