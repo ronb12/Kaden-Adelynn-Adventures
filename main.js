@@ -1617,11 +1617,9 @@ function drawPlayer() {
     const x = player.x;
     const y = player.y;
     const character = CHARACTERS[player.character];
-    // Use pink accent for Adelynn
+    // Use pink accent for Adelynn, dark accent for Kaden
     const shipColor = (player.character === 'adelynn') ? '#ff69b4' : (player.character === 'kaden') ? '#3b2e2a' : (player.character === 'blaze') ? '#ff4500' : character.color;
-    // Sleek triangle fighter jet design
     ctx.fillStyle = shipColor;
-    
     // Main triangle body
     ctx.beginPath();
     ctx.moveTo(x + 30, y + 10); // Top point
@@ -1629,7 +1627,6 @@ function drawPlayer() {
     ctx.lineTo(x + 50, y + 50); // Bottom right
     ctx.closePath();
     ctx.fill();
-    
     // Cockpit (darker shade)
     ctx.fillStyle = "#1a1a2e";
     ctx.beginPath();
@@ -1638,12 +1635,10 @@ function drawPlayer() {
     ctx.lineTo(x + 40, y + 35);
     ctx.closePath();
     ctx.fill();
-    
     // Wing tips with missile rails
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(x + 5, y + 30, 8, 4);  // Left missile rail
     ctx.fillRect(x + 47, y + 30, 8, 4); // Right missile rail
-    
     // Engine exhausts (orange glow)
     ctx.shadowColor = '#ff6600';
     ctx.shadowBlur = 8;
@@ -1651,12 +1646,58 @@ function drawPlayer() {
     ctx.fillRect(x + 20, y + 45, 6, 8);
     ctx.fillRect(x + 34, y + 45, 6, 8);
     ctx.shadowBlur = 0;
-    
     // Side weapon pods
     ctx.fillStyle = "#cccccc";
     ctx.fillRect(x + 8, y + 25, 4, 6);   // Left weapon pod
     ctx.fillRect(x + 48, y + 25, 4, 6);  // Right weapon pod
-    
+    // Draw pilot in cockpit
+    const pilotX = x + 30;
+    const pilotY = y + 25;
+    ctx.save();
+    if (player.character === 'kaden') {
+        // Kaden: dark skin, blue helmet
+        ctx.beginPath();
+        ctx.arc(pilotX, pilotY, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#7a4a21'; // dark brown skin
+        ctx.fill();
+        // Helmet
+        ctx.beginPath();
+        ctx.arc(pilotX, pilotY, 7, 0, Math.PI * 2);
+        ctx.strokeStyle = '#4a90e2';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    } else if (player.character === 'adelynn') {
+        // Adelynn: pink helmet and suit
+        ctx.beginPath();
+        ctx.arc(pilotX, pilotY, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffe0e6'; // light skin (or use #fff for helmet visor)
+        ctx.fill();
+        // Pink helmet
+        ctx.beginPath();
+        ctx.arc(pilotX, pilotY, 7, 0, Math.PI * 2);
+        ctx.strokeStyle = '#ff69b4';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        // Pink suit collar
+        ctx.beginPath();
+        ctx.arc(pilotX, pilotY + 5, 4, 0, Math.PI, true);
+        ctx.strokeStyle = '#ff69b4';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    } else {
+        // Default pilot
+        ctx.beginPath();
+        ctx.arc(pilotX, pilotY, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffe0b2'; // default skin
+        ctx.fill();
+        // Helmet
+        ctx.beginPath();
+        ctx.arc(pilotX, pilotY, 7, 0, Math.PI * 2);
+        ctx.strokeStyle = '#cccccc';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+    ctx.restore();
     // Shield effect if active
     if (player.isShieldActive && player.shield > 0) {
         ctx.save();
