@@ -1028,6 +1028,18 @@ button:active {
     body {
         padding-top: env(safe-area-inset-top, 0);
     }
+    .start-screen {
+        max-height: calc(100vh - 60px);
+        overflow-y: auto;
+        padding-bottom: 70px;
+        font-size: 0.95em;
+    }
+    .start-screen h1 {
+        font-size: 1.3em;
+    }
+    .tab-navigation, .tab-content {
+        font-size: 1em;
+    }
 }
 
 /* Mobile indicator */
