@@ -226,23 +226,7 @@ if (!window.gameEventListenersInitialized) {
     });
 }
 
-canvas.addEventListener('mousemove', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    mouseX = e.clientX - rect.left;
-    mouseY = e.clientY - rect.top;
-    lastMouseInput = Date.now();
-});
-
-canvas.addEventListener('mousedown', () => {
-    isMouseDown = true;
-    if (gameState === 'playing') {
-        shoot();
-    }
-});
-
-canvas.addEventListener('mouseup', () => {
-    isMouseDown = false;
-});
+// Canvas event listeners will be set up in initializeGameElements()
 
 // Enhanced button event listeners with multiple fallbacks
 function setupButtonListeners() {
@@ -1174,6 +1158,27 @@ function initializeGameElements() {
     console.log('Canvas size:', canvas.width, 'x', canvas.height);
     console.log('Player position:', player.x, player.y);
     console.log('=== GAME INITIALIZATION COMPLETE ===');
+    
+    // Set up canvas event listeners
+    canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        mouseX = e.clientX - rect.left;
+        mouseY = e.clientY - rect.top;
+        lastMouseInput = Date.now();
+    });
+
+    canvas.addEventListener('mousedown', () => {
+        isMouseDown = true;
+        if (gameState === 'playing') {
+            shoot();
+        }
+    });
+
+    canvas.addEventListener('mouseup', () => {
+        isMouseDown = false;
+    });
+    
+    console.log('Canvas event listeners set up');
     
     // Initialize UI
     updateUI();
