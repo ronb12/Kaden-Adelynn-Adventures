@@ -1127,18 +1127,6 @@ function initializeGameElements() {
         finalScoreElement: !!finalScoreElement
     });
     
-    // Get DOM elements
-    canvas = document.getElementById('gameCanvas');
-    ctx = canvas.getContext('2d');
-    scoreElement = document.getElementById('score');
-    livesElement = document.getElementById('lives');
-    levelElement = document.getElementById('level');
-    gameOverScreen = document.getElementById('gameOver');
-    startScreen = document.getElementById('startScreen');
-    finalScoreElement = document.getElementById('finalScore');
-    restartBtn = document.getElementById('restartBtn');
-    startBtn = document.getElementById('startBtn');
-    
     // Safety check for required elements
     if (!startBtn || !restartBtn || !canvas) {
         console.error('Required game elements not found!');
