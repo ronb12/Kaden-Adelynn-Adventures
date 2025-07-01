@@ -971,10 +971,11 @@ function pauseGame() {
     cancelAnimationFrame(gameLoop);
     showNotification('Game Paused - Press P to Resume', 'info');
     
-    // Pause music (it will resume when game resumes)
+    // Pause music and radio chatter (they will resume when game resumes)
     if (musicEnabled) {
         stopBackgroundMusic();
     }
+    stopRadioChatter();
 }
 
 function resumeGame() {
@@ -982,10 +983,25 @@ function resumeGame() {
     gameLoop = requestAnimationFrame(update);
     showNotification('Game Resumed!', 'success');
     
-    // Resume music
+    // Resume music (but not boss music - only radio chatter during boss battles)
     if (musicEnabled) {
         const hasBoss = enemies.some(e => e.isBoss);
-        playBackgroundMusic(hasBoss ? 'boss' : 'gameplay');
+        if (hasBoss) {
+            // Don't play music during boss battles, let radio chatter handle it
+            stopBackgroundMusic();
+        } else {
+            playBackgroundMusic('gameplay');
+        }
+    }
+    
+    // Resume radio chatter if enabled
+    if (radioChatterEnabled) {
+        const hasBoss = enemies.some(e => e.isBoss);
+        if (hasBoss) {
+            startBossRadioChatter();
+        } else {
+            startRadioChatter();
+        }
     }
 }
 
@@ -1721,6 +1737,11 @@ function startGame() {
     
     // Start gameplay music
     playBackgroundMusic('gameplay');
+    
+    // Start radio chatter if enabled
+    if (radioChatterEnabled) {
+        startRadioChatter();
+    }
 }
 
 function gameOver() {
@@ -1755,8 +1776,9 @@ function gameOver() {
     if (gameOverScreen) gameOverScreen.classList.remove('hidden');
     cancelAnimationFrame(gameLoop);
     
-    // Stop music on game over
+    // Stop music and radio chatter on game over
     stopBackgroundMusic();
+    stopRadioChatter();
 }
 
 function shoot() {
