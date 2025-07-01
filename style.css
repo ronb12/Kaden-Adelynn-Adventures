@@ -50,6 +50,9 @@ body {
 .sound {
     color: #ff8800 !important;
 }
+.shield {
+    color: #00ffff !important;
+}
 .game-over, .start-screen {
     position: absolute;
     top: 50%;
