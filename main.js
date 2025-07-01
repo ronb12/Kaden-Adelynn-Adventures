@@ -2218,6 +2218,7 @@ function initializeGameElements() {
     setupTabNavigation();
     
     console.log('=== GAME INITIALIZATION COMPLETE ===');
+    resizeCanvas();
     return true;
 }
 
@@ -2327,3 +2328,30 @@ if (isIOS) {
         }
     }, { passive: false });
 } 
+
+// Dynamic canvas resizing for responsive game
+function resizeCanvas() {
+    if (!canvas) return;
+    if (window.innerWidth < 1000) {
+        canvas.width = window.innerWidth;
+        canvas.height = Math.max(window.innerHeight * 0.7, 250); // 70% of height, min 250px
+    } else {
+        canvas.width = 800;
+        canvas.height = 600;
+    }
+    // Optionally, re-render or adjust game elements here
+    render();
+}
+
+// Listen for resize and orientation changes
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', resizeCanvas);
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Wait for canvas to be available
+    setTimeout(resizeCanvas, 100);
+});
+
+// Also call after initializing game elements
+// (add this at the end of initializeGameElements)
+// resizeCanvas();
