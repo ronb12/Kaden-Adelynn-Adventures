@@ -53,6 +53,10 @@ body {
 .shield {
     color: #00ffff !important;
 }
+.money {
+    color: #ffd700 !important;
+    font-weight: bold;
+}
 .game-over, .start-screen {
     position: absolute;
     top: 50%;
@@ -219,6 +223,42 @@ button:active {
     color: #ffd700;
     font-size: 14px;
     margin: 5px 0;
+}
+
+/* Money notifications */
+.money-notification {
+    position: fixed;
+    background: linear-gradient(45deg, #ffd700, #ffed4e);
+    color: #000;
+    padding: 8px 12px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.6);
+    z-index: 1000;
+    transition: all 0.3s ease;
+    transform: translateY(20px);
+    opacity: 0;
+    font-weight: bold;
+    font-size: 16px;
+    border: 2px solid #ffb700;
+}
+
+.money-notification.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.money-content {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.money-icon {
+    font-size: 18px;
+}
+
+.money-amount {
+    font-weight: bold;
 }
 @media (max-width: 850px) {
     .game-container {

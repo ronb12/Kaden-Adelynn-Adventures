@@ -6,10 +6,13 @@ let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, start
 let gameState = 'start';
 let listenersInitialized = false;
 let score = 0;
+let money = 0; // New currency system
 let lives = 50; // Increased to 50 lives
 let level = 1;
 let gameLoop;
 let highScore = localStorage.getItem('spaceAdventuresHighScore') || 0;
+let savedMoney = localStorage.getItem('spaceAdventuresMoney') || 0;
+money = parseInt(savedMoney);
 
 // Sound system
 let audioContext;
@@ -199,6 +202,68 @@ function showAchievementNotification(achievement) {
     }, 3000);
 }
 
+function showMoneyNotification(amount, x, y) {
+    const notification = document.createElement('div');
+    notification.className = 'money-notification';
+    notification.innerHTML = `
+        <div class="money-content">
+            <span class="money-icon">💰</span>
+            <span class="money-amount">+${amount}</span>
+        </div>
+    `;
+    
+    // Position the notification near the explosion
+    const canvasRect = canvas.getBoundingClientRect();
+    notification.style.left = (canvasRect.left + x) + 'px';
+    notification.style.top = (canvasRect.top + y - 30) + 'px';
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 100);
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 500);
+    }, 2000);
+}
+
+function showMoneyNotification(amount, x, y) {
+    const notification = document.createElement('div');
+    notification.className = 'money-notification';
+    notification.innerHTML = `
+        <div class="money-content">
+            <span class="money-icon">💰</span>
+            <span class="money-amount">+${amount}</span>
+        </div>
+    `;
+    
+    // Position the notification near the explosion
+    const canvasRect = canvas.getBoundingClientRect();
+    notification.style.left = (canvasRect.left + x) + 'px';
+    notification.style.top = (canvasRect.top + y - 30) + 'px';
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 100);
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 500);
+    }, 2000);
+}
+
 // Global event listeners (only set up once)
 if (!window.gameEventListenersInitialized) {
     window.gameEventListenersInitialized = true;
@@ -324,6 +389,9 @@ function gameOver() {
         highScore = score;
         localStorage.setItem('spaceAdventuresHighScore', highScore);
     }
+    
+    // Save money to localStorage
+    localStorage.setItem('spaceAdventuresMoney', money);
     
     if (finalScoreElement) finalScoreElement.textContent = score;
     
@@ -659,6 +727,10 @@ function checkCollisions() {
                     createExplosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
                     playExplosionSound();
                     score += 10;
+                    // Earn money from destroying enemy ships
+                    const moneyEarned = Math.floor(Math.random() * 5) + 5; // 5-10 coins per ship
+                    money += moneyEarned;
+                    showMoneyNotification(moneyEarned, enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
                     return false;
                 }
             }
@@ -686,6 +758,10 @@ function updateUI() {
     if (scoreElement) scoreElement.textContent = score;
     if (livesElement) livesElement.textContent = lives;
     if (levelElement) levelElement.textContent = level;
+    
+    // Update money display
+    const moneyElement = document.getElementById('money');
+    if (moneyElement) moneyElement.textContent = money;
     
     // Update high score display
     const highScoreElement = document.getElementById('highScore');
