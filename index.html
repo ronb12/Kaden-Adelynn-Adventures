@@ -329,7 +329,7 @@
     </div>
     <script>
         // PWA Service Worker Registration
-        if ('serviceWorker' in navigator) {
+        if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
                     .then((registration) => {
@@ -350,6 +350,8 @@
                         console.error('Service Worker registration failed:', error);
                     });
             });
+        } else {
+            console.log('Service Worker not supported or not running on HTTPS/localhost');
         }
 
         // Show update notification

@@ -204,7 +204,6 @@ const ENEMY_SHOOT_RATE = 0.005; // Chance per frame for enemy to shoot
 
 // Wingman system
 const WINGMAN_COST = 100; // Cost to purchase a wingman
-const MAX_WINGMEN = 4; // Maximum number of wingmen
 let wingmanCount = 0; // Current number of wingmen
 
 // Story system
@@ -308,6 +307,12 @@ function playExplosionSound() {
 
 function playPowerUpSound() {
     playSound(1200, 0.2, 'sine');
+}
+
+function playWingmanSound() {
+    // More pleasant sound for wingman purchase - lower frequency, shorter duration
+    playSound(600, 0.15, 'sine');
+    setTimeout(() => playSound(800, 0.1, 'sine'), 50);
 }
 
 function playAchievementSound() {
@@ -457,7 +462,7 @@ function purchaseWingman() {
     localStorage.setItem('spaceAdventuresTotalWingmen', totalWingmenPurchased);
     
     showNotification(`Wingman ${wingmanCount} purchased!`, 'success');
-    playPowerUpSound();
+    playWingmanSound();
     
     // Update UI and story progress
     updateUI();
@@ -1516,8 +1521,7 @@ function wingmanShoot(wingman) {
         { x: centerX + 16, y: centerY + 8, width: MISSILE_TYPES.SPREAD.width, height: MISSILE_TYPES.SPREAD.height, speed: MISSILE_TYPES.SPREAD.speed - 4, color: MISSILE_TYPES.SPREAD.color, type: 'spread' }
     );
     
-    // Play wingman missile sound (slightly different pitch)
-    playSound(800, 50, 'square');
+    // Wingmen shoot silently - no sound to avoid conflicts
 }
 
 function spawnEnemy() {
@@ -3748,6 +3752,12 @@ function getCurrentShipStats() {
 
 // PWA Installation Functions
 function initializePWA() {
+    // Only initialize PWA on HTTPS or localhost
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+        console.log('PWA: Not supported on file:// protocol');
+        return;
+    }
+
     // Listen for the beforeinstallprompt event
     window.addEventListener('beforeinstallprompt', (e) => {
         console.log('PWA: Install prompt triggered');
@@ -3795,6 +3805,12 @@ function initializePWA() {
 
 // Install PWA function
 async function installPWA() {
+    // Only install on HTTPS or localhost
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+        console.log('PWA: Install not supported on file:// protocol');
+        return;
+    }
+
     if (!deferredPrompt) {
         console.log('PWA: No install prompt available');
         return;
@@ -3827,6 +3843,12 @@ async function installPWA() {
 
 // Add PWA installation button to the start screen
 function addInstallButton() {
+    // Only add install button on HTTPS or localhost
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+        console.log('PWA: Install button not supported on file:// protocol');
+        return;
+    }
+
     const startScreen = document.getElementById('startScreen');
     if (!startScreen) return;
 
