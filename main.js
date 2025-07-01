@@ -328,7 +328,117 @@ const RADIO_CHATTER = {
         "Alpha One to Mission Control, we're good to go!",
         "Roger, Base. Alpha One is combat ready!",
         "This is Alpha One, standing by for instructions!",
-        "Alpha One reporting, all systems are nominal!"
+        "Alpha One reporting, all systems are nominal!",
+        
+        // NEW: Pilot-initiated communications
+        "Alpha One to Command, requesting status update!",
+        "This is Alpha One, checking in with Command!",
+        "Alpha One here, reporting current situation!",
+        "Command, Alpha One requesting mission update!",
+        "Alpha One to Base, checking communications!",
+        "This is Alpha One, confirming radio link!",
+        "Alpha One to Mission Control, standing by!",
+        "Command, Alpha One is ready for next orders!",
+        "Alpha One here, awaiting further instructions!",
+        "This is Alpha One, checking tactical display!",
+        "Alpha One to Command, confirming weapon status!",
+        "Command, Alpha One reporting shield levels!",
+        "Alpha One here, checking engine performance!",
+        "This is Alpha One, confirming navigation systems!",
+        "Alpha One to Base, checking fuel reserves!",
+        "Command, Alpha One is monitoring radar!",
+        "Alpha One here, checking defensive systems!",
+        "This is Alpha One, confirming combat readiness!",
+        "Alpha One to Mission Control, all systems green!",
+        "Command, Alpha One is ready for action!",
+        
+        // NEW: Pilot situational awareness
+        "Alpha One to Command, enemy activity detected!",
+        "This is Alpha One, hostiles on radar!",
+        "Alpha One here, multiple contacts spotted!",
+        "Command, Alpha One reporting enemy movement!",
+        "Alpha One to Base, threat assessment complete!",
+        "This is Alpha One, enemy formation detected!",
+        "Alpha One here, hostile forces approaching!",
+        "Command, Alpha One is tracking multiple targets!",
+        "Alpha One to Mission Control, enemy activity confirmed!",
+        "This is Alpha One, threat level increasing!",
+        "Alpha One here, enemy ships on intercept course!",
+        "Command, Alpha One is monitoring enemy movements!",
+        "Alpha One to Base, hostile activity detected!",
+        "This is Alpha One, enemy forces spotted!",
+        "Alpha One here, multiple threats identified!",
+        "Command, Alpha One is tracking enemy formation!",
+        "Alpha One to Mission Control, hostiles confirmed!",
+        "This is Alpha One, enemy activity reported!",
+        "Alpha One here, threat assessment ongoing!",
+        "Command, Alpha One is monitoring situation!",
+        
+        // NEW: Pilot combat updates
+        "Alpha One to Command, engaging hostiles!",
+        "This is Alpha One, weapons free!",
+        "Alpha One here, returning fire!",
+        "Command, Alpha One is in combat!",
+        "Alpha One to Base, engaging enemy forces!",
+        "This is Alpha One, target acquired!",
+        "Alpha One here, firing on enemy ships!",
+        "Command, Alpha One is neutralizing threats!",
+        "Alpha One to Mission Control, combat active!",
+        "This is Alpha One, enemy destroyed!",
+        "Alpha One here, threat eliminated!",
+        "Command, Alpha One has cleared the area!",
+        "Alpha One to Base, hostiles neutralized!",
+        "This is Alpha One, combat successful!",
+        "Alpha One here, all threats eliminated!",
+        "Command, Alpha One is maintaining combat readiness!",
+        "Alpha One to Mission Control, situation under control!",
+        "This is Alpha One, continuing patrol!",
+        "Alpha One here, monitoring for additional threats!",
+        "Command, Alpha One is ready for next engagement!",
+        
+        // NEW: Pilot mission updates
+        "Alpha One to Command, mission progress update!",
+        "This is Alpha One, objective in sight!",
+        "Alpha One here, proceeding to target!",
+        "Command, Alpha One is on mission!",
+        "Alpha One to Base, mission parameters confirmed!",
+        "This is Alpha One, target zone reached!",
+        "Alpha One here, executing mission objectives!",
+        "Command, Alpha One is mission ready!",
+        "Alpha One to Mission Control, mission active!",
+        "This is Alpha One, objective clear!",
+        "Alpha One here, mission proceeding as planned!",
+        "Command, Alpha One is on track!",
+        "Alpha One to Base, mission status green!",
+        "This is Alpha One, objectives confirmed!",
+        "Alpha One here, mission parameters met!",
+        "Command, Alpha One is executing orders!",
+        "Alpha One to Mission Control, mission successful!",
+        "This is Alpha One, objectives complete!",
+        "Alpha One here, mission accomplished!",
+        "Command, Alpha One is ready for next mission!",
+        
+        // NEW: Pilot performance updates
+        "Alpha One to Command, performance report!",
+        "This is Alpha One, systems performing optimally!",
+        "Alpha One here, all systems green!",
+        "Command, Alpha One is at peak efficiency!",
+        "Alpha One to Base, performance excellent!",
+        "This is Alpha One, combat effectiveness high!",
+        "Alpha One here, mission capability confirmed!",
+        "Command, Alpha One is ready for any challenge!",
+        "Alpha One to Mission Control, performance outstanding!",
+        "This is Alpha One, combat readiness verified!",
+        "Alpha One here, all systems operational!",
+        "Command, Alpha One is at full capacity!",
+        "Alpha One to Base, performance optimal!",
+        "This is Alpha One, combat effectiveness confirmed!",
+        "Alpha One here, mission capability verified!",
+        "Command, Alpha One is ready for action!",
+        "Alpha One to Mission Control, performance excellent!",
+        "This is Alpha One, combat readiness high!",
+        "Alpha One here, all systems performing well!",
+        "Command, Alpha One is ready for any mission!"
     ],
     
     // COMMAND messages (orders and responses to pilot)
@@ -709,7 +819,7 @@ function startRadioChatter() {
         clearInterval(radioChatterInterval);
     }
     
-    // Start the interval for enhanced context-aware radio chatter
+    // Start the interval for enhanced context-aware radio chatter - PILOT FOCUSED
     radioChatterInterval = setInterval(() => {
         console.log('Radio chatter interval triggered - checking conditions...');
         console.log('Game state:', gameState, 'Radio chatter enabled:', radioChatterEnabled);
@@ -721,7 +831,7 @@ function startRadioChatter() {
         } else {
             console.log('Radio chatter conditions not met - game state:', gameState, 'enabled:', radioChatterEnabled);
         }
-    }, 4000 + Math.random() * 3000); // 4-7 seconds between messages for enhanced conversation flow
+    }, 2500 + Math.random() * 2000); // 2.5-4.5 seconds between messages for more frequent pilot communication
     
     console.log('Regular radio chatter interval started successfully');
     console.log('Next radio chatter in 4-6 seconds...');
@@ -4809,6 +4919,9 @@ document.addEventListener('DOMContentLoaded', () => {
 let lastRadioEvent = null;
 let radioEventCooldown = 0;
 let bossActive = false; // Track boss battle status
+let pilotChatterCooldown = 0; // Track pilot-specific chatter
+let lastPilotMessage = 0; // Track when pilot last spoke
+let pilotInitiativeCooldown = 0; // Track pilot initiative chatter
 
 // Get context-aware radio chatter based on game events
 function getContextAwareRadioChatter() {
@@ -4855,8 +4968,31 @@ function getContextAwareRadioChatter() {
         return { message: radioData, speaker: Math.random() > 0.5 ? 'pilot' : 'command' };
     }
     
-    // Default to alternating conversation
-    return getAlternatingRadioChatter();
+    // Enhanced pilot communication - pilot speaks more frequently
+    if (currentTime - pilotChatterCooldown > 2000) { // Pilot can speak every 2 seconds
+        pilotChatterCooldown = currentTime;
+        lastPilotMessage = currentTime;
+        
+        // Pilot initiates conversations more often
+        const pilotData = getRandomRadioChatter('pilot');
+        return { message: pilotData, speaker: 'pilot' };
+    }
+    
+    // Pilot initiative - pilot takes charge of communication
+    if (currentTime - pilotInitiativeCooldown > 5000) { // Pilot initiative every 5 seconds
+        pilotInitiativeCooldown = currentTime;
+        triggerContextRadioChatter('pilot_initiative');
+        return getAlternatingRadioChatter(); // Return regular chatter for this cycle
+    }
+    
+    // Default to alternating conversation with pilot preference
+    const radioData = getAlternatingRadioChatter();
+    // Give pilot 80% chance to speak instead of 50% - PILOT FOCUSED
+    if (Math.random() < 0.8) {
+        const pilotData = getRandomRadioChatter('pilot');
+        return { message: pilotData, speaker: 'pilot' };
+    }
+    return radioData;
 }
 
 // Trigger context-aware radio chatter for specific events
@@ -4916,6 +5052,17 @@ function triggerContextRadioChatter(eventType) {
                 const commandResponse = getRandomRadioChatter('mission');
                 speakRadioChatter(commandResponse, 'command');
             }, 2500);
+            break;
+            
+        case 'pilot_initiative':
+            // Pilot takes initiative to communicate
+            radioData = getRandomRadioChatter('pilot');
+            speakRadioChatter(radioData, 'pilot');
+            // Command response after delay
+            setTimeout(() => {
+                const commandResponse = getRandomRadioChatter('command');
+                speakRadioChatter(commandResponse, 'command');
+            }, 1500);
             break;
             
         default:
