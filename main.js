@@ -18,6 +18,7 @@ if (!startBtn || !restartBtn || !canvas) {
 
 // Game state
 let gameState = 'start';
+let listenersInitialized = false;
 let score = 0;
 let lives = 50; // Increased to 50 lives
 let level = 1;
@@ -233,6 +234,12 @@ canvas.addEventListener('mouseup', () => {
 
 // Enhanced button event listeners with multiple fallbacks
 function setupButtonListeners() {
+    // Prevent multiple initializations
+    if (window.buttonListenersInitialized) {
+        return;
+    }
+    window.buttonListenersInitialized = true;
+    
     // Start button
     if (startBtn) {
         startBtn.addEventListener('click', startGame);
@@ -277,6 +284,12 @@ if (document.readyState === 'loading') {
 function startGame() {
     console.log('Start button clicked!');
     console.log('Game state before:', gameState);
+    
+    // Prevent multiple starts
+    if (gameState === 'playing') {
+        console.log('Game already in progress, ignoring start request');
+        return;
+    }
     
     gameState = 'playing';
     score = 0;
