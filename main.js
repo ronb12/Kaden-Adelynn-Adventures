@@ -1482,6 +1482,8 @@ function wingmanShoot(wingman) {
 }
 
 function spawnEnemy() {
+    // Only spawn enemies when the game is actually playing
+    if (gameState !== 'playing') return;
     if (typeof currentMission === 'undefined' || !STORY_MISSIONS[currentMission]) return;
     const spawnRate = isMobile ? (window.enemySpawnRate || 0.02) : ENEMY_SPAWN_RATE;
     if (Math.random() < spawnRate) {
@@ -1537,6 +1539,8 @@ function spawnEnemy() {
 }
 
 function spawnPowerUp() {
+    // Only spawn power-ups when the game is actually playing
+    if (gameState !== 'playing') return;
     const spawnRate = isMobile ? (window.powerUpSpawnRate || 0.005) : POWERUP_SPAWN_RATE;
     if (Math.random() < spawnRate) {
         const type = Math.random() < 0.5 ? 'health' : 'weapon';
