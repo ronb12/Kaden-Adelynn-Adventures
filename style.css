@@ -242,6 +242,13 @@ body {
 
 .character-card[data-character="adelynn"] {
     border-color: #ff69b4;
+    background: rgba(255, 105, 180, 0.15);
+    box-shadow: 0 0 12px 2px #ff69b433;
+}
+
+.character-card[data-character="adelynn"].selected {
+    background: rgba(255, 105, 180, 0.3);
+    box-shadow: 0 0 20px 4px #ff69b4aa;
 }
 
 .character-card[data-character="nova"] {
@@ -1031,4 +1038,11 @@ button:active {
 @keyframes bounce {
     0%, 100% { transform: translateX(-50%) translateY(0); }
     50% { transform: translateX(-50%) translateY(-10px); }
+}
+
+/* Pink accent for Adelynn UI elements */
+.adelynn-accent {
+    color: #ff69b4 !important;
+    border-color: #ff69b4 !important;
+    background: rgba(255, 105, 180, 0.15) !important;
 } 

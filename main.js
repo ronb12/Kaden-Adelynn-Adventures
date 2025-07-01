@@ -1447,7 +1447,7 @@ function updateUI() {
         const character = CHARACTERS[selectedCharacter];
         if (character) {
             characterElement.innerHTML = `
-                <div class="character-info">
+                <div class="character-info${selectedCharacter === 'adelynn' ? ' adelynn-accent' : ''}">
                     <div class="character-name">${character.name}</div>
                     <div class="character-ability">${character.specialAbility}</div>
                 </div>
@@ -1611,9 +1611,10 @@ function drawPlayer() {
     const x = player.x;
     const y = player.y;
     const character = CHARACTERS[player.character];
-    
+    // Use pink accent for Adelynn
+    const shipColor = (player.character === 'adelynn') ? '#ff69b4' : character.color;
     // Sleek triangle fighter jet design
-    ctx.fillStyle = character.color;
+    ctx.fillStyle = shipColor;
     
     // Main triangle body
     ctx.beginPath();
