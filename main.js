@@ -359,6 +359,26 @@ function triggerRadioChatter(type = 'command') {
     speakRadioChatter(message, type);
 }
 
+// Start boss radio chatter (more frequent and intense)
+function startBossRadioChatter() {
+    if (!radioChatterEnabled || gameState !== 'playing') return;
+    
+    // Stop regular radio chatter
+    stopRadioChatter();
+    
+    // Start intense boss radio chatter
+    radioChatterInterval = setInterval(() => {
+        if (gameState === 'playing' && radioChatterEnabled && enemies.some(e => e.isBoss)) {
+            const message = getRandomRadioChatter('boss');
+            speakRadioChatter(message, 'boss');
+        } else if (gameState === 'playing' && radioChatterEnabled && !enemies.some(e => e.isBoss)) {
+            // Boss defeated, return to normal radio chatter
+            stopRadioChatter();
+            startRadioChatter();
+        }
+    }, 2000 + Math.random() * 1500); // More frequent: 2-3.5 seconds
+}
+
 // Achievement system
 const achievements = {
     firstKill: { name: "First Blood", description: "Destroy your first enemy", earned: false, score: 10 },
@@ -1932,8 +1952,9 @@ function spawnEnemy() {
             // Only show boss alert when game is actually playing
             if (gameState === 'playing') {
                 showStoryNotification("BOSS ALERT!", `A ${mission.title.split(':')[1] || 'Boss'} has appeared!`, 'boss');
-                // Switch to boss music
-                playBackgroundMusic('boss');
+                // Stop music and start intense boss radio chatter
+                stopBackgroundMusic();
+                startBossRadioChatter();
             }
             return;
         }
@@ -2343,10 +2364,14 @@ function checkCollisions() {
                         score += bossReward;
                         money += bossReward;
                         showMoneyNotification(`+${bossReward}`, enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
-                                            showStoryNotification("BOSS DEFEATED!", `You earned ${bossReward} coins!`, 'achievement');
-                    playExplosionSound();
-                    // Switch back to gameplay music after boss defeat
-                    playBackgroundMusic('gameplay');
+                        showStoryNotification("BOSS DEFEATED!", `You earned ${bossReward} coins!`, 'achievement');
+                        playExplosionSound();
+                        // Resume gameplay music and normal radio chatter after boss defeat
+                        playBackgroundMusic('gameplay');
+                        if (radioChatterEnabled) {
+                            stopRadioChatter();
+                            startRadioChatter();
+                        }
                     } else {
                         // Regular enemy rewards
                         const reward = 5 + Math.floor(Math.random() * 6); // 5-10 coins
