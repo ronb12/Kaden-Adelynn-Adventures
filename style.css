@@ -77,9 +77,9 @@ body {
     font-weight: bold;
 }
 
-.wingmen {
-    color: #00ff00 !important;
-    font-weight: bold;
+.wingmen, #wingmanCount {
+    box-shadow: none !important;
+    background: none !important;
 }
 
 .rank {
@@ -237,7 +237,20 @@ body {
 
 /* Character-specific colors */
 .character-card[data-character="kaden"] {
-    border-color: #4a90e2;
+    border-color: #3b2e2a;
+    background: rgba(59, 46, 42, 0.15);
+    box-shadow: 0 0 12px 2px #3b2e2a33;
+}
+
+.character-card[data-character="kaden"].selected {
+    background: rgba(59, 46, 42, 0.3);
+    box-shadow: 0 0 20px 4px #3b2e2aaa;
+}
+
+.kaden-accent {
+    color: #3b2e2a !important;
+    border-color: #3b2e2a !important;
+    background: rgba(59, 46, 42, 0.15) !important;
 }
 
 .character-card[data-character="adelynn"] {
@@ -257,6 +270,19 @@ body {
 
 .character-card[data-character="blaze"] {
     border-color: #ff4500;
+    background: rgba(255, 69, 0, 0.15);
+    box-shadow: 0 0 12px 2px #ff450033;
+}
+
+.character-card[data-character="blaze"].selected {
+    background: rgba(255, 69, 0, 0.3);
+    box-shadow: 0 0 20px 4px #ff4500aa;
+}
+
+.blaze-accent {
+    color: #ff4500 !important;
+    border-color: #ff4500 !important;
+    background: rgba(255, 69, 0, 0.15) !important;
 }
 
 .character-card[data-character="kaden"]:hover {

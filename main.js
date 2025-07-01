@@ -49,9 +49,10 @@ let selectedCharacter = localStorage.getItem('spaceAdventuresCharacter') || 'kad
 const CHARACTERS = {
     kaden: {
         name: "Kaden",
-        color: '#4a90e2',
+        color: '#3b2e2a',
         specialAbility: "Rapid Fire",
         description: "The fearless leader with enhanced firepower",
+        avatar: "👨🏾‍🚀",
         speed: 8,
         weaponBonus: 1.2,
         specialCooldown: 0
@@ -77,10 +78,11 @@ const CHARACTERS = {
     blaze: {
         name: "Blaze",
         color: '#ff4500',
-        specialAbility: "Inferno Blast",
-        description: "The fiery warrior with explosive attacks",
+        specialAbility: "Inferno Fury",
+        description: "Unleash a wave of fire missiles!",
+        avatar: "🔥",
         speed: 6,
-        damageBonus: 1.4,
+        damageBonus: 1.6,
         specialCooldown: 0
     }
 };
@@ -574,7 +576,7 @@ function activateSpecialAbility() {
             activateTimeWarp();
             break;
         case 'blaze':
-            // Inferno Blast - Massive explosion damage
+            // Inferno Fury - Massive explosion damage
             activateInfernoBlast();
             break;
     }
@@ -1445,9 +1447,13 @@ function updateUI() {
     const characterElement = document.getElementById('characterInfo');
     if (characterElement) {
         const character = CHARACTERS[selectedCharacter];
+        let accentClass = '';
+        if (selectedCharacter === 'adelynn') accentClass = ' adelynn-accent';
+        if (selectedCharacter === 'kaden') accentClass = ' kaden-accent';
+        if (selectedCharacter === 'blaze') accentClass = ' blaze-accent';
         if (character) {
             characterElement.innerHTML = `
-                <div class="character-info${selectedCharacter === 'adelynn' ? ' adelynn-accent' : ''}">
+                <div class="character-info${accentClass}">
                     <div class="character-name">${character.name}</div>
                     <div class="character-ability">${character.specialAbility}</div>
                 </div>
@@ -1612,7 +1618,7 @@ function drawPlayer() {
     const y = player.y;
     const character = CHARACTERS[player.character];
     // Use pink accent for Adelynn
-    const shipColor = (player.character === 'adelynn') ? '#ff69b4' : character.color;
+    const shipColor = (player.character === 'adelynn') ? '#ff69b4' : (player.character === 'kaden') ? '#3b2e2a' : (player.character === 'blaze') ? '#ff4500' : character.color;
     // Sleek triangle fighter jet design
     ctx.fillStyle = shipColor;
     
