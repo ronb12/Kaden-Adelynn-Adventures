@@ -82,6 +82,16 @@ function initAudioContext() {
             console.log('Audio context not supported:', error);
         }
     }
+    
+    // Resume audio context if suspended (required for modern browsers)
+    if (audioContext && audioContext.state === 'suspended') {
+        console.log('Audio context suspended, attempting to resume...');
+        audioContext.resume().then(() => {
+            console.log('Audio context resumed successfully');
+        }).catch(error => {
+            console.log('Failed to resume audio context:', error);
+        });
+    }
 }
 
 // Play retro background music
@@ -1173,6 +1183,22 @@ function playSound(frequency, duration, type = 'sine') {
     
     if (!audioContext) return;
     
+    // Ensure audio context is running
+    if (audioContext.state === 'suspended') {
+        console.log('Audio context suspended, resuming...');
+        audioContext.resume().then(() => {
+            console.log('Audio context resumed, playing sound...');
+            playSoundInternal(frequency, duration, type);
+        }).catch(error => {
+            console.log('Failed to resume audio context:', error);
+        });
+        return;
+    }
+    
+    playSoundInternal(frequency, duration, type);
+}
+
+function playSoundInternal(frequency, duration, type = 'sine') {
     try {
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
@@ -2146,6 +2172,29 @@ if (!window.gameEventListenersInitialized) {
             storyNotificationsEnabled = !storyNotificationsEnabled;
             showNotification(`Story notifications: ${storyNotificationsEnabled ? 'ON' : 'OFF'}`, 'info');
         }
+        // Test audio with 'R' key
+        if (e.key === 'r' || e.key === 'R') {
+            console.log('=== MANUAL AUDIO TEST TRIGGERED ===');
+            console.log('Audio context state:', audioContext ? audioContext.state : 'not initialized');
+            console.log('Sound enabled:', soundEnabled);
+            console.log('Radio chatter enabled:', radioChatterEnabled);
+            
+            // Test sound effects
+            playMissileSound();
+            setTimeout(() => playExplosionSound(), 500);
+            setTimeout(() => playPowerUpSound(), 1000);
+            
+            // Test radio chatter
+            setTimeout(() => {
+                speakRadioChatter('Manual audio test - radio chatter working!', 'command');
+            }, 1500);
+            
+            setTimeout(() => {
+                speakRadioChatter('Sound effects and radio chatter confirmed operational!', 'pilot');
+            }, 3000);
+            
+            showNotification('🔊 Manual audio test triggered!', 'info');
+        }
     });
 
     document.addEventListener('keyup', (e) => {
@@ -2165,12 +2214,49 @@ function setupButtonListeners() {
     
     // Start button
     if (startBtn) {
-        startBtn.addEventListener('click', startGame);
-        startBtn.addEventListener('touchstart', startGame);
+        startBtn.addEventListener('click', () => {
+            // Ensure audio context is resumed on first user interaction
+            if (audioContext && audioContext.state === 'suspended') {
+                audioContext.resume().then(() => {
+                    console.log('Audio context resumed on start button click');
+                    startGame();
+                }).catch(error => {
+                    console.log('Failed to resume audio context on start:', error);
+                    startGame();
+                });
+            } else {
+                startGame();
+            }
+        });
+        startBtn.addEventListener('touchstart', () => {
+            // Ensure audio context is resumed on first user interaction
+            if (audioContext && audioContext.state === 'suspended') {
+                audioContext.resume().then(() => {
+                    console.log('Audio context resumed on start button touch');
+                    startGame();
+                }).catch(error => {
+                    console.log('Failed to resume audio context on start touch:', error);
+                    startGame();
+                });
+            } else {
+                startGame();
+            }
+        });
         startBtn.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                startGame();
+                // Ensure audio context is resumed on first user interaction
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume().then(() => {
+                        console.log('Audio context resumed on start button keydown');
+                        startGame();
+                    }).catch(error => {
+                        console.log('Failed to resume audio context on start keydown:', error);
+                        startGame();
+                    });
+                } else {
+                    startGame();
+                }
             }
         });
     }
@@ -4251,7 +4337,29 @@ if (document.readyState === 'loading') {
     if (initializeGameElements()) {
         setupButtonListeners();
     }
-} 
+}
+
+// Global click handler to resume audio context on any user interaction
+document.addEventListener('click', () => {
+    if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume().then(() => {
+            console.log('Audio context resumed on global click');
+        }).catch(error => {
+            console.log('Failed to resume audio context on global click:', error);
+        });
+    }
+}, { once: true });
+
+// Also handle touch events for mobile
+document.addEventListener('touchstart', () => {
+    if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume().then(() => {
+            console.log('Audio context resumed on global touch');
+        }).catch(error => {
+            console.log('Failed to resume audio context on global touch:', error);
+        });
+    }
+}, { once: true }); 
 
 // Mobile device detection and optimization
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
