@@ -562,6 +562,63 @@ function activateSpecialAbility() {
     
     character.specialCooldown = currentTime;
     
+    // Check for ship-specific abilities first
+    if (player.shipType && player.specialAbility) {
+        switch (player.shipType) {
+            case 'interceptor':
+                // Rapid Fire - Enhanced fire rate
+                activateRapidFire();
+                showNotification(`${player.specialAbility} activated!`, 'success');
+                return;
+            case 'tank':
+                // Heavy Missiles - Massive damage
+                activateHeavyMissiles();
+                showNotification(`${player.specialAbility} activated!`, 'success');
+                return;
+            case 'sniper':
+                // Long Laser - Piercing shots
+                activateLongLaser();
+                showNotification(`${player.specialAbility} activated!`, 'success');
+                return;
+            case 'blaster':
+                // Spread Shot - Multiple projectiles
+                activateSpreadShot();
+                showNotification(`${player.specialAbility} activated!`, 'success');
+                return;
+            case 'scout':
+                // Bonus Coins - Extra money
+                activateBonusCoins();
+                showNotification(`${player.specialAbility} activated!`, 'success');
+                return;
+            case 'medic':
+                // Heal Wingmen - Restore wingman health
+                activateHealWingmen();
+                showNotification(`${player.specialAbility} activated!`, 'success');
+                return;
+            case 'stealth':
+                // Cloak - Become invisible
+                activateCloak();
+                showNotification(`${player.specialAbility} activated!`, 'success');
+                return;
+            case 'bomber':
+                // Bombs - Area damage
+                activateBombs();
+                showNotification(`${player.specialAbility} activated!`, 'success');
+                return;
+            case 'engineer':
+                // Self-Repair - Auto heal
+                activateSelfRepair();
+                showNotification(`${player.specialAbility} activated!`, 'success');
+                return;
+            case 'commander':
+                // Squad Boost - Enhance wingmen
+                activateSquadBoost();
+                showNotification(`${player.specialAbility} activated!`, 'success');
+                return;
+        }
+    }
+    
+    // Fall back to character abilities
     switch (player.character) {
         case 'kaden':
             // Rapid Fire - Triple fire rate for 5 seconds
@@ -652,6 +709,174 @@ function activateInfernoBlast() {
     specialEffects.push({
         type: 'infernoBlast',
         duration: 2000,
+        startTime: Date.now()
+    });
+}
+
+// Ship-specific ability functions
+function activateHeavyMissiles() {
+    // Launch heavy missiles at all enemies
+    enemies.forEach(enemy => {
+        const centerX = player.x + player.width / 2;
+        const centerY = player.y;
+        bullets.push({
+            x: centerX - 4,
+            y: centerY,
+            width: 8,
+            height: 16,
+            speed: 8,
+            color: '#ff8800',
+            type: 'heavy',
+            damage: 5,
+            homing: true,
+            target: enemy
+        });
+    });
+    
+    specialEffects.push({
+        type: 'heavyMissiles',
+        duration: 3000,
+        startTime: Date.now()
+    });
+}
+
+function activateLongLaser() {
+    // Create piercing laser beam
+    const centerX = player.x + player.width / 2;
+    bullets.push({
+        x: centerX - 2,
+        y: 0,
+        width: 4,
+        height: canvas.height,
+        speed: 0,
+        color: '#00ffff',
+        type: 'piercing',
+        damage: 3,
+        piercing: true
+    });
+    
+    specialEffects.push({
+        type: 'longLaser',
+        duration: 2000,
+        startTime: Date.now()
+    });
+}
+
+function activateSpreadShot() {
+    // Create wide spread of bullets
+    const centerX = player.x + player.width / 2;
+    const centerY = player.y;
+    
+    for (let i = -4; i <= 4; i++) {
+        bullets.push({
+            x: centerX + (i * 8),
+            y: centerY,
+            width: 4,
+            height: 12,
+            speed: 10,
+            color: '#ff4444',
+            type: 'spread',
+            damage: 1,
+            angle: i * 0.3
+        });
+    }
+    
+    specialEffects.push({
+        type: 'spreadShot',
+        duration: 1500,
+        startTime: Date.now()
+    });
+}
+
+function activateBonusCoins() {
+    // Generate bonus coins
+    const bonusCoins = Math.floor(Math.random() * 50) + 25;
+    money += bonusCoins;
+    
+    // Create coin effect
+    specialEffects.push({
+        type: 'bonusCoins',
+        duration: 2000,
+        startTime: Date.now(),
+        coins: bonusCoins
+    });
+    
+    showMoneyNotification(bonusCoins, player.x + player.width / 2, player.y);
+}
+
+function activateHealWingmen() {
+    // Heal all wingmen
+    wingmen.forEach(wingman => {
+        if (wingman.health) {
+            wingman.health = Math.min(wingman.health + 50, 100);
+        }
+    });
+    
+    specialEffects.push({
+        type: 'healWingmen',
+        duration: 3000,
+        startTime: Date.now()
+    });
+}
+
+function activateCloak() {
+    // Make player invisible
+    player.isCloaked = true;
+    
+    specialEffects.push({
+        type: 'cloak',
+        duration: 5000,
+        startTime: Date.now()
+    });
+}
+
+function activateBombs() {
+    // Drop bombs that explode on impact
+    const centerX = player.x + player.width / 2;
+    const centerY = player.y + player.height;
+    
+    for (let i = -2; i <= 2; i++) {
+        bullets.push({
+            x: centerX + (i * 20),
+            y: centerY,
+            width: 6,
+            height: 6,
+            speed: 3,
+            color: '#ff8800',
+            type: 'bomb',
+            damage: 4,
+            explosive: true
+        });
+    }
+    
+    specialEffects.push({
+        type: 'bombs',
+        duration: 4000,
+        startTime: Date.now()
+    });
+}
+
+function activateSelfRepair() {
+    // Gradually repair player
+    player.isRepairing = true;
+    
+    specialEffects.push({
+        type: 'selfRepair',
+        duration: 8000,
+        startTime: Date.now()
+    });
+}
+
+function activateSquadBoost() {
+    // Enhance wingmen abilities
+    wingmen.forEach(wingman => {
+        wingman.boosted = true;
+        wingman.boostEndTime = Date.now() + 10000;
+    });
+    
+    specialEffects.push({
+        type: 'squadBoost',
+        duration: 10000,
         startTime: Date.now()
     });
 }
@@ -773,10 +998,19 @@ function startGame() {
     });
     earnedAchievements = [];
     
-    // Initialize shield system
-    player.shield = 100;
+    // Apply selected ship stats to player
+    const shipStats = getCurrentShipStats();
+    player.speed = shipStats.speed;
+    player.firepower = shipStats.firepower;
+    player.maxShield = shipStats.shield * 10; // Convert shield rating to actual shield points
+    player.shield = player.maxShield;
+    player.shipType = selectedShip;
+    player.specialAbility = shipStats.special;
     player.isShieldActive = false;
     player.shieldRecharge = 0;
+    
+    // Show ship selection notification
+    showNotification(`🚀 ${shipStats.name} selected! ${shipStats.special}`, 'info');
     
     bullets = [];
     enemyBullets = [];
@@ -850,7 +1084,13 @@ function gameOver() {
 
 function shoot() {
     const currentTime = Date.now();
-    const fireDelay = keys[' '] ? RAPID_FIRE_DELAY : SHOT_DELAY;
+    
+    // Apply ship-specific fire rate bonuses
+    let fireDelay = keys[' '] ? RAPID_FIRE_DELAY : SHOT_DELAY;
+    if (player.shipType === 'interceptor') {
+        fireDelay *= 0.7; // 30% faster fire rate for interceptor
+    }
+    
     if (currentTime - lastShotTime < fireDelay) return;
     lastShotTime = currentTime;
     
@@ -860,7 +1100,19 @@ function shoot() {
     // Play missile sound
     playMissileSound();
     
-    switch(weaponLevel) {
+    // Apply ship-specific firepower bonuses
+    let firepowerMultiplier = 1;
+    if (player.firepower) {
+        firepowerMultiplier = player.firepower / 6; // Base firepower is 6
+    }
+    
+    // Calculate effective weapon level with ship bonuses
+    let effectiveWeaponLevel = weaponLevel;
+    if (player.shipType === 'blaster') {
+        effectiveWeaponLevel = Math.min(weaponLevel + 1, 6); // Blaster gets +1 weapon level
+    }
+    
+    switch(effectiveWeaponLevel) {
         case 1: // Single laser shot
             bullets.push({
                 x: centerX - MISSILE_TYPES.LASER.width / 2,
@@ -869,49 +1121,50 @@ function shoot() {
                 height: MISSILE_TYPES.LASER.height,
                 speed: MISSILE_TYPES.LASER.speed,
                 color: MISSILE_TYPES.LASER.color,
-                type: 'laser'
+                type: 'laser',
+                damage: 1 * firepowerMultiplier
             });
             break;
         case 2: // Double plasma shot
             bullets.push(
-                { x: centerX - 8, y: centerY, width: MISSILE_TYPES.PLASMA.width, height: MISSILE_TYPES.PLASMA.height, speed: MISSILE_TYPES.PLASMA.speed, color: MISSILE_TYPES.PLASMA.color, type: 'plasma' },
-                { x: centerX + 4, y: centerY, width: MISSILE_TYPES.PLASMA.width, height: MISSILE_TYPES.PLASMA.height, speed: MISSILE_TYPES.PLASMA.speed, color: MISSILE_TYPES.PLASMA.color, type: 'plasma' }
+                { x: centerX - 8, y: centerY, width: MISSILE_TYPES.PLASMA.width, height: MISSILE_TYPES.PLASMA.height, speed: MISSILE_TYPES.PLASMA.speed, color: MISSILE_TYPES.PLASMA.color, type: 'plasma', damage: 1 * firepowerMultiplier },
+                { x: centerX + 4, y: centerY, width: MISSILE_TYPES.PLASMA.width, height: MISSILE_TYPES.PLASMA.height, speed: MISSILE_TYPES.PLASMA.speed, color: MISSILE_TYPES.PLASMA.color, type: 'plasma', damage: 1 * firepowerMultiplier }
             );
             break;
         case 3: // Triple missile spread
             bullets.push(
-                { x: centerX - MISSILE_TYPES.MISSILE.width / 2, y: centerY, width: MISSILE_TYPES.MISSILE.width, height: MISSILE_TYPES.MISSILE.height, speed: MISSILE_TYPES.MISSILE.speed, color: MISSILE_TYPES.MISSILE.color, type: 'missile' },
-                { x: centerX - 8, y: centerY + 4, width: MISSILE_TYPES.BASIC.width, height: MISSILE_TYPES.BASIC.height, speed: MISSILE_TYPES.BASIC.speed, color: MISSILE_TYPES.BASIC.color, type: 'basic' },
-                { x: centerX + 4, y: centerY + 4, width: MISSILE_TYPES.BASIC.width, height: MISSILE_TYPES.BASIC.height, speed: MISSILE_TYPES.BASIC.speed, color: MISSILE_TYPES.BASIC.color, type: 'basic' }
+                { x: centerX - MISSILE_TYPES.MISSILE.width / 2, y: centerY, width: MISSILE_TYPES.MISSILE.width, height: MISSILE_TYPES.MISSILE.height, speed: MISSILE_TYPES.MISSILE.speed, color: MISSILE_TYPES.MISSILE.color, type: 'missile', damage: 1 * firepowerMultiplier },
+                { x: centerX - 8, y: centerY + 4, width: MISSILE_TYPES.BASIC.width, height: MISSILE_TYPES.BASIC.height, speed: MISSILE_TYPES.BASIC.speed, color: MISSILE_TYPES.BASIC.color, type: 'basic', damage: 1 * firepowerMultiplier },
+                { x: centerX + 4, y: centerY + 4, width: MISSILE_TYPES.BASIC.width, height: MISSILE_TYPES.BASIC.height, speed: MISSILE_TYPES.BASIC.speed, color: MISSILE_TYPES.BASIC.color, type: 'basic', damage: 1 * firepowerMultiplier }
             );
             break;
         case 4: // Quad laser spread
             bullets.push(
-                { x: centerX - MISSILE_TYPES.LASER.width / 2, y: centerY, width: MISSILE_TYPES.LASER.width, height: MISSILE_TYPES.LASER.height, speed: MISSILE_TYPES.LASER.speed, color: MISSILE_TYPES.LASER.color, type: 'laser' },
-                { x: centerX - 8, y: centerY + 2, width: MISSILE_TYPES.PLASMA.width, height: MISSILE_TYPES.PLASMA.height, speed: MISSILE_TYPES.PLASMA.speed - 1, color: MISSILE_TYPES.PLASMA.color, type: 'plasma' },
-                { x: centerX + 4, y: centerY + 2, width: MISSILE_TYPES.PLASMA.width, height: MISSILE_TYPES.PLASMA.height, speed: MISSILE_TYPES.PLASMA.speed - 1, color: MISSILE_TYPES.PLASMA.color, type: 'plasma' }
+                { x: centerX - MISSILE_TYPES.LASER.width / 2, y: centerY, width: MISSILE_TYPES.LASER.width, height: MISSILE_TYPES.LASER.height, speed: MISSILE_TYPES.LASER.speed, color: MISSILE_TYPES.LASER.color, type: 'laser', damage: 1 * firepowerMultiplier },
+                { x: centerX - 8, y: centerY + 2, width: MISSILE_TYPES.PLASMA.width, height: MISSILE_TYPES.PLASMA.height, speed: MISSILE_TYPES.PLASMA.speed - 1, color: MISSILE_TYPES.PLASMA.color, type: 'plasma', damage: 1 * firepowerMultiplier },
+                { x: centerX + 4, y: centerY + 2, width: MISSILE_TYPES.PLASMA.width, height: MISSILE_TYPES.PLASMA.height, speed: MISSILE_TYPES.PLASMA.speed - 1, color: MISSILE_TYPES.PLASMA.color, type: 'plasma', damage: 1 * firepowerMultiplier }
             );
             break;
         case 5: // 7-shot spread with heavy missiles
             bullets.push(
-                { x: centerX - MISSILE_TYPES.LASER.width / 2, y: centerY, width: MISSILE_TYPES.LASER.width, height: MISSILE_TYPES.LASER.height, speed: MISSILE_TYPES.LASER.speed, color: MISSILE_TYPES.LASER.color, type: 'laser' },
-                { x: centerX - 8, y: centerY + 2, width: MISSILE_TYPES.MISSILE.width, height: MISSILE_TYPES.MISSILE.height, speed: MISSILE_TYPES.MISSILE.speed - 1, color: MISSILE_TYPES.MISSILE.color, type: 'missile' },
-                { x: centerX + 4, y: centerY + 2, width: MISSILE_TYPES.MISSILE.width, height: MISSILE_TYPES.MISSILE.height, speed: MISSILE_TYPES.MISSILE.speed - 1, color: MISSILE_TYPES.MISSILE.color, type: 'missile' },
-                { x: centerX - 12, y: centerY + 4, width: MISSILE_TYPES.PLASMA.width, height: MISSILE_TYPES.PLASMA.height, speed: MISSILE_TYPES.PLASMA.speed - 2, color: MISSILE_TYPES.PLASMA.color, type: 'plasma' },
-                { x: centerX + 8, y: centerY + 4, width: MISSILE_TYPES.PLASMA.width, height: MISSILE_TYPES.PLASMA.height, speed: MISSILE_TYPES.PLASMA.speed - 2, color: MISSILE_TYPES.PLASMA.color, type: 'plasma' }
+                { x: centerX - MISSILE_TYPES.LASER.width / 2, y: centerY, width: MISSILE_TYPES.LASER.width, height: MISSILE_TYPES.LASER.height, speed: MISSILE_TYPES.LASER.speed, color: MISSILE_TYPES.LASER.color, type: 'laser', damage: 1 * firepowerMultiplier },
+                { x: centerX - 8, y: centerY + 2, width: MISSILE_TYPES.MISSILE.width, height: MISSILE_TYPES.MISSILE.height, speed: MISSILE_TYPES.MISSILE.speed - 1, color: MISSILE_TYPES.MISSILE.color, type: 'missile', damage: 1 * firepowerMultiplier },
+                { x: centerX + 4, y: centerY + 2, width: MISSILE_TYPES.MISSILE.width, height: MISSILE_TYPES.MISSILE.height, speed: MISSILE_TYPES.MISSILE.speed - 1, color: MISSILE_TYPES.MISSILE.color, type: 'missile', damage: 1 * firepowerMultiplier },
+                { x: centerX - 12, y: centerY + 4, width: MISSILE_TYPES.PLASMA.width, height: MISSILE_TYPES.PLASMA.height, speed: MISSILE_TYPES.PLASMA.speed - 2, color: MISSILE_TYPES.PLASMA.color, type: 'plasma', damage: 1 * firepowerMultiplier },
+                { x: centerX + 8, y: centerY + 4, width: MISSILE_TYPES.PLASMA.width, height: MISSILE_TYPES.PLASMA.height, speed: MISSILE_TYPES.PLASMA.speed - 2, color: MISSILE_TYPES.PLASMA.color, type: 'plasma', damage: 1 * firepowerMultiplier }
             );
             break;
         default: // Max level - 9 shot ultimate spread
             bullets.push(
-                { x: centerX - MISSILE_TYPES.LASER.width / 2, y: centerY, width: MISSILE_TYPES.LASER.width, height: MISSILE_TYPES.LASER.height, speed: MISSILE_TYPES.LASER.speed, color: MISSILE_TYPES.LASER.color, type: 'laser' },
-                { x: centerX - 8, y: centerY + 2, width: MISSILE_TYPES.MISSILE.width, height: MISSILE_TYPES.MISSILE.height, speed: MISSILE_TYPES.MISSILE.speed - 1, color: MISSILE_TYPES.MISSILE.color, type: 'missile' },
-                { x: centerX + 4, y: centerY + 2, width: MISSILE_TYPES.MISSILE.width, height: MISSILE_TYPES.MISSILE.height, speed: MISSILE_TYPES.MISSILE.speed - 1, color: MISSILE_TYPES.MISSILE.color, type: 'missile' },
-                { x: centerX - 12, y: centerY + 4, width: MISSILE_TYPES.PLASMA.width, height: MISSILE_TYPES.PLASMA.height, speed: MISSILE_TYPES.PLASMA.speed - 2, color: MISSILE_TYPES.PLASMA.color, type: 'plasma' },
-                { x: centerX + 8, y: centerY + 4, width: MISSILE_TYPES.PLASMA.width, height: MISSILE_TYPES.PLASMA.height, speed: MISSILE_TYPES.PLASMA.speed - 2, color: MISSILE_TYPES.PLASMA.color, type: 'plasma' },
-                { x: centerX - 16, y: centerY + 6, width: MISSILE_TYPES.HEAVY.width, height: MISSILE_TYPES.HEAVY.height, speed: MISSILE_TYPES.HEAVY.speed - 3, color: MISSILE_TYPES.HEAVY.color, type: 'heavy' },
-                { x: centerX + 12, y: centerY + 6, width: MISSILE_TYPES.HEAVY.width, height: MISSILE_TYPES.HEAVY.height, speed: MISSILE_TYPES.HEAVY.speed - 3, color: MISSILE_TYPES.HEAVY.color, type: 'heavy' },
-                { x: centerX - 20, y: centerY + 8, width: MISSILE_TYPES.SPREAD.width, height: MISSILE_TYPES.SPREAD.height, speed: MISSILE_TYPES.SPREAD.speed - 4, color: MISSILE_TYPES.SPREAD.color, type: 'spread' },
-                { x: centerX + 16, y: centerY + 8, width: MISSILE_TYPES.SPREAD.width, height: MISSILE_TYPES.SPREAD.height, speed: MISSILE_TYPES.SPREAD.speed - 4, color: MISSILE_TYPES.SPREAD.color, type: 'spread' }
+                { x: centerX - MISSILE_TYPES.LASER.width / 2, y: centerY, width: MISSILE_TYPES.LASER.width, height: MISSILE_TYPES.LASER.height, speed: MISSILE_TYPES.LASER.speed, color: MISSILE_TYPES.LASER.color, type: 'laser', damage: 1 * firepowerMultiplier },
+                { x: centerX - 8, y: centerY + 2, width: MISSILE_TYPES.MISSILE.width, height: MISSILE_TYPES.MISSILE.height, speed: MISSILE_TYPES.MISSILE.speed - 1, color: MISSILE_TYPES.MISSILE.color, type: 'missile', damage: 1 * firepowerMultiplier },
+                { x: centerX + 4, y: centerY + 2, width: MISSILE_TYPES.MISSILE.width, height: MISSILE_TYPES.MISSILE.height, speed: MISSILE_TYPES.MISSILE.speed - 1, color: MISSILE_TYPES.MISSILE.color, type: 'missile', damage: 1 * firepowerMultiplier },
+                { x: centerX - 12, y: centerY + 4, width: MISSILE_TYPES.PLASMA.width, height: MISSILE_TYPES.PLASMA.height, speed: MISSILE_TYPES.PLASMA.speed - 2, color: MISSILE_TYPES.PLASMA.color, type: 'plasma', damage: 1 * firepowerMultiplier },
+                { x: centerX + 8, y: centerY + 4, width: MISSILE_TYPES.PLASMA.width, height: MISSILE_TYPES.PLASMA.height, speed: MISSILE_TYPES.PLASMA.speed - 2, color: MISSILE_TYPES.PLASMA.color, type: 'plasma', damage: 1 * firepowerMultiplier },
+                { x: centerX - 16, y: centerY + 6, width: MISSILE_TYPES.HEAVY.width, height: MISSILE_TYPES.HEAVY.height, speed: MISSILE_TYPES.HEAVY.speed - 3, color: MISSILE_TYPES.HEAVY.color, type: 'heavy', damage: 2 * firepowerMultiplier },
+                { x: centerX + 12, y: centerY + 6, width: MISSILE_TYPES.HEAVY.width, height: MISSILE_TYPES.HEAVY.height, speed: MISSILE_TYPES.HEAVY.speed - 3, color: MISSILE_TYPES.HEAVY.color, type: 'heavy', damage: 2 * firepowerMultiplier },
+                { x: centerX - 20, y: centerY + 8, width: MISSILE_TYPES.SPREAD.width, height: MISSILE_TYPES.SPREAD.height, speed: MISSILE_TYPES.SPREAD.speed - 4, color: MISSILE_TYPES.SPREAD.color, type: 'spread', damage: 1 * firepowerMultiplier },
+                { x: centerX + 16, y: centerY + 8, width: MISSILE_TYPES.SPREAD.width, height: MISSILE_TYPES.SPREAD.height, speed: MISSILE_TYPES.SPREAD.speed - 4, color: MISSILE_TYPES.SPREAD.color, type: 'spread', damage: 1 * firepowerMultiplier }
             );
     }
 }
@@ -1100,9 +1353,10 @@ function updatePlayer() {
     
     // Shield system
     // Shield activation with Shift key
-    if (keys['Shift'] && player.shield >= SHIELD_ACTIVATION_COST && !player.isShieldActive) {
+    const shieldActivationCost = player.maxShield ? Math.floor(player.maxShield * 0.1) : SHIELD_ACTIVATION_COST;
+    if (keys['Shift'] && player.shield >= shieldActivationCost && !player.isShieldActive) {
         player.isShieldActive = true;
-        player.shield -= SHIELD_ACTIVATION_COST;
+        player.shield -= shieldActivationCost;
     }
     
     // Shield deactivation when Shift is released
@@ -1119,8 +1373,8 @@ function updatePlayer() {
     }
     
     // Shield recharge when not active
-    if (!player.isShieldActive && player.shield < 100) {
-        player.shield = Math.min(100, player.shield + SHIELD_RECHARGE_RATE);
+    if (!player.isShieldActive && player.shield < player.maxShield) {
+        player.shield = Math.min(player.maxShield, player.shield + SHIELD_RECHARGE_RATE);
     }
     
     // Auto-shoot if mouse is held down or spacebar is pressed
@@ -1131,8 +1385,30 @@ function updatePlayer() {
 
 function updateBullets() {
     bullets = bullets.filter(bullet => {
-        bullet.y -= bullet.speed;
-        return bullet.y > -bullet.height;
+        // Update bullet position based on type
+        if (bullet.angle) {
+            // Angled bullets (spread shot)
+            bullet.x += Math.sin(bullet.angle) * bullet.speed;
+            bullet.y -= Math.cos(bullet.angle) * bullet.speed;
+        } else if (bullet.homing && bullet.target) {
+            // Homing missiles
+            const dx = bullet.target.x - bullet.x;
+            const dy = bullet.target.y - bullet.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance > 0) {
+                bullet.x += (dx / distance) * bullet.speed;
+                bullet.y += (dy / distance) * bullet.speed;
+            } else {
+                bullet.y -= bullet.speed;
+            }
+        } else {
+            // Standard bullets
+            bullet.y -= bullet.speed;
+        }
+        
+        // Check if bullet is off screen
+        return bullet.y > -bullet.height && bullet.y < canvas.height && 
+               bullet.x > -bullet.width && bullet.x < canvas.width;
     });
 }
 
@@ -1263,9 +1539,30 @@ function updateSpecialEffects() {
                         enemy.speed = ENEMY_SPEED + level * 0.8;
                     });
                     break;
+                case 'cloak':
+                    player.isCloaked = false;
+                    break;
+                case 'selfRepair':
+                    player.isRepairing = false;
+                    break;
+                case 'squadBoost':
+                    wingmen.forEach(wingman => {
+                        wingman.boosted = false;
+                    });
+                    break;
             }
             return false;
         }
+        
+        // Handle ongoing effects
+        switch (effect.type) {
+            case 'selfRepair':
+                if (player.isRepairing && lives < 50) {
+                    lives = Math.min(lives + 0.1, 50);
+                }
+                break;
+        }
+        
         return true;
     });
 }
@@ -1275,11 +1572,14 @@ function checkCollisions() {
     for (let i = bullets.length - 1; i >= 0; i--) {
         for (let j = enemies.length - 1; j >= 0; j--) {
             if (checkCollision(bullets[i], enemies[j])) {
-                // Remove bullet
-                bullets.splice(i, 1);
+                // Remove bullet (unless piercing)
+                if (!bullets[i].piercing) {
+                    bullets.splice(i, 1);
+                }
                 
-                // Damage enemy
-                enemies[j].health--;
+                // Damage enemy based on bullet damage
+                const damage = bullets[i].damage || 1;
+                enemies[j].health -= damage;
                 
                 // Check if enemy is destroyed
                 if (enemies[j].health <= 0) {
@@ -1363,8 +1663,9 @@ function checkCollisions() {
                 weaponLevel = Math.min(weaponLevel + 1, 6);
                 showNotification('Weapon upgraded!', 'powerup');
             } else if (powerUp.type === 'shield') {
-                player.shield = Math.min(player.shield + 50, 100);
-                showNotification('Shield restored!', 'powerup');
+                const shieldRestore = player.maxShield ? Math.floor(player.maxShield * 0.5) : 50;
+                player.shield = Math.min(player.shield + shieldRestore, player.maxShield);
+                showNotification(`Shield restored! +${shieldRestore}`, 'powerup');
             }
             
             playPowerUpSound();
@@ -1461,10 +1762,24 @@ function updateUI() {
         }
     }
     
+    // Update ship info
+    const shipElement = document.getElementById('shipInfo');
+    if (shipElement && player.shipType) {
+        const shipStats = getCurrentShipStats();
+        shipElement.innerHTML = `
+            <div class="ship-info">
+                <div class="ship-name">🚀 ${shipStats.name}</div>
+                <div class="ship-ability">${shipStats.special}</div>
+                <div class="ship-stats">Speed: ${player.speed} | Firepower: ${player.firepower} | Shield: ${Math.round(player.shield)}/${player.maxShield}</div>
+            </div>
+        `;
+    }
+    
     // Update shield display
     const shieldElement = document.getElementById('shieldLevel');
     if (shieldElement) {
-        shieldElement.textContent = `🛡️ Shield: ${Math.round(player.shield)}%`;
+        const shieldPercentage = player.maxShield ? Math.round((player.shield / player.maxShield) * 100) : 0;
+        shieldElement.textContent = `🛡️ Shield: ${shieldPercentage}%`;
     }
     
     // Update pause status
@@ -1616,97 +1931,123 @@ function drawEnemyBullet(bullet) {
 function drawPlayer() {
     const x = player.x;
     const y = player.y;
-    const character = CHARACTERS[player.character];
-    // Use pink accent for Adelynn, dark accent for Kaden
-    const shipColor = (player.character === 'adelynn') ? '#ff69b4' : (player.character === 'kaden') ? '#3b2e2a' : (player.character === 'blaze') ? '#ff4500' : character.color;
-    ctx.fillStyle = shipColor;
-    // Main triangle body
-    ctx.beginPath();
-    ctx.moveTo(x + 30, y + 10); // Top point
-    ctx.lineTo(x + 10, y + 50); // Bottom left
-    ctx.lineTo(x + 50, y + 50); // Bottom right
-    ctx.closePath();
-    ctx.fill();
-    // Cockpit (darker shade)
-    ctx.fillStyle = "#1a1a2e";
-    ctx.beginPath();
-    ctx.moveTo(x + 30, y + 15);
-    ctx.lineTo(x + 20, y + 35);
-    ctx.lineTo(x + 40, y + 35);
-    ctx.closePath();
-    ctx.fill();
-    // Wing tips with missile rails
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(x + 5, y + 30, 8, 4);  // Left missile rail
-    ctx.fillRect(x + 47, y + 30, 8, 4); // Right missile rail
-    // Engine exhausts (orange glow)
-    ctx.shadowColor = '#ff6600';
-    ctx.shadowBlur = 8;
-    ctx.fillStyle = '#ffaa00';
-    ctx.fillRect(x + 20, y + 45, 6, 8);
-    ctx.fillRect(x + 34, y + 45, 6, 8);
-    ctx.shadowBlur = 0;
-    // Side weapon pods
-    ctx.fillStyle = "#cccccc";
-    ctx.fillRect(x + 8, y + 25, 4, 6);   // Left weapon pod
-    ctx.fillRect(x + 48, y + 25, 4, 6);  // Right weapon pod
-    // Draw pilot in cockpit
-    const pilotX = x + 30;
-    const pilotY = y + 25;
-    ctx.save();
-    if (player.character === 'kaden') {
-        // Kaden: dark skin, blue helmet
-        ctx.beginPath();
-        ctx.arc(pilotX, pilotY, 5, 0, Math.PI * 2);
-        ctx.fillStyle = '#7a4a21'; // dark brown skin
-        ctx.fill();
-        // Helmet
-        ctx.beginPath();
-        ctx.arc(pilotX, pilotY, 7, 0, Math.PI * 2);
-        ctx.strokeStyle = '#4a90e2';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-    } else if (player.character === 'adelynn') {
-        // Adelynn: pink helmet and suit
-        ctx.beginPath();
-        ctx.arc(pilotX, pilotY, 5, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffe0e6'; // light skin (or use #fff for helmet visor)
-        ctx.fill();
-        // Pink helmet
-        ctx.beginPath();
-        ctx.arc(pilotX, pilotY, 7, 0, Math.PI * 2);
-        ctx.strokeStyle = '#ff69b4';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        // Pink suit collar
-        ctx.beginPath();
-        ctx.arc(pilotX, pilotY + 5, 4, 0, Math.PI, true);
-        ctx.strokeStyle = '#ff69b4';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-    } else {
-        // Default pilot
-        ctx.beginPath();
-        ctx.arc(pilotX, pilotY, 5, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffe0b2'; // default skin
-        ctx.fill();
-        // Helmet
-        ctx.beginPath();
-        ctx.arc(pilotX, pilotY, 7, 0, Math.PI * 2);
-        ctx.strokeStyle = '#cccccc';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+    
+    // Apply cloak effect
+    if (player.isCloaked) {
+        ctx.save();
+        ctx.globalAlpha = 0.3;
     }
-    ctx.restore();
+    
+    // Use selected ship's draw function if available, otherwise use default
+    if (player.shipType && SHIPS[player.shipType] && SHIPS[player.shipType].draw) {
+        SHIPS[player.shipType].draw(ctx, x, y);
+    } else {
+        // Default ship design
+        const character = CHARACTERS[player.character];
+        const shipColor = (player.character === 'adelynn') ? '#ff69b4' : (player.character === 'kaden') ? '#3b2e2a' : (player.character === 'blaze') ? '#ff4500' : character.color;
+        ctx.fillStyle = shipColor;
+        
+        // Main triangle body
+        ctx.beginPath();
+        ctx.moveTo(x + 30, y + 10); // Top point
+        ctx.lineTo(x + 10, y + 50); // Bottom left
+        ctx.lineTo(x + 50, y + 50); // Bottom right
+        ctx.closePath();
+        ctx.fill();
+        
+        // Cockpit (darker shade)
+        ctx.fillStyle = "#1a1a2e";
+        ctx.beginPath();
+        ctx.moveTo(x + 30, y + 15);
+        ctx.lineTo(x + 20, y + 35);
+        ctx.lineTo(x + 40, y + 35);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Wing tips with missile rails
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(x + 5, y + 30, 8, 4);  // Left missile rail
+        ctx.fillRect(x + 47, y + 30, 8, 4); // Right missile rail
+        
+        // Engine exhausts (orange glow)
+        ctx.shadowColor = '#ff6600';
+        ctx.shadowBlur = 8;
+        ctx.fillStyle = '#ffaa00';
+        ctx.fillRect(x + 20, y + 45, 6, 8);
+        ctx.fillRect(x + 34, y + 45, 6, 8);
+        ctx.shadowBlur = 0;
+        
+        // Side weapon pods
+        ctx.fillStyle = "#cccccc";
+        ctx.fillRect(x + 8, y + 25, 4, 6);   // Left weapon pod
+        ctx.fillRect(x + 48, y + 25, 4, 6);  // Right weapon pod
+    }
+    
+    // Draw pilot in cockpit (only for default ships)
+    if (!player.shipType || !SHIPS[player.shipType] || !SHIPS[player.shipType].draw) {
+        const pilotX = x + 30;
+        const pilotY = y + 25;
+        ctx.save();
+        if (player.character === 'kaden') {
+            // Kaden: dark skin, blue helmet
+            ctx.beginPath();
+            ctx.arc(pilotX, pilotY, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#7a4a21'; // dark brown skin
+            ctx.fill();
+            // Helmet
+            ctx.beginPath();
+            ctx.arc(pilotX, pilotY, 7, 0, Math.PI * 2);
+            ctx.strokeStyle = '#4a90e2';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        } else if (player.character === 'adelynn') {
+            // Adelynn: pink helmet and suit
+            ctx.beginPath();
+            ctx.arc(pilotX, pilotY, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffe0e6'; // light skin (or use #fff for helmet visor)
+            ctx.fill();
+            // Pink helmet
+            ctx.beginPath();
+            ctx.arc(pilotX, pilotY, 7, 0, Math.PI * 2);
+            ctx.strokeStyle = '#ff69b4';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            // Pink suit collar
+            ctx.beginPath();
+            ctx.arc(pilotX, pilotY + 5, 4, 0, Math.PI, true);
+            ctx.strokeStyle = '#ff69b4';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        } else {
+            // Default pilot
+            ctx.beginPath();
+            ctx.arc(pilotX, pilotY, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffe0b2'; // default skin
+            ctx.fill();
+            // Helmet
+            ctx.beginPath();
+            ctx.arc(pilotX, pilotY, 7, 0, Math.PI * 2);
+            ctx.strokeStyle = '#cccccc';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+    
     // Shield effect if active
     if (player.isShieldActive && player.shield > 0) {
         ctx.save();
-        ctx.globalAlpha = player.shield / 100 * 0.6;
+        ctx.globalAlpha = player.shield / player.maxShield * 0.6;
         ctx.strokeStyle = '#00ffff';
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.arc(x + player.width/2, y + player.height/2, player.width/2 + 5, 0, Math.PI * 2);
         ctx.stroke();
+        ctx.restore();
+    }
+    
+    // Restore alpha if cloaked
+    if (player.isCloaked) {
         ctx.restore();
     }
 }
@@ -2438,3 +2779,121 @@ function setupMobileTabBar() {
 document.addEventListener('DOMContentLoaded', () => {
     setupMobileTabBar();
 });
+
+// 10 unique ships with different capabilities
+const SHIPS = {
+    interceptor: {
+        name: "Interceptor",
+        desc: "Super fast, rapid fire, low shield.",
+        speed: 11, firepower: 6, shield: 3, special: "Rapid Fire",
+        draw: function(ctx, x, y) { /* draw a sleek blue triangle */ ctx.save(); ctx.fillStyle='#4a90e2'; ctx.beginPath(); ctx.moveTo(x+30,y+8);ctx.lineTo(x+12,y+52);ctx.lineTo(x+48,y+52);ctx.closePath();ctx.fill();ctx.restore(); }
+    },
+    tank: {
+        name: "Tank",
+        desc: "Slow, heavy shield, powerful missiles.",
+        speed: 5, firepower: 8, shield: 10, special: "Heavy Missiles",
+        draw: function(ctx, x, y) { ctx.save(); ctx.fillStyle='#8d5524'; ctx.beginPath(); ctx.moveTo(x+30,y+12);ctx.lineTo(x+8,y+48);ctx.lineTo(x+52,y+48);ctx.closePath();ctx.fill();ctx.restore(); }
+    },
+    sniper: {
+        name: "Sniper",
+        desc: "Medium speed, long-range lasers.",
+        speed: 7, firepower: 7, shield: 5, special: "Long Laser",
+        draw: function(ctx, x, y) { ctx.save(); ctx.fillStyle='#00ffff'; ctx.beginPath(); ctx.moveTo(x+30,y+10);ctx.lineTo(x+18,y+50);ctx.lineTo(x+42,y+50);ctx.closePath();ctx.fill();ctx.restore(); }
+    },
+    blaster: {
+        name: "Blaster",
+        desc: "High firepower, spread shot.",
+        speed: 6, firepower: 10, shield: 4, special: "Spread Shot",
+        draw: function(ctx, x, y) { ctx.save(); ctx.fillStyle='#ff4444'; ctx.beginPath(); ctx.moveTo(x+30,y+14);ctx.lineTo(x+10,y+46);ctx.lineTo(x+50,y+46);ctx.closePath();ctx.fill();ctx.restore(); }
+    },
+    scout: {
+        name: "Scout",
+        desc: "Very fast, weak weapons, bonus coins.",
+        speed: 12, firepower: 4, shield: 3, special: "Bonus Coins",
+        draw: function(ctx, x, y) { ctx.save(); ctx.fillStyle='#00ff00'; ctx.beginPath(); ctx.moveTo(x+30,y+6);ctx.lineTo(x+16,y+54);ctx.lineTo(x+44,y+54);ctx.closePath();ctx.fill();ctx.restore(); }
+    },
+    medic: {
+        name: "Medic",
+        desc: "Can heal wingmen, balanced stats.",
+        speed: 7, firepower: 5, shield: 7, special: "Heal Wingmen",
+        draw: function(ctx, x, y) { ctx.save(); ctx.fillStyle='#ffb347'; ctx.beginPath(); ctx.moveTo(x+30,y+12);ctx.lineTo(x+14,y+48);ctx.lineTo(x+46,y+48);ctx.closePath();ctx.fill();ctx.restore(); }
+    },
+    stealth: {
+        name: "Stealth",
+        desc: "Can cloak, low shield, high speed.",
+        speed: 10, firepower: 5, shield: 3, special: "Cloak",
+        draw: function(ctx, x, y) { ctx.save(); ctx.fillStyle='#888'; ctx.globalAlpha=0.5; ctx.beginPath(); ctx.moveTo(x+30,y+10);ctx.lineTo(x+20,y+50);ctx.lineTo(x+40,y+50);ctx.closePath();ctx.fill();ctx.restore(); }
+    },
+    bomber: {
+        name: "Bomber",
+        desc: "Slow, launches bombs, area damage.",
+        speed: 5, firepower: 9, shield: 6, special: "Bombs",
+        draw: function(ctx, x, y) { ctx.save(); ctx.fillStyle='#ff8800'; ctx.beginPath(); ctx.moveTo(x+30,y+16);ctx.lineTo(x+12,y+44);ctx.lineTo(x+48,y+44);ctx.closePath();ctx.fill();ctx.restore(); }
+    },
+    engineer: {
+        name: "Engineer",
+        desc: "Repairs itself over time.",
+        speed: 7, firepower: 6, shield: 8, special: "Self-Repair",
+        draw: function(ctx, x, y) { ctx.save(); ctx.fillStyle='#b0b0b0'; ctx.beginPath(); ctx.moveTo(x+30,y+14);ctx.lineTo(x+16,y+46);ctx.lineTo(x+44,y+46);ctx.closePath();ctx.fill();ctx.restore(); }
+    },
+    commander: {
+        name: "Commander",
+        desc: "Balanced, boosts wingmen.",
+        speed: 8, firepower: 7, shield: 7, special: "Squad Boost",
+        draw: function(ctx, x, y) { ctx.save(); ctx.fillStyle='#ffd700'; ctx.beginPath(); ctx.moveTo(x+30,y+10);ctx.lineTo(x+10,y+50);ctx.lineTo(x+50,y+50);ctx.closePath();ctx.fill();ctx.restore(); }
+    }
+};
+
+let selectedShip = localStorage.getItem('spaceAdventuresSelectedShip') || 'interceptor';
+
+function renderShipsGrid() {
+    const grid = document.getElementById('shipsGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    Object.entries(SHIPS).forEach(([key, ship]) => {
+        const card = document.createElement('div');
+        card.className = 'ship-card' + (selectedShip === key ? ' selected' : '');
+        // Ship drawing
+        const drawing = document.createElement('canvas');
+        drawing.width = 60; drawing.height = 60;
+        drawing.className = 'ship-drawing';
+        ship.draw(drawing.getContext('2d'), 0, 0);
+        card.appendChild(drawing);
+        // Name
+        const name = document.createElement('div');
+        name.className = 'ship-name';
+        name.textContent = ship.name;
+        card.appendChild(name);
+        // Desc
+        const desc = document.createElement('div');
+        desc.className = 'ship-desc';
+        desc.textContent = ship.desc;
+        card.appendChild(desc);
+        // Stats
+        const stats = document.createElement('div');
+        stats.className = 'ship-stats';
+        stats.innerHTML = `Speed: ${ship.speed} | Firepower: ${ship.firepower} | Shield: ${ship.shield}<br>Special: ${ship.special}`;
+        card.appendChild(stats);
+        // Select button
+        const btn = document.createElement('button');
+        btn.className = 'ship-select-btn' + (selectedShip === key ? ' selected' : '');
+        btn.textContent = selectedShip === key ? 'Selected' : 'Select';
+        btn.onclick = () => {
+            selectedShip = key;
+            localStorage.setItem('spaceAdventuresSelectedShip', key);
+            renderShipsGrid();
+        };
+        card.appendChild(btn);
+        grid.appendChild(card);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    renderShipsGrid();
+});
+
+// Integrate selected ship into gameplay
+function getCurrentShipStats() {
+    return SHIPS[selectedShip] || SHIPS.interceptor;
+}
+// In initializeGameElements or startGame, set player.speed, etc. from getCurrentShipStats()

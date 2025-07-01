@@ -958,6 +958,36 @@ button:active {
     font-weight: bold;
 }
 
+.ship-info {
+    background: rgba(255, 215, 0, 0.2);
+    border: 2px solid rgba(255, 215, 0, 0.5);
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: 10px;
+    min-width: 200px;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+}
+
+.ship-name {
+    color: #ffd700;
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 5px;
+    text-shadow: 0 1px 2px rgba(255, 215, 0, 0.5);
+}
+
+.ship-ability {
+    color: #00ffff;
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.ship-stats {
+    font-size: 10px;
+    color: #ffffff;
+}
+
 .pause-status {
     position: absolute;
     top: 50%;
@@ -1136,5 +1166,87 @@ button:active {
     }
     body {
         padding-bottom: 60px;
+    }
+}
+
+.ships-selection {
+    margin: 1em 0;
+    padding: 1em;
+    background: rgba(74, 144, 226, 0.08);
+    border-radius: 12px;
+    text-align: center;
+}
+.ships-selection h3 {
+    color: #ffd700;
+    margin-bottom: 1em;
+    font-size: 1.3em;
+}
+.ships-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1em;
+    margin: 0 auto;
+    max-width: 900px;
+}
+.ship-card {
+    background: rgba(0,0,0,0.7);
+    border: 2px solid #4a90e2;
+    border-radius: 10px;
+    padding: 1em 0.5em;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(74,144,226,0.1);
+    transition: border 0.2s, box-shadow 0.2s;
+    position: relative;
+}
+.ship-card.selected {
+    border-color: #ffd700;
+    box-shadow: 0 0 20px #ffd70088;
+}
+.ship-name {
+    font-weight: bold;
+    color: #ffd700;
+    font-size: 1.1em;
+    margin-bottom: 0.3em;
+}
+.ship-desc {
+    color: #fff;
+    font-size: 0.95em;
+    margin-bottom: 0.5em;
+}
+.ship-stats {
+    color: #00ffcc;
+    font-size: 0.9em;
+    margin-bottom: 0.5em;
+}
+.ship-drawing {
+    margin: 0.5em auto 0.7em auto;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.ship-select-btn {
+    background: #4a90e2;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.5em 1.2em;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.ship-select-btn.selected, .ship-select-btn:active {
+    background: #ffd700;
+    color: #222;
+}
+@media (max-width: 850px) {
+    .ships-grid {
+        grid-template-columns: 1fr;
+        gap: 0.7em;
+    }
+    .ship-card {
+        padding: 0.7em 0.2em;
     }
 } 
