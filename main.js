@@ -15,6 +15,8 @@ let lives = 50; // Increased to 50 lives
 let level = 1;
 let gameLoop;
 let lastUIUpdate = 0; // Performance optimization for UI updates
+let lastFrameTime = 0; // Performance tracking for frame rate
+let lastSpeechTime = 0; // Throttle speech synthesis
 let highScore = localStorage.getItem('spaceAdventuresHighScore') || 0;
 let savedMoney = localStorage.getItem('spaceAdventuresMoney') || 0;
 money = parseInt(savedMoney);
@@ -22,9 +24,11 @@ money = parseInt(savedMoney);
 // Sound system
 let audioContext;
 let soundEnabled = true;
-let musicEnabled = true;
-let backgroundMusic = null;
-let currentMusicTrack = null;
+let radioChatterEnabled = true;
+let radioChatterInterval = null;
+let lastRadioChatter = 0;
+let speechSynthesis = window.speechSynthesis;
+let voices = [];
 
 // Performance optimization constants
 const MAX_BULLETS = 200; // Limit total bullets to prevent memory issues
@@ -34,25 +38,6 @@ const MAX_POWERUPS = 20; // Limit powerups
 const MAX_ENEMIES = 30; // Limit enemies
 const MAX_WINGMEN = 4; // Maximum number of wingmen
 const MAX_SPECIAL_EFFECTS = 20; // Limit special effects
-
-// Retro music tracks
-const MUSIC_TRACKS = {
-    menu: {
-        frequencies: [220, 277, 330, 440, 330, 277], // A major scale
-        tempo: 120,
-        pattern: [0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1]
-    },
-    gameplay: {
-        frequencies: [330, 440, 554, 659, 554, 440], // E major scale
-        tempo: 140,
-        pattern: [0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1]
-    },
-    boss: {
-        frequencies: [220, 277, 330, 440, 330, 277, 220, 165], // Darker scale
-        tempo: 160,
-        pattern: [0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3]
-    }
-};
 
 // Initialize audio context only when needed
 function initAudioContext() {
@@ -66,77 +51,231 @@ function initAudioContext() {
     }
 }
 
-// Play retro background music
-function playBackgroundMusic(trackName = 'menu') {
-    if (!musicEnabled || !audioContext) return;
+// Initialize speech synthesis voices
+function initSpeechVoices() {
+    if (speechSynthesis) {
+        // Wait for voices to load
+        speechSynthesis.onvoiceschanged = () => {
+            voices = speechSynthesis.getVoices();
+            console.log('Speech voices loaded:', voices.length);
+        };
+        voices = speechSynthesis.getVoices();
+    }
+}
+
+// Speak radio chatter with voice
+function speakRadioChatter(message, type = 'command') {
+    if (!speechSynthesis || !radioChatterEnabled) return;
     
-    const track = MUSIC_TRACKS[trackName];
-    if (!track) return;
+    // Performance check - don't speak if game is lagging
+    if (gameLoop && performance.now() - lastFrameTime > 50) return;
     
-    // Prevent multiple music tracks from playing simultaneously
-    if (currentMusicTrack === trackName) return;
+    // Throttle speech to prevent overlapping
+    const now = Date.now();
+    if (now - lastSpeechTime < 2000) return; // Minimum 2 seconds between speech
+    lastSpeechTime = now;
     
-    // Stop current music if playing
-    stopBackgroundMusic();
+    // Stop any current speech
+    speechSynthesis.cancel();
     
-    currentMusicTrack = trackName;
-    let noteIndex = 0;
-    const noteDuration = 60000 / track.tempo; // Convert BPM to milliseconds
+    // Create speech utterance
+    const utterance = new SpeechSynthesisUtterance(message);
     
-    function playNote() {
-        if (!musicEnabled || gameState === 'gameOver' || currentMusicTrack !== trackName) return;
+    // Set voice based on type with better female voice support
+    const voiceSettings = {
+        command: { rate: 0.9, pitch: 0.8, volume: 0.7 }, // Deeper, authoritative
+        wingmen: { rate: 1.0, pitch: 1.2, volume: 0.6 }, // Higher, energetic (female)
+        pilot: { rate: 1.1, pitch: 1.0, volume: 0.8 },   // Clear, confident
+        alerts: { rate: 1.2, pitch: 1.3, volume: 0.9 }   // Fast, urgent (female)
+    };
+    
+    const settings = voiceSettings[type];
+    utterance.rate = settings.rate;
+    utterance.pitch = settings.pitch;
+    utterance.volume = settings.volume;
+    
+    // Try to select appropriate voice with better female voice detection
+    if (voices.length > 0) {
+        // Enhanced voice selection with US voices prioritized
+        const preferredVoices = {
+            command: voices.filter(v => 
+                // US Male voices first
+                v.name.includes('US') && v.name.includes('Male') ||
+                v.name.includes('American') && v.name.includes('Male') ||
+                v.name.includes('Microsoft David') ||
+                v.name.includes('Google US English Male') ||
+                v.name.includes('Alex') ||
+                // Fallback to other male voices
+                v.name.includes('Male') || 
+                v.name.includes('David') || 
+                v.name.includes('James') ||
+                v.name.includes('Tom') ||
+                v.name.includes('Mike')
+            ),
+            wingmen: voices.filter(v => 
+                // US Female voices first
+                v.name.includes('US') && v.name.includes('Female') ||
+                v.name.includes('American') && v.name.includes('Female') ||
+                v.name.includes('Microsoft Zira') ||
+                v.name.includes('Google US English Female') ||
+                v.name.includes('Samantha') ||
+                v.name.includes('Victoria') ||
+                // Fallback to other female voices
+                v.name.includes('Female') || 
+                v.name.includes('Sarah') || 
+                v.name.includes('Emma') ||
+                v.name.includes('Lisa') ||
+                v.name.includes('Anna') ||
+                v.name.includes('Karen') ||
+                v.name.includes('Siri') ||
+                v.name.includes('Google UK English Female') ||
+                v.name.includes('Microsoft Eva')
+            ),
+            pilot: voices.filter(v => 
+                // US Male voices first
+                v.name.includes('US') && v.name.includes('Male') ||
+                v.name.includes('American') && v.name.includes('Male') ||
+                v.name.includes('Microsoft David') ||
+                v.name.includes('Google US English Male') ||
+                v.name.includes('Alex') ||
+                // Fallback to other male voices
+                v.name.includes('Male') || 
+                v.name.includes('David') || 
+                v.name.includes('James') ||
+                v.name.includes('Tom') ||
+                v.name.includes('Mike')
+            ),
+            alerts: voices.filter(v => 
+                // US Female voices first
+                v.name.includes('US') && v.name.includes('Female') ||
+                v.name.includes('American') && v.name.includes('Female') ||
+                v.name.includes('Microsoft Zira') ||
+                v.name.includes('Google US English Female') ||
+                v.name.includes('Samantha') ||
+                v.name.includes('Victoria') ||
+                // Fallback to other female voices
+                v.name.includes('Female') || 
+                v.name.includes('Lisa') || 
+                v.name.includes('Anna') ||
+                v.name.includes('Sarah') ||
+                v.name.includes('Emma') ||
+                v.name.includes('Karen') ||
+                v.name.includes('Siri') ||
+                v.name.includes('Google UK English Female') ||
+                v.name.includes('Microsoft Eva')
+            )
+        };
         
-        const frequency = track.frequencies[track.pattern[noteIndex % track.pattern.length]];
-        
-        try {
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-            oscillator.type = 'square';
-            
-            gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + noteDuration * 0.8);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + noteDuration * 0.8);
-            
-            noteIndex++;
-            
-            // Schedule next note
-            setTimeout(playNote, noteDuration);
-        } catch (error) {
-            console.log('Music playback error:', error);
+        const typeVoices = preferredVoices[type];
+        if (typeVoices.length > 0) {
+            utterance.voice = typeVoices[0];
+        } else {
+            utterance.voice = voices[0]; // Fallback to first available voice
         }
     }
     
-    playNote();
+    // Speak the message
+    speechSynthesis.speak(utterance);
+    
+    // Also show text notification
+    showRadioChatter(message, type);
 }
 
-// Stop background music
-function stopBackgroundMusic() {
-    if (backgroundMusic) {
-        backgroundMusic.stop();
-        backgroundMusic = null;
+// Start radio chatter system
+function startRadioChatter() {
+    if (!radioChatterEnabled || gameState === 'gameOver') return;
+    
+    // Clear any existing interval
+    if (radioChatterInterval) {
+        clearInterval(radioChatterInterval);
     }
-    currentMusicTrack = null;
+    
+    // Start periodic radio chatter with reduced frequency to prevent slow motion
+    radioChatterInterval = setInterval(() => {
+        if (!radioChatterEnabled || gameState === 'gameOver') {
+            clearInterval(radioChatterInterval);
+            return;
+        }
+        
+        const now = Date.now();
+        if (now - lastRadioChatter < 15000) return; // Increased to 15 seconds between messages
+        
+        // Performance check - don't trigger radio chatter if game is lagging
+        if (gameLoop && performance.now() - lastFrameTime > 50) return; // Skip if frame rate is low
+        
+        // Choose chatter type based on game state
+        let chatterType = 'command';
+        let message = '';
+        
+        if (gameState === 'playing') {
+            const hasBoss = enemies.some(e => e.isBoss);
+            const enemyCount = enemies.length;
+            const wingmanCount = wingmen.length;
+            
+            if (hasBoss) {
+                chatterType = 'alerts';
+                message = RADIO_CHATTER.alerts[Math.floor(Math.random() * RADIO_CHATTER.alerts.length)];
+            } else if (enemyCount > 5) {
+                chatterType = 'pilot';
+                message = RADIO_CHATTER.pilot[Math.floor(Math.random() * RADIO_CHATTER.pilot.length)];
+            } else if (wingmanCount > 0) {
+                chatterType = 'wingmen';
+                message = RADIO_CHATTER.wingmen[Math.floor(Math.random() * RADIO_CHATTER.wingmen.length)];
+            } else {
+                chatterType = 'command';
+                message = RADIO_CHATTER.command[Math.floor(Math.random() * RADIO_CHATTER.command.length)];
+            }
+        } else {
+            chatterType = 'command';
+            message = RADIO_CHATTER.command[Math.floor(Math.random() * RADIO_CHATTER.command.length)];
+        }
+        
+        // Speak and show radio chatter
+        speakRadioChatter(message, chatterType);
+        lastRadioChatter = now;
+        
+    }, 8000); // Increased interval to 8 seconds to reduce performance impact
 }
 
-// Toggle music
-function toggleMusic() {
-    musicEnabled = !musicEnabled;
-    if (!musicEnabled) {
-        stopBackgroundMusic();
-    } else if (gameState === 'start') {
-        playBackgroundMusic('menu');
+function stopRadioChatter() {
+    if (radioChatterInterval) {
+        clearInterval(radioChatterInterval);
+        radioChatterInterval = null;
+    }
+    // Stop any current speech
+    if (speechSynthesis) {
+        speechSynthesis.cancel();
+    }
+}
+
+// Show radio chatter notification (visual only)
+function showRadioChatter(message, type = 'command') {
+    const colors = {
+        command: '#00ff00',    // Green for command
+        wingmen: '#00ffff',    // Cyan for wingmen
+        pilot: '#ffff00',      // Yellow for pilot
+        alerts: '#ff0000'      // Red for alerts
+    };
+    
+    const icons = {
+        command: '📡',
+        wingmen: '🛸',
+        pilot: '🎯',
+        alerts: '🚨'
+    };
+    
+    showNotification(`${icons[type]} ${message}`, 'radio', colors[type]);
+}
+
+// Toggle radio chatter
+function toggleRadioChatter() {
+    radioChatterEnabled = !radioChatterEnabled;
+    if (!radioChatterEnabled) {
+        stopRadioChatter();
     } else if (gameState === 'playing') {
-        const hasBoss = enemies.some(e => e.isBoss);
-        playBackgroundMusic(hasBoss ? 'boss' : 'gameplay');
+        startRadioChatter();
     }
-    showNotification(`Music ${musicEnabled ? 'ON' : 'OFF'}`, 'info');
+    showNotification(`Radio Chatter ${radioChatterEnabled ? 'ON' : 'OFF'}`, 'info');
 }
 
 // Achievement system
@@ -567,6 +706,17 @@ function purchaseWingman() {
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `game-notification ${type}`;
+    
+    // Special styling for radio chatter
+    if (type === 'radio') {
+        notification.style.border = '2px solid #00ff00';
+        notification.style.background = 'rgba(0, 0, 0, 0.9)';
+        notification.style.color = '#00ff00';
+        notification.style.fontFamily = 'monospace';
+        notification.style.fontWeight = 'bold';
+        notification.style.textShadow = '0 0 10px #00ff00';
+    }
+    
     notification.innerHTML = `
         <div class="notification-content">
             <span>${message}</span>
@@ -579,6 +729,9 @@ function showNotification(message, type = 'info') {
         notification.classList.add('show');
     }, 100);
     
+    // Longer display time for radio chatter
+    const displayTime = type === 'radio' ? 5000 : 3000;
+    
     setTimeout(() => {
         notification.classList.remove('show');
         setTimeout(() => {
@@ -586,7 +739,7 @@ function showNotification(message, type = 'info') {
                 notification.parentNode.removeChild(notification);
             }
         }, 500);
-    }, 3000);
+    }, displayTime);
 }
 
 function showStoryNotification(title, message, type = 'story') {
@@ -702,16 +855,10 @@ function completeMission() {
     enemies = [];
     enemyBullets = [];
     
-    // Ensure music continues for next mission
-    if (gameState === 'playing' && musicEnabled) {
-        // Check if next mission is a boss mission
-        const nextMission = STORY_MISSIONS[currentMission];
-        if (nextMission && nextMission.boss) {
-            // Don't start boss music yet - wait for boss to spawn
-            playBackgroundMusic('gameplay');
-        } else {
-            playBackgroundMusic('gameplay');
-        }
+    // Ensure radio chatter continues for next mission
+    if (gameState === 'playing' && radioChatterEnabled) {
+        startRadioChatter();
+        radioChatterEvent('missionComplete');
     }
 }
 
@@ -731,10 +878,8 @@ function pauseGame() {
     cancelAnimationFrame(gameLoop);
     showNotification('Game Paused - Press P to Resume', 'info');
     
-    // Pause music (it will resume when game resumes)
-    if (musicEnabled) {
-        stopBackgroundMusic();
-    }
+    // Pause radio chatter (it will resume when game resumes)
+    stopRadioChatter();
 }
 
 function resumeGame() {
@@ -742,10 +887,9 @@ function resumeGame() {
     gameLoop = requestAnimationFrame(update);
     showNotification('Game Resumed!', 'success');
     
-    // Resume music
-    if (musicEnabled) {
-        const hasBoss = enemies.some(e => e.isBoss);
-        playBackgroundMusic(hasBoss ? 'boss' : 'gameplay');
+    // Resume radio chatter
+    if (radioChatterEnabled) {
+        startRadioChatter();
     }
 }
 
@@ -1441,9 +1585,10 @@ function startGame() {
     if (startScreen) startScreen.classList.add('hidden');
     if (gameOverScreen) gameOverScreen.classList.add('hidden');
     
-    // Start menu music when returning to start screen
-    if (gameState === 'start') {
-        playBackgroundMusic('menu');
+    // Start radio chatter when game begins
+    if (radioChatterEnabled) {
+        startRadioChatter();
+        radioChatterEvent('missionStart');
     }
     
     // Initialize UI
@@ -1465,9 +1610,6 @@ function startGame() {
     
     if (gameLoop) cancelAnimationFrame(gameLoop);
     gameLoop = requestAnimationFrame(update);
-    
-    // Start gameplay music
-    playBackgroundMusic('gameplay');
 }
 
 function gameOver() {
@@ -1504,6 +1646,9 @@ function gameOver() {
     
     // Stop music on game over
     stopBackgroundMusic();
+    
+    // Stop radio chatter on game over
+    stopRadioChatter();
 }
 
 function shoot() {
@@ -1699,8 +1844,9 @@ function spawnEnemy() {
             // Only show boss alert when game is actually playing
             if (gameState === 'playing') {
                 showStoryNotification("BOSS ALERT!", `A ${currentMission.title.split(':')[1] || 'Boss'} has appeared!`, 'boss');
-                // Switch to boss music
-                playBackgroundMusic('boss');
+                // Boss alert
+                radioChatterEvent('bossSpawn');
+                radioChatterEvent('bossSpawn');
             }
             return;
         }
@@ -1742,6 +1888,7 @@ function spawnPowerUp() {
             color: type === 'health' ? '#00ff00' : '#ffff00',
             type: type
         });
+        radioChatterEvent('powerup');
     }
 }
 
@@ -2002,6 +2149,7 @@ function updateWingmen() {
         // Wingmen shoot automatically
         wingmanShoot(wingman);
     }
+    radioChatterEvent('wingmanLost');
 }
 
 function updateExplosions() {
@@ -2112,8 +2260,10 @@ function checkCollisions() {
                         showMoneyNotification(`+${bossReward}`, enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
                                             showStoryNotification("BOSS DEFEATED!", `You earned ${bossReward} coins!`, 'achievement');
                     playExplosionSound();
-                    // Switch back to gameplay music after boss defeat
-                    playBackgroundMusic('gameplay');
+                    // Boss defeated - continue radio chatter
+                    if (radioChatterEnabled) {
+                        radioChatterEvent('missionComplete');
+                    }
                     } else {
                         // Regular enemy rewards
                         const reward = 5 + Math.floor(Math.random() * 6); // 5-10 coins
@@ -3026,6 +3176,10 @@ function drawPauseOverlay() {
 function update() {
     if (gameState !== 'playing') return;
     
+    // Track frame rate for performance monitoring
+    const currentFrameTime = performance.now();
+    lastFrameTime = currentFrameTime;
+    
     // Performance optimization: limit update frequency for UI
     const currentTime = Date.now();
     const shouldUpdateUI = !lastUIUpdate || (currentTime - lastUIUpdate) > 100; // Update UI every 100ms
@@ -3236,6 +3390,9 @@ function initializeGameElements() {
     
     // Initialize touch controls for mobile devices
     initTouchControls();
+    
+    // Initialize speech voices for radio chatter
+    initSpeechVoices();
     
     // Set up character selection
     setupCharacterSelection();
@@ -4007,13 +4164,279 @@ function addInstallButton() {
     }
 }
 
+// Add radio chatter toggle button to UI
+function addRadioChatterButton() {
+    const btn = document.createElement('button');
+    btn.id = 'toggleRadioChatter';
+    btn.textContent = '📡 Radio Chatter';
+    btn.style.position = 'fixed';
+    btn.style.bottom = '16px';
+    btn.style.right = '16px';
+    btn.style.zIndex = 1000;
+    btn.style.background = '#222';
+    btn.style.color = '#00ff00';
+    btn.style.border = '2px solid #00ff00';
+    btn.style.borderRadius = '8px';
+    btn.style.padding = '10px 18px';
+    btn.style.fontSize = '1.1em';
+    btn.style.fontWeight = 'bold';
+    btn.style.cursor = 'pointer';
+    btn.style.fontFamily = 'monospace';
+    btn.onclick = toggleRadioChatter;
+    document.body.appendChild(btn);
+}
+
 // Initialize PWA when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     initializePWA();
     addInstallButton();
-    
-    // Start menu music
-    setTimeout(() => {
-        playBackgroundMusic('menu');
-    }, 1000);
+    addRadioChatterButton();
 });
+
+// --- RADIO CHATTER GAMEPLAY EVENTS ---
+function radioChatterEvent(event) {
+    let message = '';
+    let type = 'command';
+    
+    switch(event) {
+        case 'missionStart':
+            message = RADIO_CHATTER.command[Math.floor(Math.random() * RADIO_CHATTER.command.length)];
+            type = 'command';
+            break;
+        case 'bossSpawn':
+            message = RADIO_CHATTER.alerts[3]; // Boss enemy detected
+            type = 'alerts';
+            break;
+        case 'missionComplete':
+            message = RADIO_CHATTER.alerts[7]; // Boss enemy destroyed
+            type = 'alerts';
+            break;
+        case 'wingmanLost':
+            message = "Wingman down! Stay focused, pilot!";
+            type = 'alerts';
+            break;
+        case 'powerup':
+            message = "Power-up detected nearby!";
+            type = 'pilot';
+            break;
+        case 'enemyAce':
+            message = "Enemy ace pilot spotted!";
+            type = 'alerts';
+            break;
+        default:
+            message = RADIO_CHATTER.command[Math.floor(Math.random() * RADIO_CHATTER.command.length)];
+            type = 'command';
+    }
+    
+    speakRadioChatter(message, type);
+}
+
+// Radio chatter messages - 50+ different phrases to prevent repetition
+const RADIO_CHATTER = {
+    command: [
+        "Mission control to pilot, status check requested.",
+        "Command center here, how's the situation looking?",
+        "Base to fighter, report your current status.",
+        "Mission control checking in, all systems operational?",
+        "Command to pilot, enemy activity detected in your sector.",
+        "Base command here, maintain formation with wingmen.",
+        "Mission control to all units, stay alert for enemy reinforcements.",
+        "Command center monitoring your progress, keep up the good work.",
+        "Base to fighter squadron, enemy forces are regrouping.",
+        "Mission control advises caution, multiple hostiles detected.",
+        "Command to pilot, power-up detected in your area.",
+        "Base command here, mission objectives are clear.",
+        "Mission control to fighter, maintain defensive position.",
+        "Command center reports increased enemy activity.",
+        "Base to pilot, mission parameters updated.",
+        "Mission control advises tactical approach.",
+        "Command to fighter, enemy formation detected.",
+        "Base command here, maintain radio silence unless necessary.",
+        "Mission control to pilot, weather conditions nominal.",
+        "Command center monitoring all frequencies.",
+        "Base to fighter, enemy retreat detected.",
+        "Mission control to pilot, mission success confirmed.",
+        "Command to fighter, return to base when ready.",
+        "Base command here, all systems green.",
+        "Mission control to pilot, enemy reinforcements incoming.",
+        "Command center advises evasive maneuvers.",
+        "Base to fighter, mission objectives achieved.",
+        "Mission control to pilot, maintain current heading.",
+        "Command to fighter, enemy forces neutralized.",
+        "Base command here, mission status updated.",
+        "Mission control to pilot, proceed with caution.",
+        "Command center reports mission progress.",
+        "Base to fighter, enemy activity increasing.",
+        "Mission control to pilot, maintain formation.",
+        "Command to fighter, mission parameters confirmed.",
+        "Base command here, all systems operational.",
+        "Mission control to pilot, enemy forces detected.",
+        "Command center monitoring mission progress.",
+        "Base to fighter, maintain tactical advantage.",
+        "Mission control to pilot, mission objectives clear.",
+        "Command to fighter, enemy formation breaking.",
+        "Base command here, mission status nominal.",
+        "Mission control to pilot, proceed with mission.",
+        "Command center reports all clear.",
+        "Base to fighter, enemy forces eliminated.",
+        "Mission control to pilot, mission success.",
+        "Command to fighter, return to base.",
+        "Base command here, mission complete."
+    ],
+    wingmen: [
+        "Wingman Alpha here, covering your six!",
+        "This is Bravo, enemy on your left flank!",
+        "Charlie reporting in, I've got your back!",
+        "Delta here, enemy formation detected!",
+        "Alpha wingman, engaging hostiles!",
+        "Bravo to leader, enemy retreating!",
+        "Charlie here, power-up spotted!",
+        "Delta wingman, enemy forces eliminated!",
+        "Alpha reporting, mission objectives clear!",
+        "Bravo here, maintaining formation!",
+        "Charlie wingman, enemy reinforcements!",
+        "Delta to leader, covering your approach!",
+        "Alpha here, enemy formation breaking!",
+        "Bravo wingman, power-up collected!",
+        "Charlie reporting, mission success!",
+        "Delta here, enemy forces neutralized!",
+        "Alpha wingman, maintaining position!",
+        "Bravo to leader, enemy detected!",
+        "Charlie here, covering your six!",
+        "Delta wingman, mission objectives achieved!",
+        "Alpha reporting, enemy retreat!",
+        "Bravo here, power-up available!",
+        "Charlie wingman, formation maintained!",
+        "Delta to leader, enemy eliminated!",
+        "Alpha here, mission parameters clear!",
+        "Bravo wingman, covering approach!",
+        "Charlie reporting, enemy forces!",
+        "Delta here, mission success!",
+        "Alpha wingman, maintaining formation!",
+        "Bravo to leader, enemy detected!",
+        "Charlie here, power-up spotted!",
+        "Delta wingman, mission objectives!",
+        "Alpha reporting, enemy retreat!",
+        "Bravo here, covering your six!",
+        "Charlie wingman, formation maintained!",
+        "Delta to leader, enemy neutralized!",
+        "Alpha here, mission success!",
+        "Bravo wingman, power-up collected!",
+        "Charlie reporting, enemy forces!",
+        "Delta here, maintaining position!",
+        "Alpha wingman, mission clear!",
+        "Bravo to leader, enemy eliminated!",
+        "Charlie here, covering approach!",
+        "Delta wingman, mission objectives!",
+        "Alpha reporting, formation maintained!",
+        "Bravo here, enemy detected!",
+        "Charlie wingman, mission success!",
+        "Delta to leader, power-up available!"
+    ],
+    pilot: [
+        "Pilot to command, engaging enemy forces!",
+        "This is the pilot, enemy formation detected!",
+        "Pilot reporting, power-up collected!",
+        "Pilot to base, enemy forces eliminated!",
+        "This is the pilot, mission objectives clear!",
+        "Pilot reporting, maintaining formation!",
+        "Pilot to command, enemy retreat detected!",
+        "This is the pilot, power-up spotted!",
+        "Pilot reporting, mission success!",
+        "Pilot to base, enemy reinforcements!",
+        "This is the pilot, covering wingmen!",
+        "Pilot reporting, enemy formation breaking!",
+        "Pilot to command, mission parameters updated!",
+        "This is the pilot, power-up available!",
+        "Pilot reporting, enemy forces neutralized!",
+        "Pilot to base, mission objectives achieved!",
+        "This is the pilot, maintaining tactical advantage!",
+        "Pilot reporting, enemy detected!",
+        "Pilot to command, formation maintained!",
+        "This is the pilot, power-up collected!",
+        "Pilot reporting, mission success!",
+        "Pilot to base, enemy eliminated!",
+        "This is the pilot, covering approach!",
+        "Pilot reporting, mission objectives clear!",
+        "Pilot to command, enemy forces!",
+        "This is the pilot, power-up spotted!",
+        "Pilot reporting, mission success!",
+        "Pilot to base, enemy retreat!",
+        "This is the pilot, maintaining position!",
+        "Pilot reporting, power-up available!",
+        "Pilot to command, enemy neutralized!",
+        "This is the pilot, mission objectives!",
+        "Pilot reporting, formation maintained!",
+        "Pilot to base, enemy detected!",
+        "This is the pilot, power-up collected!",
+        "Pilot reporting, mission success!",
+        "Pilot to command, enemy forces!",
+        "This is the pilot, covering six!",
+        "Pilot reporting, mission clear!",
+        "Pilot to base, enemy eliminated!",
+        "This is the pilot, power-up spotted!",
+        "Pilot reporting, mission objectives!",
+        "Pilot to command, formation maintained!",
+        "This is the pilot, enemy retreat!",
+        "Pilot reporting, power-up available!",
+        "Pilot to base, mission success!",
+        "This is the pilot, enemy neutralized!",
+        "Pilot reporting, mission objectives!",
+        "Pilot to command, power-up collected!",
+        "This is the pilot, enemy forces!",
+        "Pilot reporting, mission success!"
+    ],
+    alerts: [
+        "ALERT! Enemy boss detected in your sector!",
+        "WARNING! Multiple hostiles approaching!",
+        "URGENT! Enemy reinforcements incoming!",
+        "ALERT! Boss ship powering up weapons!",
+        "WARNING! Enemy formation closing in!",
+        "URGENT! Multiple enemy fighters detected!",
+        "ALERT! Boss ship shields at maximum!",
+        "WARNING! Enemy forces regrouping!",
+        "URGENT! Boss ship launching missiles!",
+        "ALERT! Enemy reinforcements detected!",
+        "WARNING! Multiple hostiles on radar!",
+        "URGENT! Boss ship charging weapons!",
+        "ALERT! Enemy formation attacking!",
+        "WARNING! Boss ship shields regenerating!",
+        "URGENT! Multiple enemy fighters!",
+        "ALERT! Enemy reinforcements incoming!",
+        "WARNING! Boss ship powering up!",
+        "URGENT! Enemy forces detected!",
+        "ALERT! Multiple hostiles approaching!",
+        "WARNING! Boss ship launching attack!",
+        "URGENT! Enemy formation closing!",
+        "ALERT! Boss ship shields active!",
+        "WARNING! Multiple enemy fighters!",
+        "URGENT! Enemy reinforcements!",
+        "ALERT! Boss ship charging weapons!",
+        "WARNING! Enemy forces attacking!",
+        "URGENT! Multiple hostiles detected!",
+        "ALERT! Boss ship powering up!",
+        "WARNING! Enemy formation incoming!",
+        "URGENT! Boss ship launching missiles!",
+        "ALERT! Multiple enemy fighters!",
+        "WARNING! Enemy reinforcements!",
+        "URGENT! Boss ship charging attack!",
+        "ALERT! Enemy forces detected!",
+        "WARNING! Multiple hostiles!",
+        "URGENT! Boss ship powering up!",
+        "ALERT! Enemy formation attacking!",
+        "WARNING! Boss ship shields active!",
+        "URGENT! Multiple enemy fighters!",
+        "ALERT! Enemy reinforcements incoming!",
+        "WARNING! Boss ship charging weapons!",
+        "URGENT! Enemy forces detected!",
+        "ALERT! Multiple hostiles approaching!",
+        "WARNING! Boss ship launching attack!",
+        "URGENT! Enemy formation closing!",
+        "ALERT! Boss ship shields regenerating!",
+        "WARNING! Multiple enemy fighters!",
+        "URGENT! Enemy reinforcements detected!",
+        "ALERT! Boss ship powering up weapons!",
+        "WARNING! Enemy forces attacking!",
+        "URGENT! Multiple hostiles on radar!"
+    ]
+};
