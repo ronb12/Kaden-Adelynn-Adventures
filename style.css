@@ -3,7 +3,6 @@ html, body {
     height: 100vh;
     margin: 0;
     padding: 0;
-    overflow: hidden;
 }
 
 body {
@@ -14,6 +13,8 @@ body {
     min-width: 100vw;
     width: 100vw;
     height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .game-container {
@@ -28,6 +29,8 @@ body {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
     background: #000;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 #gameCanvas {
