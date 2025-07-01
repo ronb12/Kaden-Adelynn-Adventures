@@ -4235,8 +4235,8 @@ function addRadioChatterButton() {
     btn.style.color = '#00ff00';
     btn.style.border = '2px solid #00ff00';
     btn.style.borderRadius = '8px';
-    btn.style.padding = '10px 18px';
-    btn.style.fontSize = '1.1em';
+    btn.style.padding = '6px 12px';
+    btn.style.fontSize = '0.9em';
     btn.style.fontWeight = 'bold';
     btn.style.cursor = 'pointer';
     btn.style.fontFamily = 'monospace';
