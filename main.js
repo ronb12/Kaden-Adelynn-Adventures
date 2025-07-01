@@ -12,8 +12,20 @@ let gameLoop;
 let highScore = localStorage.getItem('spaceAdventuresHighScore') || 0;
 
 // Sound system
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+let audioContext;
 let soundEnabled = true;
+
+// Initialize audio context only when needed
+function initAudioContext() {
+    if (!audioContext) {
+        try {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            console.log('Audio context initialized successfully');
+        } catch (error) {
+            console.log('Audio context not supported:', error);
+        }
+    }
+}
 
 // Achievement system
 const achievements = {
@@ -92,6 +104,11 @@ const MISSILE_TYPES = {
 function playSound(frequency, duration, type = 'sine') {
     if (!soundEnabled) return;
     
+    // Initialize audio context if needed
+    initAudioContext();
+    
+    if (!audioContext) return;
+    
     try {
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
@@ -108,7 +125,7 @@ function playSound(frequency, duration, type = 'sine') {
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + duration);
     } catch (error) {
-        console.log('Audio not supported');
+        console.log('Audio not supported:', error);
     }
 }
 
@@ -266,8 +283,11 @@ function setupButtonListeners() {
 
 // Game functions
 function startGame() {
+    console.log('=== START GAME CALLED ===');
     console.log('Start button clicked!');
     console.log('Game state before:', gameState);
+    console.log('Canvas available:', !!canvas);
+    console.log('Game loop active:', !!gameLoop);
     
     // Prevent multiple starts
     if (gameState === 'playing') {
@@ -1086,7 +1106,42 @@ function update() {
 
 // Initialize game elements after DOM loads
 function initializeGameElements() {
-    console.log('Initializing game elements...');
+    console.log('=== GAME INITIALIZATION START ===');
+    console.log('Document ready state:', document.readyState);
+    console.log('Window loaded:', window.loaded);
+    
+    // Get DOM elements
+    canvas = document.getElementById('gameCanvas');
+    console.log('Canvas found:', canvas);
+    
+    if (!canvas) {
+        console.error('Canvas not found! DOM not ready yet.');
+        return false;
+    }
+    
+    ctx = canvas.getContext('2d');
+    console.log('Canvas context created:', ctx);
+    
+    scoreElement = document.getElementById('score');
+    livesElement = document.getElementById('lives');
+    levelElement = document.getElementById('level');
+    gameOverScreen = document.getElementById('gameOver');
+    startScreen = document.getElementById('startScreen');
+    finalScoreElement = document.getElementById('finalScore');
+    restartBtn = document.getElementById('restartBtn');
+    startBtn = document.getElementById('startBtn');
+    
+    console.log('All elements found:', {
+        canvas: !!canvas,
+        startBtn: !!startBtn,
+        restartBtn: !!restartBtn,
+        scoreElement: !!scoreElement,
+        livesElement: !!livesElement,
+        levelElement: !!levelElement,
+        gameOverScreen: !!gameOverScreen,
+        startScreen: !!startScreen,
+        finalScoreElement: !!finalScoreElement
+    });
     
     // Get DOM elements
     canvas = document.getElementById('gameCanvas');
@@ -1103,6 +1158,11 @@ function initializeGameElements() {
     // Safety check for required elements
     if (!startBtn || !restartBtn || !canvas) {
         console.error('Required game elements not found!');
+        console.error('Missing elements:', {
+            startBtn: !startBtn,
+            restartBtn: !restartBtn,
+            canvas: !canvas
+        });
         return false;
     }
     
@@ -1113,6 +1173,7 @@ function initializeGameElements() {
     console.log('Game elements initialized successfully');
     console.log('Canvas size:', canvas.width, 'x', canvas.height);
     console.log('Player position:', player.x, player.y);
+    console.log('=== GAME INITIALIZATION COMPLETE ===');
     
     // Initialize UI
     updateUI();
