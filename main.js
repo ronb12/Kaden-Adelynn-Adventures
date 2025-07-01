@@ -338,23 +338,35 @@ function getRandomRadioChatter(type = 'command') {
 
 // Start radio chatter
 function startRadioChatter() {
-    console.log('Starting regular radio chatter...');
+    console.log('=== STARTING REGULAR RADIO CHATTER ===');
     console.log('Radio chatter enabled:', radioChatterEnabled);
     console.log('Game state:', gameState);
+    console.log('Speech synthesis available:', !!speechSynthesis);
     
     if (radioChatterInterval) {
+        console.log('Clearing existing radio chatter interval');
         clearInterval(radioChatterInterval);
     }
     
+    // Start the interval for regular radio chatter
     radioChatterInterval = setInterval(() => {
+        console.log('Radio chatter interval triggered - checking conditions...');
+        console.log('Game state:', gameState, 'Radio chatter enabled:', radioChatterEnabled);
+        
         if (gameState === 'playing' && radioChatterEnabled) {
             const message = getRandomRadioChatter('command');
             console.log('Speaking regular radio chatter:', message);
             speakRadioChatter(message, 'command');
+        } else {
+            console.log('Radio chatter conditions not met - game state:', gameState, 'enabled:', radioChatterEnabled);
         }
     }, 4000 + Math.random() * 2000); // Random interval between 4-6 seconds
     
-    console.log('Regular radio chatter started successfully');
+    console.log('Regular radio chatter interval started successfully');
+    console.log('Next radio chatter in 4-6 seconds...');
+    
+    // Show notification that radio chatter is active
+    showNotification('📡 Radio chatter active!', 'info');
 }
 
 // Stop radio chatter
@@ -1764,15 +1776,32 @@ function startGame() {
     gameLoop = requestAnimationFrame(update);
     
     // Start radio chatter (music disabled)
+    console.log('=== RADIO CHATTER STARTUP ===');
+    console.log('Radio chatter enabled:', radioChatterEnabled);
+    console.log('Speech synthesis available:', !!speechSynthesis);
+    console.log('Game state:', gameState);
+    
     if (radioChatterEnabled) {
         console.log('Starting radio chatter in startGame...');
         startRadioChatter();
-        // Test radio chatter immediately
+        
+        // Force immediate radio chatter test
         setTimeout(() => {
+            console.log('Forcing immediate radio chatter test...');
             if (radioChatterEnabled) {
                 speakRadioChatter('Mission started! Radio chatter active!', 'command');
             }
-        }, 1000);
+        }, 500);
+        
+        // Additional test after 2 seconds
+        setTimeout(() => {
+            console.log('Second radio chatter test...');
+            if (radioChatterEnabled && gameState === 'playing') {
+                speakRadioChatter('Radio chatter confirmed operational!', 'command');
+            }
+        }, 2000);
+    } else {
+        console.log('Radio chatter is disabled!');
     }
 }
 
@@ -2551,6 +2580,12 @@ function updateUI() {
     const soundElement = document.getElementById('soundStatus');
     if (soundElement) {
         soundElement.textContent = soundEnabled ? '🔊 Sound: ON' : '🔇 Sound: OFF';
+    }
+    
+    // Update radio chatter status
+    const radioElement = document.getElementById('radioStatus');
+    if (radioElement) {
+        radioElement.textContent = radioChatterEnabled ? '📡 Radio: ON' : '📡 Radio: OFF';
     }
     
     // Update current mission display
@@ -3564,10 +3599,18 @@ initSpeechVoices();
 // Test radio chatter on first user interaction
 let radioChatterTestDone = false;
 function testRadioChatter() {
+    console.log('=== RADIO CHATTER TEST FUNCTION CALLED ===');
+    console.log('Test done:', radioChatterTestDone);
+    console.log('Radio chatter enabled:', radioChatterEnabled);
+    console.log('Speech synthesis available:', !!speechSynthesis);
+    
     if (!radioChatterTestDone && radioChatterEnabled) {
         console.log('Testing radio chatter on first user interaction...');
         speakRadioChatter('Radio chatter online!', 'command');
         radioChatterTestDone = true;
+        console.log('Radio chatter test completed');
+    } else {
+        console.log('Radio chatter test skipped - already done or disabled');
     }
 }
     
