@@ -1,4 +1,4 @@
-// Version 3.1 - Added full mobile support with touch controls, iOS optimization, and responsive design!
+// Version 3.3 - Enhanced radio chatter with military-style messages and aggressive speech synthesis!
 // Game variables - Will be initialized after DOM loads
 let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, startScreen, finalScoreElement, restartBtn, startBtn;
 
@@ -193,12 +193,6 @@ function speakRadioChatter(message, type = 'command') {
     
     if (!radioChatterEnabled) {
         console.log('Radio chatter disabled');
-        return;
-    }
-    
-    // Performance check - don't speak if game is lagging
-    if (gameLoop && performance.now() - lastFrameTime > 50) {
-        console.log('Game lagging, skipping speech');
         return;
     }
     
@@ -3660,6 +3654,15 @@ function testRadioChatter() {
     if (!speechSynthesis) {
         speechSynthesis = window.speechSynthesis;
         console.log('Reinitialized speechSynthesis:', !!speechSynthesis);
+    }
+    
+    // Force speech synthesis to work by creating a simple test
+    if (speechSynthesis) {
+        const testUtterance = new SpeechSynthesisUtterance('Radio chatter test');
+        testUtterance.rate = 1.0;
+        testUtterance.volume = 1.0;
+        speechSynthesis.speak(testUtterance);
+        console.log('Forced speech synthesis test completed');
     }
     
     if (!radioChatterTestDone && radioChatterEnabled) {

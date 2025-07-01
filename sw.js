@@ -1,6 +1,6 @@
-const CACHE_NAME = 'space-adventures-v3.2.0';
-const STATIC_CACHE = 'static-v3.2.0';
-const DYNAMIC_CACHE = 'dynamic-v3.2.0';
+const CACHE_NAME = 'space-adventures-v3.3.0';
+const STATIC_CACHE = 'static-v3.3.0';
+const DYNAMIC_CACHE = 'dynamic-v3.3.0';
 
 // Files to cache immediately
 const STATIC_FILES = [
