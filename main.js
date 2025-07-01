@@ -24,7 +24,7 @@ money = parseInt(savedMoney);
 // Sound system
 let audioContext;
 let soundEnabled = true;
-let musicEnabled = true;
+// Music disabled - only radio chatter plays
 let backgroundMusic = null;
 let currentMusicTrack = null;
 
@@ -84,7 +84,8 @@ function initAudioContext() {
 
 // Play retro background music
 function playBackgroundMusic(trackName = 'menu') {
-    if (!musicEnabled || !audioContext) return;
+    // Music disabled - only radio chatter plays
+    return;
     
     const track = MUSIC_TRACKS[trackName];
     if (!track) return;
@@ -100,7 +101,8 @@ function playBackgroundMusic(trackName = 'menu') {
     const noteDuration = 60000 / track.tempo; // Convert BPM to milliseconds
     
     function playNote() {
-        if (!musicEnabled || gameState === 'gameOver' || currentMusicTrack !== trackName) return;
+        // Music disabled - only radio chatter plays
+        return;
         
         const frequency = track.frequencies[track.pattern[noteIndex % track.pattern.length]];
         
@@ -141,23 +143,10 @@ function stopBackgroundMusic() {
     currentMusicTrack = null;
 }
 
-// Toggle music
+// Toggle music (disabled - radio chatter only)
 function toggleMusic() {
-    musicEnabled = !musicEnabled;
-    if (!musicEnabled) {
-        stopBackgroundMusic();
-    } else if (gameState === 'start') {
-        playBackgroundMusic('menu');
-    } else if (gameState === 'playing') {
-        const hasBoss = enemies.some(e => e.isBoss);
-        if (hasBoss) {
-            // Don't play music during boss battles - only radio chatter
-            stopBackgroundMusic();
-        } else {
-            playBackgroundMusic('gameplay');
-        }
-    }
-    showNotification(`Music ${musicEnabled ? 'ON' : 'OFF'}`, 'info');
+    // Music is disabled - only radio chatter plays
+    showNotification('Music disabled - Radio chatter only!', 'info');
 }
 
 // Initialize speech synthesis voices
@@ -982,17 +971,7 @@ function completeMission() {
     enemies = [];
     enemyBullets = [];
     
-    // Ensure music continues for next mission
-    if (gameState === 'playing' && musicEnabled) {
-        // Check if next mission is a boss mission
-        const nextMission = STORY_MISSIONS[currentMission];
-        if (nextMission && nextMission.boss) {
-            // Don't start boss music yet - wait for boss to spawn
-            playBackgroundMusic('gameplay');
-        } else {
-            playBackgroundMusic('gameplay');
-        }
-    }
+    // Music disabled - only radio chatter plays
 }
 
 function updateStoryProgress() {
@@ -1011,10 +990,7 @@ function pauseGame() {
     cancelAnimationFrame(gameLoop);
     showNotification('Game Paused - Press P to Resume', 'info');
     
-    // Pause music and radio chatter (they will resume when game resumes)
-    if (musicEnabled) {
-        stopBackgroundMusic();
-    }
+    // Pause radio chatter (will resume when game resumes)
     stopRadioChatter();
 }
 
@@ -1023,16 +999,7 @@ function resumeGame() {
     gameLoop = requestAnimationFrame(update);
     showNotification('Game Resumed!', 'success');
     
-    // Resume music (but not boss music - only radio chatter during boss battles)
-    if (musicEnabled) {
-        const hasBoss = enemies.some(e => e.isBoss);
-        if (hasBoss) {
-            // Don't play music during boss battles, let radio chatter handle it
-            stopBackgroundMusic();
-        } else {
-            playBackgroundMusic('gameplay');
-        }
-    }
+    // Music disabled - only radio chatter plays
     
     // Resume radio chatter if enabled
     if (radioChatterEnabled) {
@@ -1750,10 +1717,7 @@ function startGame() {
     if (startScreen) startScreen.classList.add('hidden');
     if (gameOverScreen) gameOverScreen.classList.add('hidden');
     
-    // Start menu music when returning to start screen
-    if (gameState === 'start') {
-        playBackgroundMusic('menu');
-    }
+    // Music disabled - only radio chatter plays
     
     // Initialize UI
     updateUI();
@@ -1775,10 +1739,7 @@ function startGame() {
     if (gameLoop) cancelAnimationFrame(gameLoop);
     gameLoop = requestAnimationFrame(update);
     
-    // Start gameplay music
-    playBackgroundMusic('gameplay');
-    
-    // Start radio chatter if enabled
+    // Start radio chatter (music disabled)
     if (radioChatterEnabled) {
         startRadioChatter();
     }
@@ -1816,8 +1777,7 @@ function gameOver() {
     if (gameOverScreen) gameOverScreen.classList.remove('hidden');
     cancelAnimationFrame(gameLoop);
     
-    // Stop music and radio chatter on game over
-    stopBackgroundMusic();
+    // Stop radio chatter on game over
     stopRadioChatter();
 }
 
@@ -4335,8 +4295,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initializePWA();
     addInstallButton();
     
-    // Start menu music
-    setTimeout(() => {
-        playBackgroundMusic('menu');
-    }, 1000);
+    // Music disabled - only radio chatter plays
 });
