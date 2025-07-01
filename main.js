@@ -73,17 +73,18 @@ function playBackgroundMusic(trackName = 'menu') {
     const track = MUSIC_TRACKS[trackName];
     if (!track) return;
     
-    // Stop current music if playing
-    if (backgroundMusic) {
-        backgroundMusic.stop();
-        backgroundMusic = null;
-    }
+    // Prevent multiple music tracks from playing simultaneously
+    if (currentMusicTrack === trackName) return;
     
+    // Stop current music if playing
+    stopBackgroundMusic();
+    
+    currentMusicTrack = trackName;
     let noteIndex = 0;
     const noteDuration = 60000 / track.tempo; // Convert BPM to milliseconds
     
     function playNote() {
-        if (!musicEnabled || gameState === 'gameOver') return;
+        if (!musicEnabled || gameState === 'gameOver' || currentMusicTrack !== trackName) return;
         
         const frequency = track.frequencies[track.pattern[noteIndex % track.pattern.length]];
         
@@ -121,6 +122,7 @@ function stopBackgroundMusic() {
         backgroundMusic.stop();
         backgroundMusic = null;
     }
+    currentMusicTrack = null;
 }
 
 // Toggle music
@@ -699,6 +701,18 @@ function completeMission() {
     // Reset enemies for next mission
     enemies = [];
     enemyBullets = [];
+    
+    // Ensure music continues for next mission
+    if (gameState === 'playing' && musicEnabled) {
+        // Check if next mission is a boss mission
+        const nextMission = STORY_MISSIONS[currentMission];
+        if (nextMission && nextMission.boss) {
+            // Don't start boss music yet - wait for boss to spawn
+            playBackgroundMusic('gameplay');
+        } else {
+            playBackgroundMusic('gameplay');
+        }
+    }
 }
 
 function updateStoryProgress() {
@@ -716,12 +730,23 @@ function pauseGame() {
     gameState = 'paused';
     cancelAnimationFrame(gameLoop);
     showNotification('Game Paused - Press P to Resume', 'info');
+    
+    // Pause music (it will resume when game resumes)
+    if (musicEnabled) {
+        stopBackgroundMusic();
+    }
 }
 
 function resumeGame() {
     gameState = 'playing';
     gameLoop = requestAnimationFrame(update);
     showNotification('Game Resumed!', 'success');
+    
+    // Resume music
+    if (musicEnabled) {
+        const hasBoss = enemies.some(e => e.isBoss);
+        playBackgroundMusic(hasBoss ? 'boss' : 'gameplay');
+    }
 }
 
 function activateSpecialAbility() {
