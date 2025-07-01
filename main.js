@@ -1465,6 +1465,17 @@ function updateUI() {
     if (pauseElement) {
         pauseElement.textContent = gameState === 'paused' ? '⏸️ PAUSED' : '';
     }
+    
+    // Update mobile detection indicator
+    const mobileIndicator = document.getElementById('mobileIndicator');
+    if (mobileIndicator) {
+        if (isMobile) {
+            mobileIndicator.textContent = '📱 Mobile Mode';
+            mobileIndicator.style.display = 'block';
+        } else {
+            mobileIndicator.style.display = 'none';
+        }
+    }
 }
 
 function render() {
