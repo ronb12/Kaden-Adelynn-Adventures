@@ -2786,61 +2786,405 @@ const SHIPS = {
         name: "Interceptor",
         desc: "Super fast, rapid fire, low shield.",
         speed: 11, firepower: 6, shield: 3, special: "Rapid Fire",
-        draw: function(ctx, x, y) { /* draw a sleek blue triangle */ ctx.save(); ctx.fillStyle='#4a90e2'; ctx.beginPath(); ctx.moveTo(x+30,y+8);ctx.lineTo(x+12,y+52);ctx.lineTo(x+48,y+52);ctx.closePath();ctx.fill();ctx.restore(); }
+        draw: function(ctx, x, y) {
+            ctx.save();
+            
+            // Main body - sleek blue fighter
+            ctx.fillStyle = '#4a90e2';
+            ctx.beginPath();
+            ctx.moveTo(x + 30, y + 8);
+            ctx.lineTo(x + 12, y + 52);
+            ctx.lineTo(x + 48, y + 52);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Cockpit - glowing blue
+            ctx.fillStyle = '#00ffff';
+            ctx.beginPath();
+            ctx.moveTo(x + 30, y + 15);
+            ctx.lineTo(x + 22, y + 35);
+            ctx.lineTo(x + 38, y + 35);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Wing details - white accents
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(x + 8, y + 30, 6, 3);
+            ctx.fillRect(x + 46, y + 30, 6, 3);
+            
+            // Engine glow
+            ctx.shadowColor = '#4a90e2';
+            ctx.shadowBlur = 8;
+            ctx.fillStyle = '#00ffff';
+            ctx.fillRect(x + 20, y + 45, 4, 8);
+            ctx.fillRect(x + 36, y + 45, 4, 8);
+            ctx.shadowBlur = 0;
+            
+            ctx.restore();
+        }
     },
     tank: {
         name: "Tank",
         desc: "Slow, heavy shield, powerful missiles.",
         speed: 5, firepower: 8, shield: 10, special: "Heavy Missiles",
-        draw: function(ctx, x, y) { ctx.save(); ctx.fillStyle='#8d5524'; ctx.beginPath(); ctx.moveTo(x+30,y+12);ctx.lineTo(x+8,y+48);ctx.lineTo(x+52,y+48);ctx.closePath();ctx.fill();ctx.restore(); }
+        draw: function(ctx, x, y) {
+            ctx.save();
+            
+            // Main body - heavy armored
+            ctx.fillStyle = '#8d5524';
+            ctx.beginPath();
+            ctx.moveTo(x + 30, y + 12);
+            ctx.lineTo(x + 8, y + 48);
+            ctx.lineTo(x + 52, y + 48);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Armor plates
+            ctx.fillStyle = '#654321';
+            ctx.fillRect(x + 15, y + 20, 30, 8);
+            ctx.fillRect(x + 12, y + 35, 36, 6);
+            
+            // Heavy weapon pods
+            ctx.fillStyle = '#ff4444';
+            ctx.fillRect(x + 5, y + 25, 8, 12);
+            ctx.fillRect(x + 47, y + 25, 8, 12);
+            
+            // Cockpit - reinforced
+            ctx.fillStyle = '#333333';
+            ctx.beginPath();
+            ctx.moveTo(x + 30, y + 18);
+            ctx.lineTo(x + 25, y + 32);
+            ctx.lineTo(x + 35, y + 32);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.restore();
+        }
     },
     sniper: {
         name: "Sniper",
         desc: "Medium speed, long-range lasers.",
         speed: 7, firepower: 7, shield: 5, special: "Long Laser",
-        draw: function(ctx, x, y) { ctx.save(); ctx.fillStyle='#00ffff'; ctx.beginPath(); ctx.moveTo(x+30,y+10);ctx.lineTo(x+18,y+50);ctx.lineTo(x+42,y+50);ctx.closePath();ctx.fill();ctx.restore(); }
+        draw: function(ctx, x, y) {
+            ctx.save();
+            
+            // Main body - sleek cyan
+            ctx.fillStyle = '#00ffff';
+            ctx.beginPath();
+            ctx.moveTo(x + 30, y + 10);
+            ctx.lineTo(x + 18, y + 50);
+            ctx.lineTo(x + 42, y + 50);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Long laser barrel
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(x + 28, y + 5, 4, 8);
+            
+            // Targeting scope
+            ctx.fillStyle = '#ff0000';
+            ctx.beginPath();
+            ctx.arc(x + 30, y + 20, 4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Cockpit - high-tech
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.moveTo(x + 30, y + 15);
+            ctx.lineTo(x + 24, y + 30);
+            ctx.lineTo(x + 36, y + 30);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.restore();
+        }
     },
     blaster: {
         name: "Blaster",
         desc: "High firepower, spread shot.",
         speed: 6, firepower: 10, shield: 4, special: "Spread Shot",
-        draw: function(ctx, x, y) { ctx.save(); ctx.fillStyle='#ff4444'; ctx.beginPath(); ctx.moveTo(x+30,y+14);ctx.lineTo(x+10,y+46);ctx.lineTo(x+50,y+46);ctx.closePath();ctx.fill();ctx.restore(); }
+        draw: function(ctx, x, y) {
+            ctx.save();
+            
+            // Main body - aggressive red
+            ctx.fillStyle = '#ff4444';
+            ctx.beginPath();
+            ctx.moveTo(x + 30, y + 14);
+            ctx.lineTo(x + 10, y + 46);
+            ctx.lineTo(x + 50, y + 46);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Multiple weapon barrels
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(x + 20, y + 8, 3, 6);
+            ctx.fillRect(x + 30, y + 8, 3, 6);
+            ctx.fillRect(x + 37, y + 8, 3, 6);
+            
+            // Energy cores
+            ctx.fillStyle = '#ffff00';
+            ctx.beginPath();
+            ctx.arc(x + 25, y + 25, 3, 0, Math.PI * 2);
+            ctx.arc(x + 35, y + 25, 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Cockpit - battle-ready
+            ctx.fillStyle = '#333333';
+            ctx.beginPath();
+            ctx.moveTo(x + 30, y + 18);
+            ctx.lineTo(x + 23, y + 32);
+            ctx.lineTo(x + 37, y + 32);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.restore();
+        }
     },
     scout: {
         name: "Scout",
         desc: "Very fast, weak weapons, bonus coins.",
         speed: 12, firepower: 4, shield: 3, special: "Bonus Coins",
-        draw: function(ctx, x, y) { ctx.save(); ctx.fillStyle='#00ff00'; ctx.beginPath(); ctx.moveTo(x+30,y+6);ctx.lineTo(x+16,y+54);ctx.lineTo(x+44,y+54);ctx.closePath();ctx.fill();ctx.restore(); }
+        draw: function(ctx, x, y) {
+            ctx.save();
+            
+            // Main body - streamlined green
+            ctx.fillStyle = '#00ff00';
+            ctx.beginPath();
+            ctx.moveTo(x + 30, y + 6);
+            ctx.lineTo(x + 16, y + 54);
+            ctx.lineTo(x + 44, y + 54);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Speed lines
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x + 10, y + 15);
+            ctx.lineTo(x + 5, y + 15);
+            ctx.moveTo(x + 50, y + 15);
+            ctx.lineTo(x + 55, y + 15);
+            ctx.stroke();
+            
+            // Coin detector
+            ctx.fillStyle = '#ffd700';
+            ctx.beginPath();
+            ctx.arc(x + 30, y + 20, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Cockpit - minimal
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.moveTo(x + 30, y + 12);
+            ctx.lineTo(x + 26, y + 28);
+            ctx.lineTo(x + 34, y + 28);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.restore();
+        }
     },
     medic: {
         name: "Medic",
         desc: "Can heal wingmen, balanced stats.",
         speed: 7, firepower: 5, shield: 7, special: "Heal Wingmen",
-        draw: function(ctx, x, y) { ctx.save(); ctx.fillStyle='#ffb347'; ctx.beginPath(); ctx.moveTo(x+30,y+12);ctx.lineTo(x+14,y+48);ctx.lineTo(x+46,y+48);ctx.closePath();ctx.fill();ctx.restore(); }
+        draw: function(ctx, x, y) {
+            ctx.save();
+            
+            // Main body - medical white
+            ctx.fillStyle = '#ffb347';
+            ctx.beginPath();
+            ctx.moveTo(x + 30, y + 12);
+            ctx.lineTo(x + 14, y + 48);
+            ctx.lineTo(x + 46, y + 48);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Medical cross
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(x + 28, y + 20, 4, 12);
+            ctx.fillRect(x + 24, y + 24, 12, 4);
+            
+            // Healing beam emitters
+            ctx.fillStyle = '#00ff00';
+            ctx.beginPath();
+            ctx.arc(x + 20, y + 30, 3, 0, Math.PI * 2);
+            ctx.arc(x + 40, y + 30, 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Cockpit - medical
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.moveTo(x + 30, y + 18);
+            ctx.lineTo(x + 24, y + 32);
+            ctx.lineTo(x + 36, y + 32);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.restore();
+        }
     },
     stealth: {
         name: "Stealth",
         desc: "Can cloak, low shield, high speed.",
         speed: 10, firepower: 5, shield: 3, special: "Cloak",
-        draw: function(ctx, x, y) { ctx.save(); ctx.fillStyle='#888'; ctx.globalAlpha=0.5; ctx.beginPath(); ctx.moveTo(x+30,y+10);ctx.lineTo(x+20,y+50);ctx.lineTo(x+40,y+50);ctx.closePath();ctx.fill();ctx.restore(); }
+        draw: function(ctx, x, y) {
+            ctx.save();
+            
+            // Main body - stealth black
+            ctx.fillStyle = '#333333';
+            ctx.beginPath();
+            ctx.moveTo(x + 30, y + 10);
+            ctx.lineTo(x + 20, y + 50);
+            ctx.lineTo(x + 40, y + 50);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Stealth coating
+            ctx.fillStyle = '#666666';
+            ctx.globalAlpha = 0.7;
+            ctx.fillRect(x + 18, y + 15, 24, 8);
+            ctx.globalAlpha = 1;
+            
+            // Cloaking device
+            ctx.fillStyle = '#00ffff';
+            ctx.beginPath();
+            ctx.arc(x + 30, y + 25, 4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Cockpit - hidden
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.moveTo(x + 30, y + 15);
+            ctx.lineTo(x + 26, y + 28);
+            ctx.lineTo(x + 34, y + 28);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.restore();
+        }
     },
     bomber: {
         name: "Bomber",
         desc: "Slow, launches bombs, area damage.",
         speed: 5, firepower: 9, shield: 6, special: "Bombs",
-        draw: function(ctx, x, y) { ctx.save(); ctx.fillStyle='#ff8800'; ctx.beginPath(); ctx.moveTo(x+30,y+16);ctx.lineTo(x+12,y+44);ctx.lineTo(x+48,y+44);ctx.closePath();ctx.fill();ctx.restore(); }
+        draw: function(ctx, x, y) {
+            ctx.save();
+            
+            // Main body - heavy bomber
+            ctx.fillStyle = '#ff8800';
+            ctx.beginPath();
+            ctx.moveTo(x + 30, y + 16);
+            ctx.lineTo(x + 12, y + 44);
+            ctx.lineTo(x + 48, y + 44);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Bomb bay doors
+            ctx.fillStyle = '#333333';
+            ctx.fillRect(x + 20, y + 25, 20, 8);
+            
+            // Bombs visible
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.arc(x + 25, y + 35, 3, 0, Math.PI * 2);
+            ctx.arc(x + 35, y + 35, 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Cockpit - bomber style
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.moveTo(x + 30, y + 20);
+            ctx.lineTo(x + 25, y + 32);
+            ctx.lineTo(x + 35, y + 32);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.restore();
+        }
     },
     engineer: {
         name: "Engineer",
         desc: "Repairs itself over time.",
         speed: 7, firepower: 6, shield: 8, special: "Self-Repair",
-        draw: function(ctx, x, y) { ctx.save(); ctx.fillStyle='#b0b0b0'; ctx.beginPath(); ctx.moveTo(x+30,y+14);ctx.lineTo(x+16,y+46);ctx.lineTo(x+44,y+46);ctx.closePath();ctx.fill();ctx.restore(); }
+        draw: function(ctx, x, y) {
+            ctx.save();
+            
+            // Main body - metallic
+            ctx.fillStyle = '#b0b0b0';
+            ctx.beginPath();
+            ctx.moveTo(x + 30, y + 14);
+            ctx.lineTo(x + 16, y + 46);
+            ctx.lineTo(x + 44, y + 46);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Repair tools
+            ctx.fillStyle = '#ffaa00';
+            ctx.fillRect(x + 18, y + 20, 4, 8);
+            ctx.fillRect(x + 38, y + 20, 4, 8);
+            
+            // Repair nanobots
+            ctx.fillStyle = '#00ff00';
+            ctx.beginPath();
+            ctx.arc(x + 30, y + 30, 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Cockpit - engineering
+            ctx.fillStyle = '#333333';
+            ctx.beginPath();
+            ctx.moveTo(x + 30, y + 18);
+            ctx.lineTo(x + 24, y + 32);
+            ctx.lineTo(x + 36, y + 32);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.restore();
+        }
     },
     commander: {
         name: "Commander",
         desc: "Balanced, boosts wingmen.",
         speed: 8, firepower: 7, shield: 7, special: "Squad Boost",
-        draw: function(ctx, x, y) { ctx.save(); ctx.fillStyle='#ffd700'; ctx.beginPath(); ctx.moveTo(x+30,y+10);ctx.lineTo(x+10,y+50);ctx.lineTo(x+50,y+50);ctx.closePath();ctx.fill();ctx.restore(); }
+        draw: function(ctx, x, y) {
+            ctx.save();
+            
+            // Main body - golden commander
+            ctx.fillStyle = '#ffd700';
+            ctx.beginPath();
+            ctx.moveTo(x + 30, y + 10);
+            ctx.lineTo(x + 10, y + 50);
+            ctx.lineTo(x + 50, y + 50);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Commander insignia
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.moveTo(x + 30, y + 18);
+            ctx.lineTo(x + 25, y + 28);
+            ctx.lineTo(x + 35, y + 28);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Squad boost emitters
+            ctx.fillStyle = '#00ffff';
+            ctx.beginPath();
+            ctx.arc(x + 15, y + 25, 3, 0, Math.PI * 2);
+            ctx.arc(x + 45, y + 25, 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Cockpit - command center
+            ctx.fillStyle = '#333333';
+            ctx.beginPath();
+            ctx.moveTo(x + 30, y + 15);
+            ctx.lineTo(x + 22, y + 32);
+            ctx.lineTo(x + 38, y + 32);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.restore();
+        }
     }
 };
 
