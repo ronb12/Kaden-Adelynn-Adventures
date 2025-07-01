@@ -15,6 +15,8 @@ let lives = 50; // Increased to 50 lives
 let level = 1;
 let gameLoop;
 let lastUIUpdate = 0; // Performance optimization for UI updates
+let lastFrameTime = 0; // Performance tracking for frame rate
+let lastSpeechTime = 0; // Throttle speech synthesis
 let highScore = localStorage.getItem('spaceAdventuresHighScore') || 0;
 let savedMoney = localStorage.getItem('spaceAdventuresMoney') || 0;
 money = parseInt(savedMoney);
@@ -25,6 +27,20 @@ let soundEnabled = true;
 let musicEnabled = true;
 let backgroundMusic = null;
 let currentMusicTrack = null;
+
+// Radio chatter system
+let radioChatterEnabled = true;
+let radioChatterInterval = null;
+let lastRadioChatter = 0;
+let speechSynthesis = window.speechSynthesis;
+let voices = [];
+let radioChatterHistory = {
+    command: [],
+    combat: [],
+    mission: [],
+    boss: []
+};
+let lastMessageRotation = 0;
 
 // Performance optimization constants
 const MAX_BULLETS = 200; // Limit total bullets to prevent memory issues
@@ -137,6 +153,210 @@ function toggleMusic() {
         playBackgroundMusic(hasBoss ? 'boss' : 'gameplay');
     }
     showNotification(`Music ${musicEnabled ? 'ON' : 'OFF'}`, 'info');
+}
+
+// Initialize speech synthesis voices
+function initSpeechVoices() {
+    if (speechSynthesis) {
+        // Wait for voices to load
+        speechSynthesis.onvoiceschanged = () => {
+            voices = speechSynthesis.getVoices();
+            console.log('Speech voices loaded:', voices.length);
+        };
+        voices = speechSynthesis.getVoices();
+    }
+}
+
+// Speak radio chatter with voice
+function speakRadioChatter(message, type = 'command') {
+    if (!speechSynthesis || !radioChatterEnabled) return;
+    
+    // Performance check - don't speak if game is lagging
+    if (gameLoop && performance.now() - lastFrameTime > 50) return;
+    
+    // Throttle speech to prevent overlapping
+    const now = Date.now();
+    if (now - lastSpeechTime < 2000) return; // Minimum 2 seconds between speech
+    lastSpeechTime = now;
+    
+    // Stop any current speech
+    speechSynthesis.cancel();
+    
+    // Create speech utterance
+    const utterance = new SpeechSynthesisUtterance(message);
+    
+    // Set voice based on type
+    if (voices.length > 0) {
+        // Prefer US English voices
+        const usVoice = voices.find(v => v.lang.includes('en-US'));
+        if (usVoice) {
+            utterance.voice = usVoice;
+        }
+    }
+    
+    // Set speech properties
+    utterance.rate = 1.2;
+    utterance.pitch = 1.1;
+    utterance.volume = 0.8;
+    
+    // Speak the message
+    speechSynthesis.speak(utterance);
+}
+
+// Radio chatter messages
+const RADIO_CHATTER = {
+    command: [
+        "Roger that, Command!",
+        "Copy that, Control!",
+        "Affirmative, Base!",
+        "Understood, Mission Control!",
+        "Wilco, Command Center!",
+        "Acknowledged, HQ!",
+        "Got it, Control Tower!",
+        "Roger, Mission Control!",
+        "Copy, Command Center!",
+        "Affirmative, Base Station!"
+    ],
+    combat: [
+        "Enemy contact!",
+        "Hostiles detected!",
+        "Incoming fire!",
+        "Taking evasive action!",
+        "Returning fire!",
+        "Target acquired!",
+        "Enemy destroyed!",
+        "Clear skies ahead!",
+        "Threat neutralized!",
+        "Combat status green!"
+    ],
+    mission: [
+        "Mission objective clear!",
+        "Proceeding to target!",
+        "Objective in sight!",
+        "Mission parameters confirmed!",
+        "Target zone reached!",
+        "Mission status: active!",
+        "Objective complete!",
+        "Mission accomplished!",
+        "All objectives met!",
+        "Mission successful!"
+    ],
+    boss: [
+        "URGENT! Enemy reinforcements!",
+        "ALERT! Boss ship charging weapons!",
+        "WARNING! Enemy forces attacking!",
+        "URGENT! Multiple hostiles detected!",
+        "ALERT! Boss ship powering up!",
+        "WARNING! Enemy formation incoming!",
+        "URGENT! Boss ship launching missiles!",
+        "ALERT! Multiple enemy fighters!",
+        "WARNING! Enemy reinforcements!",
+        "URGENT! Boss ship charging attack!",
+        "ALERT! Enemy forces detected!",
+        "WARNING! Multiple hostiles!",
+        "URGENT! Boss ship powering up!",
+        "ALERT! Enemy formation attacking!",
+        "WARNING! Boss ship shields active!",
+        "URGENT! Multiple enemy fighters!",
+        "ALERT! Enemy reinforcements incoming!",
+        "WARNING! Boss ship charging weapons!",
+        "URGENT! Enemy forces detected!",
+        "ALERT! Multiple hostiles approaching!",
+        "WARNING! Boss ship launching attack!",
+        "URGENT! Enemy formation closing!",
+        "ALERT! Boss ship shields regenerating!",
+        "WARNING! Multiple enemy fighters!",
+        "URGENT! Enemy reinforcements detected!",
+        "ALERT! Boss ship powering up weapons!",
+        "WARNING! Enemy forces attacking!",
+        "URGENT! Multiple hostiles on radar!"
+    ]
+};
+
+// Get random radio chatter message with history tracking
+function getRandomRadioChatter(type = 'command') {
+    const messages = RADIO_CHATTER[type] || RADIO_CHATTER.command;
+    const history = radioChatterHistory[type] || [];
+    const currentTime = Date.now();
+    
+    // Rotate messages every 30 seconds to ensure variety
+    if (currentTime - lastMessageRotation > 30000) {
+        radioChatterHistory[type] = [];
+        lastMessageRotation = currentTime;
+        console.log('Radio chatter: Message rotation reset');
+    }
+    
+    // If we've used most messages, reset history
+    if (history.length >= messages.length * 0.7) {
+        radioChatterHistory[type] = [];
+        console.log(`Radio chatter: ${type} history reset (${history.length}/${messages.length} used)`);
+    }
+    
+    // Find messages that haven't been used recently
+    const availableMessages = messages.filter((_, index) => !history.includes(index));
+    
+    // If all messages have been used, reset history and use any message
+    if (availableMessages.length === 0) {
+        radioChatterHistory[type] = [];
+        const randomIndex = Math.floor(Math.random() * messages.length);
+        radioChatterHistory[type].push(randomIndex);
+        console.log(`Radio chatter: ${type} all messages used, resetting`);
+        return messages[randomIndex];
+    }
+    
+    // Select a random message from available ones
+    const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
+    const messageIndex = messages.indexOf(randomMessage);
+    radioChatterHistory[type].push(messageIndex);
+    
+    console.log(`Radio chatter: ${type} message ${messageIndex + 1}/${messages.length} (${availableMessages.length} available)`);
+    return randomMessage;
+}
+
+// Start radio chatter
+function startRadioChatter() {
+    if (radioChatterInterval) {
+        clearInterval(radioChatterInterval);
+    }
+    
+    radioChatterInterval = setInterval(() => {
+        if (gameState === 'playing' && radioChatterEnabled) {
+            const message = getRandomRadioChatter('command');
+            speakRadioChatter(message, 'command');
+        }
+    }, 4000 + Math.random() * 2000); // Random interval between 4-6 seconds
+}
+
+// Stop radio chatter
+function stopRadioChatter() {
+    if (radioChatterInterval) {
+        clearInterval(radioChatterInterval);
+        radioChatterInterval = null;
+    }
+    if (speechSynthesis) {
+        speechSynthesis.cancel();
+    }
+}
+
+// Toggle radio chatter
+function toggleRadioChatter() {
+    radioChatterEnabled = !radioChatterEnabled;
+    
+    if (radioChatterEnabled) {
+        startRadioChatter();
+        showNotification('📡 Radio chatter ON', 'info');
+    } else {
+        stopRadioChatter();
+        showNotification('📡 Radio chatter OFF', 'info');
+    }
+}
+
+// Trigger radio chatter for specific events
+function triggerRadioChatter(type = 'command') {
+    if (!radioChatterEnabled || gameState !== 'playing') return;
+    
+    const message = getRandomRadioChatter(type);
+    speakRadioChatter(message, type);
 }
 
 // Achievement system
@@ -1371,6 +1591,19 @@ function setupButtonListeners() {
                 startGame();
             }
         });
+    }
+    
+    // Radio chatter buttons
+    const radioChatterTabBtn = document.getElementById('radioChatterTabBtn');
+    if (radioChatterTabBtn) {
+        radioChatterTabBtn.addEventListener('click', toggleRadioChatter);
+        radioChatterTabBtn.addEventListener('touchstart', toggleRadioChatter);
+    }
+    
+    const radioChatterMobileBtn = document.getElementById('radioChatterMobileBtn');
+    if (radioChatterMobileBtn) {
+        radioChatterMobileBtn.addEventListener('click', toggleRadioChatter);
+        radioChatterMobileBtn.addEventListener('touchstart', toggleRadioChatter);
     }
     
     // Keyboard shortcut is now handled in the global event listener
@@ -3242,6 +3475,9 @@ function initializeGameElements() {
     
     // Set up tab navigation
     setupTabNavigation();
+    
+    // Initialize radio chatter system
+    initSpeechVoices();
     
     console.log('=== GAME INITIALIZATION COMPLETE ===');
     resizeCanvas();
