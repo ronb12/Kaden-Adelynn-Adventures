@@ -1329,35 +1329,7 @@ button:active {
     animation: pulse 1.5s infinite;
 }
 
-/* Boss battle effects */
-.boss-alert {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(255, 0, 0, 0.9);
-    color: white;
-    padding: 30px 60px;
-    border-radius: 20px;
-    font-size: 28px;
-    font-weight: bold;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-    box-shadow: 0 0 50px rgba(255, 0, 0, 0.7);
-    z-index: 15;
-    animation: bossAlert 2s infinite;
-    display: none; /* Hide by default, only show when boss appears */
-}
-
-@keyframes bossAlert {
-    0%, 100% { 
-        transform: translate(-50%, -50%) scale(1);
-        box-shadow: 0 0 50px rgba(255, 0, 0, 0.7);
-    }
-    50% { 
-        transform: translate(-50%, -50%) scale(1.1);
-        box-shadow: 0 0 80px rgba(255, 0, 0, 0.9);
-    }
-}
+/* Boss battle effects - REMOVED */
 
 /* Mobile-only controls */
 .mobile-only {

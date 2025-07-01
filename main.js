@@ -1516,7 +1516,10 @@ function spawnEnemy() {
                 lastShot: 0
             };
             enemies.push(bossEnemy);
-            showStoryNotification("BOSS ALERT!", `A ${currentMission.title.split(':')[1] || 'Boss'} has appeared!`, 'boss');
+            // Only show boss alert when game is actually playing
+            if (gameState === 'playing') {
+                showStoryNotification("BOSS ALERT!", `A ${currentMission.title.split(':')[1] || 'Boss'} has appeared!`, 'boss');
+            }
             return;
         }
         
