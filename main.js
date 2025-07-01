@@ -1682,23 +1682,23 @@ function spawnEnemy() {
                 health: 50, // Boss has much more health
                 maxHealth: 50,
                 isBoss: true,
-                bossType: currentMission.title.includes('Drone Commander') ? 'drone' :
-                         currentMission.title.includes('Battle Cruiser') ? 'cruiser' :
-                         currentMission.title.includes('Fire Lord') ? 'fire' :
-                         currentMission.title.includes('Space King') ? 'king' :
-                         currentMission.title.includes('Cosmic Emperor') ? 'emperor' :
-                         currentMission.title.includes('Galaxy Master') ? 'galaxy' : 'boss',
-                color: currentMission.title.includes('Fire Lord') ? '#ff4500' :
-                       currentMission.title.includes('Space King') ? '#ffd700' :
-                       currentMission.title.includes('Cosmic Emperor') ? '#9400d3' :
-                       currentMission.title.includes('Galaxy Master') ? '#ff1493' : '#ff4444',
+                bossType: mission.title.includes('Drone Commander') ? 'drone' :
+                         mission.title.includes('Battle Cruiser') ? 'cruiser' :
+                         mission.title.includes('Fire Lord') ? 'fire' :
+                         mission.title.includes('Space King') ? 'king' :
+                         mission.title.includes('Cosmic Emperor') ? 'emperor' :
+                         mission.title.includes('Galaxy Master') ? 'galaxy' : 'boss',
+                color: mission.title.includes('Fire Lord') ? '#ff4500' :
+                       mission.title.includes('Space King') ? '#ffd700' :
+                       mission.title.includes('Cosmic Emperor') ? '#9400d3' :
+                       mission.title.includes('Galaxy Master') ? '#ff1493' : '#ff4444',
                 shootCooldown: 0,
                 lastShot: 0
             };
             enemies.push(bossEnemy);
             // Only show boss alert when game is actually playing
             if (gameState === 'playing') {
-                showStoryNotification("BOSS ALERT!", `A ${currentMission.title.split(':')[1] || 'Boss'} has appeared!`, 'boss');
+                showStoryNotification("BOSS ALERT!", `A ${mission.title.split(':')[1] || 'Boss'} has appeared!`, 'boss');
                 // Switch to boss music
                 playBackgroundMusic('boss');
             }
