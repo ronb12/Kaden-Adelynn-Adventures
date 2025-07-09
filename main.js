@@ -2210,18 +2210,18 @@ function completeMission() {
     showStoryNotification(title, message, 'achievement');
     
     // Update progress
-    currentMission++;
+    currentStoryMission++;
     missionProgress = 0;
     
     // Save progress
-    localStorage.setItem('spaceAdventuresCurrentMission', currentMission.toString());
+    localStorage.setItem('spaceAdventuresCurrentMission', currentStoryMission.toString());
     localStorage.setItem('spaceAdventuresMissionProgress', missionProgress.toString());
     localStorage.setItem('spaceAdventuresMoney', money.toString());
     
     // Check if all missions completed
-    if (currentMission > 20) {
-        showStoryNotification("🏆 GALAXY MASTER!", "You've completed all missions! You are the ultimate hero!", 'achievement');
-        currentMission = 20; // Stay on final mission
+    if (currentStoryMission > 20) {
+        storyProgress = 100;
+        currentStoryMission = 20; // Stay on final mission
     }
     
     // Trigger context-aware radio chatter for mission completion
@@ -3091,12 +3091,12 @@ function startGame() {
         const mission = STORY_MISSIONS[currentStoryMission];
         setTimeout(() => {
             showStoryNotification(
-                `🎖️ ${playerRank} - Mission ${currentMission}: ${mission.title}`,
+                `🎖️ ${playerRank} - Mission ${currentStoryMission}: ${mission.title}`,
                 mission.description,
                 'info'
             );
         }, 1000);
-        localStorage.setItem('spaceAdventuresLastMissionShown', currentMission);
+        localStorage.setItem('spaceAdventuresLastMissionShown', currentStoryMission);
     }
     
     if (gameLoop) cancelAnimationFrame(gameLoop);
