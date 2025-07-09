@@ -1,4 +1,4 @@
-// Version 3.3 - Enhanced radio chatter with military-style messages and aggressive speech synthesis!
+// Version 3.4 - Enhanced with multiplayer, boss battles, weapon upgrades, missions, and achievements!
 // Game variables - Will be initialized after DOM loads
 let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, startScreen, finalScoreElement, restartBtn, startBtn;
 
@@ -20,6 +20,93 @@ let lastSpeechTime = 0; // Throttle speech synthesis
 let highScore = localStorage.getItem('spaceAdventuresHighScore') || 0;
 let savedMoney = localStorage.getItem('spaceAdventuresMoney') || 0;
 money = parseInt(savedMoney);
+
+// NEW FEATURES - Game data loading flag
+let gameDataLoaded = false;
+
+// NEW FEATURES - Multiplayer System
+let multiplayerMode = false;
+let player2 = null;
+let player2Lives = 50;
+let player2Score = 0;
+let player2Money = 0;
+
+// NEW FEATURES - Boss Battle System
+let currentBoss = null;
+let bossHealth = 0;
+let bossMaxHealth = 0;
+let bossPhase = 0;
+let bossAttackPattern = 0;
+let bossAttackTimer = 0;
+let bossInvulnerable = false;
+let bossDefeated = false;
+
+// NEW FEATURES - Weapon Upgrade System
+let weaponLevel = 1;
+let weaponType = 'laser'; // laser, plasma, missile, spread
+let weaponDamage = 10;
+let weaponFireRate = 1;
+let weaponRange = 300;
+let weaponUpgradeCost = 100;
+
+// NEW FEATURES - Mission System
+let currentMission = {
+    id: 1,
+    title: "Training Day",
+    objective: "Destroy 5 enemies",
+    target: 5,
+    progress: 0,
+    reward: 50,
+    completed: false
+};
+let missionProgress = 0;
+let totalMissions = 20;
+let completedMissions = 0;
+
+// NEW FEATURES - Achievement System
+let achievements = {
+    firstBlood: { name: "First Blood", description: "Destroy your first enemy", earned: false },
+    sharpshooter: { name: "Sharpshooter", description: "Hit 10 enemies in a row", earned: false },
+    rich: { name: "Rich", description: "Earn 1000 money", earned: false },
+    survivor: { name: "Survivor", description: "Survive 5 minutes", earned: false },
+    bossSlayer: { name: "Boss Slayer", description: "Defeat your first boss", earned: false },
+    wingmanMaster: { name: "Wingman Master", description: "Have 4 wingmen", earned: false },
+    comboMaster: { name: "Combo Master", description: "Use 5 power-ups in a row", earned: false },
+    speedDemon: { name: "Speed Demon", description: "Reach level 10", earned: false },
+    millionaire: { name: "Millionaire", description: "Earn 10000 money", earned: false },
+    legend: { name: "Legend", description: "Complete all missions", earned: false }
+};
+let earnedAchievements = [];
+
+// NEW FEATURES - Power-up Combination System
+let activePowerUps = [];
+let powerUpCombo = 0;
+let comboMultiplier = 1;
+let lastPowerUpTime = 0;
+
+// NEW FEATURES - Environmental Hazards
+let asteroids = [];
+let spaceDebris = [];
+let blackHoles = [];
+let hazardSpawnTimer = 0;
+
+// NEW FEATURES - Enhanced Visual Effects
+let screenShake = 0;
+let particleSystems = [];
+let explosionParticles = [];
+let starField = [];
+let nebulaEffects = [];
+
+// NEW FEATURES - Save System
+let gameData = {
+    highScore: 0,
+    money: 0,
+    weaponLevel: 1,
+    weaponType: 'laser',
+    completedMissions: 0,
+    achievements: [],
+    wingmenCount: 0
+};
 
 // Sound system
 let audioContext;
@@ -52,6 +139,65 @@ const MAX_POWERUPS = 20; // Limit powerups
 const MAX_ENEMIES = 30; // Limit enemies
 const MAX_WINGMEN = 4; // Maximum number of wingmen
 const MAX_SPECIAL_EFFECTS = 20; // Limit special effects
+const MAX_ASTEROIDS = 15; // Limit asteroids
+const MAX_PARTICLES = 100; // Limit particles
+
+// NEW FEATURES - Boss Definitions
+const BOSSES = {
+    zorathCommander: {
+        name: "Zorath Commander",
+        health: 500,
+        phases: 3,
+        attacks: ['laserBurst', 'missileBarrage', 'shieldBash'],
+        rewards: { money: 200, score: 1000 }
+    },
+    spaceDragon: {
+        name: "Space Dragon",
+        health: 800,
+        phases: 4,
+        attacks: ['fireBreath', 'wingSlash', 'tailWhip', 'dragonRage'],
+        rewards: { money: 300, score: 1500 }
+    },
+    voidLord: {
+        name: "Void Lord",
+        health: 1200,
+        phases: 5,
+        attacks: ['voidBlast', 'realityWarp', 'timeFreeze', 'blackHole', 'cosmicStorm'],
+        rewards: { money: 500, score: 2500 }
+    }
+};
+
+// NEW FEATURES - Mission Definitions
+const MISSIONS = [
+    { id: 1, title: "Training Day", objective: "Destroy 5 enemies", target: 5, reward: 50 },
+    { id: 2, title: "First Contact", objective: "Survive 2 minutes", target: 120, reward: 75 },
+    { id: 3, title: "Asteroid Field", objective: "Navigate through 10 asteroids", target: 10, reward: 100 },
+    { id: 4, title: "Boss Battle", objective: "Defeat the Zorath Commander", target: 1, reward: 200 },
+    { id: 5, title: "Wingman Training", objective: "Purchase 2 wingmen", target: 2, reward: 150 },
+    { id: 6, title: "Weapon Upgrade", objective: "Upgrade weapon to level 3", target: 3, reward: 200 },
+    { id: 7, title: "Combo Master", objective: "Use 5 power-ups in a row", target: 5, reward: 250 },
+    { id: 8, title: "Speed Demon", objective: "Reach level 5", target: 5, reward: 300 },
+    { id: 9, title: "Rich", objective: "Earn 1000 money", target: 1000, reward: 400 },
+    { id: 10, title: "Survivor", objective: "Survive 10 minutes", target: 600, reward: 500 },
+    { id: 11, title: "Sharpshooter", objective: "Hit 20 enemies in a row", target: 20, reward: 350 },
+    { id: 12, title: "Asteroid Hunter", objective: "Destroy 20 asteroids", target: 20, reward: 300 },
+    { id: 13, title: "Dragon Slayer", objective: "Defeat the Space Dragon", target: 1, reward: 600 },
+    { id: 14, title: "Wingman Army", objective: "Have 4 wingmen", target: 4, reward: 400 },
+    { id: 15, title: "Weapon Master", objective: "Upgrade weapon to level 5", target: 5, reward: 500 },
+    { id: 16, title: "Combo Legend", objective: "Use 10 power-ups in a row", target: 10, reward: 600 },
+    { id: 17, title: "Speed Legend", objective: "Reach level 15", target: 15, reward: 700 },
+    { id: 18, title: "Millionaire", objective: "Earn 5000 money", target: 5000, reward: 1000 },
+    { id: 19, title: "Void Slayer", objective: "Defeat the Void Lord", target: 1, reward: 1500 },
+    { id: 20, title: "Legend", objective: "Complete all missions", target: 1, reward: 5000 }
+];
+
+// NEW FEATURES - Weapon Types
+const WEAPON_TYPES = {
+    laser: { name: "Laser", damage: 10, fireRate: 1, range: 300, cost: 100 },
+    plasma: { name: "Plasma", damage: 15, fireRate: 0.8, range: 250, cost: 200 },
+    missile: { name: "Missile", damage: 25, fireRate: 0.5, range: 400, cost: 300 },
+    spread: { name: "Spread Shot", damage: 8, fireRate: 1.2, range: 200, cost: 400 }
+};
 
 // Retro music tracks
 const MUSIC_TRACKS = {
@@ -159,6 +305,563 @@ function stopBackgroundMusic() {
 function toggleMusic() {
     // Music is disabled - only radio chatter plays
     showNotification('Music disabled - Radio chatter only!', 'info');
+}
+
+// NEW FEATURES - Save/Load System
+function saveGameData() {
+    gameData = {
+        highScore: highScore,
+        money: money,
+        weaponLevel: weaponLevel,
+        weaponType: weaponType,
+        completedMissions: completedMissions,
+        achievements: earnedAchievements,
+        wingmenCount: wingmen.length
+    };
+    localStorage.setItem('spaceAdventuresGameData', JSON.stringify(gameData));
+}
+
+function loadGameData() {
+    const savedData = localStorage.getItem('spaceAdventuresGameData');
+    if (savedData) {
+        try {
+            gameData = JSON.parse(savedData);
+            highScore = gameData.highScore || 0;
+            money = gameData.money || 0;
+            weaponLevel = gameData.weaponLevel || 1;
+            weaponType = gameData.weaponType || 'laser';
+            completedMissions = gameData.completedMissions || 0;
+            earnedAchievements = gameData.achievements || [];
+            
+            // Update weapon stats
+            updateWeaponStats();
+        } catch (error) {
+            console.log('Error loading game data:', error);
+        }
+    }
+}
+
+// NEW FEATURES - Weapon System
+function updateWeaponStats() {
+    const weapon = WEAPON_TYPES[weaponType];
+    weaponDamage = weapon.damage * weaponLevel;
+    weaponFireRate = weapon.fireRate * (1 + (weaponLevel - 1) * 0.1);
+    weaponRange = weapon.range * (1 + (weaponLevel - 1) * 0.05);
+}
+
+function upgradeWeapon() {
+    if (money >= weaponUpgradeCost) {
+        money -= weaponUpgradeCost;
+        weaponLevel++;
+        weaponUpgradeCost = Math.floor(weaponUpgradeCost * 1.5);
+        updateWeaponStats();
+        showNotification(`Weapon upgraded to level ${weaponLevel}!`, 'success');
+        saveGameData();
+        return true;
+    }
+    return false;
+}
+
+function changeWeaponType(newType) {
+    if (WEAPON_TYPES[newType]) {
+        weaponType = newType;
+        updateWeaponStats();
+        showNotification(`Switched to ${WEAPON_TYPES[newType].name}!`, 'info');
+        saveGameData();
+    }
+}
+
+// NEW FEATURES - Mission System
+function startMission(missionId) {
+    const mission = MISSIONS.find(m => m.id === missionId);
+    if (mission && !mission.completed) {
+        currentMission = { ...mission, progress: 0, completed: false };
+        showStoryNotification('Mission Started', `Mission: ${mission.title}\nObjective: ${mission.objective}`, 'info');
+        updateMissionUI();
+    }
+}
+
+function updateMissionProgress(amount = 1) {
+    if (currentMission && !currentMission.completed) {
+        currentMission.progress += amount;
+        
+        if (currentMission.progress >= currentMission.target) {
+            completeMission();
+        } else {
+            updateMissionUI();
+        }
+    }
+}
+
+function completeMission() {
+    if (currentMission && !currentMission.completed) {
+        currentMission.completed = true;
+        completedMissions++;
+        money += currentMission.reward;
+        score += currentMission.reward * 10;
+        
+        showStoryNotification('Mission Complete!', 
+            `Mission: ${currentMission.title}\nReward: ${currentMission.reward} money`, 'success');
+        
+        // Check for next mission
+        const nextMission = MISSIONS.find(m => m.id === currentMission.id + 1);
+        if (nextMission) {
+            setTimeout(() => {
+                startMission(nextMission.id);
+            }, 2000);
+        }
+        
+        saveGameData();
+    }
+}
+
+function updateMissionUI() {
+    const missionElement = document.getElementById('currentMission');
+    if (missionElement && currentMission) {
+        const titleElement = missionElement.querySelector('.mission-title');
+        const progressElement = missionElement.querySelector('.mission-progress');
+        
+        if (titleElement) titleElement.textContent = `🚀 ${currentMission.title}`;
+        if (progressElement) progressElement.textContent = `${currentMission.progress}/${currentMission.target}`;
+    }
+}
+
+// NEW FEATURES - Achievement System
+function checkAchievements() {
+    // First Blood
+    if (!achievements.firstBlood.earned && score > 0) {
+        unlockAchievement('firstBlood');
+    }
+    
+    // Rich
+    if (!achievements.rich.earned && money >= 1000) {
+        unlockAchievement('rich');
+    }
+    
+    // Survivor
+    if (!achievements.survivor.earned && level >= 5) {
+        unlockAchievement('survivor');
+    }
+    
+    // Boss Slayer
+    if (!achievements.bossSlayer.earned && bossDefeated) {
+        unlockAchievement('bossSlayer');
+    }
+    
+    // Wingman Master
+    if (!achievements.wingmanMaster.earned && wingmen.length >= 4) {
+        unlockAchievement('wingmanMaster');
+    }
+    
+    // Combo Master
+    if (!achievements.comboMaster.earned && powerUpCombo >= 5) {
+        unlockAchievement('comboMaster');
+    }
+    
+    // Speed Demon
+    if (!achievements.speedDemon.earned && level >= 10) {
+        unlockAchievement('speedDemon');
+    }
+    
+    // Millionaire
+    if (!achievements.millionaire.earned && money >= 10000) {
+        unlockAchievement('millionaire');
+    }
+    
+    // Legend
+    if (!achievements.legend.earned && completedMissions >= totalMissions) {
+        unlockAchievement('legend');
+    }
+}
+
+function unlockAchievement(achievementId) {
+    if (achievements[achievementId] && !achievements[achievementId].earned) {
+        achievements[achievementId].earned = true;
+        earnedAchievements.push(achievementId);
+        showAchievementNotification(achievements[achievementId]);
+        saveGameData();
+    }
+}
+
+// NEW FEATURES - Boss Battle System
+function spawnBoss(bossType = 'zorathCommander') {
+    const boss = BOSSES[bossType];
+    if (boss) {
+        currentBoss = {
+            type: bossType,
+            name: boss.name,
+            health: boss.health,
+            maxHealth: boss.health,
+            phase: 1,
+            x: canvas.width / 2,
+            y: 100,
+            width: 120,
+            height: 80,
+            attackPattern: 0,
+            attackTimer: 0,
+            invulnerable: false
+        };
+        
+        bossHealth = boss.health;
+        bossMaxHealth = boss.health;
+        bossPhase = 1;
+        bossDefeated = false;
+        
+        showStoryNotification('Boss Battle!', `${boss.name} has appeared!`, 'warning');
+        triggerRadioChatter('boss');
+    }
+}
+
+function updateBoss() {
+    if (currentBoss) {
+        // Boss movement
+        currentBoss.x += Math.sin(Date.now() * 0.001) * 2;
+        
+        // Boss attacks
+        currentBoss.attackTimer++;
+        if (currentBoss.attackTimer > 120) {
+            bossAttack();
+            currentBoss.attackTimer = 0;
+        }
+        
+        // Phase transitions
+        const healthPercent = currentBoss.health / currentBoss.maxHealth;
+        if (healthPercent < 0.7 && currentBoss.phase === 1) {
+            currentBoss.phase = 2;
+            showNotification('Boss Phase 2!', 'warning');
+        } else if (healthPercent < 0.3 && currentBoss.phase === 2) {
+            currentBoss.phase = 3;
+            showNotification('Boss Phase 3!', 'warning');
+        }
+    }
+}
+
+function bossAttack() {
+    if (!currentBoss) return;
+    
+    const attacks = BOSSES[currentBoss.type].attacks;
+    const attack = attacks[currentBoss.attackPattern % attacks.length];
+    
+    switch (attack) {
+        case 'laserBurst':
+            // Fire multiple laser shots
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const angle = (i - 2) * 0.3;
+                    const bullet = {
+                        x: currentBoss.x + currentBoss.width / 2,
+                        y: currentBoss.y + currentBoss.height,
+                        vx: Math.sin(angle) * 3,
+                        vy: 4,
+                        width: 8,
+                        height: 8,
+                        damage: 20
+                    };
+                    enemyBullets.push(bullet);
+                }, i * 200);
+            }
+            break;
+            
+        case 'missileBarrage':
+            // Fire missiles at player
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => {
+                    const bullet = {
+                        x: currentBoss.x + currentBoss.width / 2,
+                        y: currentBoss.y + currentBoss.height,
+                        vx: (player.x - currentBoss.x) * 0.01,
+                        vy: 3,
+                        width: 12,
+                        height: 12,
+                        damage: 30
+                    };
+                    enemyBullets.push(bullet);
+                }, i * 300);
+            }
+            break;
+            
+        case 'shieldBash':
+            // Create shockwave
+            createShockwave(currentBoss.x + currentBoss.width / 2, currentBoss.y + currentBoss.height);
+            break;
+    }
+    
+    currentBoss.attackPattern++;
+}
+
+function createShockwave(x, y) {
+    // Create expanding ring effect
+    for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2;
+        const bullet = {
+            x: x,
+            y: y,
+            vx: Math.cos(angle) * 4,
+            vy: Math.sin(angle) * 4,
+            width: 10,
+            height: 10,
+            damage: 25
+        };
+        enemyBullets.push(bullet);
+    }
+}
+
+function damageBoss(damage) {
+    if (currentBoss && !currentBoss.invulnerable) {
+        currentBoss.health -= damage;
+        bossHealth = currentBoss.health;
+        
+        // Visual feedback
+        screenShake = 5;
+        createExplosion(currentBoss.x + Math.random() * currentBoss.width, 
+                       currentBoss.y + Math.random() * currentBoss.height);
+        
+        if (currentBoss.health <= 0) {
+            defeatBoss();
+        }
+    }
+}
+
+function defeatBoss() {
+    if (currentBoss) {
+        const boss = BOSSES[currentBoss.type];
+        money += boss.rewards.money;
+        score += boss.rewards.score;
+        
+        // Create massive explosion
+        for (let i = 0; i < 20; i++) {
+            createExplosion(currentBoss.x + Math.random() * currentBoss.width,
+                          currentBoss.y + Math.random() * currentBoss.height);
+        }
+        
+        showStoryNotification('Boss Defeated!', 
+            `${currentBoss.name} has been destroyed!\nReward: ${boss.rewards.money} money`, 'success');
+        
+        currentBoss = null;
+        bossDefeated = true;
+        bossHealth = 0;
+        
+        // Update mission progress
+        updateMissionProgress(1);
+    }
+}
+
+// NEW FEATURES - Environmental Hazards
+function spawnAsteroid() {
+    if (asteroids.length < MAX_ASTEROIDS) {
+        const asteroid = {
+            x: Math.random() * canvas.width,
+            y: -50,
+            vx: (Math.random() - 0.5) * 2,
+            vy: 1 + Math.random() * 2,
+            width: 20 + Math.random() * 30,
+            height: 20 + Math.random() * 30,
+            rotation: 0,
+            rotationSpeed: (Math.random() - 0.5) * 0.1
+        };
+        asteroids.push(asteroid);
+    }
+}
+
+function updateAsteroids() {
+    for (let i = asteroids.length - 1; i >= 0; i--) {
+        const asteroid = asteroids[i];
+        asteroid.x += asteroid.vx;
+        asteroid.y += asteroid.vy;
+        asteroid.rotation += asteroid.rotationSpeed;
+        
+        // Remove if off screen
+        if (asteroid.y > canvas.height + 50) {
+            asteroids.splice(i, 1);
+        }
+    }
+}
+
+function drawAsteroids() {
+    ctx.save();
+    asteroids.forEach(asteroid => {
+        ctx.translate(asteroid.x + asteroid.width / 2, asteroid.y + asteroid.height / 2);
+        ctx.rotate(asteroid.rotation);
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(-asteroid.width / 2, -asteroid.height / 2, asteroid.width, asteroid.height);
+        ctx.strokeStyle = '#654321';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(-asteroid.width / 2, -asteroid.height / 2, asteroid.width, asteroid.height);
+    });
+    ctx.restore();
+}
+
+// NEW FEATURES - Enhanced Visual Effects
+function createParticleSystem(x, y, color, count = 10) {
+    for (let i = 0; i < count; i++) {
+        const particle = {
+            x: x,
+            y: y,
+            vx: (Math.random() - 0.5) * 4,
+            vy: (Math.random() - 0.5) * 4,
+            life: 60,
+            maxLife: 60,
+            color: color,
+            size: Math.random() * 3 + 1
+        };
+        particleSystems.push(particle);
+    }
+}
+
+function updateParticleSystems() {
+    for (let i = particleSystems.length - 1; i >= 0; i--) {
+        const particle = particleSystems[i];
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+        particle.life--;
+        
+        if (particle.life <= 0) {
+            particleSystems.splice(i, 1);
+        }
+    }
+}
+
+function drawParticleSystems() {
+    particleSystems.forEach(particle => {
+        const alpha = particle.life / particle.maxLife;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = particle.color;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    });
+}
+
+function updateScreenShake() {
+    if (screenShake > 0) {
+        screenShake--;
+        const shakeX = (Math.random() - 0.5) * screenShake;
+        const shakeY = (Math.random() - 0.5) * screenShake;
+        ctx.save();
+        ctx.translate(shakeX, shakeY);
+    }
+}
+
+function endScreenShake() {
+    if (screenShake <= 0) {
+        ctx.restore();
+    }
+}
+
+// NEW FEATURES - Multiplayer System
+function toggleMultiplayer() {
+    multiplayerMode = !multiplayerMode;
+    if (multiplayerMode) {
+        // Initialize player 2
+        player2 = {
+            x: canvas.width / 2 + 50,
+            y: canvas.height - 100,
+            width: 40,
+            height: 40,
+            speed: 5,
+            lives: player2Lives,
+            score: player2Score,
+            money: player2Money
+        };
+        showNotification('Multiplayer Mode Enabled!', 'info');
+    } else {
+        player2 = null;
+        showNotification('Single Player Mode', 'info');
+    }
+}
+
+function updatePlayer2() {
+    if (player2 && multiplayerMode) {
+        // Simple AI for player 2
+        if (enemies.length > 0) {
+            const nearestEnemy = enemies.reduce((nearest, enemy) => {
+                const distance = Math.abs(enemy.x - player2.x);
+                return distance < nearest.distance ? { enemy, distance } : nearest;
+            }, { distance: Infinity }).enemy;
+            
+            if (nearestEnemy) {
+                if (nearestEnemy.x < player2.x - 10) {
+                    player2.x -= player2.speed;
+                } else if (nearestEnemy.x > player2.x + 10) {
+                    player2.x += player2.speed;
+                }
+            }
+        }
+        
+        // Keep player 2 in bounds
+        player2.x = Math.max(20, Math.min(canvas.width - 60, player2.x));
+    }
+}
+
+function drawPlayer2() {
+    if (player2 && multiplayerMode) {
+        ctx.save();
+        ctx.fillStyle = '#FF6B6B';
+        ctx.fillRect(player2.x, player2.y, player2.width, player2.height);
+        
+        // Draw player 2 indicator
+        ctx.fillStyle = '#FF6B6B';
+        ctx.font = '12px Arial';
+        ctx.fillText('P2', player2.x, player2.y - 10);
+        ctx.restore();
+    }
+}
+
+// NEW FEATURES - Draw boss
+function drawBoss() {
+    if (currentBoss) {
+        ctx.save();
+        
+        // Boss body
+        ctx.fillStyle = '#FF4444';
+        ctx.fillRect(currentBoss.x, currentBoss.y, currentBoss.width, currentBoss.height);
+        
+        // Boss health bar
+        const healthPercent = currentBoss.health / currentBoss.maxHealth;
+        const barWidth = currentBoss.width;
+        const barHeight = 8;
+        const barY = currentBoss.y - 20;
+        
+        // Background
+        ctx.fillStyle = '#333';
+        ctx.fillRect(currentBoss.x, barY, barWidth, barHeight);
+        
+        // Health
+        ctx.fillStyle = healthPercent > 0.5 ? '#00FF00' : healthPercent > 0.25 ? '#FFFF00' : '#FF0000';
+        ctx.fillRect(currentBoss.x, barY, barWidth * healthPercent, barHeight);
+        
+        // Border
+        ctx.strokeStyle = '#FFF';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(currentBoss.x, barY, barWidth, barHeight);
+        
+        // Boss name
+        ctx.fillStyle = '#FFF';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(currentBoss.name, currentBoss.x + currentBoss.width / 2, barY - 5);
+        
+        ctx.restore();
+    }
+}
+
+// NEW FEATURES - Draw nebula effects
+function drawNebulaEffects() {
+    // Create colorful nebula background effects
+    for (let i = 0; i < 3; i++) {
+        const x = (Date.now() * 0.001 + i * 100) % canvas.width;
+        const y = (i * 200) % canvas.height;
+        const radius = 100 + Math.sin(Date.now() * 0.002 + i) * 20;
+        
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+        gradient.addColorStop(0, `rgba(${100 + i * 50}, ${50 + i * 30}, ${150 + i * 40}, 0.1)`);
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
 }
 
 // Initialize speech synthesis voices with enhanced voice detection
@@ -2273,6 +2976,40 @@ function setupButtonListeners() {
         });
     }
     
+    // NEW FEATURES - Multiplayer button
+    const toggleMultiplayerBtn = document.getElementById('toggleMultiplayer');
+    if (toggleMultiplayerBtn) {
+        toggleMultiplayerBtn.addEventListener('click', () => {
+            toggleMultiplayer();
+        });
+    }
+    
+    // NEW FEATURES - Weapon upgrade button
+    const upgradeWeaponBtn = document.getElementById('upgradeWeapon');
+    if (upgradeWeaponBtn) {
+        upgradeWeaponBtn.addEventListener('click', () => {
+            if (gameState === 'playing') {
+                upgradeWeapon();
+            } else {
+                showNotification('Start the game first!', 'warning');
+            }
+        });
+    }
+    
+    // NEW FEATURES - Boss spawn button
+    const spawnBossBtn = document.getElementById('spawnBoss');
+    if (spawnBossBtn) {
+        spawnBossBtn.addEventListener('click', () => {
+            if (gameState === 'playing') {
+                const bossTypes = Object.keys(BOSSES);
+                const randomBoss = bossTypes[Math.floor(Math.random() * bossTypes.length)];
+                spawnBoss(randomBoss);
+            } else {
+                showNotification('Start the game first!', 'warning');
+            }
+        });
+    }
+    
     // Radio chatter buttons
     const radioChatterTabBtn = document.getElementById('radioChatterTabBtn');
     if (radioChatterTabBtn) {
@@ -3085,6 +3822,63 @@ function checkCollisions() {
         }
     }
     
+    // NEW FEATURES - Check bullet-boss collisions
+    for (let i = bullets.length - 1; i >= 0; i--) {
+        if (i >= bullets.length) continue;
+        if (bullets[i] && currentBoss && checkCollision(bullets[i], currentBoss)) {
+            // Remove bullet
+            bullets.splice(i, 1);
+            
+            // Damage boss
+            damageBoss(weaponDamage);
+            
+            // Create particle effect
+            createParticleSystem(bullets[i].x, bullets[i].y, '#FFD700', 5);
+        }
+    }
+    
+    // NEW FEATURES - Check player-asteroid collisions
+    for (let i = asteroids.length - 1; i >= 0; i--) {
+        if (i >= asteroids.length) continue;
+        if (asteroids[i] && checkCollision(player, asteroids[i])) {
+            // Remove asteroid
+            asteroids.splice(i, 1);
+            
+            // Damage player
+            lives -= 15;
+            
+            // Create explosion
+            createExplosion(asteroids[i].x + asteroids[i].width / 2, asteroids[i].y + asteroids[i].height / 2);
+            
+            // Screen shake
+            screenShake = 8;
+            
+            if (lives <= 0) {
+                gameOver();
+            }
+        }
+    }
+    
+    // NEW FEATURES - Check bullet-asteroid collisions
+    for (let i = bullets.length - 1; i >= 0; i--) {
+        if (i >= bullets.length) continue;
+        for (let j = asteroids.length - 1; j >= 0; j--) {
+            if (j >= asteroids.length) continue;
+            if (bullets[i] && asteroids[j] && checkCollision(bullets[i], asteroids[j])) {
+                // Remove bullet and asteroid
+                bullets.splice(i, 1);
+                asteroids.splice(j, 1);
+                
+                // Create explosion
+                createExplosion(asteroids[j].x + asteroids[j].width / 2, asteroids[j].y + asteroids[j].height / 2);
+                
+                // Update mission progress for asteroid destruction
+                updateMissionProgress(1);
+                break;
+            }
+        }
+    }
+    
     // Check enemy bullet-player collisions with safety bounds
     for (let i = enemyBullets.length - 1; i >= 0; i--) {
         if (i >= enemyBullets.length) continue; // Safety check after array modification
@@ -3171,16 +3965,60 @@ function updateUI() {
         moneyElement.textContent = `💰 ${money}`;
     }
     
-    // Update weapon level display
-    const weaponElement = document.getElementById('weaponLevel');
-    if (weaponElement) {
-        weaponElement.textContent = `🔫 Weapon: ${weaponLevel}`;
+    // NEW FEATURES - Update weapon info
+    const weaponTypeElement = document.getElementById('weaponType');
+    const weaponLevelElement = document.getElementById('weaponLevel');
+    if (weaponTypeElement) {
+        weaponTypeElement.textContent = WEAPON_TYPES[weaponType].name;
+    }
+    if (weaponLevelElement) {
+        weaponLevelElement.textContent = weaponLevel;
+    }
+    
+    // NEW FEATURES - Update multiplayer info
+    const multiplayerInfo = document.getElementById('multiplayerInfo');
+    const player2LivesElement = document.getElementById('player2Lives');
+    const player2ScoreElement = document.getElementById('player2Score');
+    
+    if (multiplayerMode && multiplayerInfo) {
+        multiplayerInfo.style.display = 'block';
+        if (player2LivesElement) player2LivesElement.textContent = player2Lives;
+        if (player2ScoreElement) player2ScoreElement.textContent = player2Score;
+    } else if (multiplayerInfo) {
+        multiplayerInfo.style.display = 'none';
+    }
+    
+    // NEW FEATURES - Update boss health bar
+    const bossHealthElement = document.getElementById('bossHealth');
+    const bossNameElement = document.getElementById('bossName');
+    const bossBarFillElement = document.getElementById('bossBarFill');
+    
+    if (currentBoss && bossHealthElement) {
+        bossHealthElement.style.display = 'block';
+        if (bossNameElement) bossNameElement.textContent = currentBoss.name;
+        if (bossBarFillElement) {
+            const healthPercent = (currentBoss.health / currentBoss.maxHealth) * 100;
+            bossBarFillElement.style.width = `${healthPercent}%`;
+        }
+    } else if (bossHealthElement) {
+        bossHealthElement.style.display = 'none';
+    }
+    
+    // NEW FEATURES - Update combo counter
+    const comboCounterElement = document.getElementById('comboCounter');
+    const comboMultiplierElement = document.getElementById('comboMultiplier');
+    
+    if (powerUpCombo > 1 && comboCounterElement) {
+        comboCounterElement.style.display = 'block';
+        if (comboMultiplierElement) comboMultiplierElement.textContent = comboMultiplier.toFixed(1);
+    } else if (comboCounterElement) {
+        comboCounterElement.style.display = 'none';
     }
     
     // Update wingman count display
     const wingmanElement = document.getElementById('wingmanCount');
     if (wingmanElement) {
-        wingmanElement.textContent = `🛩️ Wingmen: ${wingmanCount}/${MAX_WINGMEN}`;
+        wingmanElement.textContent = `🛩️ ${wingmen.length}/${MAX_WINGMEN}`;
     }
     
     // Update high score display
@@ -3203,22 +4041,14 @@ function updateUI() {
     
     // Update current mission display
     const missionElement = document.getElementById('currentMission');
-    if (missionElement) {
-        const mission = STORY_MISSIONS[currentMission];
-        if (mission) {
-            const progress = mission.boss ? 
-                (enemies.some(e => e.isBoss) ? 'Boss Active!' : 'Boss Defeated!') :
-                `${missionProgress}/${mission.target}`;
-            
-            missionElement.innerHTML = `
-                <div class="mission-info">
-                    <div class="mission-title">${mission.title}</div>
-                    <div class="mission-objective">${mission.objective}</div>
-                    <div class="mission-progress">Progress: ${progress}</div>
-                </div>
-            `;
-        }
+    if (missionElement && currentMission) {
+        const titleElement = missionElement.querySelector('.mission-title');
+        const progressElement = missionElement.querySelector('.mission-progress');
+        
+        if (titleElement) titleElement.textContent = `🚀 ${currentMission.title}`;
+        if (progressElement) progressElement.textContent = `${currentMission.progress}/${currentMission.target}`;
     }
+}
     
     // Update character info
     const characterElement = document.getElementById('characterInfo');
@@ -3283,11 +4113,21 @@ function render() {
         return;
     }
     
+    // NEW FEATURES - Apply screen shake
+    updateScreenShake();
+    
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     drawStars();
+    
+    // NEW FEATURES - Draw nebula effects
+    drawNebulaEffects();
+    
     drawPlayer();
+    
+    // NEW FEATURES - Draw player 2 (multiplayer)
+    drawPlayer2();
     
     // Draw wingmen
     wingmen.forEach(wingman => {
@@ -3306,6 +4146,12 @@ function render() {
         if (enemy) drawEnemy(enemy);
     });
     
+    // NEW FEATURES - Draw boss
+    drawBoss();
+    
+    // NEW FEATURES - Draw asteroids
+    drawAsteroids();
+    
     powerUps.forEach(powerUp => {
         if (powerUp) drawPowerUp(powerUp);
     });
@@ -3314,8 +4160,14 @@ function render() {
         if (explosion) drawExplosion(explosion);
     });
     
+    // NEW FEATURES - Draw particle systems
+    drawParticleSystems();
+    
     // Draw special effects
     drawSpecialEffects();
+    
+    // NEW FEATURES - End screen shake
+    endScreenShake();
     
     // Draw pause overlay
     if (gameState === 'paused') {
@@ -3993,21 +4845,65 @@ function update() {
     const currentTime = Date.now();
     const shouldUpdateUI = !lastUIUpdate || (currentTime - lastUIUpdate) > 100; // Update UI every 100ms
     
+    // NEW FEATURES - Load game data on first run
+    if (!gameDataLoaded) {
+        loadGameData();
+        gameDataLoaded = true;
+    }
+    
     updatePlayer();
+    
+    // NEW FEATURES - Update player 2 (multiplayer)
+    updatePlayer2();
+    
     updateBullets();
     updateEnemyBullets();
     updateEnemies();
+    
+    // NEW FEATURES - Update boss
+    updateBoss();
+    
     updatePowerUps();
     updateWingmen();
     updateExplosions();
+    
+    // NEW FEATURES - Update environmental hazards
+    updateAsteroids();
+    
+    // NEW FEATURES - Update particle systems
+    updateParticleSystems();
+    
     updateSpecialEffects();
     checkCollisions();
+    
+    // NEW FEATURES - Check achievements
+    checkAchievements();
+    
     updateLevel();
+    
+    // NEW FEATURES - Spawn boss at certain levels
+    if (level % 5 === 0 && !currentBoss && !bossDefeated) {
+        const bossTypes = Object.keys(BOSSES);
+        const randomBoss = bossTypes[Math.floor(Math.random() * bossTypes.length)];
+        spawnBoss(randomBoss);
+    }
+    
+    // NEW FEATURES - Spawn environmental hazards
+    hazardSpawnTimer++;
+    if (hazardSpawnTimer > 300) {
+        spawnAsteroid();
+        hazardSpawnTimer = 0;
+    }
     
     // Only update UI periodically to reduce DOM manipulation
     if (shouldUpdateUI) {
         updateUI();
         lastUIUpdate = currentTime;
+    }
+    
+    // NEW FEATURES - Save game data periodically
+    if (currentTime % 30000 === 0) { // Save every 30 seconds
+        saveGameData();
     }
     
     spawnEnemy();
