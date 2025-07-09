@@ -1810,7 +1810,7 @@ let wingmanCount = 0; // Current number of wingmen
 
 // Story system
 let storyProgress = parseInt(localStorage.getItem('spaceAdventuresStoryProgress')) || 0;
-let currentMission = parseInt(localStorage.getItem('spaceAdventuresCurrentMission')) || 1;
+let currentStoryMission = parseInt(localStorage.getItem('spaceAdventuresCurrentMission')) || 1;
 let missionProgress = parseInt(localStorage.getItem('spaceAdventuresMissionProgress')) || 0;
 let totalEnemiesDestroyed = parseInt(localStorage.getItem('spaceAdventuresTotalEnemies')) || 0;
 let totalWingmenPurchased = parseInt(localStorage.getItem('spaceAdventuresTotalWingmen')) || 0;
@@ -2147,7 +2147,7 @@ function showStoryNotification(title, message, type = 'story') {
 }
 
 function checkMissionProgress() {
-    const mission = STORY_MISSIONS[currentMission];
+    const mission = STORY_MISSIONS[currentStoryMission];
     if (!mission) return;
     
     let missionComplete = false;
@@ -2179,7 +2179,7 @@ function checkMissionProgress() {
 }
 
 function completeMission() {
-    const mission = STORY_MISSIONS[currentMission];
+    const mission = STORY_MISSIONS[currentStoryMission];
     if (!mission) return;
     
     // Calculate rewards
@@ -3087,8 +3087,8 @@ function startGame() {
     
     // Show story introduction only if it's the first time playing or mission just started
     const lastMissionShown = localStorage.getItem('spaceAdventuresLastMissionShown') || 0;
-    if (currentMission <= 5 && currentMission > parseInt(lastMissionShown)) {
-        const mission = STORY_MISSIONS[currentMission];
+    if (currentStoryMission <= 5 && currentStoryMission > parseInt(lastMissionShown)) {
+        const mission = STORY_MISSIONS[currentStoryMission];
         setTimeout(() => {
             showStoryNotification(
                 `🎖️ ${playerRank} - Mission ${currentMission}: ${mission.title}`,
@@ -3322,14 +3322,14 @@ function wingmanShoot(wingman) {
 function spawnEnemy() {
     // Only spawn enemies when the game is actually playing
     if (gameState !== 'playing') return;
-    if (typeof currentMission === 'undefined' || !STORY_MISSIONS[currentMission] || !STORY_MISSIONS[currentMission].title) return;
+    if (typeof currentStoryMission === 'undefined' || !STORY_MISSIONS[currentStoryMission] || !STORY_MISSIONS[currentStoryMission].title) return;
     
     // Performance check: limit enemies
     if (enemies.length >= MAX_ENEMIES) return;
     
     const spawnRate = isMobile ? (window.enemySpawnRate || 0.02) : ENEMY_SPAWN_RATE;
     if (Math.random() < spawnRate) {
-        const mission = STORY_MISSIONS[currentMission] || STORY_MISSIONS[1];
+        const mission = STORY_MISSIONS[currentStoryMission] || STORY_MISSIONS[1];
         const isBossMission = mission.boss;
         
         // Check if we should spawn a boss
