@@ -1811,7 +1811,7 @@ let wingmanCount = 0; // Current number of wingmen
 // Story system
 let storyProgress = parseInt(localStorage.getItem('spaceAdventuresStoryProgress')) || 0;
 let currentStoryMission = parseInt(localStorage.getItem('spaceAdventuresCurrentMission')) || 1;
-let missionProgress = parseInt(localStorage.getItem('spaceAdventuresMissionProgress')) || 0;
+let storyMissionProgress = parseInt(localStorage.getItem('spaceAdventuresMissionProgress')) || 0;
 let totalEnemiesDestroyed = parseInt(localStorage.getItem('spaceAdventuresTotalEnemies')) || 0;
 let totalWingmenPurchased = parseInt(localStorage.getItem('spaceAdventuresTotalWingmen')) || 0;
 let playerRank = localStorage.getItem('spaceAdventuresPlayerRank') || 'Cadet';
@@ -2155,14 +2155,14 @@ function checkMissionProgress() {
     if (mission.boss) {
         // Boss mission - check if boss is defeated
         const bossDefeated = !enemies.some(enemy => enemy.isBoss);
-        if (bossDefeated && missionProgress >= mission.target) {
+        if (bossDefeated && storyMissionProgress >= mission.target) {
             missionComplete = true;
         }
     } else {
         // Regular mission - check target
         if (mission.objective.includes('Destroy')) {
             // Destroy mission
-            if (missionProgress >= mission.target) {
+            if (storyMissionProgress >= mission.target) {
                 missionComplete = true;
             }
         } else if (mission.objective.includes('Purchase')) {
@@ -2211,11 +2211,11 @@ function completeMission() {
     
     // Update progress
     currentStoryMission++;
-    missionProgress = 0;
+    storyMissionProgress = 0;
     
     // Save progress
     localStorage.setItem('spaceAdventuresCurrentMission', currentStoryMission.toString());
-    localStorage.setItem('spaceAdventuresMissionProgress', missionProgress.toString());
+    localStorage.setItem('spaceAdventuresMissionProgress', storyMissionProgress.toString());
     localStorage.setItem('spaceAdventuresMoney', money.toString());
     
     // Check if all missions completed
@@ -3802,7 +3802,7 @@ function checkCollisions() {
                     
                     // Update mission progress
                     totalEnemiesDestroyed++;
-                    missionProgress++;
+                    storyMissionProgress++;
                     
                     break;
                 }
