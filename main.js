@@ -4431,25 +4431,43 @@ function drawEnemy(enemy) {
     ctx.save();
     
     if (enemy.isBoss) {
-        // Draw boss enemy with epic design
+        // Draw boss enemy with epic modern design
         const centerX = enemy.x + enemy.width / 2;
         const centerY = enemy.y + enemy.height / 2;
         
         // Boss glow effect
-        ctx.shadowColor = enemy.color;
-        ctx.shadowBlur = 20;
-        ctx.lineWidth = 3;
+        ctx.shadowColor = '#ff0000';
+        ctx.shadowBlur = 25;
+        ctx.lineWidth = 4;
         
-        // Draw boss triangle (larger and more detailed)
-        ctx.beginPath();
-        ctx.moveTo(centerX, enemy.y + 10);
-        ctx.lineTo(enemy.x + 10, enemy.y + enemy.height - 10);
-        ctx.lineTo(enemy.x + enemy.width - 10, enemy.y + enemy.height - 10);
-        ctx.closePath();
-        ctx.fillStyle = enemy.color;
-        ctx.fill();
-        ctx.strokeStyle = '#ffffff';
-        ctx.stroke();
+        // Use elite enemy ship design for boss
+        if (enemyShipImages.elite && enemyShipImages.elite.complete) {
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            
+            // Red tint for boss
+            ctx.filter = 'hue-rotate(0deg) saturate(1.5) brightness(1.2)';
+            ctx.drawImage(enemyShipImages.elite, -enemy.width/2, -enemy.height/2, enemy.width, enemy.height);
+            
+            // Additional red glow
+            ctx.shadowColor = '#ff0000';
+            ctx.shadowBlur = 15;
+            ctx.globalAlpha = 0.6;
+            ctx.drawImage(enemyShipImages.elite, -enemy.width/2, -enemy.height/2, enemy.width, enemy.height);
+            
+            ctx.restore();
+        } else {
+            // Fallback boss triangle
+            ctx.beginPath();
+            ctx.moveTo(centerX, enemy.y + 10);
+            ctx.lineTo(enemy.x + 10, enemy.y + enemy.height - 10);
+            ctx.lineTo(enemy.x + enemy.width - 10, enemy.y + enemy.height - 10);
+            ctx.closePath();
+            ctx.fillStyle = '#ff0000';
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.stroke();
+        }
         
         // Boss weapon pods
         ctx.fillStyle = '#ff0000';
@@ -4478,55 +4496,92 @@ function drawEnemy(enemy) {
         ctx.textAlign = 'center';
         ctx.fillText('BOSS', centerX, enemy.y - 20);
         
-        // Boss special effects
-        if (enemy.bossType === 'fire') {
-            // Fire effects
-            ctx.fillStyle = '#ff6600';
-            for (let i = 0; i < 5; i++) {
-                ctx.beginPath();
-                ctx.arc(centerX + (Math.random() - 0.5) * 20, enemy.y + enemy.height + Math.random() * 10, 3, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        } else if (enemy.bossType === 'king') {
-            // Crown effect
-            ctx.fillStyle = '#ffd700';
-            ctx.fillRect(centerX - 15, enemy.y - 5, 30, 8);
-            ctx.fillRect(centerX - 10, enemy.y - 12, 20, 8);
-            ctx.fillRect(centerX - 5, enemy.y - 19, 10, 8);
-        }
-        
     } else {
-        // Draw regular enemy triangle fighter jet
+        // Draw regular enemies with modern designs
         const centerX = enemy.x + enemy.width / 2;
         const centerY = enemy.y + enemy.height / 2;
         
-        // Main triangle body
-        ctx.beginPath();
-        ctx.moveTo(centerX, enemy.y + 5);
-        ctx.lineTo(enemy.x + 5, enemy.y + enemy.height - 5);
-        ctx.lineTo(enemy.x + enemy.width - 5, enemy.y + enemy.height - 5);
-        ctx.closePath();
-        ctx.fillStyle = enemy.color;
-        ctx.fill();
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        // Determine enemy type based on color or level
+        let enemyType = 'red';
+        let glowColor = '#ff0000';
         
-        // Weapon pods
-        ctx.fillStyle = '#ff0000';
-        ctx.fillRect(enemy.x + 8, enemy.y + enemy.height - 15, 6, 10);
-        ctx.fillRect(enemy.x + enemy.width - 14, enemy.y + enemy.height - 15, 6, 10);
+        if (enemy.color === '#ff8800' || enemy.color === '#ff6600') {
+            enemyType = 'orange';
+            glowColor = '#ff8800';
+        } else if (enemy.color === '#ff00ff' || enemy.color === '#8800ff') {
+            enemyType = 'purple';
+            glowColor = '#ff00ff';
+        } else if (level > 10) {
+            enemyType = 'elite';
+            glowColor = '#00ffff';
+        }
         
-        // Cockpit
-        ctx.fillStyle = '#00ffff';
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, 4, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Exhaust trails
-        ctx.fillStyle = '#ffaa00';
-        ctx.fillRect(enemy.x + 12, enemy.y + enemy.height, 4, 8);
-        ctx.fillRect(enemy.x + enemy.width - 16, enemy.y + enemy.height, 4, 8);
+        // Use modern enemy ship design
+        const enemyImage = enemyShipImages[enemyType];
+        if (enemyImage && enemyImage.complete) {
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            
+            // Apply color filter based on enemy type
+            if (enemyType === 'red') {
+                ctx.filter = 'hue-rotate(0deg) saturate(1.3) brightness(1.1)';
+            } else if (enemyType === 'orange') {
+                ctx.filter = 'hue-rotate(30deg) saturate(1.2) brightness(1.1)';
+            } else if (enemyType === 'purple') {
+                ctx.filter = 'hue-rotate(270deg) saturate(1.4) brightness(1.2)';
+            } else if (enemyType === 'elite') {
+                ctx.filter = 'hue-rotate(180deg) saturate(1.5) brightness(1.3)';
+            }
+            
+            // Draw enemy ship with glow effect
+            ctx.shadowColor = glowColor;
+            ctx.shadowBlur = 12;
+            ctx.drawImage(enemyImage, -enemy.width/2, -enemy.height/2, enemy.width, enemy.height);
+            
+            // Additional glow layer
+            ctx.shadowColor = glowColor;
+            ctx.shadowBlur = 8;
+            ctx.globalAlpha = 0.7;
+            ctx.drawImage(enemyImage, -enemy.width/2, -enemy.height/2, enemy.width, enemy.height);
+            
+            ctx.restore();
+            
+            // Add weapon glow effects
+            ctx.save();
+            ctx.fillStyle = glowColor;
+            ctx.shadowColor = glowColor;
+            ctx.shadowBlur = 10;
+            
+            // Weapon pods
+            ctx.fillRect(enemy.x + 5, enemy.y + enemy.height - 15, 4, 8);
+            ctx.fillRect(enemy.x + enemy.width - 9, enemy.y + enemy.height - 15, 4, 8);
+            
+            ctx.restore();
+            
+        } else {
+            // Fallback to original triangle design with enhanced effects
+            ctx.shadowColor = glowColor;
+            ctx.shadowBlur = 8;
+            
+            // Draw the triangle enemy
+            ctx.beginPath();
+            ctx.moveTo(centerX, enemy.y);
+            ctx.lineTo(enemy.x, enemy.y + enemy.height);
+            ctx.lineTo(enemy.x + enemy.width, enemy.y + enemy.height);
+            ctx.closePath();
+            ctx.fillStyle = enemy.color;
+            ctx.fill();
+            
+            // Add metallic effect
+            ctx.fillStyle = '#ffffff';
+            ctx.globalAlpha = 0.3;
+            ctx.beginPath();
+            ctx.moveTo(centerX, enemy.y + 3);
+            ctx.lineTo(enemy.x + 3, enemy.y + enemy.height - 3);
+            ctx.lineTo(enemy.x + enemy.width - 3, enemy.y + enemy.height - 3);
+            ctx.closePath();
+            ctx.fill();
+        }
     }
     
     ctx.restore();
@@ -4989,6 +5044,9 @@ function initializeGameElements() {
     
     // Load modern spaceship image
     loadModernShipImage();
+    
+    // Load enemy spaceship images
+    loadEnemyShipImages();
 
 // Test radio chatter on first user interaction
 let radioChatterTestDone = false;
@@ -6012,4 +6070,43 @@ function loadModernShipImage() {
         console.log('Failed to load modern spaceship image, using default');
     };
     modernShipImage.src = 'blueship1.png';
+}
+
+// Modern futuristic enemy spaceship designs
+let enemyShipImages = {
+    red: null,
+    orange: null,
+    purple: null,
+    elite: null
+};
+
+// Load enemy spaceship images
+function loadEnemyShipImages() {
+    // Red enemy ship (aggressive)
+    enemyShipImages.red = new Image();
+    enemyShipImages.red.onload = function() {
+        console.log('Red enemy ship image loaded successfully');
+    };
+    enemyShipImages.red.src = 'blueship2.png'; // Using blueship2 as base for red enemy
+    
+    // Orange enemy ship (medium difficulty)
+    enemyShipImages.orange = new Image();
+    enemyShipImages.orange.onload = function() {
+        console.log('Orange enemy ship image loaded successfully');
+    };
+    enemyShipImages.orange.src = 'blueship3.png'; // Using blueship3 as base for orange enemy
+    
+    // Purple enemy ship (elite)
+    enemyShipImages.purple = new Image();
+    enemyShipImages.purple.onload = function() {
+        console.log('Purple enemy ship image loaded successfully');
+    };
+    enemyShipImages.purple.src = 'blueship4.png'; // Using blueship4 as base for purple enemy
+    
+    // Elite enemy ship (boss-like)
+    enemyShipImages.elite = new Image();
+    enemyShipImages.elite.onload = function() {
+        console.log('Elite enemy ship image loaded successfully');
+    };
+    enemyShipImages.elite.src = 'blueship1.png'; // Using blueship1 as base for elite enemy
 }
