@@ -4279,206 +4279,99 @@ function drawEnemyBullet(bullet) {
 }
 
 function drawPlayer() {
-    const x = player.x;
-    const y = player.y;
+    if (!ctx) return;
     
-    // Apply cloak effect
-    if (player.isCloaked) {
+    // Use modern ship design if available
+    if (modernShipImage && modernShipImage.complete) {
+        // Calculate center position for the image
+        const centerX = player.x + player.width / 2;
+        const centerY = player.y + player.height / 2;
+        
+        // Draw the modern spaceship
         ctx.save();
-        ctx.globalAlpha = 0.3;
-    }
-    
-    // Use selected ship's draw function if available, otherwise use default
-    if (player.shipType && SHIPS[player.shipType] && SHIPS[player.shipType].draw) {
-        SHIPS[player.shipType].draw(ctx, x, y);
-    } else {
-        // Default ship design
-        const character = CHARACTERS[player.character];
-        const shipColor = (player.character === 'adelynn') ? '#ff69b4' : 
-                         (player.character === 'kaden') ? '#3b2e2a' : 
-                         (player.character === 'blaze') ? '#ff4500' : 
-                         (player.character === 'zara') ? '#9932cc' :
-                         (player.character === 'max') ? '#32cd32' :
-                         (player.character === 'luna') ? '#87ceeb' :
-                         (player.character === 'rocket') ? '#ff6347' :
-                         (player.character === 'stella') ? '#ffd700' :
-                         (player.character === 'thunder') ? '#4169e1' :
-                         character.color;
-        ctx.fillStyle = shipColor;
+        ctx.translate(centerX, centerY);
         
-        // Main triangle body
-        ctx.beginPath();
-        ctx.moveTo(x + 30, y + 10); // Top point
-        ctx.lineTo(x + 10, y + 50); // Bottom left
-        ctx.lineTo(x + 50, y + 50); // Bottom right
-        ctx.closePath();
-        ctx.fill();
-        
-        // Cockpit (darker shade)
-        ctx.fillStyle = "#1a1a2e";
-        ctx.beginPath();
-        ctx.moveTo(x + 30, y + 15);
-        ctx.lineTo(x + 20, y + 35);
-        ctx.lineTo(x + 40, y + 35);
-        ctx.closePath();
-        ctx.fill();
-        
-        // Wing tips with missile rails
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(x + 5, y + 30, 8, 4);  // Left missile rail
-        ctx.fillRect(x + 47, y + 30, 8, 4); // Right missile rail
-        
-        // Engine exhausts (orange glow)
-        ctx.shadowColor = '#ff6600';
-        ctx.shadowBlur = 8;
-        ctx.fillStyle = '#ffaa00';
-        ctx.fillRect(x + 20, y + 45, 6, 8);
-        ctx.fillRect(x + 34, y + 45, 6, 8);
-        ctx.shadowBlur = 0;
-        
-        // Side weapon pods
-        ctx.fillStyle = "#cccccc";
-        ctx.fillRect(x + 8, y + 25, 4, 6);   // Left weapon pod
-        ctx.fillRect(x + 48, y + 25, 4, 6);  // Right weapon pod
-    }
-    
-    // Draw pilot in cockpit (only for default ships)
-    if (!player.shipType || !SHIPS[player.shipType] || !SHIPS[player.shipType].draw) {
-        const pilotX = x + 30;
-        const pilotY = y + 25;
-        ctx.save();
-        if (player.character === 'kaden') {
-            // Kaden: dark skin, blue helmet
-            ctx.beginPath();
-            ctx.arc(pilotX, pilotY, 5, 0, Math.PI * 2);
-            ctx.fillStyle = '#7a4a21'; // dark brown skin
-            ctx.fill();
-            // Helmet
-            ctx.beginPath();
-            ctx.arc(pilotX, pilotY, 7, 0, Math.PI * 2);
-            ctx.strokeStyle = '#4a90e2';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        } else if (player.character === 'adelynn') {
-            // Adelynn: pink helmet and suit
-            ctx.beginPath();
-            ctx.arc(pilotX, pilotY, 5, 0, Math.PI * 2);
-            ctx.fillStyle = '#ffe0e6'; // light skin (or use #fff for helmet visor)
-            ctx.fill();
-            // Pink helmet
-            ctx.beginPath();
-            ctx.arc(pilotX, pilotY, 7, 0, Math.PI * 2);
-            ctx.strokeStyle = '#ff69b4';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            // Pink suit collar
-            ctx.beginPath();
-            ctx.arc(pilotX, pilotY + 5, 4, 0, Math.PI, true);
-            ctx.strokeStyle = '#ff69b4';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        } else if (player.character === 'zara') {
-            // Zara: purple cosmic explorer
-            ctx.beginPath();
-            ctx.arc(pilotX, pilotY, 5, 0, Math.PI * 2);
-            ctx.fillStyle = '#ffe0e6';
-            ctx.fill();
-            // Purple helmet
-            ctx.beginPath();
-            ctx.arc(pilotX, pilotY, 7, 0, Math.PI * 2);
-            ctx.strokeStyle = '#9932cc';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        } else if (player.character === 'max') {
-            // Max: green speed demon
-            ctx.beginPath();
-            ctx.arc(pilotX, pilotY, 5, 0, Math.PI * 2);
-            ctx.fillStyle = '#7a4a21';
-            ctx.fill();
-            // Green helmet
-            ctx.beginPath();
-            ctx.arc(pilotX, pilotY, 7, 0, Math.PI * 2);
-            ctx.strokeStyle = '#32cd32';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        } else if (player.character === 'luna') {
-            // Luna: blue lunar guardian
-            ctx.beginPath();
-            ctx.arc(pilotX, pilotY, 5, 0, Math.PI * 2);
-            ctx.fillStyle = '#ffe0e6';
-            ctx.fill();
-            // Blue helmet
-            ctx.beginPath();
-            ctx.arc(pilotX, pilotY, 7, 0, Math.PI * 2);
-            ctx.strokeStyle = '#87ceeb';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        } else if (player.character === 'rocket') {
-            // Rocket: orange energetic pilot
-            ctx.beginPath();
-            ctx.arc(pilotX, pilotY, 5, 0, Math.PI * 2);
-            ctx.fillStyle = '#ffe0b2';
-            ctx.fill();
-            // Orange helmet
-            ctx.beginPath();
-            ctx.arc(pilotX, pilotY, 7, 0, Math.PI * 2);
-            ctx.strokeStyle = '#ff6347';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        } else if (player.character === 'stella') {
-            // Stella: golden shining star
-            ctx.beginPath();
-            ctx.arc(pilotX, pilotY, 5, 0, Math.PI * 2);
-            ctx.fillStyle = '#ffe0e6';
-            ctx.fill();
-            // Golden helmet
-            ctx.beginPath();
-            ctx.arc(pilotX, pilotY, 7, 0, Math.PI * 2);
-            ctx.strokeStyle = '#ffd700';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        } else if (player.character === 'thunder') {
-            // Thunder: blue electric pilot
-            ctx.beginPath();
-            ctx.arc(pilotX, pilotY, 5, 0, Math.PI * 2);
-            ctx.fillStyle = '#ffe0b2';
-            ctx.fill();
-            // Blue helmet
-            ctx.beginPath();
-            ctx.arc(pilotX, pilotY, 7, 0, Math.PI * 2);
-            ctx.strokeStyle = '#4169e1';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        } else {
-            // Default pilot
-            ctx.beginPath();
-            ctx.arc(pilotX, pilotY, 5, 0, Math.PI * 2);
-            ctx.fillStyle = '#ffe0b2'; // default skin
-            ctx.fill();
-            // Helmet
-            ctx.beginPath();
-            ctx.arc(pilotX, pilotY, 7, 0, Math.PI * 2);
-            ctx.strokeStyle = '#cccccc';
-            ctx.lineWidth = 2;
-            ctx.stroke();
+        // Add rotation based on movement direction
+        if (keys.ArrowLeft || keys.a) {
+            ctx.rotate(-0.1);
+        } else if (keys.ArrowRight || keys.d) {
+            ctx.rotate(0.1);
         }
+        
+        // Add engine glow effect
+        ctx.shadowColor = '#00ffff';
+        ctx.shadowBlur = 15;
+        ctx.drawImage(modernShipImage, -player.width/2, -player.height/2, player.width, player.height);
+        
+        // Add additional glow effects
+        ctx.shadowColor = '#0088ff';
+        ctx.shadowBlur = 10;
+        ctx.globalAlpha = 0.7;
+        ctx.drawImage(modernShipImage, -player.width/2, -player.height/2, player.width, player.height);
+        
+        ctx.restore();
+        
+        // Add engine trail effect
+        if (keys.ArrowUp || keys.w || keys.ArrowDown || keys.s) {
+            ctx.save();
+            ctx.globalAlpha = 0.6;
+            ctx.fillStyle = '#00ffff';
+            ctx.shadowColor = '#00ffff';
+            ctx.shadowBlur = 20;
+            
+            // Engine trail
+            const trailLength = 20;
+            const trailWidth = 8;
+            ctx.fillRect(player.x + player.width/2 - trailWidth/2, 
+                        player.y + player.height + 5, 
+                        trailWidth, trailLength);
+            
+            ctx.restore();
+        }
+    } else {
+        // Fallback to original triangle design
+        ctx.save();
+        
+        // Add glow effect
+        ctx.shadowColor = '#00ffff';
+        ctx.shadowBlur = 10;
+        
+        // Draw the triangle ship
+        ctx.fillStyle = '#00ffff';
+        ctx.beginPath();
+        ctx.moveTo(player.x + player.width / 2, player.y);
+        ctx.lineTo(player.x, player.y + player.height);
+        ctx.lineTo(player.x + player.width, player.y + player.height);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Add metallic effect
+        ctx.fillStyle = '#ffffff';
+        ctx.globalAlpha = 0.3;
+        ctx.beginPath();
+        ctx.moveTo(player.x + player.width / 2, player.y + 5);
+        ctx.lineTo(player.x + 5, player.y + player.height - 5);
+        ctx.lineTo(player.x + player.width - 5, player.y + player.height - 5);
+        ctx.closePath();
+        ctx.fill();
+        
         ctx.restore();
     }
     
-    // Shield effect if active
+    // Draw shield effect if active
     if (player.isShieldActive && player.shield > 0) {
         ctx.save();
-        ctx.globalAlpha = player.shield / player.maxShield * 0.6;
         ctx.strokeStyle = '#00ffff';
         ctx.lineWidth = 3;
+        ctx.globalAlpha = 0.7;
+        ctx.shadowColor = '#00ffff';
+        ctx.shadowBlur = 15;
+        
         ctx.beginPath();
-        ctx.arc(x + player.width/2, y + player.height/2, player.width/2 + 5, 0, Math.PI * 2);
+        ctx.arc(player.x + player.width / 2, player.y + player.height / 2, 
+                player.width * 0.8, 0, Math.PI * 2);
         ctx.stroke();
-        ctx.restore();
-    }
-    
-    // Restore alpha if cloaked
-    if (player.isCloaked) {
+        
         ctx.restore();
     }
 }
@@ -5092,7 +4985,10 @@ function initializeGameElements() {
     setupTabNavigation();
     
     // Initialize radio chatter system
-initSpeechVoices();
+    initSpeechVoices();
+    
+    // Load modern spaceship image
+    loadModernShipImage();
 
 // Test radio chatter on first user interaction
 let radioChatterTestDone = false;
@@ -6101,4 +5997,19 @@ function triggerContextRadioChatter(eventType) {
             const regularData = getAlternatingRadioChatter();
             speakRadioChatter(regularData.message, regularData.speaker);
     }
+}
+
+// Modern futuristic spaceship design
+let modernShipImage = null;
+
+// Load the modern spaceship image
+function loadModernShipImage() {
+    modernShipImage = new Image();
+    modernShipImage.onload = function() {
+        console.log('Modern spaceship image loaded successfully');
+    };
+    modernShipImage.onerror = function() {
+        console.log('Failed to load modern spaceship image, using default');
+    };
+    modernShipImage.src = 'blueship1.png';
 }
