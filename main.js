@@ -6173,4 +6173,3 @@ function restartGame() {
     playBackgroundMusic('menu');
     
     console.log('Game restarted - returned to menu');
-}
