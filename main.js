@@ -5047,6 +5047,10 @@ function initializeGameElements() {
     
     // Load enemy spaceship images
     loadEnemyShipImages();
+    
+    // Initialize background effects
+    initBackgroundEffects();
+}
 
 // Test radio chatter on first user interaction
 let radioChatterTestDone = false;
@@ -6109,4 +6113,67 @@ function loadEnemyShipImages() {
         console.log('Elite enemy ship image loaded successfully');
     };
     enemyShipImages.elite.src = 'blueship1.png'; // Using blueship1 as base for elite enemy
+}
+
+// Dynamic background effects
+let backgroundEffects = {
+    shootingStars: [],
+    particles: [],
+    nebulaElements: []
+};
+
+// Create shooting stars
+function createShootingStar() {
+    const star = document.createElement('div');
+    star.className = 'shooting-star';
+    star.style.left = Math.random() * window.innerWidth + 'px';
+    star.style.top = Math.random() * window.innerHeight + 'px';
+    document.body.appendChild(star);
+    
+    // Remove star after animation
+    setTimeout(() => {
+        if (star.parentNode) {
+            star.parentNode.removeChild(star);
+        }
+    }, 3000);
+    
+    backgroundEffects.shootingStars.push(star);
+}
+
+// Create floating particles
+function createParticle() {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    particle.style.left = Math.random() * window.innerWidth + 'px';
+    particle.style.top = window.innerHeight + 'px';
+    particle.style.animationDelay = Math.random() * 6 + 's';
+    document.body.appendChild(particle);
+    
+    // Remove particle after animation
+    setTimeout(() => {
+        if (particle.parentNode) {
+            particle.parentNode.removeChild(particle);
+        }
+    }, 6000);
+    
+    backgroundEffects.particles.push(particle);
+}
+
+// Initialize background effects
+function initBackgroundEffects() {
+    // Create shooting stars periodically
+    setInterval(createShootingStar, 4000);
+    
+    // Create floating particles periodically
+    setInterval(createParticle, 2000);
+    
+    // Create initial particles
+    for (let i = 0; i < 10; i++) {
+        setTimeout(createParticle, i * 200);
+    }
+    
+    // Create initial shooting stars
+    for (let i = 0; i < 3; i++) {
+        setTimeout(createShootingStar, i * 1000);
+    }
 }
