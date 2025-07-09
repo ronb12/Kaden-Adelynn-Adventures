@@ -1657,18 +1657,7 @@ function startBossRadioChatter() {
     console.log('Boss radio chatter started successfully');
 }
 
-// Achievement system
-const achievements = {
-    firstKill: { name: "First Blood", description: "Destroy your first enemy", earned: false, score: 10 },
-    sharpshooter: { name: "Sharpshooter", description: "Score 100 points", earned: false, score: 100 },
-    survivor: { name: "Survivor", description: "Reach level 3", earned: false, level: 3 },
-    destroyer: { name: "Destroyer", description: "Score 500 points", earned: false, score: 500 },
-    veteran: { name: "Veteran", description: "Reach level 5", earned: false, level: 5 },
-    master: { name: "Space Master", description: "Score 1000 points", earned: false, score: 1000 },
-    legend: { name: "Legend", description: "Score 2000 points", earned: false, score: 2000 }
-};
-
-let earnedAchievements = [];
+// Achievement system - using existing achievements object from line 66
 
 // Character system
 let selectedCharacter = localStorage.getItem('spaceAdventuresCharacter') || 'kaden';
