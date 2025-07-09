@@ -2250,12 +2250,19 @@ function pauseGame() {
     cancelAnimationFrame(gameLoop);
     showNotification('Game Paused - Press P to Resume', 'info');
     
+    // Remove game-playing class to show mobile tab bar during pause
+    document.body.classList.remove('game-playing');
+    
     // Pause radio chatter (will resume when game resumes)
     stopRadioChatter();
 }
 
 function resumeGame() {
     gameState = 'playing';
+    
+    // Add back game-playing class to hide mobile tab bar during gameplay
+    document.body.classList.add('game-playing');
+    
     gameLoop = requestAnimationFrame(update);
     showNotification('Game Resumed!', 'success');
     
@@ -2955,12 +2962,12 @@ function setupButtonListeners() {
     
     // Restart button
     if (restartBtn) {
-        restartBtn.addEventListener('click', startGame);
-        restartBtn.addEventListener('touchstart', startGame);
+        restartBtn.addEventListener('click', restartGame);
+        restartBtn.addEventListener('touchstart', restartGame);
         restartBtn.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                startGame();
+                restartGame();
             }
         });
     }
@@ -3019,121 +3026,79 @@ function setupButtonListeners() {
 
 // Game functions
 function startGame() {
-    console.log('=== START GAME CALLED ===');
-    console.log('Start button clicked!');
-    console.log('Game state before:', gameState);
-    console.log('Canvas available:', !!canvas);
-    console.log('Game loop active:', !!gameLoop);
+    if (gameState === 'playing') return;
     
-    // Safety check: ensure canvas is available
-    if (!canvas || !ctx) {
-        console.error('Canvas not available for game start');
-        return;
-    }
-    
-    // Prevent multiple starts
-    if (gameState === 'playing') {
-        console.log('Game already in progress, ignoring start request');
-        return;
-    }
+    // Add game-playing class to body for mobile tab bar control
+    document.body.classList.add('game-playing');
     
     gameState = 'playing';
     score = 0;
     lives = 50;
     level = 1;
-    weaponLevel = 1;
-    lastUIUpdate = 0; // Reset UI update timer for performance optimization
+    money = parseInt(localStorage.getItem('spaceAdventuresMoney')) || 0;
+    wingmen = parseInt(localStorage.getItem('spaceAdventuresWingmen')) || 0;
+    totalWingmenPurchased = parseInt(localStorage.getItem('spaceAdventuresTotalWingmen')) || 0;
     
-    // Reset achievements for new game
-    Object.keys(achievements).forEach(key => {
-        achievements[key].earned = false;
-    });
-    earnedAchievements = [];
-    
-    // Apply selected ship stats to player
-    const shipStats = getCurrentShipStats();
-    player.speed = shipStats.speed;
-    player.firepower = shipStats.firepower;
-    player.maxShield = shipStats.shield * 10; // Convert shield rating to actual shield points
-    player.shield = player.maxShield;
-    player.shipType = selectedShip;
-    player.specialAbility = shipStats.special;
-    player.isShieldActive = false;
-    player.shieldRecharge = 0;
-    
-    // Show ship selection notification
-    showNotification(`🚀 ${shipStats.name} selected! ${shipStats.special}`, 'info');
-    
+    // Reset game objects
     bullets = [];
     enemyBullets = [];
     enemies = [];
-    explosions = [];
     powerUps = [];
-    wingmen = [];
-    wingmanCount = 0;
+    wingmenArray = [];
+    explosions = [];
+    particleSystems = [];
     specialEffects = [];
     
-    // Center player with boundary constraints
-    player.x = Math.max(PLAYER_MARGIN, Math.min(canvas.width - player.width - PLAYER_MARGIN, canvas.width / 2));
-    player.y = Math.max(PLAYER_MARGIN, Math.min(canvas.height - player.height - PLAYER_MARGIN, canvas.height - 50));
+    // Reset player position
+    player.x = canvas.width / 2 - player.width / 2;
+    player.y = canvas.height - player.height - 20;
     
-    if (startScreen) startScreen.classList.add('hidden');
-    if (gameOverScreen) gameOverScreen.classList.add('hidden');
+    // Reset boss
+    boss = null;
+    bossHealth = 0;
     
-    // Music disabled - only radio chatter plays
+    // Reset mission progress
+    currentMission = 0;
+    missionProgress = 0;
     
-    // Initialize UI
+    // Start first mission
+    startMission(0);
+    
+    // Hide start screen
+    if (startScreen) {
+        startScreen.classList.add('hidden');
+    }
+    
+    // Show game canvas
+    if (canvas) {
+        canvas.style.display = 'block';
+    }
+    
+    // Start game loop
+    if (!gameLoop) {
+        gameLoop = setInterval(update, 1000 / 60);
+    }
+    
+    // Start background music
+    playBackgroundMusic('game');
+    
+    // Start radio chatter
+    startRadioChatter();
+    
+    // Initialize touch controls for mobile
+    initTouchControls();
+    
+    // Update UI
     updateUI();
     
-    // Show story introduction only if it's the first time playing or mission just started
-    const lastMissionShown = localStorage.getItem('spaceAdventuresLastMissionShown') || 0;
-    if (currentStoryMission <= 5 && currentStoryMission > parseInt(lastMissionShown)) {
-        const mission = STORY_MISSIONS[currentStoryMission];
-        setTimeout(() => {
-            showStoryNotification(
-                `🎖️ ${playerRank} - Mission ${currentStoryMission}: ${mission.title}`,
-                mission.description,
-                'info'
-            );
-        }, 1000);
-        localStorage.setItem('spaceAdventuresLastMissionShown', currentStoryMission);
-    }
-    
-    if (gameLoop) cancelAnimationFrame(gameLoop);
-    gameLoop = requestAnimationFrame(update);
-    
-    // Start radio chatter (music disabled)
-    console.log('=== RADIO CHATTER STARTUP ===');
-    console.log('Radio chatter enabled:', radioChatterEnabled);
-    console.log('Speech synthesis available:', !!speechSynthesis);
-    console.log('Game state:', gameState);
-    
-    if (radioChatterEnabled) {
-        console.log('Starting radio chatter in startGame...');
-        startRadioChatter();
-        
-        // Force immediate radio chatter test
-        setTimeout(() => {
-            console.log('Forcing immediate radio chatter test...');
-            if (radioChatterEnabled) {
-                speakRadioChatter('Mission started! Radio chatter active!', 'command');
-            }
-        }, 500);
-        
-        // Additional test after 2 seconds
-        setTimeout(() => {
-            console.log('Second radio chatter test...');
-            if (radioChatterEnabled && gameState === 'playing') {
-                speakRadioChatter('Radio chatter confirmed operational!', 'command');
-            }
-        }, 2000);
-    } else {
-        console.log('Radio chatter is disabled!');
-    }
+    console.log('Game started!');
 }
 
 function gameOver() {
     gameState = 'gameOver';
+    
+    // Remove game-playing class to show mobile tab bar again
+    document.body.classList.remove('game-playing');
     
     // Check for new high score
     if (score > highScore) {
@@ -6176,4 +6141,37 @@ function initBackgroundEffects() {
     for (let i = 0; i < 3; i++) {
         setTimeout(createShootingStar, i * 1000);
     }
+}
+
+// Restart game function
+function restartGame() {
+    // Hide game over screen
+    if (gameOverScreen) {
+        gameOverScreen.classList.add('hidden');
+    }
+    
+    // Remove game-playing class to show mobile tab bar
+    document.body.classList.remove('game-playing');
+    
+    // Show start screen
+    if (startScreen) {
+        startScreen.classList.remove('hidden');
+    }
+    
+    // Reset game state
+    gameState = 'menu';
+    
+    // Stop any ongoing game loop
+    if (gameLoop) {
+        cancelAnimationFrame(gameLoop);
+        gameLoop = null;
+    }
+    
+    // Stop radio chatter
+    stopRadioChatter();
+    
+    // Play menu music
+    playBackgroundMusic('menu');
+    
+    console.log('Game restarted - returned to menu');
 }
