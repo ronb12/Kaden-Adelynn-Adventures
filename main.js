@@ -1843,7 +1843,6 @@ const STORY_MISSIONS = {
 };
 
 // Enhanced weapon system with rapid fire
-let weaponLevel = 1;
 let lastShotTime = 0;
 const SHOT_DELAY = 150;
 const RAPID_FIRE_DELAY = 80;
