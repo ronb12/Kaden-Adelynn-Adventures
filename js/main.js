@@ -1,6 +1,6 @@
-// Kaden & Adelynn Space Adventures - Enhanced Version 3.7
+// Kaden & Adelynn Space Adventures - Enhanced Version 3.8
 // A space shooter game with multiple ships, weapons, and power-ups
-// Boss battles, phases, checkpoint system, enhanced power-ups, advanced enemy types, and advanced weapon systems
+// Boss battles, phases, checkpoint system, enhanced power-ups, advanced enemy types, advanced weapon systems, and environmental hazards
 
 // Game variables
 let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, startScreen, finalScoreElement, restartBtn, startBtn, highScoreElement, fullscreenBtn;
@@ -544,6 +544,52 @@ let touchControls = {
     shootInterval: null
 };
 
+// Environmental hazards
+let asteroids = [];
+let barriers = [];
+let movingObstacles = [];
+let damageZones = [];
+
+// Hazard types
+const HAZARD_TYPES = {
+    asteroid: {
+        name: 'Asteroid',
+        color: '#888888',
+        width: 30,
+        height: 30,
+        speed: 2,
+        damage: 1,
+        points: 5
+    },
+    barrier: {
+        name: 'Barrier',
+        color: '#444444',
+        width: 60,
+        height: 20,
+        speed: 1,
+        damage: 2,
+        points: 10
+    },
+    movingObstacle: {
+        name: 'Moving Obstacle',
+        color: '#ff4444',
+        width: 40,
+        height: 40,
+        speed: 3,
+        damage: 3,
+        points: 15
+    },
+    damageZone: {
+        name: 'Damage Zone',
+        color: '#ff0000',
+        width: 100,
+        height: 50,
+        speed: 1,
+        damage: 5,
+        points: 20
+    }
+};
+
 // Initialize game elements
 function initializeGameElements() {
     console.log('=== GAME INITIALIZATION START ===');
@@ -762,7 +808,8 @@ function gameLoop() {
         updateBoss();
         updatePowerUps();
         updatePowerUpEffects();
-        updateWeaponSystems(); // Add this line
+        updateWeaponSystems();
+        updateHazards(); // Add this line
         updateCollectibles();
         updateExplosions();
         updateStars();
@@ -772,6 +819,7 @@ function gameLoop() {
         spawnEnemy();
         spawnPowerUp();
         spawnCollectible();
+        spawnHazards(); // Add this line
         render();
     }
     
@@ -1163,6 +1211,69 @@ function spawnCollectible() {
     }
 }
 
+// Spawn environmental hazards
+function spawnHazards() {
+    // Spawn asteroids
+    if (Math.random() < 0.01) {
+        const hazard = HAZARD_TYPES.asteroid;
+        asteroids.push({
+            x: Math.random() * (canvas.width - hazard.width),
+            y: -hazard.height,
+            width: hazard.width,
+            height: hazard.height,
+            speed: hazard.speed + Math.random() * 2,
+            damage: hazard.damage,
+            points: hazard.points,
+            rotation: 0,
+            rotationSpeed: (Math.random() - 0.5) * 0.1
+        });
+    }
+    
+    // Spawn barriers at higher levels
+    if (level >= 3 && Math.random() < 0.005) {
+        const hazard = HAZARD_TYPES.barrier;
+        barriers.push({
+            x: Math.random() * (canvas.width - hazard.width),
+            y: -hazard.height,
+            width: hazard.width,
+            height: hazard.height,
+            speed: hazard.speed,
+            damage: hazard.damage,
+            points: hazard.points
+        });
+    }
+    
+    // Spawn moving obstacles at higher levels
+    if (level >= 5 && Math.random() < 0.003) {
+        const hazard = HAZARD_TYPES.movingObstacle;
+        movingObstacles.push({
+            x: Math.random() * (canvas.width - hazard.width),
+            y: -hazard.height,
+            width: hazard.width,
+            height: hazard.height,
+            speed: hazard.speed,
+            damage: hazard.damage,
+            points: hazard.points,
+            direction: Math.random() > 0.5 ? 1 : -1
+        });
+    }
+    
+    // Spawn damage zones at higher levels
+    if (level >= 7 && Math.random() < 0.002) {
+        const hazard = HAZARD_TYPES.damageZone;
+        damageZones.push({
+            x: Math.random() * (canvas.width - hazard.width),
+            y: -hazard.height,
+            width: hazard.width,
+            height: hazard.height,
+            speed: hazard.speed,
+            damage: hazard.damage,
+            points: hazard.points,
+            pulse: 0
+        });
+    }
+}
+
 // Enhanced power-up collection logic
 function collectPowerUp(powerUp) {
     const powerUpType = POWERUP_TYPES[powerUp.type];
@@ -1476,6 +1587,57 @@ function updateWeaponSystems() {
     }
 }
 
+// Update environmental hazards
+function updateHazards() {
+    // Update asteroids
+    for (let i = asteroids.length - 1; i >= 0; i--) {
+        const asteroid = asteroids[i];
+        asteroid.y += asteroid.speed;
+        asteroid.rotation += asteroid.rotationSpeed;
+        
+        if (asteroid.y > canvas.height) {
+            asteroids.splice(i, 1);
+        }
+    }
+    
+    // Update barriers
+    for (let i = barriers.length - 1; i >= 0; i--) {
+        const barrier = barriers[i];
+        barrier.y += barrier.speed;
+        
+        if (barrier.y > canvas.height) {
+            barriers.splice(i, 1);
+        }
+    }
+    
+    // Update moving obstacles
+    for (let i = movingObstacles.length - 1; i >= 0; i--) {
+        const obstacle = movingObstacles[i];
+        obstacle.y += obstacle.speed;
+        obstacle.x += obstacle.direction * 2;
+        
+        // Bounce off screen edges
+        if (obstacle.x <= 0 || obstacle.x + obstacle.width >= canvas.width) {
+            obstacle.direction *= -1;
+        }
+        
+        if (obstacle.y > canvas.height) {
+            movingObstacles.splice(i, 1);
+        }
+    }
+    
+    // Update damage zones
+    for (let i = damageZones.length - 1; i >= 0; i--) {
+        const zone = damageZones[i];
+        zone.y += zone.speed;
+        zone.pulse += 0.1;
+        
+        if (zone.y > canvas.height) {
+            damageZones.splice(i, 1);
+        }
+    }
+}
+
 // Enhanced collision detection for advanced enemy types
 function checkCollisions() {
     // Bullet vs Enemy collisions
@@ -1695,6 +1857,80 @@ function checkCollisions() {
             }
         }
     }
+    
+    // Player vs Environmental Hazards
+    if (!player.invulnerable && !player.shieldActive) {
+        // Check asteroids
+        for (let i = asteroids.length - 1; i >= 0; i--) {
+            if (checkCollision(asteroids[i], player)) {
+                player.health -= asteroids[i].damage;
+                asteroids.splice(i, 1);
+                createPlayerHitEffect();
+            }
+        }
+        
+        // Check barriers
+        for (let i = barriers.length - 1; i >= 0; i--) {
+            if (checkCollision(barriers[i], player)) {
+                player.health -= barriers[i].damage;
+                barriers.splice(i, 1);
+                createPlayerHitEffect();
+            }
+        }
+        
+        // Check moving obstacles
+        for (let i = movingObstacles.length - 1; i >= 0; i--) {
+            if (checkCollision(movingObstacles[i], player)) {
+                player.health -= movingObstacles[i].damage;
+                movingObstacles.splice(i, 1);
+                createPlayerHitEffect();
+            }
+        }
+        
+        // Check damage zones
+        for (let i = damageZones.length - 1; i >= 0; i--) {
+            if (checkCollision(damageZones[i], player)) {
+                player.health -= damageZones[i].damage;
+                createPlayerHitEffect();
+            }
+        }
+    }
+    
+    // Bullets vs Environmental Hazards
+    for (let i = bullets.length - 1; i >= 0; i--) {
+        // Check bullets vs asteroids
+        for (let j = asteroids.length - 1; j >= 0; j--) {
+            if (checkCollision(bullets[i], asteroids[j])) {
+                bullets.splice(i, 1);
+                asteroids.splice(j, 1);
+                addScore(asteroids[j] ? asteroids[j].points : 5);
+                createExplosion(bullets[i].x, bullets[i].y);
+                break;
+            }
+        }
+        
+        // Check bullets vs barriers
+        for (let j = barriers.length - 1; j >= 0; j--) {
+            if (checkCollision(bullets[i], barriers[j])) {
+                bullets.splice(i, 1);
+                barriers.splice(j, 1);
+                addScore(barriers[j] ? barriers[j].points : 10);
+                createExplosion(bullets[i].x, bullets[i].y);
+                break;
+            }
+        }
+        
+        // Check bullets vs moving obstacles
+        for (let j = movingObstacles.length - 1; j >= 0; j--) {
+            if (checkCollision(bullets[i], movingObstacles[j])) {
+                bullets.splice(i, 1);
+                movingObstacles.splice(j, 1);
+                addScore(movingObstacles[j] ? movingObstacles[j].points : 15);
+                createExplosion(bullets[i].x, bullets[i].y);
+                break;
+            }
+        }
+    }
 }
 
 // Collision detection
@@ -1837,6 +2073,9 @@ function render() {
     // Draw enemies
     drawEnemies();
     
+    // Draw environmental hazards
+    drawHazards();
+    
     // Draw power-ups
     drawPowerUps();
     
@@ -1851,7 +2090,7 @@ function render() {
     
     // Draw touch indicator for mobile
     drawTouchIndicator();
-
+    
     // Draw boss
     drawBoss();
 }
@@ -2450,3 +2689,88 @@ document.addEventListener('keyup', function(e) {
         shoot(); // Fire charged shot
     }
 });
+
+// Helper function to create player hit effect
+function createPlayerHitEffect() {
+    playSound('playerHit');
+    player.invulnerable = true;
+    player.invulnerabilityTime = Date.now() + PLAYER_INVULNERABILITY_TIME;
+    
+    explosions.push({
+        x: player.x + player.width / 2,
+        y: player.y + player.height / 2,
+        life: 15
+    });
+    
+    if (player.health <= 0) {
+        lives--;
+        player.health = player.maxHealth;
+        
+        if (lives <= 0) {
+            gameOver();
+        }
+    }
+}
+
+// Helper function to create explosion
+function createExplosion(x, y) {
+    explosions.push({
+        x: x,
+        y: y,
+        life: 10
+    });
+    playSound('explosion');
+}
+
+// Draw environmental hazards
+function drawHazards() {
+    // Draw asteroids
+    for (let asteroid of asteroids) {
+        ctx.save();
+        ctx.translate(asteroid.x + asteroid.width/2, asteroid.y + asteroid.height/2);
+        ctx.rotate(asteroid.rotation);
+        ctx.fillStyle = HAZARD_TYPES.asteroid.color;
+        ctx.fillRect(-asteroid.width/2, -asteroid.height/2, asteroid.width, asteroid.height);
+        ctx.restore();
+    }
+    
+    // Draw barriers
+    for (let barrier of barriers) {
+        ctx.fillStyle = HAZARD_TYPES.barrier.color;
+        ctx.fillRect(barrier.x, barrier.y, barrier.width, barrier.height);
+        
+        // Add barrier texture
+        ctx.strokeStyle = '#666666';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < barrier.width; i += 10) {
+            ctx.beginPath();
+            ctx.moveTo(barrier.x + i, barrier.y);
+            ctx.lineTo(barrier.x + i, barrier.y + barrier.height);
+            ctx.stroke();
+        }
+    }
+    
+    // Draw moving obstacles
+    for (let obstacle of movingObstacles) {
+        ctx.fillStyle = HAZARD_TYPES.movingObstacle.color;
+        ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+        
+        // Add warning stripes
+        ctx.fillStyle = '#ffff00';
+        ctx.fillRect(obstacle.x, obstacle.y + obstacle.height/4, obstacle.width, obstacle.height/8);
+        ctx.fillRect(obstacle.x, obstacle.y + obstacle.height*3/4, obstacle.width, obstacle.height/8);
+    }
+    
+    // Draw damage zones
+    for (let zone of damageZones) {
+        const alpha = Math.sin(zone.pulse) * 0.5 + 0.5;
+        ctx.fillStyle = `rgba(255, 0, 0, ${alpha})`;
+        ctx.fillRect(zone.x, zone.y, zone.width, zone.height);
+        
+        // Add danger symbol
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('⚠️', zone.x + zone.width/2, zone.y + zone.height/2 + 6);
+    }
+}
