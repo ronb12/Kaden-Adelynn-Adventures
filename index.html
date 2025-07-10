@@ -106,7 +106,8 @@
             
             <!-- Tab Navigation -->
             <div class="tab-navigation">
-                <button class="tab-button active" data-tab="story">📖 Story</button>
+                <button class="tab-button active" data-tab="home">🏠 Home</button>
+                <button class="tab-button" data-tab="story">📖 Story</button>
                 <button class="tab-button" data-tab="characters">👥 Characters</button>
                 <button class="tab-button" data-tab="controls">🎮 Controls</button>
                 <button class="tab-button" data-tab="features">⭐ Features</button>
@@ -116,8 +117,76 @@
             
             <!-- Tab Content Container -->
             <div class="tab-content-container">
+                <!-- Home Tab View -->
+                <div class="tab-view active" id="home-view">
+                    <div class="home-welcome">
+                        <h3>🚀 Welcome to Space Adventures! 🚀</h3>
+                        <p class="home-description">Embark on an epic journey through the cosmos. Choose your hero, upgrade your ship, and defend the galaxy from the Zorath Empire!</p>
+                    </div>
+                    
+                    <div class="home-quick-stats">
+                        <div class="stat-item">
+                            <span class="stat-icon">🎖️</span>
+                            <span class="stat-text">20 Epic Missions</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-icon">👾</span>
+                            <span class="stat-text">Epic Boss Battles</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-icon">💰</span>
+                            <span class="stat-text">Money System</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-icon">🛩️</span>
+                            <span class="stat-text">Wingman Squadrons</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-icon">⚡</span>
+                            <span class="stat-text">Special Abilities</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-icon">🏆</span>
+                            <span class="stat-text">Achievements</span>
+                        </div>
+                    </div>
+                    
+                    <div class="home-actions">
+                        <h4>Quick Actions:</h4>
+                        <div class="action-buttons">
+                            <button class="action-btn" onclick="document.querySelector('[data-tab=\"characters\"]').click()">
+                                <span class="action-icon">👥</span>
+                                <span class="action-text">Choose Character</span>
+                            </button>
+                            <button class="action-btn" onclick="document.querySelector('[data-tab=\"ships\"]').click()">
+                                <span class="action-icon">🚀</span>
+                                <span class="action-text">Select Ship</span>
+                            </button>
+                            <button class="action-btn" onclick="document.querySelector('[data-tab=\"story\"]').click()">
+                                <span class="action-icon">📖</span>
+                                <span class="action-text">View Story</span>
+                            </button>
+                            <button class="action-btn" onclick="document.querySelector('[data-tab=\"features\"]').click()">
+                                <span class="action-icon">⭐</span>
+                                <span class="action-text">Game Features</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="home-tips">
+                        <h4>💡 Pro Tips:</h4>
+                        <ul class="tips-list">
+                            <li>Use arrow keys to move your ship</li>
+                            <li>Press SPACE to shoot enemies</li>
+                            <li>Collect power-ups for special abilities</li>
+                            <li>Buy wingmen to help in battle</li>
+                            <li>Complete missions for rewards</li>
+                        </ul>
+                    </div>
+                </div>
+                
                 <!-- Story Tab View -->
-                <div class="tab-view active" id="story-view">
+                <div class="tab-view" id="story-view">
                     <div class="story-intro">
                         <p class="story-tagline">🚀 Defend the Galaxy from the Zorath Empire! 🚀</p>
                         <p class="story-brief">Rise from Cadet to Admiral in this epic space adventure. Complete missions, build your squadron, and become a legend!</p>
@@ -470,7 +539,8 @@
     <script src="js/main.js?v=3.1"></script>
     <!-- Mobile Tab Bar for navigation -->
     <div class="mobile-tab-bar">
-        <button class="mobile-tab-btn" data-tab="story">🏠</button>
+        <button class="mobile-tab-btn" data-tab="home">🏠</button>
+        <button class="mobile-tab-btn" data-tab="story">📖</button>
         <button class="mobile-tab-btn" data-tab="characters">👥</button>
         <button class="mobile-tab-btn" data-tab="controls">🎮</button>
         <button class="mobile-tab-btn" data-tab="features">⭐</button>

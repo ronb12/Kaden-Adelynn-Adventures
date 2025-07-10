@@ -5135,6 +5135,9 @@ function setupTabNavigation() {
             
             // Handle special cases for each tab
             switch(targetTab) {
+                case 'home':
+                    // Home tab - no special setup needed
+                    break;
                 case 'characters':
                     setupCharacterSelection();
                     break;
