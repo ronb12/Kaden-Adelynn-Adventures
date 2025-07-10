@@ -1,5 +1,5 @@
 // Simple Space Shooter Game
-// Version 2.0 - Core shooting mechanics with enhanced ship designs and mobile touch controls
+// Version 2.6 - 50 lives and bigger ships
 
 // Game variables
 let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, startScreen, finalScoreElement, restartBtn, startBtn, highScoreElement;
@@ -7,7 +7,7 @@ let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, start
 // Game state
 let gameState = 'start';
 let score = 0;
-let lives = 3;
+let lives = 50;
 let level = 1;
 let gameLoop;
 let highScore = localStorage.getItem('spaceShooterHighScore') || 0;
@@ -16,8 +16,8 @@ let highScore = localStorage.getItem('spaceShooterHighScore') || 0;
 let player = {
     x: 400,
     y: 550,
-    width: 40,
-    height: 40,
+    width: 60,
+    height: 60,
     speed: 5,
     shipType: 'fighter', // fighter, interceptor, blaster, cruiser
     weaponType: 'laser', // laser, plasma, missile, spread
@@ -30,8 +30,8 @@ const SHIP_DESIGNS = {
         name: 'Fighter',
         color: '#4a90e2',
         accentColor: '#ffffff',
-        width: 40,
-        height: 40,
+        width: 60,
+        height: 60,
         speed: 5,
         fireRate: 1,
         damage: 1,
@@ -41,8 +41,8 @@ const SHIP_DESIGNS = {
         name: 'Interceptor',
         color: '#00ff88',
         accentColor: '#ffffff',
-        width: 35,
-        height: 45,
+        width: 55,
+        height: 65,
         speed: 6,
         fireRate: 1.2,
         damage: 1,
@@ -52,8 +52,8 @@ const SHIP_DESIGNS = {
         name: 'Blaster',
         color: '#ff6b35',
         accentColor: '#ffffff',
-        width: 45,
-        height: 35,
+        width: 65,
+        height: 55,
         speed: 4,
         fireRate: 0.8,
         damage: 2,
@@ -63,8 +63,8 @@ const SHIP_DESIGNS = {
         name: 'Cruiser',
         color: '#9b59b6',
         accentColor: '#ffffff',
-        width: 50,
-        height: 50,
+        width: 70,
+        height: 70,
         speed: 3,
         fireRate: 0.6,
         damage: 3,
@@ -138,8 +138,8 @@ const ENEMY_DESIGNS = [
         name: 'Scout',
         color: '#ff4444',
         accentColor: '#ffffff',
-        width: 30,
-        height: 30,
+        width: 45,
+        height: 45,
         speed: 3,
         points: 10,
         design: 'scout'
@@ -148,8 +148,8 @@ const ENEMY_DESIGNS = [
         name: 'Fighter',
         color: '#ff6666',
         accentColor: '#ffffff',
-        width: 35,
-        height: 35,
+        width: 50,
+        height: 50,
         speed: 2.5,
         points: 15,
         design: 'enemy_fighter'
@@ -158,8 +158,8 @@ const ENEMY_DESIGNS = [
         name: 'Destroyer',
         color: '#ff8888',
         accentColor: '#ffffff',
-        width: 40,
-        height: 40,
+        width: 55,
+        height: 55,
         speed: 2,
         points: 20,
         design: 'destroyer'
@@ -168,8 +168,8 @@ const ENEMY_DESIGNS = [
         name: 'Battleship',
         color: '#ffaaaa',
         accentColor: '#ffffff',
-        width: 45,
-        height: 45,
+        width: 60,
+        height: 60,
         speed: 1.5,
         points: 25,
         design: 'battleship'
@@ -377,7 +377,7 @@ function handleTouchEnd(e) {
 function startGame() {
     gameState = 'playing';
     score = 0;
-    lives = 3;
+    lives = 50;
     level = 1;
     
     // Clear arrays
