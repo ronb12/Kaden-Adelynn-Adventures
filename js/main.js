@@ -787,6 +787,36 @@ function drawStars() {
     }
 }
 
+// Draw bullets
+function drawBullets() {
+    for (let bullet of bullets) {
+        // Draw bullet based on type
+        switch(bullet.type) {
+            case 'laser':
+                ctx.fillStyle = '#00ffff';
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                break;
+            case 'plasma':
+                ctx.fillStyle = '#ff00ff';
+                ctx.beginPath();
+                ctx.arc(bullet.x + bullet.width/2, bullet.y + bullet.height/2, bullet.width/2, 0, Math.PI * 2);
+                ctx.fill();
+                break;
+            case 'missile':
+                ctx.fillStyle = '#ff8800';
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                // Add missile trail
+                ctx.fillStyle = 'rgba(255, 136, 0, 0.5)';
+                ctx.fillRect(bullet.x, bullet.y + bullet.height, bullet.width, 3);
+                break;
+            default:
+                ctx.fillStyle = '#ffff00';
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                break;
+        }
+    }
+}
+
 // Enhanced player ship drawing with detailed designs
 function drawPlayer() {
     const shipDesign = SHIP_DESIGNS[player.shipType];
