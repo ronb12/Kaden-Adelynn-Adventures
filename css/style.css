@@ -142,6 +142,10 @@ body::after {
     opacity: 1;
     visibility: visible;
     transition: opacity 0.5s ease, visibility 0.5s ease;
+    /* Ensure perfect centering */
+    margin: 0 auto;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 /* Show game container when game is active */
@@ -163,12 +167,24 @@ body::after {
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.5s ease, visibility 0.5s ease;
+    /* Ensure perfect centering */
+    display: block;
+    margin: 0 auto;
+    position: relative;
+    transform: translateX(0);
+    transform-origin: center center;
 }
 
 /* Show canvas when game is active */
 .game-container.game-active #gameCanvas {
     opacity: 1;
     visibility: visible;
+    /* Ensure perfect centering when visible */
+    display: block;
+    margin: 0 auto;
+    position: relative;
+    transform: translateX(0);
+    transform-origin: center center;
 }
 
 /* Enhanced start screen */
@@ -2225,6 +2241,8 @@ button:active {
     background: #000 !important;
     transform: translateX(0) !important;
     transform-origin: center center !important;
+    /* Ensure perfect centering */
+    box-sizing: border-box !important;
   }
   
   /* UI Overlay - ensure it's properly positioned */
@@ -2427,6 +2445,8 @@ button:active {
     background: #000 !important;
     transform: translateX(0) !important;
     transform-origin: center center !important;
+    /* Ensure perfect centering */
+    box-sizing: border-box !important;
   }
   
   .ui-overlay {
