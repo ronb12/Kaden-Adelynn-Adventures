@@ -21,15 +21,12 @@ const urlsToCache = [
 self.addEventListener('install', (event) => {
   console.log('Service Worker: Installing...');
   event.waitUntil(
-    caches.open(STATIC_CACHE)
+    caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('Service Worker: Caching static files');
-        return cache.addAll(STATIC_FILES);
+        return cache.addAll(urlsToCache);
       })
-      .then(() => {
-        console.log('Service Worker: Static files cached');
-        return self.skipWaiting();
-      })
+      .then(() => self.skipWaiting())
       .catch((error) => {
         console.error('Service Worker: Cache installation failed:', error);
       })
@@ -44,96 +41,32 @@ self.addEventListener('activate', (event) => {
       .then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
-            if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
+            if (cacheName !== CACHE_NAME) {
               console.log('Service Worker: Deleting old cache:', cacheName);
               return caches.delete(cacheName);
             }
           })
         );
       })
-      .then(() => {
-        console.log('Service Worker: Old caches cleaned up');
-        return self.clients.claim();
-      })
+      .then(() => self.clients.claim())
   );
 });
 
 // Fetch event - serve from cache, fallback to network
 self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  const url = new URL(request.url);
-
-  // Skip non-GET requests
-  if (request.method !== 'GET') {
-    return;
-  }
-
-  // Skip chrome-extension and other non-http requests
-  if (!url.protocol.startsWith('http')) {
-    return;
-  }
-
-  // Handle different types of requests
-  if (url.pathname === '/' || url.pathname.endsWith('.html')) {
-    // HTML files - cache first, then network
-    event.respondWith(cacheFirst(request, STATIC_CACHE));
-  } else if (url.pathname.endsWith('.js') || url.pathname.endsWith('.css')) {
-    // Static assets - cache first, then network
-    event.respondWith(cacheFirst(request, STATIC_CACHE));
-  } else if (url.pathname.endsWith('.json')) {
-    // JSON files - cache first, then network
-    event.respondWith(cacheFirst(request, STATIC_CACHE));
-  } else {
-    // Other requests - network first, then cache
-    event.respondWith(networkFirst(request, DYNAMIC_CACHE));
-  }
+  event.respondWith(
+    caches.match(event.request)
+      .then((response) => {
+        if (response) {
+          return response;
+        }
+        return fetch(event.request).then((networkResponse) => {
+          // Optionally cache new requests here if desired
+          return networkResponse;
+        });
+      })
+  );
 });
-
-// Cache first strategy
-async function cacheFirst(request, cacheName) {
-  try {
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      console.log('Service Worker: Serving from cache:', request.url);
-      return cachedResponse;
-    }
-
-    const networkResponse = await fetch(request);
-    if (networkResponse.ok) {
-      const cache = await caches.open(cacheName);
-      cache.put(request, networkResponse.clone());
-      console.log('Service Worker: Cached new resource:', request.url);
-    }
-    return networkResponse;
-  } catch (error) {
-    console.error('Service Worker: Cache first failed:', error);
-    // Return a fallback response for HTML requests
-    if (request.destination === 'document') {
-      return caches.match('/');
-    }
-    throw error;
-  }
-}
-
-// Network first strategy
-async function networkFirst(request, cacheName) {
-  try {
-    const networkResponse = await fetch(request);
-    if (networkResponse.ok) {
-      const cache = await caches.open(cacheName);
-      cache.put(request, networkResponse.clone());
-      console.log('Service Worker: Cached dynamic resource:', request.url);
-    }
-    return networkResponse;
-  } catch (error) {
-    console.log('Service Worker: Network failed, trying cache:', request.url);
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-    throw error;
-  }
-}
 
 // Background sync for offline actions
 self.addEventListener('sync', (event) => {

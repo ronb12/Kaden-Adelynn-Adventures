@@ -6034,7 +6034,7 @@ function loadModernShipImage() {
     modernShipImage.onerror = function() {
         console.log('Failed to load modern spaceship image, using default');
     };
-    modernShipImage.src = 'blueship1.png';
+    modernShipImage.src = 'assets/images/blueship1.png';
 }
 
 // Modern futuristic enemy spaceship designs
@@ -6052,28 +6052,28 @@ function loadEnemyShipImages() {
     enemyShipImages.red.onload = function() {
         console.log('Red enemy ship image loaded successfully');
     };
-    enemyShipImages.red.src = 'blueship2.png'; // Using blueship2 as base for red enemy
+    enemyShipImages.red.src = 'assets/images/blueship2.png'; // Using blueship2 as base for red enemy
     
     // Orange enemy ship (medium difficulty)
     enemyShipImages.orange = new Image();
     enemyShipImages.orange.onload = function() {
         console.log('Orange enemy ship image loaded successfully');
     };
-    enemyShipImages.orange.src = 'blueship3.png'; // Using blueship3 as base for orange enemy
+    enemyShipImages.orange.src = 'assets/images/blueship3.png'; // Using blueship3 as base for orange enemy
     
     // Purple enemy ship (elite)
     enemyShipImages.purple = new Image();
     enemyShipImages.purple.onload = function() {
         console.log('Purple enemy ship image loaded successfully');
     };
-    enemyShipImages.purple.src = 'blueship4.png'; // Using blueship4 as base for purple enemy
+    enemyShipImages.purple.src = 'assets/images/blueship4.png'; // Using blueship4 as base for purple enemy
     
     // Elite enemy ship (boss-like)
     enemyShipImages.elite = new Image();
     enemyShipImages.elite.onload = function() {
         console.log('Elite enemy ship image loaded successfully');
     };
-    enemyShipImages.elite.src = 'blueship1.png'; // Using blueship1 as base for elite enemy
+    enemyShipImages.elite.src = 'assets/images/blueship1.png'; // Using blueship1 as base for elite enemy
 }
 
 // Dynamic background effects
