@@ -1,5 +1,5 @@
 // Simple Space Shooter Game
-// Version 1.6 - Core shooting mechanics with enhanced ship designs
+// Version 2.0 - Core shooting mechanics with enhanced ship designs and mobile touch controls
 
 // Game variables
 let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, startScreen, finalScoreElement, restartBtn, startBtn, highScoreElement;
@@ -197,6 +197,15 @@ const COLLECTIBLE_SPAWN_RATE = 0.01;
 let keys = {};
 let lastShotTime = 0;
 
+// Touch controls for mobile
+let touchControls = {
+    isTouching: false,
+    touchX: 0,
+    touchY: 0,
+    autoShoot: false,
+    shootInterval: null
+};
+
 // Initialize game elements
 function initializeGameElements() {
     console.log('=== GAME INITIALIZATION START ===');
@@ -281,6 +290,9 @@ function setupEventListeners() {
         keys[e.key] = false;
     });
     
+    // Touch controls for mobile
+    setupTouchControls();
+    
     // Button events
     if (startBtn) {
         startBtn.addEventListener('click', startGame);
@@ -288,6 +300,70 @@ function setupEventListeners() {
     
     if (restartBtn) {
         restartBtn.addEventListener('click', restartGame);
+    }
+}
+
+// Setup touch controls for mobile devices
+function setupTouchControls() {
+    if (!canvas) return;
+    
+    // Prevent default touch behaviors
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+    canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+    canvas.addEventListener('touchcancel', handleTouchEnd, { passive: false });
+    
+    // Prevent zoom and scroll on canvas
+    canvas.addEventListener('gesturestart', (e) => e.preventDefault());
+    canvas.addEventListener('gesturechange', (e) => e.preventDefault());
+    canvas.addEventListener('gestureend', (e) => e.preventDefault());
+}
+
+// Handle touch start
+function handleTouchStart(e) {
+    e.preventDefault();
+    if (gameState !== 'playing') return;
+    
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    touchControls.touchX = touch.clientX - rect.left;
+    touchControls.touchY = touch.clientY - rect.top;
+    touchControls.isTouching = true;
+    
+    // Start auto-shooting
+    if (!touchControls.autoShoot) {
+        touchControls.autoShoot = true;
+        touchControls.shootInterval = setInterval(() => {
+            if (gameState === 'playing') {
+                shoot();
+            }
+        }, 300); // Shoot every 300ms while touching
+    }
+}
+
+// Handle touch move
+function handleTouchMove(e) {
+    e.preventDefault();
+    if (gameState !== 'playing' || !touchControls.isTouching) return;
+    
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    touchControls.touchX = touch.clientX - rect.left;
+    touchControls.touchY = touch.clientY - rect.top;
+}
+
+// Handle touch end
+function handleTouchEnd(e) {
+    e.preventDefault();
+    touchControls.isTouching = false;
+    
+    // Stop auto-shooting
+    if (touchControls.autoShoot) {
+        touchControls.autoShoot = false;
+        if (touchControls.shootInterval) {
+            clearInterval(touchControls.shootInterval);
+            touchControls.shootInterval = null;
+        }
     }
 }
 
@@ -474,7 +550,7 @@ function updatePlayer() {
     const shipDesign = SHIP_DESIGNS[player.shipType];
     player.speed = shipDesign.speed;
     
-    // Movement
+    // Keyboard movement
     if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
         player.x = Math.max(0, player.x - player.speed);
     }
@@ -488,7 +564,26 @@ function updatePlayer() {
         player.y = Math.min(canvas.height - player.height, player.y + player.speed);
     }
     
-    // Shooting
+    // Touch movement for mobile
+    if (touchControls.isTouching && gameState === 'playing') {
+        // Move player towards touch position
+        const targetX = touchControls.touchX - player.width / 2;
+        const targetY = touchControls.touchY - player.height / 2;
+        
+        // Smooth movement towards touch position
+        if (Math.abs(player.x - targetX) > 5) {
+            player.x += (targetX - player.x) * 0.1;
+        }
+        if (Math.abs(player.y - targetY) > 5) {
+            player.y += (targetY - player.y) * 0.1;
+        }
+        
+        // Keep player within bounds
+        player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+        player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
+    }
+    
+    // Keyboard shooting
     if (keys[' ']) {
         shoot();
     }
@@ -679,6 +774,9 @@ function render() {
     
     // Draw explosions
     drawExplosions();
+    
+    // Draw touch indicator for mobile
+    drawTouchIndicator();
 }
 
 // Draw stars
@@ -999,6 +1097,28 @@ function drawExplosions() {
         ctx.beginPath();
         ctx.arc(explosion.x, explosion.y, 20 * alpha, 0, Math.PI * 2);
         ctx.fill();
+    }
+}
+
+// Draw touch indicator for mobile
+function drawTouchIndicator() {
+    if (touchControls.isTouching && gameState === 'playing') {
+        // Draw touch position indicator
+        ctx.strokeStyle = '#00ff00';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.arc(touchControls.touchX, touchControls.touchY, 20, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        // Draw line from player to touch position
+        ctx.strokeStyle = '#00ff00';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(player.x + player.width / 2, player.y + player.height / 2);
+        ctx.lineTo(touchControls.touchX, touchControls.touchY);
+        ctx.stroke();
     }
 }
 
