@@ -1,5 +1,6 @@
-// Kaden & Adelynn Space Adventures - Enhanced Version 3.2
+// Kaden & Adelynn Space Adventures - Enhanced Version 3.3
 // A space shooter game with multiple ships, weapons, and power-ups
+// Enhanced ship designs and 4x faster autofire
 
 // Game variables
 let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, startScreen, finalScoreElement, restartBtn, startBtn, highScoreElement, fullscreenBtn;
@@ -169,7 +170,7 @@ const WEAPON_TYPES = {
         color: '#00ffff',
         damage: 1,
         speed: 8,
-        fireRate: 0.2, // 200ms between shots
+        fireRate: 0.05, // 50ms between shots (4x faster)
         pattern: 'single',
         rapidFire: false,
         multiShot: 1
@@ -179,7 +180,7 @@ const WEAPON_TYPES = {
         color: '#ff00ff',
         damage: 2,
         speed: 6,
-        fireRate: 0.3, // 300ms between shots
+        fireRate: 0.075, // 75ms between shots (4x faster)
         pattern: 'single',
         rapidFire: false,
         multiShot: 1
@@ -189,7 +190,7 @@ const WEAPON_TYPES = {
         color: '#ffff00',
         damage: 3,
         speed: 5,
-        fireRate: 0.5, // 500ms between shots
+        fireRate: 0.125, // 125ms between shots (4x faster)
         pattern: 'single',
         rapidFire: false,
         multiShot: 1
@@ -199,7 +200,7 @@ const WEAPON_TYPES = {
         color: '#ff8800',
         damage: 1,
         speed: 7,
-        fireRate: 0.4, // 400ms between shots
+        fireRate: 0.1, // 100ms between shots (4x faster)
         pattern: 'spread',
         rapidFire: false,
         multiShot: 3
@@ -209,7 +210,7 @@ const WEAPON_TYPES = {
         color: '#00ff00',
         damage: 1,
         speed: 9,
-        fireRate: 0.05, // 50ms between shots - very fast!
+        fireRate: 0.0125, // 12.5ms between shots - extremely fast! (4x faster)
         pattern: 'single',
         rapidFire: true,
         multiShot: 1
@@ -219,7 +220,7 @@ const WEAPON_TYPES = {
         color: '#ff0080',
         damage: 2,
         speed: 7,
-        fireRate: 0.3, // 300ms between bursts
+        fireRate: 0.075, // 75ms between bursts (4x faster)
         pattern: 'burst',
         rapidFire: false,
         multiShot: 3
@@ -229,7 +230,7 @@ const WEAPON_TYPES = {
         color: '#ff6600',
         damage: 1,
         speed: 6,
-        fireRate: 0.6, // 600ms between shots
+        fireRate: 0.15, // 150ms between shots (4x faster)
         pattern: 'shotgun',
         rapidFire: false,
         multiShot: 5
@@ -1205,96 +1206,177 @@ function drawPlayer() {
 
 // Enhanced ship drawing functions with advanced designs
 function drawFighterShip(x, y, width, height, design) {
-    // Main body - triangular shape like classic space shooters
+    // Main body - advanced triangular shape with armor plates
     ctx.fillStyle = design.color;
     ctx.beginPath();
     ctx.moveTo(x + width/2, y); // Top point
+    ctx.lineTo(x + width - 2, y + height/3); // Upper right
     ctx.lineTo(x + width, y + height); // Bottom right
+    ctx.lineTo(x + width/2, y + height - 2); // Bottom center
     ctx.lineTo(x, y + height); // Bottom left
+    ctx.lineTo(x + 2, y + height/3); // Upper left
     ctx.closePath();
     ctx.fill();
     
-    // Cockpit
+    // Advanced cockpit with multiple layers
     ctx.fillStyle = design.accentColor;
     ctx.beginPath();
     ctx.ellipse(x + width/2, y + height/3, width/6, height/8, 0, 0, Math.PI * 2);
     ctx.fill();
     
-    // Engine glow
-    ctx.fillStyle = '#ffff00';
+    // Inner cockpit detail
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.ellipse(x + width/2, y + height/3, width/10, height/12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Enhanced engine glow with multiple colors
+    const time = Date.now() * 0.01;
+    const glowIntensity = Math.sin(time) * 0.5 + 0.5;
+    ctx.fillStyle = `rgba(255, 255, 0, ${glowIntensity})`;
     ctx.fillRect(x + width/4, y + height - 5, width/2, 3);
     
-    // Wings
+    // Secondary engine glow
+    ctx.fillStyle = `rgba(0, 255, 255, ${glowIntensity * 0.7})`;
+    ctx.fillRect(x + width/4 + 2, y + height - 3, width/2 - 4, 2);
+    
+    // Advanced wing design with multiple segments
     ctx.fillStyle = design.color;
-    ctx.fillRect(x + 2, y + height/2, 6, 4);
-    ctx.fillRect(x + width - 8, y + height/2, 6, 4);
+    // Left wing
+    ctx.fillRect(x + 2, y + height/2, 8, 6);
+    ctx.fillRect(x + 4, y + height/2 + 2, 4, 2);
+    // Right wing
+    ctx.fillRect(x + width - 10, y + height/2, 8, 6);
+    ctx.fillRect(x + width - 8, y + height/2 + 2, 4, 2);
+    
+    // Weapon ports
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(x + width/2 - 2, y + height - 8, 4, 3);
 }
 
 function drawInterceptorShip(x, y, width, height, design) {
-    // Sleek, fast design
+    // Sleek, aerodynamic design with advanced curves
     ctx.fillStyle = design.color;
     ctx.beginPath();
     ctx.moveTo(x + width/2, y); // Top point
-    ctx.lineTo(x + width - 3, y + height/2); // Middle right
-    ctx.lineTo(x + width, y + height); // Bottom right
-    ctx.lineTo(x + width/2, y + height - 2); // Bottom center
-    ctx.lineTo(x, y + height); // Bottom left
-    ctx.lineTo(x + 3, y + height/2); // Middle left
-    ctx.closePath();
-    ctx.fill();
-    
-    // Cockpit
-    ctx.fillStyle = design.accentColor;
-    ctx.fillRect(x + width/2 - 4, y + height/4, 8, 6);
-    
-    // Engine trails
-    ctx.fillStyle = '#00ffff';
-    ctx.fillRect(x + width/4, y + height - 3, width/2, 2);
-}
-
-function drawBlasterShip(x, y, width, height, design) {
-    // Heavy, powerful design
-    ctx.fillStyle = design.color;
-    ctx.beginPath();
-    ctx.moveTo(x + width/2, y + 2); // Top center
-    ctx.lineTo(x + width - 5, y + height/3); // Upper right
+    ctx.lineTo(x + width - 4, y + height/4); // Upper right curve
+    ctx.lineTo(x + width - 2, y + height/2); // Middle right
     ctx.lineTo(x + width, y + height); // Bottom right
     ctx.lineTo(x + width/2, y + height - 3); // Bottom center
     ctx.lineTo(x, y + height); // Bottom left
-    ctx.lineTo(x + 5, y + height/3); // Upper left
+    ctx.lineTo(x + 2, y + height/2); // Middle left
+    ctx.lineTo(x + 4, y + height/4); // Upper left curve
     ctx.closePath();
     ctx.fill();
     
-    // Heavy armor plates
-    ctx.fillStyle = '#ff4400';
-    ctx.fillRect(x + width/4, y + height/3, width/2, 4);
-    
-    // Weapon pods
+    // Advanced cockpit with HUD elements
     ctx.fillStyle = design.accentColor;
-    ctx.fillRect(x + 2, y + height/2, 8, 6);
-    ctx.fillRect(x + width - 10, y + height/2, 8, 6);
+    ctx.fillRect(x + width/2 - 5, y + height/4, 10, 8);
+    
+    // HUD display
+    ctx.fillStyle = '#00ffff';
+    ctx.fillRect(x + width/2 - 3, y + height/4 + 2, 6, 2);
+    ctx.fillRect(x + width/2 - 1, y + height/4 + 5, 2, 2);
+    
+    // Enhanced engine trails with particle effect
+    const time = Date.now() * 0.02;
+    for (let i = 0; i < 3; i++) {
+        const alpha = Math.sin(time + i) * 0.5 + 0.5;
+        ctx.fillStyle = `rgba(0, 255, 255, ${alpha})`;
+        ctx.fillRect(x + width/4 + i * 2, y + height - 3 - i, 2, 2);
+    }
+    
+    // Advanced weapon systems
+    ctx.fillStyle = '#ff00ff';
+    ctx.fillRect(x + 1, y + height/2, 6, 4);
+    ctx.fillRect(x + width - 7, y + height/2, 6, 4);
+}
+
+function drawBlasterShip(x, y, width, height, design) {
+    // Heavy, armored design with multiple weapon systems
+    ctx.fillStyle = design.color;
+    ctx.beginPath();
+    ctx.moveTo(x + width/2, y + 3); // Top center
+    ctx.lineTo(x + width - 6, y + height/4); // Upper right
+    ctx.lineTo(x + width - 3, y + height/2); // Middle right
+    ctx.lineTo(x + width, y + height); // Bottom right
+    ctx.lineTo(x + width/2, y + height - 4); // Bottom center
+    ctx.lineTo(x, y + height); // Bottom left
+    ctx.lineTo(x + 3, y + height/2); // Middle left
+    ctx.lineTo(x + 6, y + height/4); // Upper left
+    ctx.closePath();
+    ctx.fill();
+    
+    // Heavy armor plates with metallic effect
+    ctx.fillStyle = '#ff4400';
+    ctx.fillRect(x + width/4, y + height/3, width/2, 6);
+    ctx.fillRect(x + width/6, y + height/2, width/3, 4);
+    
+    // Advanced weapon pods with targeting systems
+    ctx.fillStyle = design.accentColor;
+    // Left weapon pod
+    ctx.fillRect(x + 2, y + height/2, 10, 8);
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(x + 4, y + height/2 + 2, 6, 4);
+    
+    // Right weapon pod
+    ctx.fillStyle = design.accentColor;
+    ctx.fillRect(x + width - 12, y + height/2, 10, 8);
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(x + width - 10, y + height/2 + 2, 6, 4);
+    
+    // Central weapon system
+    ctx.fillStyle = '#ffff00';
+    ctx.fillRect(x + width/2 - 4, y + height/2, 8, 6);
+    
+    // Engine array with power indicators
+    ctx.fillStyle = '#ff6600';
+    for (let i = 0; i < 4; i++) {
+        ctx.fillRect(x + width/5 + i * width/8, y + height - 5, 3, 4);
+    }
 }
 
 function drawCruiserShip(x, y, width, height, design) {
-    // Massive, tank-like design
+    // Massive, battleship design with multiple weapon systems
     ctx.fillStyle = design.color;
-    ctx.fillRect(x + width/4, y, width/2, height);
+    ctx.fillRect(x + width/6, y, width/1.5, height);
     
-    // Heavy armor
+    // Command bridge
+    ctx.fillStyle = design.accentColor;
+    ctx.fillRect(x + width/2 - 8, y + height/6, 16, 8);
+    
+    // Bridge windows
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x + width/2 - 6, y + height/6 + 2, 12, 4);
+    
+    // Heavy armor plating with multiple layers
     ctx.fillStyle = '#8b4513';
-    ctx.fillRect(x + width/6, y + height/4, width/3, height/2);
+    ctx.fillRect(x + width/8, y + height/4, width/1.3, height/2);
+    ctx.fillStyle = '#654321';
+    ctx.fillRect(x + width/6, y + height/3, width/1.5, height/3);
     
     // Multiple weapon systems
     ctx.fillStyle = design.accentColor;
-    ctx.fillRect(x + 3, y + height/3, 6, 6);
-    ctx.fillRect(x + width - 9, y + height/3, 6, 6);
-    ctx.fillRect(x + width/2 - 3, y + height/2, 6, 6);
+    // Primary weapons
+    ctx.fillRect(x + 4, y + height/3, 8, 8);
+    ctx.fillRect(x + width - 12, y + height/3, 8, 8);
+    ctx.fillRect(x + width/2 - 4, y + height/2, 8, 8);
     
-    // Engine array
+    // Secondary weapons
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(x + width/4, y + height/4, 6, 6);
+    ctx.fillRect(x + width * 3/4 - 3, y + height/4, 6, 6);
+    
+    // Advanced engine array with power indicators
     ctx.fillStyle = '#ff6600';
-    for (let i = 0; i < 3; i++) {
-        ctx.fillRect(x + width/4 + i * width/6, y + height - 4, 4, 3);
+    for (let i = 0; i < 5; i++) {
+        ctx.fillRect(x + width/6 + i * width/10, y + height - 6, 4, 5);
     }
+    
+    // Shield generators
+    ctx.fillStyle = '#00ffff';
+    ctx.fillRect(x + 2, y + height/6, 4, 4);
+    ctx.fillRect(x + width - 6, y + height/6, 4, 4);
 }
 
 // Enhanced enemy ship drawing
@@ -1321,111 +1403,193 @@ function drawEnemies() {
 
 // Enhanced enemy ship designs
 function drawScoutEnemy(x, y, width, height, design) {
-    // Small, fast enemy scout - classic triangular shape
+    // Small, fast enemy scout - advanced triangular shape
     ctx.fillStyle = design.color;
     ctx.beginPath();
     ctx.moveTo(x + width/2, y + height); // Bottom point
+    ctx.lineTo(x + width - 3, y + height/4); // Upper right curve
     ctx.lineTo(x + width, y); // Top right
+    ctx.lineTo(x + width/2, y + 2); // Top center
     ctx.lineTo(x, y); // Top left
+    ctx.lineTo(x + 3, y + height/4); // Upper left curve
     ctx.closePath();
     ctx.fill();
     
-    // Cockpit
+    // Advanced cockpit with targeting system
     ctx.fillStyle = design.accentColor;
     ctx.beginPath();
-    ctx.ellipse(x + width/2, y + height/3, 4, 3, 0, 0, Math.PI * 2);
+    ctx.ellipse(x + width/2, y + height/3, 5, 4, 0, 0, Math.PI * 2);
     ctx.fill();
     
-    // Engine glow
+    // Targeting reticle
     ctx.fillStyle = '#ff0000';
-    ctx.fillRect(x + width/4, y + height - 3, width/2, 2);
+    ctx.fillRect(x + width/2 - 1, y + height/3 - 1, 2, 2);
+    
+    // Enhanced engine glow with pulsing effect
+    const time = Date.now() * 0.01;
+    const glowIntensity = Math.sin(time) * 0.5 + 0.5;
+    ctx.fillStyle = `rgba(255, 0, 0, ${glowIntensity})`;
+    ctx.fillRect(x + width/4, y + height - 4, width/2, 3);
+    
+    // Secondary engine trails
+    ctx.fillStyle = `rgba(255, 100, 100, ${glowIntensity * 0.7})`;
+    ctx.fillRect(x + width/4 + 2, y + height - 2, width/2 - 4, 2);
 }
 
 function drawEnemyFighter(x, y, width, height, design) {
-    // Standard enemy fighter - classic space invader style
+    // Standard enemy fighter - advanced space invader style
     ctx.fillStyle = design.color;
     ctx.beginPath();
     ctx.moveTo(x + width/2, y + height); // Bottom center
-    ctx.lineTo(x + width - 5, y + height/3); // Upper right
-    ctx.lineTo(x + width - 2, y); // Top right
-    ctx.lineTo(x + width/2, y + 2); // Top center
-    ctx.lineTo(x + 2, y); // Top left
-    ctx.lineTo(x + 5, y + height/3); // Upper left
+    ctx.lineTo(x + width - 6, y + height/3); // Upper right curve
+    ctx.lineTo(x + width - 3, y + height/6); // Upper right
+    ctx.lineTo(x + width - 1, y); // Top right
+    ctx.lineTo(x + width/2, y + 3); // Top center
+    ctx.lineTo(x + 1, y); // Top left
+    ctx.lineTo(x + 3, y + height/6); // Upper left
+    ctx.lineTo(x + 6, y + height/3); // Upper left curve
     ctx.closePath();
     ctx.fill();
     
-    // Cockpit
+    // Advanced cockpit with HUD
     ctx.fillStyle = design.accentColor;
-    ctx.fillRect(x + width/2 - 3, y + height/3, 6, 4);
+    ctx.fillRect(x + width/2 - 4, y + height/3, 8, 6);
     
-    // Weapon pods
+    // HUD display elements
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(x + width/2 - 2, y + height/3 + 1, 4, 2);
+    ctx.fillRect(x + width/2 - 1, y + height/3 + 4, 2, 2);
+    
+    // Advanced weapon pods with targeting
     ctx.fillStyle = design.color;
-    ctx.fillRect(x + 1, y + height/2, 4, 3);
-    ctx.fillRect(x + width - 5, y + height/2, 4, 3);
+    ctx.fillRect(x + 2, y + height/2, 6, 5);
+    ctx.fillRect(x + width - 8, y + height/2, 6, 5);
     
-    // Engine glow
-    ctx.fillStyle = '#ff4444';
-    ctx.fillRect(x + width/4, y + height - 2, width/2, 2);
+    // Weapon targeting indicators
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(x + 3, y + height/2 + 1, 4, 3);
+    ctx.fillRect(x + width - 7, y + height/2 + 1, 4, 3);
+    
+    // Enhanced engine glow with multiple colors
+    const time = Date.now() * 0.015;
+    const glowIntensity = Math.sin(time) * 0.5 + 0.5;
+    ctx.fillStyle = `rgba(255, 68, 68, ${glowIntensity})`;
+    ctx.fillRect(x + width/4, y + height - 3, width/2, 3);
+    
+    // Secondary engine trails
+    ctx.fillStyle = `rgba(255, 120, 120, ${glowIntensity * 0.6})`;
+    ctx.fillRect(x + width/4 + 3, y + height - 1, width/2 - 6, 2);
 }
 
 function drawDestroyerEnemy(x, y, width, height, design) {
-    // Larger, more powerful enemy destroyer
+    // Larger, more powerful enemy destroyer with advanced armor
     ctx.fillStyle = design.color;
     ctx.beginPath();
     ctx.moveTo(x + width/2, y + height); // Bottom center
-    ctx.lineTo(x + width - 8, y + height/3); // Upper right
-    ctx.lineTo(x + width - 5, y); // Top right
-    ctx.lineTo(x + width/2, y + 5); // Top center
-    ctx.lineTo(x + 5, y); // Top left
-    ctx.lineTo(x + 8, y + height/3); // Upper left
+    ctx.lineTo(x + width - 8, y + height/3); // Upper right curve
+    ctx.lineTo(x + width - 6, y + height/6); // Upper right
+    ctx.lineTo(x + width - 3, y); // Top right
+    ctx.lineTo(x + width/2, y + 4); // Top center
+    ctx.lineTo(x + 3, y); // Top left
+    ctx.lineTo(x + 6, y + height/6); // Upper left
+    ctx.lineTo(x + 8, y + height/3); // Upper left curve
     ctx.closePath();
     ctx.fill();
     
-    // Cockpit
+    // Heavy armor plating
+    ctx.fillStyle = '#cc4444';
+    ctx.fillRect(x + width/6, y + height/4, width/1.5, 6);
+    ctx.fillRect(x + width/4, y + height/2, width/2, 4);
+    
+    // Advanced cockpit with multiple layers
     ctx.fillStyle = design.accentColor;
-    ctx.fillRect(x + width/2 - 5, y + height/4, 10, 8);
+    ctx.fillRect(x + width/2 - 6, y + height/4, 12, 8);
     
-    // Heavy weapon pods
+    // Cockpit details
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x + width/2 - 4, y + height/4 + 2, 8, 4);
+    
+    // Multiple weapon systems
     ctx.fillStyle = design.color;
-    ctx.fillRect(x + 2, y + 3, 6, 6);
-    ctx.fillRect(x + width - 8, y + 3, 6, 6);
+    // Primary weapons
+    ctx.fillRect(x + 3, y + height/2, 8, 6);
+    ctx.fillRect(x + width - 11, y + height/2, 8, 6);
     
-    // Engine glow
-    ctx.fillStyle = '#ff6666';
-    ctx.fillRect(x + width/4, y + height - 3, width/2, 3);
+    // Secondary weapons
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(x + 5, y + height/2 + 1, 4, 4);
+    ctx.fillRect(x + width - 9, y + height/2 + 1, 4, 4);
+    
+    // Central weapon system
+    ctx.fillStyle = '#ff6600';
+    ctx.fillRect(x + width/2 - 3, y + height/2, 6, 6);
+    
+    // Enhanced engine array
+    ctx.fillStyle = '#ff4444';
+    for (let i = 0; i < 3; i++) {
+        ctx.fillRect(x + width/4 + i * width/8, y + height - 5, 4, 4);
+    }
+    
+    // Shield generators
+    ctx.fillStyle = '#ff00ff';
+    ctx.fillRect(x + 2, y + height/6, 4, 4);
+    ctx.fillRect(x + width - 6, y + height/6, 4, 4);
 }
 
 function drawBattleshipEnemy(x, y, width, height, design) {
-    // Largest, most powerful enemy battleship
+    // Massive enemy battleship with multiple weapon systems
     ctx.fillStyle = design.color;
-    ctx.beginPath();
-    ctx.moveTo(x + width/2, y + height); // Bottom center
-    ctx.lineTo(x + width - 12, y + height/3); // Upper right
-    ctx.lineTo(x + width - 8, y); // Top right
-    ctx.lineTo(x + width/2, y + 8); // Top center
-    ctx.lineTo(x + 8, y); // Top left
-    ctx.lineTo(x + 12, y + height/3); // Upper left
-    ctx.closePath();
-    ctx.fill();
+    ctx.fillRect(x + width/8, y, width/1.25, height);
     
-    // Cockpit
+    // Command bridge with advanced systems
     ctx.fillStyle = design.accentColor;
-    ctx.fillRect(x + width/2 - 8, y + height/5, 16, 12);
+    ctx.fillRect(x + width/2 - 10, y + height/8, 20, 10);
     
-    // Heavy armor plates
-    ctx.fillStyle = design.color;
-    ctx.fillRect(x + 1, y + height/3, 6, 6);
-    ctx.fillRect(x + width - 7, y + height/3, 6, 6);
+    // Bridge windows and controls
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x + width/2 - 8, y + height/8 + 2, 16, 6);
+    
+    // Bridge control panels
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(x + width/2 - 6, y + height/8 + 4, 12, 2);
+    
+    // Heavy armor plating with multiple layers
+    ctx.fillStyle = '#cc6666';
+    ctx.fillRect(x + width/10, y + height/4, width/1.1, 8);
+    ctx.fillStyle = '#aa4444';
+    ctx.fillRect(x + width/8, y + height/3, width/1.25, 6);
     
     // Multiple weapon systems
     ctx.fillStyle = design.accentColor;
-    ctx.fillRect(x + 3, y + 2, 4, 4);
-    ctx.fillRect(x + width - 7, y + 2, 4, 4);
-    ctx.fillRect(x + width/2 - 2, y + height/2, 4, 4);
+    // Primary heavy weapons
+    ctx.fillRect(x + 4, y + height/3, 10, 10);
+    ctx.fillRect(x + width - 14, y + height/3, 10, 10);
+    ctx.fillRect(x + width/2 - 5, y + height/2, 10, 10);
     
-    // Engine glow
-    ctx.fillStyle = '#ff8888';
-    ctx.fillRect(x + width/4, y + height - 4, width/2, 4);
+    // Secondary weapons
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(x + width/4, y + height/4, 8, 8);
+    ctx.fillRect(x + width * 3/4 - 4, y + height/4, 8, 8);
+    
+    // Tertiary weapons
+    ctx.fillStyle = '#ff6600';
+    ctx.fillRect(x + width/6, y + height/2, 6, 6);
+    ctx.fillRect(x + width * 5/6 - 3, y + height/2, 6, 6);
+    
+    // Advanced engine array with power indicators
+    ctx.fillStyle = '#ff4444';
+    for (let i = 0; i < 6; i++) {
+        ctx.fillRect(x + width/8 + i * width/12, y + height - 7, 5, 6);
+    }
+    
+    // Shield generators and defense systems
+    ctx.fillStyle = '#ff00ff';
+    ctx.fillRect(x + 3, y + height/8, 5, 5);
+    ctx.fillRect(x + width - 8, y + height/8, 5, 5);
+    
+    // Defense turrets
+    ctx.fillStyle = '#ffff00';
+    ctx.fillRect(x + width/2 - 2, y + height/6, 4, 4);
 }
 
 // Draw power-ups
