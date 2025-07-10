@@ -103,6 +103,7 @@
         <div id="startScreen" class="start-screen">
             <h1 class="game-title">Kaden & Adelynn<br>Space Adventures</h1>
             <p class="game-subtitle">🚀 Epic Space Shooter Game 🚀</p>
+            
             <!-- Tab Navigation -->
             <div class="tab-navigation">
                 <button class="tab-button active" data-tab="story">📖 Story</button>
@@ -110,12 +111,13 @@
                 <button class="tab-button" data-tab="controls">🎮 Controls</button>
                 <button class="tab-button" data-tab="features">⭐ Features</button>
                 <button class="tab-button" data-tab="ships">🚀 Ships</button>
-                <button class="tab-button" id="radioChatterTabBtn">📡 Radio</button>
+                <button class="tab-button" data-tab="radio">📡 Radio</button>
             </div>
-            <!-- Tab Content -->
-            <div class="tab-content">
-                <!-- Story Tab -->
-                <div class="tab-panel active" id="story-tab">
+            
+            <!-- Tab Content Container -->
+            <div class="tab-content-container">
+                <!-- Story Tab View -->
+                <div class="tab-view active" id="story-view">
                     <div class="story-intro">
                         <p class="story-tagline">🚀 Defend the Galaxy from the Zorath Empire! 🚀</p>
                         <p class="story-brief">Rise from Cadet to Admiral in this epic space adventure. Complete missions, build your squadron, and become a legend!</p>
@@ -146,9 +148,14 @@
                             <span class="highlight-text">Achievements</span>
                         </div>
                     </div>
+                    <div class="story-missions">
+                        <h3>Current Mission: Training Day</h3>
+                        <p>Complete your basic training to unlock advanced missions and special abilities.</p>
+                    </div>
                 </div>
-                <!-- Characters Tab -->
-                <div class="tab-panel" id="characters-tab">
+                
+                <!-- Characters Tab View -->
+                <div class="tab-view" id="characters-view">
                     <div class="character-selection">
                         <h3>Choose Your Hero:</h3>
                         <div class="character-grid">
@@ -216,8 +223,8 @@
                     </div>
                 </div>
                 
-                <!-- Controls Tab -->
-                <div class="tab-panel" id="controls-tab">
+                <!-- Controls Tab View -->
+                <div class="tab-view" id="controls-view">
                     <div class="controls-section">
                         <h3>🎮 Game Controls</h3>
                         <div class="control-grid">
@@ -269,8 +276,8 @@
                     </div>
                 </div>
                 
-                <!-- Features Tab -->
-                <div class="tab-panel" id="features-tab">
+                <!-- Features Tab View -->
+                <div class="tab-view" id="features-view">
                     <div class="features-section">
                         <h3>⭐ Game Features</h3>
                         <div class="feature-grid">
@@ -321,11 +328,70 @@
                         </div>
                     </div>
                 </div>
-                <!-- Ships Tab Content -->
-                <div class="tab-panel" id="ships-tab">
+                
+                <!-- Ships Tab View -->
+                <div class="tab-view" id="ships-view">
                     <div class="ships-selection">
-                        <h3>Select Your Ship</h3>
-                        <div id="shipsGrid" class="ships-grid"></div>
+                        <h3>🚀 Select Your Ship</h3>
+                        <div class="ships-grid">
+                            <div class="ship-card" data-ship="fighter">
+                                <div class="ship-avatar">🛸</div>
+                                <h4>Fighter</h4>
+                                <p>Balanced Attack & Defense</p>
+                                <p class="ship-desc">Perfect for beginners</p>
+                            </div>
+                            <div class="ship-card" data-ship="interceptor">
+                                <div class="ship-avatar">⚡</div>
+                                <h4>Interceptor</h4>
+                                <p>High Speed & Agility</p>
+                                <p class="ship-desc">Fast and nimble</p>
+                            </div>
+                            <div class="ship-card" data-ship="destroyer">
+                                <div class="ship-avatar">💥</div>
+                                <h4>Destroyer</h4>
+                                <p>Heavy Firepower</p>
+                                <p class="ship-desc">Maximum damage output</p>
+                            </div>
+                            <div class="ship-card" data-ship="defender">
+                                <div class="ship-avatar">🛡️</div>
+                                <h4>Defender</h4>
+                                <p>Enhanced Shields</p>
+                                <p class="ship-desc">Maximum survivability</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Radio Tab View -->
+                <div class="tab-view" id="radio-view">
+                    <div class="radio-section">
+                        <h3>📡 Radio Chatter</h3>
+                        <div class="radio-messages">
+                            <div class="radio-message">
+                                <span class="radio-time">[08:42]</span>
+                                <span class="radio-sender">Commander:</span>
+                                <span class="radio-text">"Cadet, welcome to the Space Academy. Your training begins now."</span>
+                            </div>
+                            <div class="radio-message">
+                                <span class="radio-time">[08:45]</span>
+                                <span class="radio-sender">Flight Control:</span>
+                                <span class="radio-text">"Enemy ships detected in sector 7. All pilots to battle stations!"</span>
+                            </div>
+                            <div class="radio-message">
+                                <span class="radio-time">[08:47]</span>
+                                <span class="radio-sender">Wingman Alpha:</span>
+                                <span class="radio-text">"I've got your back, rookie. Let's show them what we're made of!"</span>
+                            </div>
+                            <div class="radio-message">
+                                <span class="radio-time">[08:50]</span>
+                                <span class="radio-sender">Mission Control:</span>
+                                <span class="radio-text">"Boss ship approaching. This is your moment to prove yourself!"</span>
+                            </div>
+                        </div>
+                        <div class="radio-controls">
+                            <button class="radio-btn" id="toggleRadio">🔊 Toggle Radio</button>
+                            <button class="radio-btn" id="clearRadio">🗑️ Clear Messages</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -409,7 +475,7 @@
         <button class="mobile-tab-btn" data-tab="controls">🎮</button>
         <button class="mobile-tab-btn" data-tab="features">⭐</button>
         <button class="mobile-tab-btn" data-tab="ships">🚀</button>
-        <button class="mobile-tab-btn" id="radioChatterMobileBtn">📡</button>
+        <button class="mobile-tab-btn" data-tab="radio">📡</button>
     </div>
 </body>
 </html> 

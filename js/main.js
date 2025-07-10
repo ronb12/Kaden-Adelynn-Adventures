@@ -5116,24 +5116,59 @@ function setupCharacterSelection() {
 
 function setupTabNavigation() {
     const tabButtons = document.querySelectorAll('.tab-button');
-    const tabPanels = document.querySelectorAll('.tab-panel');
+    const tabViews = document.querySelectorAll('.tab-view');
     
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
             const targetTab = button.dataset.tab;
             
-            // Remove active class from all buttons and panels
+            // Remove active class from all buttons and views
             tabButtons.forEach(btn => btn.classList.remove('active'));
-            tabPanels.forEach(panel => panel.classList.remove('active'));
+            tabViews.forEach(view => view.classList.remove('active'));
             
-            // Add active class to clicked button and corresponding panel
+            // Add active class to clicked button and corresponding view
             button.classList.add('active');
-            const targetPanel = document.getElementById(`${targetTab}-tab`);
-            if (targetPanel) {
-                targetPanel.classList.add('active');
+            const targetView = document.getElementById(`${targetTab}-view`);
+            if (targetView) {
+                targetView.classList.add('active');
+            }
+            
+            // Handle special cases for each tab
+            switch(targetTab) {
+                case 'characters':
+                    setupCharacterSelection();
+                    break;
+                case 'ships':
+                    renderShipsGrid();
+                    break;
+                case 'radio':
+                    setupRadioControls();
+                    break;
             }
         });
     });
+}
+
+// Setup radio controls for the radio tab
+function setupRadioControls() {
+    const toggleRadioBtn = document.getElementById('toggleRadio');
+    const clearRadioBtn = document.getElementById('clearRadio');
+    
+    if (toggleRadioBtn) {
+        toggleRadioBtn.addEventListener('click', () => {
+            toggleRadioChatter();
+            toggleRadioBtn.textContent = radioChatterEnabled ? '🔇 Disable Radio' : '🔊 Enable Radio';
+        });
+    }
+    
+    if (clearRadioBtn) {
+        clearRadioBtn.addEventListener('click', () => {
+            const radioMessages = document.querySelector('.radio-messages');
+            if (radioMessages) {
+                radioMessages.innerHTML = '';
+            }
+        });
+    }
 }
 
 // Wait for DOM to be ready
