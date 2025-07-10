@@ -54,7 +54,7 @@
     <!-- Microsoft Tiles -->
     <meta name="msapplication-TileImage" content="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQ0IiBoZWlnaHQ9IjE0NCIgdmlld0JveD0iMCAwIDE0NCAxNDQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNDQiIGhlaWdodD0iMTQ0IiBmaWxsPSIjMDAwMDAwIi8+CjxyZWN0IHdpZHRoPSIxNDQiIGhlaWdodD0iMTQ0IiBmaWxsPSJ1cmwoI2dyYWRpZW50KSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJncmFkaWVudCIgeDE9IjAiIHkxPSIwIiB4Mj0iMTQ0IiB5Mj0iMTQ0IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CjxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM0YTkwZTI7c3RvcC1vcGFjaXR5OjEiLz4KPHN0b3Agb2Zmc2V0PSI1MCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMxYTFhMmU7c3RvcC1vcGFjaXR5OjEiLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojM2IyZTJhO3N0b3Atb3BhY2l0eToxIi8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPGNpcmNsZSBjeD0iNzIiIGN5PSI3MiIgcj0iNjAiIGZpbGw9IiM0YTkwZTIiLz4KPGNpcmNsZSBjeD0iNzIiIGN5PSI3MiIgcj0iNDUiIGZpbGw9IiMxYTFhMmUiLz4KPGNpcmNsZSBjeD0iNzIiIGN5PSI3MiIgcj0iMzAiIGZpbGw9IiMzYjJlMmEiLz4KPHBhdGggZD0iTTcyIDI5TDkwIDU5SDU0TDcyIDI5WiIgZmlsbD0iI2ZmNDQ0NCIvPgo8cGF0aCBkPSJNNzIgMTE1TDU0IDg1SDkwTDcyIDExNVoiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTI5IDcyTDU5IDU0VjkwTDI5IDcyWiIgZmlsbD0iI2ZmNDQ0NCIvPgo8cGF0aCBkPSJNMTE1IDcyTDg1IDkwVjU0TDExNSA3MloiIGZpbGw9IiNmZjQ0NDQiLz4KPHNwYW4geD0iNzIiIHk9IjEyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjExIiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5LYWRlbiAmPC9zcGFuPgo8c3BhbiB4PSI3MiIgeT0iMTMxIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiNmZmZmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkFkZWx5bm48L3NwYW4+Cjwvc3ZnPg==">
     
-    <link rel="stylesheet" href="css/style.css?v=3.2">
+    <link rel="stylesheet" href="css/style.css?v=3.3">
 </head>
 <body>
     <div class="game-container">
@@ -104,8 +104,55 @@
             </button>
         </div>
         <div id="startScreen" class="start-screen">
-            <h1 class="game-title">Kaden & Adelynn<br>Space Adventures</h1>
-            <p class="game-subtitle">🚀 Epic Space Shooter Game 🚀</p>
+            <!-- Hero Section -->
+            <div class="hero-section">
+                <div class="hero-content">
+                    <h1 class="game-title">Kaden & Adelynn<br>Space Adventures</h1>
+                    <p class="game-subtitle">🚀 Epic Space Shooter Game 🚀</p>
+                    <div class="hero-buttons">
+                        <button id="startBtn" class="hero-button primary">
+                            <span class="button-text">Start Game</span>
+                            <span class="button-icon">🚀</span>
+                        </button>
+                        <button id="toggleMultiplayer" class="hero-button secondary">
+                            <span class="button-text">Multiplayer</span>
+                            <span class="button-icon">👥</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="spaceship-preview">
+                        <div class="ship-glow"></div>
+                        <div class="ship-model">🚀</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Featured Content -->
+            <div class="featured-section">
+                <div class="featured-grid">
+                    <div class="featured-card">
+                        <div class="card-icon">🎖️</div>
+                        <h3>20 Epic Missions</h3>
+                        <p>Rise from Cadet to Admiral</p>
+                    </div>
+                    <div class="featured-card">
+                        <div class="card-icon">👾</div>
+                        <h3>Boss Battles</h3>
+                        <p>Face powerful enemies</p>
+                    </div>
+                    <div class="featured-card">
+                        <div class="card-icon">💰</div>
+                        <h3>Economy System</h3>
+                        <p>Earn and spend credits</p>
+                    </div>
+                    <div class="featured-card">
+                        <div class="card-icon">🛩️</div>
+                        <h3>Wingman Squadrons</h3>
+                        <p>Build your own fleet</p>
+                    </div>
+                </div>
+            </div>
             
             <!-- Tab Navigation -->
             <div class="tab-navigation">
@@ -122,69 +169,85 @@
             <div class="tab-content-container">
                 <!-- Home Tab View -->
                 <div class="tab-view active" id="home-view">
-                    <div class="home-welcome">
-                        <h3>🚀 Welcome to Space Adventures! 🚀</h3>
-                        <p class="home-description">Embark on an epic journey through the cosmos. Choose your hero, upgrade your ship, and defend the galaxy from the Zorath Empire!</p>
-                    </div>
-                    
-                    <div class="home-quick-stats">
-                        <div class="stat-item">
-                            <span class="stat-icon">🎖️</span>
-                            <span class="stat-text">20 Epic Missions</span>
+                    <div class="home-content">
+                        <div class="welcome-section">
+                            <h2>Welcome to Space Adventures!</h2>
+                            <p>Embark on an epic journey through the cosmos. Choose your hero, upgrade your ship, and defend the galaxy from the Zorath Empire!</p>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-icon">👾</span>
-                            <span class="stat-text">Epic Boss Battles</span>
+                        
+                        <div class="quick-actions">
+                            <h3>Quick Actions</h3>
+                            <div class="action-grid">
+                                <button class="action-card" onclick="document.querySelector('[data-tab=\"characters\"]').click()">
+                                    <div class="action-icon">👥</div>
+                                    <div class="action-title">Choose Character</div>
+                                    <div class="action-desc">Select your hero</div>
+                                </button>
+                                <button class="action-card" onclick="document.querySelector('[data-tab=\"ships\"]').click()">
+                                    <div class="action-icon">🚀</div>
+                                    <div class="action-title">Select Ship</div>
+                                    <div class="action-desc">Pick your vessel</div>
+                                </button>
+                                <button class="action-card" onclick="document.querySelector('[data-tab=\"story\"]').click()">
+                                    <div class="action-icon">📖</div>
+                                    <div class="action-title">View Story</div>
+                                    <div class="action-desc">Learn the lore</div>
+                                </button>
+                                <button class="action-card" onclick="document.querySelector('[data-tab=\"features\"]').click()">
+                                    <div class="action-icon">⭐</div>
+                                    <div class="action-title">Game Features</div>
+                                    <div class="action-desc">See what's included</div>
+                                </button>
+                            </div>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-icon">💰</span>
-                            <span class="stat-text">Money System</span>
+                        
+                        <div class="game-stats">
+                            <h3>Game Statistics</h3>
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-number">20</div>
+                                    <div class="stat-label">Epic Missions</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number">10</div>
+                                    <div class="stat-label">Unique Characters</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number">4</div>
+                                    <div class="stat-label">Ship Types</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number">∞</div>
+                                    <div class="stat-label">Fun Hours</div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-icon">🛩️</span>
-                            <span class="stat-text">Wingman Squadrons</span>
+                        
+                        <div class="pro-tips">
+                            <h3>💡 Pro Tips</h3>
+                            <div class="tips-grid">
+                                <div class="tip-item">
+                                    <div class="tip-icon">⌨️</div>
+                                    <div class="tip-text">Use arrow keys to move your ship</div>
+                                </div>
+                                <div class="tip-item">
+                                    <div class="tip-icon">🔫</div>
+                                    <div class="tip-text">Press SPACE to shoot enemies</div>
+                                </div>
+                                <div class="tip-item">
+                                    <div class="tip-icon">⚡</div>
+                                    <div class="tip-text">Collect power-ups for special abilities</div>
+                                </div>
+                                <div class="tip-item">
+                                    <div class="tip-icon">🛩️</div>
+                                    <div class="tip-text">Buy wingmen to help in battle</div>
+                                </div>
+                                <div class="tip-item">
+                                    <div class="tip-icon">🎯</div>
+                                    <div class="tip-text">Complete missions for rewards</div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-icon">⚡</span>
-                            <span class="stat-text">Special Abilities</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-icon">🏆</span>
-                            <span class="stat-text">Achievements</span>
-                        </div>
-                    </div>
-                    
-                    <div class="home-actions">
-                        <h4>Quick Actions:</h4>
-                        <div class="action-buttons">
-                            <button class="action-btn" onclick="document.querySelector('[data-tab=\"characters\"]').click()">
-                                <span class="action-icon">👥</span>
-                                <span class="action-text">Choose Character</span>
-                            </button>
-                            <button class="action-btn" onclick="document.querySelector('[data-tab=\"ships\"]').click()">
-                                <span class="action-icon">🚀</span>
-                                <span class="action-text">Select Ship</span>
-                            </button>
-                            <button class="action-btn" onclick="document.querySelector('[data-tab=\"story\"]').click()">
-                                <span class="action-icon">📖</span>
-                                <span class="action-text">View Story</span>
-                            </button>
-                            <button class="action-btn" onclick="document.querySelector('[data-tab=\"features\"]').click()">
-                                <span class="action-icon">⭐</span>
-                                <span class="action-text">Game Features</span>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="home-tips">
-                        <h4>💡 Pro Tips:</h4>
-                        <ul class="tips-list">
-                            <li>Use arrow keys to move your ship</li>
-                            <li>Press SPACE to shoot enemies</li>
-                            <li>Collect power-ups for special abilities</li>
-                            <li>Buy wingmen to help in battle</li>
-                            <li>Complete missions for rewards</li>
-                        </ul>
                     </div>
                 </div>
                 
@@ -539,7 +602,7 @@
             }, { once: true });
         }
     </script>
-    <script src="js/main.js?v=3.2"></script>
+    <script src="js/main.js?v=3.3"></script>
     <!-- Mobile Tab Bar for navigation -->
     <div class="mobile-tab-bar">
         <button class="mobile-tab-btn" data-tab="home">🏠</button>
