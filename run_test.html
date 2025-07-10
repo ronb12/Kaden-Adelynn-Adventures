@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Display Test Runner</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .test-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .test-section {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .test-button {
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .test-button:hover {
+            background: #357abd;
+        }
+        .results {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+            border-left: 4px solid #4a90e2;
+        }
+        .iframe-container {
+            width: 100%;
+            height: 500px;
+            border: 2px solid #4a90e2;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #2d5a2d;
+            border-left: 4px solid #4caf50;
+        }
+        .status.warning {
+            background: #5a4a2d;
+            border-left: 4px solid #ff9800;
+        }
+        .status.error {
+            background: #5a2d2d;
+            border-left: 4px solid #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎮 Game Display Test Runner</h1>
+        <p>Automated testing for mobile and desktop game display</p>
+        
+        <div class="test-section">
+            <h2>📱 Mobile Test</h2>
+            <button class="test-button" onclick="testMobile()">Test Mobile View (375x667)</button>
+            <div id="mobileResults" class="results">Mobile test results will appear here...</div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🖥️ Desktop Test</h2>
+            <button class="test-button" onclick="testDesktop()">Test Desktop View (1200x800)</button>
+            <div id="desktopResults" class="results">Desktop test results will appear here...</div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🎯 Live Game Test</h2>
+            <button class="test-button" onclick="testLiveGame()">Test Live Game</button>
+            <div id="liveResults" class="results">Live game test results will appear here...</div>
+        </div>
+        
+        <div class="iframe-container">
+            <iframe id="gameFrame" src="index.html"></iframe>
+        </div>
+    </div>
+
+    <script>
+        let gameFrame = null;
+        
+        function testMobile() {
+            const results = document.getElementById('mobileResults');
+            results.textContent = '🔄 Testing mobile view...\n';
+            
+            // Simulate mobile viewport
+            const mobileTest = `
+                // Mobile Test Results
+                console.log('📱 Mobile Test Starting...');
+                
+                // Simulate mobile viewport
+                const originalWidth = window.innerWidth;
+                const originalHeight = window.innerHeight;
+                
+                Object.defineProperty(window, 'innerWidth', { value: 375, configurable: true });
+                Object.defineProperty(window, 'innerHeight', { value: 667, configurable: true });
+                
+                // Trigger resize
+                window.dispatchEvent(new Event('resize'));
+                
+                setTimeout(() => {
+                    const testResults = {
+                        viewport: 'Mobile (375x667)',
+                        passed: 0,
+                        failed: 0,
+                        details: []
+                    };
+                    
+                    // Test game container
+                    const gameContainer = document.querySelector('.game-container');
+                    if (gameContainer) {
+                        const rect = gameContainer.getBoundingClientRect();
+                        const style = window.getComputedStyle(gameContainer);
+                        
+                        if (style.display !== 'none' && style.visibility !== 'hidden') {
+                            testResults.passed++;
+                            testResults.details.push('✅ Game container visible');
+                        } else {
+                            testResults.failed++;
+                            testResults.details.push('❌ Game container hidden');
+                        }
+                        
+                        if (rect.left >= 0 && rect.right <= 375) {
+                            testResults.passed++;
+                            testResults.details.push('✅ Game container on screen');
+                        } else {
+                            testResults.failed++;
+                            testResults.details.push('❌ Game container off screen');
+                        }
+                    } else {
+                        testResults.failed++;
+                        testResults.details.push('❌ Game container not found');
+                    }
+                    
+                    // Test mobile tab bar
+                    const mobileTabBar = document.querySelector('.mobile-tab-bar');
+                    if (mobileTabBar) {
+                        const style = window.getComputedStyle(mobileTabBar);
+                        if (style.display !== 'none') {
+                            testResults.passed++;
+                            testResults.details.push('✅ Mobile tab bar visible');
+                        } else {
+                            testResults.failed++;
+                            testResults.details.push('❌ Mobile tab bar hidden');
+                        }
+                    } else {
+                        testResults.failed++;
+                        testResults.details.push('❌ Mobile tab bar not found');
+                    }
+                    
+                    // Test start screen
+                    const startScreen = document.getElementById('startScreen');
+                    if (startScreen) {
+                        const style = window.getComputedStyle(startScreen);
+                        if (style.display !== 'none' && style.visibility !== 'hidden') {
+                            testResults.passed++;
+                            testResults.details.push('✅ Start screen visible');
+                        } else {
+                            testResults.failed++;
+                            testResults.details.push('❌ Start screen hidden');
+                        }
+                    } else {
+                        testResults.failed++;
+                        testResults.details.push('❌ Start screen not found');
+                    }
+                    
+                    // Calculate percentage
+                    const total = testResults.passed + testResults.failed;
+                    const percentage = total > 0 ? ((testResults.passed / total) * 100).toFixed(1) : 0;
+                    
+                    // Display results
+                    let output = '📱 Mobile Test Results:\\n';
+                    output += '='.repeat(40) + '\\n';
+                    output += \`✅ Passed: \${testResults.passed}\\n\`;
+                    output += \`❌ Failed: \${testResults.failed}\\n\`;
+                    output += \`📈 Score: \${percentage}%\\n\\n\`;
+                    output += '📝 Details:\\n';
+                    testResults.details.forEach(detail => output += detail + '\\n');
+                    
+                    if (percentage >= 80) {
+                        output += '\\n🎉 EXCELLENT: Mobile display working well!';
+                    } else if (percentage >= 60) {
+                        output += '\\n⚠️  GOOD: Mobile display has minor issues';
+                    } else {
+                        output += '\\n🚨 POOR: Mobile display has significant issues';
+                    }
+                    
+                    console.log(output);
+                    
+                    // Restore original viewport
+                    Object.defineProperty(window, 'innerWidth', { value: originalWidth, configurable: true });
+                    Object.defineProperty(window, 'innerHeight', { value: originalHeight, configurable: true });
+                    window.dispatchEvent(new Event('resize'));
+                }, 100);
+            `;
+            
+            // Execute test in iframe
+            const frame = document.getElementById('gameFrame');
+            frame.onload = function() {
+                frame.contentWindow.eval(mobileTest);
+            };
+            
+            // Update results after test
+            setTimeout(() => {
+                results.textContent = '✅ Mobile test completed! Check console for detailed results.';
+            }, 2000);
+        }
+        
+        function testDesktop() {
+            const results = document.getElementById('desktopResults');
+            results.textContent = '🔄 Testing desktop view...\n';
+            
+            // Simulate desktop viewport
+            const desktopTest = `
+                // Desktop Test Results
+                console.log('🖥️ Desktop Test Starting...');
+                
+                // Simulate desktop viewport
+                const originalWidth = window.innerWidth;
+                const originalHeight = window.innerHeight;
+                
+                Object.defineProperty(window, 'innerWidth', { value: 1200, configurable: true });
+                Object.defineProperty(window, 'innerHeight', { value: 800, configurable: true });
+                
+                // Trigger resize
+                window.dispatchEvent(new Event('resize'));
+                
+                setTimeout(() => {
+                    const testResults = {
+                        viewport: 'Desktop (1200x800)',
+                        passed: 0,
+                        failed: 0,
+                        details: []
+                    };
+                    
+                    // Test game container
+                    const gameContainer = document.querySelector('.game-container');
+                    if (gameContainer) {
+                        const rect = gameContainer.getBoundingClientRect();
+                        const style = window.getComputedStyle(gameContainer);
+                        
+                        if (style.display !== 'none' && style.visibility !== 'hidden') {
+                            testResults.passed++;
+                            testResults.details.push('✅ Game container visible');
+                        } else {
+                            testResults.failed++;
+                            testResults.details.push('❌ Game container hidden');
+                        }
+                        
+                        if (rect.left >= 0 && rect.right <= 1200) {
+                            testResults.passed++;
+                            testResults.details.push('✅ Game container on screen');
+                        } else {
+                            testResults.failed++;
+                            testResults.details.push('❌ Game container off screen');
+                        }
+                    } else {
+                        testResults.failed++;
+                        testResults.details.push('❌ Game container not found');
+                    }
+                    
+                    // Test start screen
+                    const startScreen = document.getElementById('startScreen');
+                    if (startScreen) {
+                        const style = window.getComputedStyle(startScreen);
+                        if (style.display !== 'none' && style.visibility !== 'hidden') {
+                            testResults.passed++;
+                            testResults.details.push('✅ Start screen visible');
+                        } else {
+                            testResults.failed++;
+                            testResults.details.push('❌ Start screen hidden');
+                        }
+                    } else {
+                        testResults.failed++;
+                        testResults.details.push('❌ Start screen not found');
+                    }
+                    
+                    // Test game canvas (should be hidden on menu)
+                    const gameCanvas = document.getElementById('gameCanvas');
+                    if (gameCanvas) {
+                        const style = window.getComputedStyle(gameCanvas);
+                        if (style.display === 'none' || style.visibility === 'hidden') {
+                            testResults.passed++;
+                            testResults.details.push('✅ Game canvas hidden (correct for menu)');
+                        } else {
+                            testResults.failed++;
+                            testResults.details.push('❌ Game canvas should be hidden on menu');
+                        }
+                    } else {
+                        testResults.failed++;
+                        testResults.details.push('❌ Game canvas not found');
+                    }
+                    
+                    // Calculate percentage
+                    const total = testResults.passed + testResults.failed;
+                    const percentage = total > 0 ? ((testResults.passed / total) * 100).toFixed(1) : 0;
+                    
+                    // Display results
+                    let output = '🖥️ Desktop Test Results:\\n';
+                    output += '='.repeat(40) + '\\n';
+                    output += \`✅ Passed: \${testResults.passed}\\n\`;
+                    output += \`❌ Failed: \${testResults.failed}\\n\`;
+                    output += \`📈 Score: \${percentage}%\\n\\n\`;
+                    output += '📝 Details:\\n';
+                    testResults.details.forEach(detail => output += detail + '\\n');
+                    
+                    if (percentage >= 80) {
+                        output += '\\n🎉 EXCELLENT: Desktop display working well!';
+                    } else if (percentage >= 60) {
+                        output += '\\n⚠️  GOOD: Desktop display has minor issues';
+                    } else {
+                        output += '\\n🚨 POOR: Desktop display has significant issues';
+                    }
+                    
+                    console.log(output);
+                    
+                    // Restore original viewport
+                    Object.defineProperty(window, 'innerWidth', { value: originalWidth, configurable: true });
+                    Object.defineProperty(window, 'innerHeight', { value: originalHeight, configurable: true });
+                    window.dispatchEvent(new Event('resize'));
+                }, 100);
+            `;
+            
+            // Execute test in iframe
+            const frame = document.getElementById('gameFrame');
+            frame.onload = function() {
+                frame.contentWindow.eval(desktopTest);
+            };
+            
+            // Update results after test
+            setTimeout(() => {
+                results.textContent = '✅ Desktop test completed! Check console for detailed results.';
+            }, 2000);
+        }
+        
+        function testLiveGame() {
+            const results = document.getElementById('liveResults');
+            results.textContent = '🔄 Testing live game...\n';
+            
+            // Test current viewport
+            const liveTest = `
+                console.log('🎮 Live Game Test Starting...');
+                
+                const testResults = {
+                    viewport: 'Current Viewport',
+                    passed: 0,
+                    failed: 0,
+                    details: []
+                };
+                
+                // Test current viewport size
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                testResults.details.push(\`📱 Viewport: \${viewportWidth}x\${viewportHeight}\`);
+                
+                // Test game container
+                const gameContainer = document.querySelector('.game-container');
+                if (gameContainer) {
+                    const rect = gameContainer.getBoundingClientRect();
+                    const style = window.getComputedStyle(gameContainer);
+                    
+                    if (style.display !== 'none' && style.visibility !== 'hidden') {
+                        testResults.passed++;
+                        testResults.details.push('✅ Game container visible');
+                    } else {
+                        testResults.failed++;
+                        testResults.details.push('❌ Game container hidden');
+                    }
+                    
+                    if (rect.left >= 0 && rect.right <= viewportWidth) {
+                        testResults.passed++;
+                        testResults.details.push('✅ Game container on screen');
+                    } else {
+                        testResults.failed++;
+                        testResults.details.push('❌ Game container off screen');
+                    }
+                    
+                    testResults.details.push(\`📍 Container position: (\${rect.left.toFixed(0)}, \${rect.top.toFixed(0)})\`);
+                    testResults.details.push(\`📏 Container size: \${rect.width.toFixed(0)}x\${rect.height.toFixed(0)}\`);
+                } else {
+                    testResults.failed++;
+                    testResults.details.push('❌ Game container not found');
+                }
+                
+                // Test body overflow
+                const bodyStyle = window.getComputedStyle(document.body);
+                if (bodyStyle.overflowX === 'hidden') {
+                    testResults.passed++;
+                    testResults.details.push('✅ Body overflow-x hidden (prevents horizontal scroll)');
+                } else {
+                    testResults.failed++;
+                    testResults.details.push('❌ Body overflow-x should be hidden');
+                }
+                
+                // Calculate percentage
+                const total = testResults.passed + testResults.failed;
+                const percentage = total > 0 ? ((testResults.passed / total) * 100).toFixed(1) : 0;
+                
+                // Display results
+                let output = '🎮 Live Game Test Results:\\n';
+                output += '='.repeat(40) + '\\n';
+                output += \`✅ Passed: \${testResults.passed}\\n\`;
+                output += \`❌ Failed: \${testResults.failed}\\n\`;
+                output += \`📈 Score: \${percentage}%\\n\\n\`;
+                output += '📝 Details:\\n';
+                testResults.details.forEach(detail => output += detail + '\\n');
+                
+                if (percentage >= 80) {
+                    output += '\\n🎉 EXCELLENT: Live game display working well!';
+                } else if (percentage >= 60) {
+                    output += '\\n⚠️  GOOD: Live game display has minor issues';
+                } else {
+                    output += '\\n🚨 POOR: Live game display has significant issues';
+                }
+                
+                console.log(output);
+            `;
+            
+            // Execute test in iframe
+            const frame = document.getElementById('gameFrame');
+            frame.onload = function() {
+                frame.contentWindow.eval(liveTest);
+            };
+            
+            // Update results after test
+            setTimeout(() => {
+                results.textContent = '✅ Live game test completed! Check console for detailed results.';
+            }, 2000);
+        }
+        
+        // Auto-run live test when page loads
+        window.onload = function() {
+            setTimeout(testLiveGame, 2000);
+        };
+    </script>
+</body>
+</html> 

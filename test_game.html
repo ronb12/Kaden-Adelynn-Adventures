@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Display Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-button {
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .test-button:hover {
+            background: #357abd;
+        }
+        .results {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .iframe-container {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #4a90e2;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎮 Game Display Test</h1>
+        <p>This page will test if the game is properly displayed on different screen sizes.</p>
+        
+        <div>
+            <button class="test-button" onclick="loadGame()">Load Game</button>
+            <button class="test-button" onclick="runMobileTest()">Test Mobile View</button>
+            <button class="test-button" onclick="runDesktopTest()">Test Desktop View</button>
+            <button class="test-button" onclick="runAllTests()">Run All Tests</button>
+        </div>
+        
+        <div class="iframe-container">
+            <iframe id="gameFrame" src="index.html"></iframe>
+        </div>
+        
+        <div class="results" id="testResults">
+            Test results will appear here...
+        </div>
+    </div>
+
+    <script>
+        let gameFrame = null;
+        let testResults = [];
+
+        function loadGame() {
+            const frame = document.getElementById('gameFrame');
+            frame.onload = function() {
+                gameFrame = frame.contentWindow;
+                console.log('✅ Game loaded successfully');
+                document.getElementById('testResults').textContent = '✅ Game loaded successfully\nReady to run tests...';
+            };
+        }
+
+        function runMobileTest() {
+            if (!gameFrame) {
+                alert('Please load the game first!');
+                return;
+            }
+            
+            // Simulate mobile viewport
+            gameFrame.postMessage({
+                type: 'TEST_VIEWPORT',
+                width: 375,
+                height: 667,
+                name: 'Mobile'
+            }, '*');
+        }
+
+        function runDesktopTest() {
+            if (!gameFrame) {
+                alert('Please load the game first!');
+                return;
+            }
+            
+            // Simulate desktop viewport
+            gameFrame.postMessage({
+                type: 'TEST_VIEWPORT',
+                width: 1200,
+                height: 800,
+                name: 'Desktop'
+            }, '*');
+        }
+
+        function runAllTests() {
+            if (!gameFrame) {
+                alert('Please load the game first!');
+                return;
+            }
+            
+            // Run mobile test
+            setTimeout(() => runMobileTest(), 100);
+            // Run desktop test
+            setTimeout(() => runDesktopTest(), 200);
+        }
+
+        // Listen for test results from iframe
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'TEST_RESULTS') {
+                const results = event.data.results;
+                testResults.push(results);
+                
+                let output = '📊 Test Results:\n';
+                output += '='.repeat(50) + '\n';
+                
+                testResults.forEach((result, index) => {
+                    output += `\n${index + 1}. ${result.viewport} Test:\n`;
+                    output += `   ✅ Passed: ${result.passed}\n`;
+                    output += `   ❌ Failed: ${result.failed}\n`;
+                    output += `   📈 Score: ${result.percentage}%\n`;
+                    output += `   📝 Details: ${result.details}\n`;
+                });
+                
+                document.getElementById('testResults').textContent = output;
+            }
+        });
+
+        // Auto-load game
+        window.onload = function() {
+            setTimeout(loadGame, 1000);
+        };
+    </script>
+</body>
+</html> 
