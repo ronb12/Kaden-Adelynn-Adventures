@@ -1,5 +1,5 @@
 // Simple Space Shooter Game
-// Version 3.0 - Performance fixes and rapid fire improvements
+// Version 3.1 - Fixed syntax error and game loop conflicts
 
 // Game variables
 let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, startScreen, finalScoreElement, restartBtn, startBtn, highScoreElement, fullscreenBtn;
@@ -76,7 +76,7 @@ let gameState = 'start';
 let score = 0;
 let lives = 50;
 let level = 1;
-let gameLoop;
+let animationId = null; // Changed from gameLoop to animationId
 let highScore = localStorage.getItem('spaceShooterHighScore') || 0;
 
 // Top score tracking system
@@ -545,8 +545,8 @@ function startGame() {
     initStars();
     
     // Start game loop with requestAnimationFrame for better performance
-    if (gameLoop) clearInterval(gameLoop);
-    gameLoop = requestAnimationFrame(gameLoop);
+    if (animationId) cancelAnimationFrame(animationId);
+    animationId = requestAnimationFrame(gameLoop);
 }
 
 // Improved game loop function
@@ -570,14 +570,14 @@ function gameLoop() {
     
     // Continue the loop
     if (gameState === 'playing') {
-        requestAnimationFrame(gameLoop);
+        animationId = requestAnimationFrame(gameLoop);
     }
 }
 
 // Game over function
 function gameOver() {
     gameState = 'gameOver';
-    clearInterval(gameLoop);
+    cancelAnimationFrame(animationId);
     
     // Update high score
     if (score > highScore) {
@@ -1478,26 +1478,6 @@ function drawTouchIndicator() {
         ctx.moveTo(player.x + player.width / 2, player.y + player.height / 2);
         ctx.lineTo(touchControls.touchX, touchControls.touchY);
         ctx.stroke();
-    }
-}
-
-// Main update function
-function update() {
-    if (gameState === 'playing') {
-        updatePlayer();
-        updateBullets();
-        updateEnemies();
-        updatePowerUps();
-        updateCollectibles();
-        updateExplosions();
-        updateStars();
-        checkCollisions();
-        updateLevel();
-        updateUI();
-        spawnEnemy();
-        spawnPowerUp();
-        spawnCollectible();
-        render();
     }
 }
 
