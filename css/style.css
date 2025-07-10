@@ -2198,7 +2198,7 @@ button:active {
     height: 100vh !important;
     max-width: 100vw !important;
     max-height: 100vh !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     overflow: hidden !important;
     padding-bottom: 70px !important; /* for tab bar */
     box-sizing: border-box !important;
@@ -2207,6 +2207,7 @@ button:active {
     align-items: center !important;
     justify-content: center !important;
     transform: none !important;
+    z-index: 1 !important;
   }
   
   /* Canvas - ensure it's centered and properly sized */
@@ -2402,7 +2403,7 @@ button:active {
     height: 100vh !important;
     max-width: 100vw !important;
     max-height: 100vh !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     overflow: hidden !important;
     box-sizing: border-box !important;
     display: flex !important;
@@ -2485,7 +2486,7 @@ button:active {
     height: 100vh !important;
     max-width: 100vw !important;
     max-height: 100vh !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     overflow: hidden !important;
     box-sizing: border-box !important;
     display: flex !important;
