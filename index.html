@@ -54,7 +54,7 @@
     <!-- Microsoft Tiles -->
     <meta name="msapplication-TileImage" content="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQ0IiBoZWlnaHQ9IjE0NCIgdmlld0JveD0iMCAwIDE0NCAxNDQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNDQiIGhlaWdodD0iMTQ0IiBmaWxsPSIjMDAwMDAwIi8+CjxyZWN0IHdpZHRoPSIxNDQiIGhlaWdodD0iMTQ0IiBmaWxsPSJ1cmwoI2dyYWRpZW50KSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJncmFkaWVudCIgeDE9IjAiIHkxPSIwIiB4Mj0iMTQ0IiB5Mj0iMTQ0IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CjxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM0YTkwZTI7c3RvcC1vcGFjaXR5OjEiLz4KPHN0b3Agb2Zmc2V0PSI1MCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMxYTFhMmU7c3RvcC1vcGFjaXR5OjEiLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojM2IyZTJhO3N0b3Atb3BhY2l0eToxIi8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPGNpcmNsZSBjeD0iNzIiIGN5PSI3MiIgcj0iNjAiIGZpbGw9IiM0YTkwZTIiLz4KPGNpcmNsZSBjeD0iNzIiIGN5PSI3MiIgcj0iNDUiIGZpbGw9IiMxYTFhMmUiLz4KPGNpcmNsZSBjeD0iNzIiIGN5PSI3MiIgcj0iMzAiIGZpbGw9IiMzYjJlMmEiLz4KPHBhdGggZD0iTTcyIDI5TDkwIDU5SDU0TDcyIDI5WiIgZmlsbD0iI2ZmNDQ0NCIvPgo8cGF0aCBkPSJNNzIgMTE1TDU0IDg1SDkwTDcyIDExNVoiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTI5IDcyTDU5IDU0VjkwTDI5IDcyWiIgZmlsbD0iI2ZmNDQ0NCIvPgo8cGF0aCBkPSJNMTE1IDcyTDg1IDkwVjU0TDExNSA3MloiIGZpbGw9IiNmZjQ0NDQiLz4KPHNwYW4geD0iNzIiIHk9IjEyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjExIiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5LYWRlbiAmPC9zcGFuPgo8c3BhbiB4PSI3MiIgeT0iMTMxIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiNmZmZmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkFkZWx5bm48L3NwYW4+Cjwvc3ZnPg==">
     
-    <link rel="stylesheet" href="css/style.css?v=4.1">
+    <link rel="stylesheet" href="css/style.css?v=4.2">
 </head>
 <body>
     <!-- Main Menu Container -->
@@ -458,6 +458,47 @@
             <!-- Remove duplicate buttons - they're now in the hero section -->
         </div>
     </div>
+    
+    <!-- Game Container (hidden by default) -->
+    <div id="game-container" class="game-container" style="display: none;">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <!-- Game UI Overlay -->
+        <div id="gameUI" class="game-ui">
+            <div class="game-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Score:</span>
+                    <span id="score" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Lives:</span>
+                    <span id="lives" class="stat-value">50</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Level:</span>
+                    <span id="level" class="stat-value">1</span>
+                </div>
+            </div>
+            
+            <!-- Game Controls -->
+            <div class="game-controls">
+                <button id="pauseBtn" class="game-btn">⏸️</button>
+                <button id="musicBtn" class="game-btn">🎵</button>
+                <button id="radioBtn" class="game-btn">📡</button>
+            </div>
+        </div>
+        
+        <!-- Game Over Screen -->
+        <div id="gameOver" class="game-over-screen" style="display: none;">
+            <div class="game-over-content">
+                <h2>Game Over</h2>
+                <p>Final Score: <span id="finalScore">0</span></p>
+                <button id="restartBtn" class="restart-btn">Play Again</button>
+                <button id="menuBtn" class="menu-btn">Main Menu</button>
+            </div>
+        </div>
+    </div>
+    
     <script>
         // PWA Service Worker Registration
         if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
@@ -504,7 +545,7 @@
             }, { once: true });
         }
     </script>
-    <script src="js/main.js?v=4.1"></script>
+    <script src="js/main.js?v=4.2"></script>
     <!-- Mobile Tab Bar for navigation -->
     <div class="mobile-tab-bar">
         <button class="mobile-tab-btn" data-tab="home">🏠</button>

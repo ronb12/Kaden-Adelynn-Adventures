@@ -5912,7 +5912,10 @@ function addInstallButton() {
     }
 
     const startScreen = document.getElementById('startScreen');
-    if (!startScreen) return;
+    if (!startScreen) {
+        console.log('PWA: Start screen not found, skipping install button');
+        return;
+    }
 
     // Create install button
     installButton = document.createElement('button');
@@ -5925,11 +5928,8 @@ function addInstallButton() {
     installButton.style.display = 'none';
     installButton.addEventListener('click', installPWA);
 
-    // Insert before the start button
-    const startBtn = document.getElementById('startBtn');
-    if (startBtn) {
-        startScreen.insertBefore(installButton, startBtn);
-    }
+    // Insert at the end of start screen instead of before startBtn
+    startScreen.appendChild(installButton);
 }
 
 // Initialize PWA when DOM is loaded
