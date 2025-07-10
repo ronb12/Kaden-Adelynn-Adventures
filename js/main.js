@@ -3018,6 +3018,17 @@ function setupButtonListeners() {
         radioChatterMobileBtn.addEventListener('touchstart', toggleRadioChatter);
     }
     
+    // Setup tab navigation
+    setupTabNavigation();
+    
+    // Setup full screen button
+    const fullScreenBtn = document.getElementById('fullScreenBtn');
+    if (fullScreenBtn) {
+        fullScreenBtn.addEventListener('click', () => {
+            requestFullScreen();
+        });
+    }
+    
     // Keyboard shortcut is now handled in the global event listener
 }
 
@@ -3063,13 +3074,14 @@ function startGame() {
     // Start first mission
     startMission(0);
     
-    // Hide start screen
-    if (startScreen) {
-        startScreen.classList.add('hidden');
+    // Hide main menu and show game container
+    const mainMenu = document.getElementById('mainMenu');
+    const gameContainer = document.querySelector('.game-container');
+    
+    if (mainMenu) {
+        mainMenu.classList.add('hidden');
     }
     
-    // Show game container and canvas
-    const gameContainer = document.querySelector('.game-container');
     if (gameContainer) {
         gameContainer.classList.add('game-active');
     }
@@ -3083,6 +3095,9 @@ function startGame() {
     if (!gameLoop) {
         gameLoop = setInterval(update, 1000 / 60);
     }
+    
+    // Request full screen for immersive experience
+    requestFullScreen();
     
     // Start background music
     playBackgroundMusic('game');
@@ -5119,9 +5134,12 @@ function setupTabNavigation() {
     const tabButtons = document.querySelectorAll('.mobile-tab-btn');
     const tabViews = document.querySelectorAll('.tab-view');
     
+    console.log('Setting up tab navigation with', tabButtons.length, 'buttons and', tabViews.length, 'views');
+    
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
-            const targetTab = button.dataset.tab;
+            const targetTab = button.getAttribute('data-tab');
+            console.log('Tab clicked:', targetTab);
             
             // Remove active class from all buttons and views
             tabButtons.forEach(btn => btn.classList.remove('active'));
@@ -5130,8 +5148,12 @@ function setupTabNavigation() {
             // Add active class to clicked button and corresponding view
             button.classList.add('active');
             const targetView = document.getElementById(`${targetTab}-view`);
+            console.log('Target view:', targetView);
             if (targetView) {
                 targetView.classList.add('active');
+                console.log('Activated view:', targetTab);
+            } else {
+                console.log('View not found for tab:', targetTab);
             }
             
             // Handle special cases for each tab
@@ -5151,6 +5173,14 @@ function setupTabNavigation() {
             }
         });
     });
+    
+    // Set initial active tab (home)
+    const homeButton = document.querySelector('.mobile-tab-btn[data-tab="home"]');
+    const homeView = document.getElementById('home-view');
+    if (homeButton && homeView) {
+        homeButton.classList.add('active');
+        homeView.classList.add('active');
+    }
 }
 
 // Setup radio controls for the radio tab
@@ -6187,38 +6217,67 @@ function initBackgroundEffects() {
 // Restart game function
 function restartGame() {
     // Hide game over screen
-    if (gameOverScreen) {
-        gameOverScreen.classList.add('hidden');
-    }
+    if (gameOverScreen) gameOverScreen.classList.add('hidden');
     
-    // Remove game-playing class to show mobile tab bar
-    document.body.classList.remove('game-playing');
-    
-    // Hide game container and show start screen
+    // Hide game container and show main menu
     const gameContainer = document.querySelector('.game-container');
+    const mainMenu = document.getElementById('mainMenu');
+    
     if (gameContainer) {
         gameContainer.classList.remove('game-active');
     }
     
-    // Show start screen
-    if (startScreen) {
-        startScreen.classList.remove('hidden');
+    if (mainMenu) {
+        mainMenu.classList.remove('hidden');
     }
     
     // Reset game state
-    gameState = 'menu';
+    gameState = 'start';
     
-    // Stop any ongoing game loop
+    // Stop game loop
     if (gameLoop) {
-        cancelAnimationFrame(gameLoop);
+        clearInterval(gameLoop);
         gameLoop = null;
     }
     
     // Stop radio chatter
     stopRadioChatter();
     
-    // Play menu music
-    playBackgroundMusic('menu');
+    // Remove game-playing class
+    document.body.classList.remove('game-playing');
     
     console.log('Game restarted - returned to menu');
 }
+
+// Full screen request function
+function requestFullScreen() {
+    const elem = document.documentElement;
+    if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+    } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+    } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen();
+    }
+}
+
+// Exit full screen function
+function exitFullScreen() {
+    if (document.exitFullscreen) {
+        document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+    } else if (document.msExitFullscreen) {
+        document.msExitFullscreen();
+    }
+}
+
+// Setup full screen button
+const fullScreenBtn = document.getElementById('fullScreenBtn');
+if (fullScreenBtn) {
+    fullScreenBtn.addEventListener('click', () => {
+        requestFullScreen();
+    });
+}
+
+// Setup character selection

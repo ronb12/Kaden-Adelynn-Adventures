@@ -54,55 +54,11 @@
     <!-- Microsoft Tiles -->
     <meta name="msapplication-TileImage" content="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQ0IiBoZWlnaHQ9IjE0NCIgdmlld0JveD0iMCAwIDE0NCAxNDQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNDQiIGhlaWdodD0iMTQ0IiBmaWxsPSIjMDAwMDAwIi8+CjxyZWN0IHdpZHRoPSIxNDQiIGhlaWdodD0iMTQ0IiBmaWxsPSJ1cmwoI2dyYWRpZW50KSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJncmFkaWVudCIgeDE9IjAiIHkxPSIwIiB4Mj0iMTQ0IiB5Mj0iMTQ0IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CjxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM0YTkwZTI7c3RvcC1vcGFjaXR5OjEiLz4KPHN0b3Agb2Zmc2V0PSI1MCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMxYTFhMmU7c3RvcC1vcGFjaXR5OjEiLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojM2IyZTJhO3N0b3Atb3BhY2l0eToxIi8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPGNpcmNsZSBjeD0iNzIiIGN5PSI3MiIgcj0iNjAiIGZpbGw9IiM0YTkwZTIiLz4KPGNpcmNsZSBjeD0iNzIiIGN5PSI3MiIgcj0iNDUiIGZpbGw9IiMxYTFhMmUiLz4KPGNpcmNsZSBjeD0iNzIiIGN5PSI3MiIgcj0iMzAiIGZpbGw9IiMzYjJlMmEiLz4KPHBhdGggZD0iTTcyIDI5TDkwIDU5SDU0TDcyIDI5WiIgZmlsbD0iI2ZmNDQ0NCIvPgo8cGF0aCBkPSJNNzIgMTE1TDU0IDg1SDkwTDcyIDExNVoiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTI5IDcyTDU5IDU0VjkwTDI5IDcyWiIgZmlsbD0iI2ZmNDQ0NCIvPgo8cGF0aCBkPSJNMTE1IDcyTDg1IDkwVjU0TDExNSA3MloiIGZpbGw9IiNmZjQ0NDQiLz4KPHNwYW4geD0iNzIiIHk9IjEyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjExIiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5LYWRlbiAmPC9zcGFuPgo8c3BhbiB4PSI3MiIgeT0iMTMxIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiNmZmZmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkFkZWx5bm48L3NwYW4+Cjwvc3ZnPg==">
     
-    <link rel="stylesheet" href="css/style.css?v=3.7">
+    <link rel="stylesheet" href="css/style.css?v=4.1">
 </head>
 <body>
-    <div class="game-container">
-      <div class="game-inner">
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
-        <div class="ui-overlay">
-            <div class="score">Score: <span id="score">0</span></div>
-            <div class="lives">❤️ <span id="lives">50</span></div>
-            <div class="level">Level: <span id="level">1</span></div>
-            <div class="money">💰 <span id="money">0</span></div>
-            <div class="wingmen">🛩️ <span id="wingmanCount">0/4</span></div>
-            <!-- NEW FEATURES - Weapon System -->
-            <div class="weapon-info">
-                <div class="weapon-type">🔫 <span id="weaponType">Laser</span></div>
-                <div class="weapon-level">Level: <span id="weaponLevel">1</span></div>
-            </div>
-            <!-- NEW FEATURES - Multiplayer Info -->
-            <div class="multiplayer-info" id="multiplayerInfo" style="display: none;">
-                <div class="player2-lives">P2 ❤️ <span id="player2Lives">50</span></div>
-                <div class="player2-score">P2 Score: <span id="player2Score">0</span></div>
-            </div>
-            <!-- NEW FEATURES - Boss Health Bar -->
-            <div class="boss-health" id="bossHealth" style="display: none;">
-                <div class="boss-name" id="bossName">Boss</div>
-                <div class="boss-bar">
-                    <div class="boss-bar-fill" id="bossBarFill"></div>
-                </div>
-            </div>
-            <!-- NEW FEATURES - Combo Counter -->
-            <div class="combo-counter" id="comboCounter" style="display: none;">
-                <div class="combo-text">Combo x<span id="comboMultiplier">1.0</span></div>
-            </div>
-            <div class="mission-info" id="currentMission">
-                <div class="mission-title">🚀 Training Day</div>
-                <div class="mission-progress">0/5</div>
-            </div>
-            <div class="pause-status" id="pauseStatus"></div>
-        </div>
-        <div id="gameOver" class="game-over hidden">
-            <h2>Game Over!</h2>
-            <p>Final Score: <span id="finalScore">0</span></p>
-            <p>High Score: <span id="finalHighScore">0</span></p>
-            <div id="achievementsEarned" class="achievements-earned"></div>
-            <button id="restartBtn" class="game-button">
-                <span class="button-text">Play Again</span>
-                <span class="button-icon">🔄</span>
-            </button>
-        </div>
+    <!-- Main Menu Container -->
+    <div id="mainMenu" class="main-menu">
         <div id="startScreen" class="start-screen">
             <!-- Hero Section -->
             <div class="hero-section">
@@ -118,6 +74,10 @@
                             <span class="button-text">Multiplayer</span>
                             <span class="button-icon">👥</span>
                         </button>
+                        <button id="fullScreenBtn" class="hero-button tertiary">
+                            <span class="button-text">Full Screen</span>
+                            <span class="button-icon">⛶</span>
+                        </button>
                     </div>
                 </div>
                 <div class="hero-visual">
@@ -128,31 +88,6 @@
                 </div>
             </div>
 
-            <!-- Featured Content -->
-            <div class="featured-section">
-                <div class="featured-grid">
-                    <div class="featured-card">
-                        <div class="card-icon">🎖️</div>
-                        <h3>20 Epic Missions</h3>
-                        <p>Rise from Cadet to Admiral</p>
-                    </div>
-                    <div class="featured-card">
-                        <div class="card-icon">👾</div>
-                        <h3>Boss Battles</h3>
-                        <p>Face powerful enemies</p>
-                    </div>
-                    <div class="featured-card">
-                        <div class="card-icon">💰</div>
-                        <h3>Economy System</h3>
-                        <p>Earn and spend credits</p>
-                    </div>
-                    <div class="featured-card">
-                        <div class="card-icon">🛩️</div>
-                        <h3>Wingman Squadrons</h3>
-                        <p>Build your own fleet</p>
-                    </div>
-                </div>
-            </div>
             
             <!-- Tab Content Container -->
             <div class="tab-content-container">
@@ -569,7 +504,7 @@
             }, { once: true });
         }
     </script>
-    <script src="js/main.js?v=3.7"></script>
+    <script src="js/main.js?v=4.1"></script>
     <!-- Mobile Tab Bar for navigation -->
     <div class="mobile-tab-bar">
         <button class="mobile-tab-btn" data-tab="home">🏠</button>
