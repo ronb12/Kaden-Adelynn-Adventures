@@ -301,6 +301,12 @@ function setupEventListeners() {
     if (restartBtn) {
         restartBtn.addEventListener('click', restartGame);
     }
+    
+    // Menu button event
+    const menuBtn = document.getElementById('menuBtn');
+    if (menuBtn) {
+        menuBtn.addEventListener('click', returnToMenu);
+    }
 }
 
 // Setup touch controls for mobile devices
@@ -386,14 +392,15 @@ function startGame() {
     player.y = 550;
     player.powerUps = [];
     
-    // Hide start screen
-    if (startScreen) startScreen.style.display = 'none';
-    if (gameOverScreen) gameOverScreen.style.display = 'none';
+    // Switch from menu to game screen
+    const menuContainer = document.getElementById('menuContainer');
+    const gameContainer = document.getElementById('gameContainer');
     
-    // Show game canvas and score display
-    if (canvas) canvas.style.display = 'block';
-    const scoreDisplay = document.getElementById('scoreDisplay');
-    if (scoreDisplay) scoreDisplay.classList.remove('hidden');
+    if (menuContainer) menuContainer.classList.add('hidden');
+    if (gameContainer) gameContainer.classList.remove('hidden');
+    
+    // Hide game over screen if visible
+    if (gameOverScreen) gameOverScreen.style.display = 'none';
     
     console.log('Game started!');
 }
@@ -415,16 +422,33 @@ function gameOver() {
     // Show game over screen
     if (gameOverScreen) gameOverScreen.style.display = 'block';
     
-    // Hide score display
-    const scoreDisplay = document.getElementById('scoreDisplay');
-    if (scoreDisplay) scoreDisplay.classList.add('hidden');
-    
     console.log('Game over! Score:', score, 'High score:', highScore);
 }
 
 // Restart game
 function restartGame() {
+    // Hide game over screen
+    if (gameOverScreen) gameOverScreen.style.display = 'none';
+    
+    // Start new game
     startGame();
+}
+
+// Return to main menu
+function returnToMenu() {
+    gameState = 'menu';
+    
+    // Switch from game to menu screen
+    const menuContainer = document.getElementById('menuContainer');
+    const gameContainer = document.getElementById('gameContainer');
+    
+    if (menuContainer) menuContainer.classList.remove('hidden');
+    if (gameContainer) gameContainer.classList.add('hidden');
+    
+    // Hide game over screen
+    if (gameOverScreen) gameOverScreen.style.display = 'none';
+    
+    console.log('Returned to main menu');
 }
 
 // Shoot function
