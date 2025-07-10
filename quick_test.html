@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Game Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 20px;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background: #2d5a2d;
+            border: 1px solid #4a9e4a;
+        }
+        .error {
+            background: #5a2d2d;
+            border: 1px solid #9e4a4a;
+        }
+        .warning {
+            background: #5a4a2d;
+            border: 1px solid #9e8a4a;
+        }
+        #testOutput {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+        button {
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #357abd;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎮 Quick Game Test</h1>
+        <p>Testing if the game loads and works without freezing...</p>
+        
+        <button onclick="runQuickTest()">Run Quick Test</button>
+        <button onclick="runFreezeTest()">Run Freeze Test</button>
+        <button onclick="clearResults()">Clear Results</button>
+        
+        <div id="testOutput">Click a button to run tests...</div>
+        
+        <div id="results"></div>
+    </div>
+
+    <!-- Load the game -->
+    <script src="js/main.js?v=2.5"></script>
+    
+    <script>
+        const testOutput = document.getElementById('testOutput');
+        const resultsDiv = document.getElementById('results');
+        
+        function log(message) {
+            testOutput.textContent += message + '\n';
+            testOutput.scrollTop = testOutput.scrollHeight;
+            console.log(message);
+        }
+        
+        function addResult(title, message, type) {
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = `<strong>${title}:</strong> ${message}`;
+            resultsDiv.appendChild(div);
+        }
+        
+        function clearResults() {
+            testOutput.textContent = '';
+            resultsDiv.innerHTML = '';
+        }
+        
+        function runQuickTest() {
+            clearResults();
+            log('=== QUICK GAME TEST STARTING ===');
+            
+            // Test 1: Check if main.js loaded
+            log('1. Checking if main.js loaded...');
+            if (typeof startGame === 'function') {
+                log('✅ main.js loaded successfully');
+                addResult('Main.js Loading', 'Success', 'success');
+            } else {
+                log('❌ main.js failed to load');
+                addResult('Main.js Loading', 'Failed', 'error');
+                return;
+            }
+            
+            // Test 2: Check for drawBullets function (main cause of freezing)
+            log('2. Checking drawBullets function...');
+            if (typeof drawBullets === 'function') {
+                log('✅ drawBullets function exists - NO FREEZING!');
+                addResult('DrawBullets Function', 'Present - No Freezing', 'success');
+            } else {
+                log('❌ drawBullets function missing - THIS CAUSES FREEZING!');
+                addResult('DrawBullets Function', 'Missing - Will Freeze', 'error');
+            }
+            
+            // Test 3: Check game elements
+            log('3. Checking game elements...');
+            const elements = ['gameCanvas', 'startBtn', 'menuContainer', 'gameContainer'];
+            let elementsOK = true;
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    log(`✅ ${id} exists`);
+                } else {
+                    log(`❌ ${id} missing`);
+                    elementsOK = false;
+                }
+            });
+            
+            if (elementsOK) {
+                addResult('Game Elements', 'All Present', 'success');
+            } else {
+                addResult('Game Elements', 'Some Missing', 'warning');
+            }
+            
+            // Test 4: Check game variables
+            log('4. Checking game variables...');
+            const variables = ['gameState', 'player', 'bullets', 'enemies'];
+            let variablesOK = true;
+            variables.forEach(varName => {
+                if (window[varName] !== undefined) {
+                    log(`✅ ${varName} initialized`);
+                } else {
+                    log(`❌ ${varName} not initialized`);
+                    variablesOK = false;
+                }
+            });
+            
+            if (variablesOK) {
+                addResult('Game Variables', 'All Initialized', 'success');
+            } else {
+                addResult('Game Variables', 'Some Missing', 'warning');
+            }
+            
+            // Test 5: Try to start game
+            log('5. Testing game start...');
+            try {
+                const originalState = window.gameState;
+                startGame();
+                if (window.gameState === 'playing') {
+                    log('✅ Game started successfully');
+                    addResult('Game Start', 'Success', 'success');
+                } else {
+                    log('❌ Game did not start properly');
+                    addResult('Game Start', 'Failed', 'error');
+                }
+                window.gameState = originalState;
+            } catch (error) {
+                log(`❌ Error starting game: ${error.message}`);
+                addResult('Game Start', 'Error: ' + error.message, 'error');
+            }
+            
+            // Final result
+            log('\n=== FINAL RESULT ===');
+            if (typeof drawBullets === 'function' && elementsOK && variablesOK) {
+                log('🎉 SUCCESS: Game should work without freezing!');
+                addResult('Overall Result', 'SUCCESS - Game Should Work', 'success');
+            } else {
+                log('⚠️  ISSUES DETECTED: Game may freeze or not work properly');
+                addResult('Overall Result', 'ISSUES DETECTED', 'error');
+            }
+            
+            log('=== QUICK TEST COMPLETE ===');
+        }
+        
+        function runFreezeTest() {
+            clearResults();
+            log('=== FREEZE TEST STARTING ===');
+            
+            // Specific test for the freezing issue
+            log('1. Testing drawBullets function...');
+            if (typeof drawBullets === 'function') {
+                log('✅ drawBullets function exists');
+                
+                // Try to call drawBullets
+                try {
+                    log('2. Testing drawBullets execution...');
+                    drawBullets();
+                    log('✅ drawBullets executed without errors');
+                    addResult('DrawBullets Execution', 'Success', 'success');
+                } catch (error) {
+                    log(`❌ drawBullets caused error: ${error.message}`);
+                    addResult('DrawBullets Execution', 'Error: ' + error.message, 'error');
+                }
+            } else {
+                log('❌ drawBullets function is missing - THIS CAUSES FREEZING!');
+                addResult('DrawBullets Function', 'Missing - Will Freeze', 'error');
+            }
+            
+            // Test render function (where the freeze was happening)
+            log('3. Testing render function...');
+            if (typeof render === 'function') {
+                try {
+                    render();
+                    log('✅ render executed without errors');
+                    addResult('Render Function', 'Success', 'success');
+                } catch (error) {
+                    log(`❌ render caused error: ${error.message}`);
+                    addResult('Render Function', 'Error: ' + error.message, 'error');
+                }
+            } else {
+                log('❌ render function missing');
+                addResult('Render Function', 'Missing', 'error');
+            }
+            
+            // Final freeze test result
+            log('\n=== FREEZE TEST RESULT ===');
+            if (typeof drawBullets === 'function') {
+                log('✅ NO FREEZING DETECTED - Game should work properly!');
+                addResult('Freeze Test', 'NO FREEZING DETECTED', 'success');
+            } else {
+                log('❌ FREEZING ISSUE DETECTED - drawBullets function is missing!');
+                addResult('Freeze Test', 'FREEZING ISSUE DETECTED', 'error');
+            }
+            
+            log('=== FREEZE TEST COMPLETE ===');
+        }
+        
+        // Auto-run quick test after page loads
+        setTimeout(runQuickTest, 1000);
+    </script>
+</body>
+</html> 

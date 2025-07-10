@@ -774,6 +774,12 @@ function updateUI() {
 
 // Render function
 function render() {
+    // Check if canvas and context are available
+    if (!canvas || !ctx) {
+        console.log('Canvas or context not available for rendering');
+        return;
+    }
+    
     // Clear canvas
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
