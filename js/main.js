@@ -1,5 +1,5 @@
 // Simple Space Shooter Game
-// Version 2.7 - Fullscreen button added
+// Version 2.8 - Enemy shooting, damage system, and improved ship designs
 
 // Game variables
 let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, startScreen, finalScoreElement, restartBtn, startBtn, highScoreElement, fullscreenBtn;
@@ -21,7 +21,11 @@ let player = {
     speed: 5,
     shipType: 'fighter', // fighter, interceptor, blaster, cruiser
     weaponType: 'laser', // laser, plasma, missile, spread
-    powerUps: []
+    powerUps: [],
+    health: 5, // Player now has health instead of just lives
+    maxHealth: 5,
+    invulnerable: false,
+    invulnerabilityTime: 0
 };
 
 // Enhanced ship designs with detailed visual representations
@@ -178,6 +182,7 @@ const ENEMY_DESIGNS = [
 
 // Game objects
 let bullets = [];
+let enemyBullets = [];
 let enemies = [];
 let explosions = [];
 let stars = [];
@@ -187,11 +192,12 @@ let collectibles = [];
 // Game constants
 const BULLET_SPEED = 7;
 const ENEMY_SPEED = 2;
-const ENEMY_SHOOT_RATE = 0.02;
+const ENEMY_SHOOT_RATE = 0.01; // Increased enemy shooting rate
 const ENEMY_BULLET_SPEED = 4;
 const SHOT_DELAY = 200;
 const POWERUP_SPAWN_RATE = 0.005;
 const COLLECTIBLE_SPAWN_RATE = 0.01;
+const PLAYER_INVULNERABILITY_TIME = 2000; // 2 seconds of invulnerability after hit
 
 // Input handling
 let keys = {};
@@ -397,6 +403,7 @@ function startGame() {
     player.x = 400;
     player.y = 550;
     player.powerUps = [];
+    player.health = player.maxHealth; // Reset player health
     
     // Switch from menu to game screen
     const menuContainer = document.getElementById('menuContainer');
@@ -536,8 +543,28 @@ function spawnEnemy() {
             height: enemyDesign.height,
             speed: enemyDesign.speed + Math.random() * 2,
             type: enemyType,
-            design: enemyDesign
+            design: enemyDesign,
+            lastShot: 0,
+            shotDelay: 1000 + Math.random() * 2000, // Random shot delay between 1-3 seconds
+            health: 1 // Enemies have health too
         });
+    }
+}
+
+// Enemy shooting function
+function enemyShoot(enemy) {
+    const now = Date.now();
+    if (now - enemy.lastShot > enemy.shotDelay) {
+        const bullet = {
+            x: enemy.x + enemy.width / 2,
+            y: enemy.y + enemy.height,
+            width: 4,
+            height: 8,
+            speed: ENEMY_BULLET_SPEED,
+            color: '#ff4444'
+        };
+        enemyBullets.push(bullet);
+        enemy.lastShot = now;
     }
 }
 
@@ -579,6 +606,11 @@ function spawnCollectible() {
 function updatePlayer() {
     const shipDesign = SHIP_DESIGNS[player.shipType];
     player.speed = shipDesign.speed;
+    
+    // Check invulnerability
+    if (player.invulnerable && Date.now() > player.invulnerabilityTime) {
+        player.invulnerable = false;
+    }
     
     // Keyboard movement
     if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
@@ -627,12 +659,25 @@ function updateBullets() {
             bullets.splice(i, 1);
         }
     }
+    
+    // Update enemy bullets
+    for (let i = enemyBullets.length - 1; i >= 0; i--) {
+        enemyBullets[i].y += enemyBullets[i].speed;
+        if (enemyBullets[i].y > canvas.height) {
+            enemyBullets.splice(i, 1);
+        }
+    }
 }
 
 // Update enemies
 function updateEnemies() {
     for (let i = enemies.length - 1; i >= 0; i--) {
         enemies[i].y += enemies[i].speed;
+        
+        // Enemy shooting
+        if (enemies[i].y > 0 && enemies[i].y < canvas.height - 100) {
+            enemyShoot(enemies[i]);
+        }
         
         // Remove enemies that go off screen
         if (enemies[i].y > canvas.height) {
@@ -716,6 +761,38 @@ function checkCollisions() {
         }
     }
     
+    // Enemy bullets vs Player collisions
+    for (let i = enemyBullets.length - 1; i >= 0; i--) {
+        if (!player.invulnerable && checkCollision(enemyBullets[i], player)) {
+            // Remove enemy bullet
+            enemyBullets.splice(i, 1);
+            
+            // Damage player
+            player.health--;
+            
+            // Make player invulnerable temporarily
+            player.invulnerable = true;
+            player.invulnerabilityTime = Date.now() + PLAYER_INVULNERABILITY_TIME;
+            
+            // Create explosion at player position
+            explosions.push({
+                x: player.x + player.width / 2,
+                y: player.y + player.height / 2,
+                life: 15
+            });
+            
+            // Check if player should lose a life (after 5 hits)
+            if (player.health <= 0) {
+                lives--;
+                player.health = player.maxHealth; // Reset health
+                
+                if (lives <= 0) {
+                    gameOver();
+                }
+            }
+        }
+    }
+    
     // Player vs Power-up collisions
     for (let i = powerUps.length - 1; i >= 0; i--) {
         if (checkCollision(player, powerUps[i])) {
@@ -724,7 +801,7 @@ function checkCollisions() {
             // Apply power-up effect
             switch(powerUp.type) {
                 case 'health':
-                    lives = Math.min(lives + 1, 5);
+                    player.health = Math.min(player.health + 1, player.maxHealth);
                     break;
                 case 'weapon':
                     // Cycle through weapon types
@@ -776,6 +853,12 @@ function updateUI() {
     if (scoreElement) scoreElement.textContent = score;
     if (livesElement) livesElement.textContent = lives;
     if (levelElement) levelElement.textContent = level;
+    
+    // Update health display if element exists
+    const healthElement = document.getElementById('health');
+    if (healthElement) {
+        healthElement.textContent = player.health;
+    }
 }
 
 // Render function
@@ -810,6 +893,9 @@ function render() {
     
     // Draw explosions
     drawExplosions();
+    
+    // Draw enemy bullets
+    drawEnemyBullets();
     
     // Draw touch indicator for mobile
     drawTouchIndicator();
@@ -855,160 +941,118 @@ function drawBullets() {
 
 // Enhanced player ship drawing with detailed designs
 function drawPlayer() {
-    const shipDesign = SHIP_DESIGNS[player.shipType];
-    
-    // Draw shield effect if active
-    const hasShield = player.powerUps.some(p => p.type === 'shield');
-    if (hasShield) {
-        ctx.strokeStyle = '#8888ff';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(player.x + player.width / 2, player.y + player.height / 2, player.width / 2 + 5, 0, Math.PI * 2);
-        ctx.stroke();
-    }
-    
-    // Draw ship based on type
-    switch(player.shipType) {
-        case 'fighter':
-            drawFighterShip(player.x, player.y, player.width, player.height, shipDesign);
-            break;
-        case 'interceptor':
-            drawInterceptorShip(player.x, player.y, player.width, player.height, shipDesign);
-            break;
-        case 'blaster':
-            drawBlasterShip(player.x, player.y, player.width, player.height, shipDesign);
-            break;
-        case 'cruiser':
-            drawCruiserShip(player.x, player.y, player.width, player.height, shipDesign);
-            break;
+    if (!player.invulnerable || Math.floor(Date.now() / 100) % 2) {
+        const shipDesign = SHIP_DESIGNS[player.shipType];
+        
+        switch(player.shipType) {
+            case 'fighter':
+                drawFighterShip(player.x, player.y, player.width, player.height, shipDesign);
+                break;
+            case 'interceptor':
+                drawInterceptorShip(player.x, player.y, player.width, player.height, shipDesign);
+                break;
+            case 'blaster':
+                drawBlasterShip(player.x, player.y, player.width, player.height, shipDesign);
+                break;
+            case 'cruiser':
+                drawCruiserShip(player.x, player.y, player.width, player.height, shipDesign);
+                break;
+        }
     }
 }
 
 // Enhanced ship drawing functions with advanced designs
 function drawFighterShip(x, y, width, height, design) {
-    // Main body - sleek fighter design
+    // Main body - triangular shape like classic space shooters
     ctx.fillStyle = design.color;
     ctx.beginPath();
-    ctx.moveTo(x + width/2, y);
-    ctx.lineTo(x + width - 5, y + height/3);
-    ctx.lineTo(x + width - 8, y + height - 10);
-    ctx.lineTo(x + width/2, y + height);
-    ctx.lineTo(x + 8, y + height - 10);
-    ctx.lineTo(x + 5, y + height/3);
+    ctx.moveTo(x + width/2, y); // Top point
+    ctx.lineTo(x + width, y + height); // Bottom right
+    ctx.lineTo(x, y + height); // Bottom left
     ctx.closePath();
     ctx.fill();
     
     // Cockpit
     ctx.fillStyle = design.accentColor;
     ctx.beginPath();
-    ctx.ellipse(x + width/2, y + height/3, 8, 6, 0, 0, Math.PI * 2);
+    ctx.ellipse(x + width/2, y + height/3, width/6, height/8, 0, 0, Math.PI * 2);
     ctx.fill();
-    
-    // Wings
-    ctx.fillStyle = design.color;
-    ctx.fillRect(x - 3, y + height/2, 8, 4);
-    ctx.fillRect(x + width - 5, y + height/2, 8, 4);
     
     // Engine glow
     ctx.fillStyle = '#ffff00';
-    ctx.fillRect(x + width/2 - 3, y + height - 2, 6, 2);
-    ctx.fillStyle = '#ff8800';
-    ctx.fillRect(x + width/2 - 2, y + height - 1, 4, 1);
+    ctx.fillRect(x + width/4, y + height - 5, width/2, 3);
+    
+    // Wings
+    ctx.fillStyle = design.color;
+    ctx.fillRect(x + 2, y + height/2, 6, 4);
+    ctx.fillRect(x + width - 8, y + height/2, 6, 4);
 }
 
 function drawInterceptorShip(x, y, width, height, design) {
-    // Main body - fast interceptor design
+    // Sleek, fast design
     ctx.fillStyle = design.color;
     ctx.beginPath();
-    ctx.moveTo(x + width/2, y);
-    ctx.lineTo(x + width - 3, y + height/4);
-    ctx.lineTo(x + width - 5, y + height/2);
-    ctx.lineTo(x + width - 3, y + height - 5);
-    ctx.lineTo(x + width/2, y + height);
-    ctx.lineTo(x + 3, y + height - 5);
-    ctx.lineTo(x + 5, y + height/2);
-    ctx.lineTo(x + 3, y + height/4);
+    ctx.moveTo(x + width/2, y); // Top point
+    ctx.lineTo(x + width - 3, y + height/2); // Middle right
+    ctx.lineTo(x + width, y + height); // Bottom right
+    ctx.lineTo(x + width/2, y + height - 2); // Bottom center
+    ctx.lineTo(x, y + height); // Bottom left
+    ctx.lineTo(x + 3, y + height/2); // Middle left
     ctx.closePath();
     ctx.fill();
     
     // Cockpit
     ctx.fillStyle = design.accentColor;
-    ctx.beginPath();
-    ctx.ellipse(x + width/2, y + height/3, 6, 4, 0, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.fillRect(x + width/2 - 4, y + height/4, 8, 6);
     
-    // Extended wings
-    ctx.fillStyle = design.color;
-    ctx.fillRect(x - 8, y + height/3, 12, 3);
-    ctx.fillRect(x + width - 4, y + height/3, 12, 3);
-    
-    // Engine glow
+    // Engine trails
     ctx.fillStyle = '#00ffff';
-    ctx.fillRect(x + width/2 - 2, y + height - 1, 4, 1);
-    ctx.fillStyle = '#0088ff';
-    ctx.fillRect(x + width/2 - 1, y + height, 2, 1);
+    ctx.fillRect(x + width/4, y + height - 3, width/2, 2);
 }
 
 function drawBlasterShip(x, y, width, height, design) {
-    // Main body - heavy blaster design
+    // Heavy, powerful design
     ctx.fillStyle = design.color;
     ctx.beginPath();
-    ctx.moveTo(x + width/2, y);
-    ctx.lineTo(x + width - 8, y + height/4);
-    ctx.lineTo(x + width - 5, y + height/2);
-    ctx.lineTo(x + width - 8, y + height - 8);
-    ctx.lineTo(x + width/2, y + height);
-    ctx.lineTo(x + 8, y + height - 8);
-    ctx.lineTo(x + 5, y + height/2);
-    ctx.lineTo(x + 8, y + height/4);
+    ctx.moveTo(x + width/2, y + 2); // Top center
+    ctx.lineTo(x + width - 5, y + height/3); // Upper right
+    ctx.lineTo(x + width, y + height); // Bottom right
+    ctx.lineTo(x + width/2, y + height - 3); // Bottom center
+    ctx.lineTo(x, y + height); // Bottom left
+    ctx.lineTo(x + 5, y + height/3); // Upper left
     ctx.closePath();
     ctx.fill();
     
-    // Cockpit
-    ctx.fillStyle = design.accentColor;
-    ctx.fillRect(x + width/2 - 4, y + height/3, 8, 8);
+    // Heavy armor plates
+    ctx.fillStyle = '#ff4400';
+    ctx.fillRect(x + width/4, y + height/3, width/2, 4);
     
     // Weapon pods
-    ctx.fillStyle = design.color;
-    ctx.fillRect(x + 2, y + 5, 10, 10);
-    ctx.fillRect(x + width - 12, y + 5, 10, 10);
-    
-    // Engine glow
-    ctx.fillStyle = '#ff4400';
-    ctx.fillRect(x + width/2 - 4, y + height - 3, 8, 3);
-    ctx.fillStyle = '#ff8800';
-    ctx.fillRect(x + width/2 - 2, y + height - 1, 4, 1);
+    ctx.fillStyle = design.accentColor;
+    ctx.fillRect(x + 2, y + height/2, 8, 6);
+    ctx.fillRect(x + width - 10, y + height/2, 8, 6);
 }
 
 function drawCruiserShip(x, y, width, height, design) {
-    // Main body - massive cruiser design
+    // Massive, tank-like design
     ctx.fillStyle = design.color;
-    ctx.beginPath();
-    ctx.moveTo(x + width/2, y);
-    ctx.lineTo(x + width - 10, y + height/5);
-    ctx.lineTo(x + width - 8, y + height/2);
-    ctx.lineTo(x + width - 10, y + height - 10);
-    ctx.lineTo(x + width/2, y + height);
-    ctx.lineTo(x + 10, y + height - 10);
-    ctx.lineTo(x + 8, y + height/2);
-    ctx.lineTo(x + 10, y + height/5);
-    ctx.closePath();
-    ctx.fill();
+    ctx.fillRect(x + width/4, y, width/2, height);
     
-    // Cockpit
+    // Heavy armor
+    ctx.fillStyle = '#8b4513';
+    ctx.fillRect(x + width/6, y + height/4, width/3, height/2);
+    
+    // Multiple weapon systems
     ctx.fillStyle = design.accentColor;
-    ctx.fillRect(x + width/2 - 6, y + height/4, 12, 12);
+    ctx.fillRect(x + 3, y + height/3, 6, 6);
+    ctx.fillRect(x + width - 9, y + height/3, 6, 6);
+    ctx.fillRect(x + width/2 - 3, y + height/2, 6, 6);
     
-    // Heavy armor plates
-    ctx.fillStyle = design.color;
-    ctx.fillRect(x + 1, y + height/3, 8, 8);
-    ctx.fillRect(x + width - 9, y + height/3, 8, 8);
-    
-    // Engine glow
-    ctx.fillStyle = '#ff00ff';
-    ctx.fillRect(x + width/2 - 6, y + height - 4, 12, 4);
-    ctx.fillStyle = '#ff88ff';
-    ctx.fillRect(x + width/2 - 3, y + height - 1, 6, 1);
+    // Engine array
+    ctx.fillStyle = '#ff6600';
+    for (let i = 0; i < 3; i++) {
+        ctx.fillRect(x + width/4 + i * width/6, y + height - 4, 4, 3);
+    }
 }
 
 // Enhanced enemy ship drawing
@@ -1035,15 +1079,12 @@ function drawEnemies() {
 
 // Enhanced enemy ship designs
 function drawScoutEnemy(x, y, width, height, design) {
-    // Small, fast enemy scout
+    // Small, fast enemy scout - classic triangular shape
     ctx.fillStyle = design.color;
     ctx.beginPath();
-    ctx.moveTo(x + width/2, y + height);
-    ctx.lineTo(x + width - 3, y + height/2);
-    ctx.lineTo(x + width - 2, y);
-    ctx.lineTo(x + width/2, y + 2);
-    ctx.lineTo(x + 2, y);
-    ctx.lineTo(x + 3, y + height/2);
+    ctx.moveTo(x + width/2, y + height); // Bottom point
+    ctx.lineTo(x + width, y); // Top right
+    ctx.lineTo(x, y); // Top left
     ctx.closePath();
     ctx.fill();
     
@@ -1052,18 +1093,22 @@ function drawScoutEnemy(x, y, width, height, design) {
     ctx.beginPath();
     ctx.ellipse(x + width/2, y + height/3, 4, 3, 0, 0, Math.PI * 2);
     ctx.fill();
+    
+    // Engine glow
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(x + width/4, y + height - 3, width/2, 2);
 }
 
 function drawEnemyFighter(x, y, width, height, design) {
-    // Standard enemy fighter
+    // Standard enemy fighter - classic space invader style
     ctx.fillStyle = design.color;
     ctx.beginPath();
-    ctx.moveTo(x + width/2, y + height);
-    ctx.lineTo(x + width - 5, y + height/3);
-    ctx.lineTo(x + width - 3, y);
-    ctx.lineTo(x + width/2, y + 3);
-    ctx.lineTo(x + 3, y);
-    ctx.lineTo(x + 5, y + height/3);
+    ctx.moveTo(x + width/2, y + height); // Bottom center
+    ctx.lineTo(x + width - 5, y + height/3); // Upper right
+    ctx.lineTo(x + width - 2, y); // Top right
+    ctx.lineTo(x + width/2, y + 2); // Top center
+    ctx.lineTo(x + 2, y); // Top left
+    ctx.lineTo(x + 5, y + height/3); // Upper left
     ctx.closePath();
     ctx.fill();
     
@@ -1071,22 +1116,26 @@ function drawEnemyFighter(x, y, width, height, design) {
     ctx.fillStyle = design.accentColor;
     ctx.fillRect(x + width/2 - 3, y + height/3, 6, 4);
     
-    // Wings
+    // Weapon pods
     ctx.fillStyle = design.color;
     ctx.fillRect(x + 1, y + height/2, 4, 3);
     ctx.fillRect(x + width - 5, y + height/2, 4, 3);
+    
+    // Engine glow
+    ctx.fillStyle = '#ff4444';
+    ctx.fillRect(x + width/4, y + height - 2, width/2, 2);
 }
 
 function drawDestroyerEnemy(x, y, width, height, design) {
     // Larger, more powerful enemy destroyer
     ctx.fillStyle = design.color;
     ctx.beginPath();
-    ctx.moveTo(x + width/2, y + height);
-    ctx.lineTo(x + width - 8, y + height/3);
-    ctx.lineTo(x + width - 5, y);
-    ctx.lineTo(x + width/2, y + 5);
-    ctx.lineTo(x + 5, y);
-    ctx.lineTo(x + 8, y + height/3);
+    ctx.moveTo(x + width/2, y + height); // Bottom center
+    ctx.lineTo(x + width - 8, y + height/3); // Upper right
+    ctx.lineTo(x + width - 5, y); // Top right
+    ctx.lineTo(x + width/2, y + 5); // Top center
+    ctx.lineTo(x + 5, y); // Top left
+    ctx.lineTo(x + 8, y + height/3); // Upper left
     ctx.closePath();
     ctx.fill();
     
@@ -1094,22 +1143,26 @@ function drawDestroyerEnemy(x, y, width, height, design) {
     ctx.fillStyle = design.accentColor;
     ctx.fillRect(x + width/2 - 5, y + height/4, 10, 8);
     
-    // Weapon pods
+    // Heavy weapon pods
     ctx.fillStyle = design.color;
     ctx.fillRect(x + 2, y + 3, 6, 6);
     ctx.fillRect(x + width - 8, y + 3, 6, 6);
+    
+    // Engine glow
+    ctx.fillStyle = '#ff6666';
+    ctx.fillRect(x + width/4, y + height - 3, width/2, 3);
 }
 
 function drawBattleshipEnemy(x, y, width, height, design) {
     // Largest, most powerful enemy battleship
     ctx.fillStyle = design.color;
     ctx.beginPath();
-    ctx.moveTo(x + width/2, y + height);
-    ctx.lineTo(x + width - 12, y + height/3);
-    ctx.lineTo(x + width - 8, y);
-    ctx.lineTo(x + width/2, y + 8);
-    ctx.lineTo(x + 8, y);
-    ctx.lineTo(x + 12, y + height/3);
+    ctx.moveTo(x + width/2, y + height); // Bottom center
+    ctx.lineTo(x + width - 12, y + height/3); // Upper right
+    ctx.lineTo(x + width - 8, y); // Top right
+    ctx.lineTo(x + width/2, y + 8); // Top center
+    ctx.lineTo(x + 8, y); // Top left
+    ctx.lineTo(x + 12, y + height/3); // Upper left
     ctx.closePath();
     ctx.fill();
     
@@ -1117,10 +1170,20 @@ function drawBattleshipEnemy(x, y, width, height, design) {
     ctx.fillStyle = design.accentColor;
     ctx.fillRect(x + width/2 - 8, y + height/5, 16, 12);
     
-    // Heavy armor
+    // Heavy armor plates
     ctx.fillStyle = design.color;
     ctx.fillRect(x + 1, y + height/3, 6, 6);
     ctx.fillRect(x + width - 7, y + height/3, 6, 6);
+    
+    // Multiple weapon systems
+    ctx.fillStyle = design.accentColor;
+    ctx.fillRect(x + 3, y + 2, 4, 4);
+    ctx.fillRect(x + width - 7, y + 2, 4, 4);
+    ctx.fillRect(x + width/2 - 2, y + height/2, 4, 4);
+    
+    // Engine glow
+    ctx.fillStyle = '#ff8888';
+    ctx.fillRect(x + width/4, y + height - 4, width/2, 4);
 }
 
 // Draw power-ups
@@ -1163,6 +1226,14 @@ function drawExplosions() {
         ctx.beginPath();
         ctx.arc(explosion.x, explosion.y, 20 * alpha, 0, Math.PI * 2);
         ctx.fill();
+    }
+}
+
+// Draw enemy bullets
+function drawEnemyBullets() {
+    for (let bullet of enemyBullets) {
+        ctx.fillStyle = bullet.color;
+        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
     }
 }
 
