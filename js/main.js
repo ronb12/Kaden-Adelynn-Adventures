@@ -1,4 +1,4 @@
-// Kaden & Adelynn Space Adventures - Enhanced Version 3.10
+// Kaden & Adelynn Space Adventures - Enhanced Version 3.11
 // A space shooter game with multiple ships, weapons, and power-ups
 // Boss battles, phases, checkpoint system, enhanced power-ups, advanced enemy types, advanced weapon systems, environmental hazards, and visual enhancements
 
@@ -1950,10 +1950,11 @@ function checkCollisions() {
         // Check bullets vs asteroids
         for (let j = asteroids.length - 1; j >= 0; j--) {
             if (checkCollision(bullets[i], asteroids[j])) {
+                const asteroid = asteroids[j];
                 bullets.splice(i, 1);
                 asteroids.splice(j, 1);
-                addScore(asteroids[j] ? asteroids[j].points : 5);
-                createExplosion(bullets[i].x, bullets[i].y);
+                addScore(asteroid.points);
+                createExplosion(bullets[i] ? bullets[i].x : asteroid.x, bullets[i] ? bullets[i].y : asteroid.y);
                 break;
             }
         }
@@ -1961,10 +1962,11 @@ function checkCollisions() {
         // Check bullets vs barriers
         for (let j = barriers.length - 1; j >= 0; j--) {
             if (checkCollision(bullets[i], barriers[j])) {
+                const barrier = barriers[j];
                 bullets.splice(i, 1);
                 barriers.splice(j, 1);
-                addScore(barriers[j] ? barriers[j].points : 10);
-                createExplosion(bullets[i].x, bullets[i].y);
+                addScore(barrier.points);
+                createExplosion(bullets[i] ? bullets[i].x : barrier.x, bullets[i] ? bullets[i].y : barrier.y);
                 break;
             }
         }
@@ -1972,10 +1974,11 @@ function checkCollisions() {
         // Check bullets vs moving obstacles
         for (let j = movingObstacles.length - 1; j >= 0; j--) {
             if (checkCollision(bullets[i], movingObstacles[j])) {
+                const obstacle = movingObstacles[j];
                 bullets.splice(i, 1);
                 movingObstacles.splice(j, 1);
-                addScore(movingObstacles[j] ? movingObstacles[j].points : 15);
-                createExplosion(bullets[i].x, bullets[i].y);
+                addScore(obstacle.points);
+                createExplosion(bullets[i] ? bullets[i].x : obstacle.x, bullets[i] ? bullets[i].y : obstacle.y);
                 break;
             }
         }
