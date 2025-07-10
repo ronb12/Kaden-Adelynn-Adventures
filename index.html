@@ -55,6 +55,7 @@
 </head>
 <body>
     <div class="game-container">
+      <div class="game-inner">
         <canvas id="gameCanvas" width="800" height="600"></canvas>
         <div class="ui-overlay">
             <div class="score">Score: <span id="score">0</span></div>
@@ -62,19 +63,16 @@
             <div class="level">Level: <span id="level">1</span></div>
             <div class="money">💰 <span id="money">0</span></div>
             <div class="wingmen">🛩️ <span id="wingmanCount">0/4</span></div>
-            
             <!-- NEW FEATURES - Weapon System -->
             <div class="weapon-info">
                 <div class="weapon-type">🔫 <span id="weaponType">Laser</span></div>
                 <div class="weapon-level">Level: <span id="weaponLevel">1</span></div>
             </div>
-            
             <!-- NEW FEATURES - Multiplayer Info -->
             <div class="multiplayer-info" id="multiplayerInfo" style="display: none;">
                 <div class="player2-lives">P2 ❤️ <span id="player2Lives">50</span></div>
                 <div class="player2-score">P2 Score: <span id="player2Score">0</span></div>
             </div>
-            
             <!-- NEW FEATURES - Boss Health Bar -->
             <div class="boss-health" id="bossHealth" style="display: none;">
                 <div class="boss-name" id="bossName">Boss</div>
@@ -82,12 +80,10 @@
                     <div class="boss-bar-fill" id="bossBarFill"></div>
                 </div>
             </div>
-            
             <!-- NEW FEATURES - Combo Counter -->
             <div class="combo-counter" id="comboCounter" style="display: none;">
                 <div class="combo-text">Combo x<span id="comboMultiplier">1.0</span></div>
             </div>
-            
             <div class="mission-info" id="currentMission">
                 <div class="mission-title">🚀 Training Day</div>
                 <div class="mission-progress">0/5</div>
@@ -107,7 +103,6 @@
         <div id="startScreen" class="start-screen">
             <h1 class="game-title">Kaden & Adelynn<br>Space Adventures</h1>
             <p class="game-subtitle">🚀 Epic Space Shooter Game 🚀</p>
-            
             <!-- Tab Navigation -->
             <div class="tab-navigation">
                 <button class="tab-button active" data-tab="story">📖 Story</button>
@@ -117,7 +112,6 @@
                 <button class="tab-button" data-tab="ships">🚀 Ships</button>
                 <button class="tab-button" id="radioChatterTabBtn">📡 Radio</button>
             </div>
-            
             <!-- Tab Content -->
             <div class="tab-content">
                 <!-- Story Tab -->
@@ -153,7 +147,6 @@
                         </div>
                     </div>
                 </div>
-                
                 <!-- Characters Tab -->
                 <div class="tab-panel" id="characters-tab">
                     <div class="character-selection">
