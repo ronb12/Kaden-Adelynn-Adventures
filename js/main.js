@@ -1,6 +1,6 @@
-// Kaden & Adelynn Space Adventures - Enhanced Version 3.5
+// Kaden & Adelynn Space Adventures - Enhanced Version 3.6
 // A space shooter game with multiple ships, weapons, and power-ups
-// Boss battles, phases, checkpoint system, and enhanced power-ups
+// Boss battles, phases, checkpoint system, enhanced power-ups, and advanced enemy types
 
 // Game variables
 let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, startScreen, finalScoreElement, restartBtn, startBtn, highScoreElement, fullscreenBtn;
@@ -301,7 +301,7 @@ const POWERUP_TYPES = {
     }
 };
 
-// Enhanced enemy ship designs
+// Enhanced enemy designs with advanced types
 const ENEMY_DESIGNS = [
     {
         name: 'Scout',
@@ -311,7 +311,8 @@ const ENEMY_DESIGNS = [
         height: 45,
         speed: 3,
         points: 10,
-        design: 'scout'
+        design: 'scout',
+        type: 'normal'
     },
     {
         name: 'Fighter',
@@ -321,7 +322,8 @@ const ENEMY_DESIGNS = [
         height: 50,
         speed: 2.5,
         points: 15,
-        design: 'enemy_fighter'
+        design: 'enemy_fighter',
+        type: 'normal'
     },
     {
         name: 'Destroyer',
@@ -331,7 +333,8 @@ const ENEMY_DESIGNS = [
         height: 55,
         speed: 2,
         points: 20,
-        design: 'destroyer'
+        design: 'destroyer',
+        type: 'normal'
     },
     {
         name: 'Battleship',
@@ -341,7 +344,55 @@ const ENEMY_DESIGNS = [
         height: 60,
         speed: 1.5,
         points: 25,
-        design: 'battleship'
+        design: 'battleship',
+        type: 'normal'
+    },
+    {
+        name: 'Kamikaze',
+        color: '#ff0000',
+        accentColor: '#ffff00',
+        width: 40,
+        height: 40,
+        speed: 4,
+        points: 30,
+        design: 'kamikaze',
+        type: 'kamikaze'
+    },
+    {
+        name: 'Shielded',
+        color: '#4444ff',
+        accentColor: '#ffffff',
+        width: 55,
+        height: 55,
+        speed: 2,
+        points: 35,
+        design: 'shielded',
+        type: 'shielded',
+        shieldHealth: 3
+    },
+    {
+        name: 'Splitter',
+        color: '#ff8800',
+        accentColor: '#ffffff',
+        width: 50,
+        height: 50,
+        speed: 2.5,
+        points: 25,
+        design: 'splitter',
+        type: 'splitter',
+        splitCount: 2
+    },
+    {
+        name: 'Teleporter',
+        color: '#8800ff',
+        accentColor: '#ffffff',
+        width: 45,
+        height: 45,
+        speed: 3,
+        points: 40,
+        design: 'teleporter',
+        type: 'teleporter',
+        teleportCooldown: 3000
     }
 ];
 
@@ -804,9 +855,16 @@ function shoot() {
     }
 }
 
-// Spawn enemy
+// Enhanced enemy spawning with formations
 function spawnEnemy() {
     if (bossActive) return; // Don't spawn regular enemies during boss
+    
+    // Spawn formations at higher levels
+    if (level >= 5 && Math.random() < 0.1) {
+        spawnEnemyFormation();
+        return;
+    }
+    
     if (Math.random() < 0.02) {
         const enemyType = Math.floor(Math.random() * ENEMY_DESIGNS.length);
         const enemyDesign = ENEMY_DESIGNS[enemyType];
@@ -820,9 +878,127 @@ function spawnEnemy() {
             type: enemyType,
             design: enemyDesign,
             lastShot: 0,
-            shotDelay: 1000 + Math.random() * 2000, // Random shot delay between 1-3 seconds
-            health: 1 // Enemies have health too
+            shotDelay: 1000 + Math.random() * 2000,
+            health: enemyDesign.type === 'shielded' ? enemyDesign.shieldHealth : 1,
+            maxHealth: enemyDesign.type === 'shielded' ? enemyDesign.shieldHealth : 1,
+            enemyType: enemyDesign.type,
+            lastTeleport: 0,
+            teleportCooldown: enemyDesign.teleportCooldown || 0,
+            splitCount: enemyDesign.splitCount || 0
         });
+    }
+}
+
+// Spawn enemy formations
+function spawnEnemyFormation() {
+    const formationTypes = ['v', 'h', 'diamond', 'circle'];
+    const formation = formationTypes[Math.floor(Math.random() * formationTypes.length)];
+    const baseX = Math.random() * (canvas.width - 200);
+    const baseY = -100;
+    
+    switch(formation) {
+        case 'v':
+            // V formation
+            for (let i = 0; i < 5; i++) {
+                const enemyType = Math.floor(Math.random() * ENEMY_DESIGNS.length);
+                const enemyDesign = ENEMY_DESIGNS[enemyType];
+                enemies.push({
+                    x: baseX + (i - 2) * 40,
+                    y: baseY + i * 20,
+                    width: enemyDesign.width,
+                    height: enemyDesign.height,
+                    speed: enemyDesign.speed,
+                    type: enemyType,
+                    design: enemyDesign,
+                    lastShot: 0,
+                    shotDelay: 1000 + Math.random() * 2000,
+                    health: enemyDesign.type === 'shielded' ? enemyDesign.shieldHealth : 1,
+                    maxHealth: enemyDesign.type === 'shielded' ? enemyDesign.shieldHealth : 1,
+                    enemyType: enemyDesign.type,
+                    lastTeleport: 0,
+                    teleportCooldown: enemyDesign.teleportCooldown || 0,
+                    splitCount: enemyDesign.splitCount || 0
+                });
+            }
+            break;
+        case 'h':
+            // Horizontal line formation
+            for (let i = 0; i < 4; i++) {
+                const enemyType = Math.floor(Math.random() * ENEMY_DESIGNS.length);
+                const enemyDesign = ENEMY_DESIGNS[enemyType];
+                enemies.push({
+                    x: baseX + i * 50,
+                    y: baseY,
+                    width: enemyDesign.width,
+                    height: enemyDesign.height,
+                    speed: enemyDesign.speed,
+                    type: enemyType,
+                    design: enemyDesign,
+                    lastShot: 0,
+                    shotDelay: 1000 + Math.random() * 2000,
+                    health: enemyDesign.type === 'shielded' ? enemyDesign.shieldHealth : 1,
+                    maxHealth: enemyDesign.type === 'shielded' ? enemyDesign.shieldHealth : 1,
+                    enemyType: enemyDesign.type,
+                    lastTeleport: 0,
+                    teleportCooldown: enemyDesign.teleportCooldown || 0,
+                    splitCount: enemyDesign.splitCount || 0
+                });
+            }
+            break;
+        case 'diamond':
+            // Diamond formation
+            const diamondPositions = [
+                {x: 0, y: 0}, {x: 40, y: 20}, {x: 80, y: 0},
+                {x: 40, y: -20}, {x: 40, y: 40}
+            ];
+            for (let i = 0; i < 5; i++) {
+                const enemyType = Math.floor(Math.random() * ENEMY_DESIGNS.length);
+                const enemyDesign = ENEMY_DESIGNS[enemyType];
+                enemies.push({
+                    x: baseX + diamondPositions[i].x,
+                    y: baseY + diamondPositions[i].y,
+                    width: enemyDesign.width,
+                    height: enemyDesign.height,
+                    speed: enemyDesign.speed,
+                    type: enemyType,
+                    design: enemyDesign,
+                    lastShot: 0,
+                    shotDelay: 1000 + Math.random() * 2000,
+                    health: enemyDesign.type === 'shielded' ? enemyDesign.shieldHealth : 1,
+                    maxHealth: enemyDesign.type === 'shielded' ? enemyDesign.shieldHealth : 1,
+                    enemyType: enemyDesign.type,
+                    lastTeleport: 0,
+                    teleportCooldown: enemyDesign.teleportCooldown || 0,
+                    splitCount: enemyDesign.splitCount || 0
+                });
+            }
+            break;
+        case 'circle':
+            // Circle formation
+            for (let i = 0; i < 6; i++) {
+                const angle = (i / 6) * Math.PI * 2;
+                const radius = 60;
+                const enemyType = Math.floor(Math.random() * ENEMY_DESIGNS.length);
+                const enemyDesign = ENEMY_DESIGNS[enemyType];
+                enemies.push({
+                    x: baseX + 100 + Math.cos(angle) * radius,
+                    y: baseY + 50 + Math.sin(angle) * radius,
+                    width: enemyDesign.width,
+                    height: enemyDesign.height,
+                    speed: enemyDesign.speed,
+                    type: enemyType,
+                    design: enemyDesign,
+                    lastShot: 0,
+                    shotDelay: 1000 + Math.random() * 2000,
+                    health: enemyDesign.type === 'shielded' ? enemyDesign.shieldHealth : 1,
+                    maxHealth: enemyDesign.type === 'shielded' ? enemyDesign.shieldHealth : 1,
+                    enemyType: enemyDesign.type,
+                    lastTeleport: 0,
+                    teleportCooldown: enemyDesign.teleportCooldown || 0,
+                    splitCount: enemyDesign.splitCount || 0
+                });
+            }
+            break;
     }
 }
 
@@ -1021,18 +1197,46 @@ function updateBullets() {
     }
 }
 
-// Update enemies
+// Enhanced enemy update logic
 function updateEnemies() {
     for (let i = enemies.length - 1; i >= 0; i--) {
-        enemies[i].y += enemies[i].speed;
+        const enemy = enemies[i];
+        
+        // Update based on enemy type
+        switch(enemy.enemyType) {
+            case 'kamikaze':
+                // Kamikaze enemies move faster towards player
+                const dx = player.x - enemy.x;
+                const dy = player.y - enemy.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance > 0) {
+                    enemy.x += (dx / distance) * enemy.speed;
+                    enemy.y += (dy / distance) * enemy.speed;
+                }
+                break;
+            case 'teleporter':
+                // Teleporter enemies randomly teleport
+                if (Date.now() - enemy.lastTeleport > enemy.teleportCooldown) {
+                    enemy.x = Math.random() * (canvas.width - enemy.width);
+                    enemy.y = Math.random() * (canvas.height / 2);
+                    enemy.lastTeleport = Date.now();
+                } else {
+                    enemy.y += enemy.speed;
+                }
+                break;
+            default:
+                // Normal movement
+                enemy.y += enemy.speed;
+                break;
+        }
         
         // Enemy shooting
-        if (enemies[i].y > 0 && enemies[i].y < canvas.height - 100) {
-            enemyShoot(enemies[i]);
+        if (enemy.y > 0 && enemy.y < canvas.height - 100) {
+            enemyShoot(enemy);
         }
         
         // Remove enemies that go off screen
-        if (enemies[i].y > canvas.height) {
+        if (enemy.y > canvas.height) {
             enemies.splice(i, 1);
             if (lives > 0) lives--;
             if (lives <= 0) {
@@ -1108,30 +1312,82 @@ function updatePowerUpEffects() {
     }
 }
 
-// Enhanced collision detection with shield protection
+// Enhanced collision detection for advanced enemy types
 function checkCollisions() {
     // Bullet vs Enemy collisions
     for (let i = bullets.length - 1; i >= 0; i--) {
         for (let j = enemies.length - 1; j >= 0; j--) {
             if (checkCollision(bullets[i], enemies[j])) {
-                // Create explosion
-                explosions.push({
-                    x: enemies[j].x + enemies[j].width / 2,
-                    y: enemies[j].y + enemies[j].height / 2,
-                    life: 10
-                });
+                // Handle different enemy types
+                const enemy = enemies[j];
                 
-                // Play explosion sound
-                playSound('explosion');
+                if (enemy.enemyType === 'shielded') {
+                    // Shielded enemies take multiple hits
+                    enemy.health--;
+                    if (enemy.health <= 0) {
+                        // Enemy destroyed
+                        explosions.push({
+                            x: enemy.x + enemy.width / 2,
+                            y: enemy.y + enemy.height / 2,
+                            life: 10
+                        });
+                        playSound('explosion');
+                        enemies.splice(j, 1);
+                        addScore(enemy.design.points);
+                    } else {
+                        // Shield hit effect
+                        explosions.push({
+                            x: bullets[i].x,
+                            y: bullets[i].y,
+                            life: 5,
+                            type: 'shield'
+                        });
+                    }
+                } else if (enemy.enemyType === 'splitter') {
+                    // Splitter enemies create smaller enemies when destroyed
+                    explosions.push({
+                        x: enemy.x + enemy.width / 2,
+                        y: enemy.y + enemy.height / 2,
+                        life: 10
+                    });
+                    playSound('explosion');
+                    enemies.splice(j, 1);
+                    addScore(enemy.design.points);
+                    
+                    // Create smaller enemies
+                    for (let k = 0; k < enemy.splitCount; k++) {
+                        const smallEnemy = {
+                            x: enemy.x + Math.random() * 20 - 10,
+                            y: enemy.y + Math.random() * 20 - 10,
+                            width: enemy.width * 0.6,
+                            height: enemy.height * 0.6,
+                            speed: enemy.speed * 1.5,
+                            type: enemy.type,
+                            design: enemy.design,
+                            lastShot: 0,
+                            shotDelay: enemy.shotDelay,
+                            health: 1,
+                            maxHealth: 1,
+                            enemyType: 'normal',
+                            lastTeleport: 0,
+                            teleportCooldown: 0,
+                            splitCount: 0
+                        };
+                        enemies.push(smallEnemy);
+                    }
+                } else {
+                    // Normal enemy destruction
+                    explosions.push({
+                        x: enemy.x + enemy.width / 2,
+                        y: enemy.y + enemy.height / 2,
+                        life: 10
+                    });
+                    playSound('explosion');
+                    enemies.splice(j, 1);
+                    addScore(enemy.design.points);
+                }
                 
-                // Remove bullet and enemy
                 bullets.splice(i, 1);
-                enemies.splice(j, 1);
-                
-                // Increase score based on enemy type
-                const points = enemies[j] ? enemies[j].design.points : 10;
-                addScore(points);
-                
                 break;
             }
         }
@@ -1654,7 +1910,7 @@ function drawCruiserShip(x, y, width, height, design) {
     ctx.fillRect(x + width - 6, y + height/6, 4, 4);
 }
 
-// Enhanced enemy ship drawing
+// Enhanced enemy ship drawing with advanced types
 function drawEnemies() {
     for (let enemy of enemies) {
         const design = enemy.design;
@@ -1672,199 +1928,97 @@ function drawEnemies() {
             case 'battleship':
                 drawBattleshipEnemy(enemy.x, enemy.y, enemy.width, enemy.height, design);
                 break;
+            case 'kamikaze':
+                drawKamikazeEnemy(enemy.x, enemy.y, enemy.width, enemy.height, design);
+                break;
+            case 'shielded':
+                drawShieldedEnemy(enemy.x, enemy.y, enemy.width, enemy.height, design, enemy);
+                break;
+            case 'splitter':
+                drawSplitterEnemy(enemy.x, enemy.y, enemy.width, enemy.height, design);
+                break;
+            case 'teleporter':
+                drawTeleporterEnemy(enemy.x, enemy.y, enemy.width, enemy.height, design);
+                break;
         }
     }
 }
 
-// Enhanced enemy ship designs
-function drawScoutEnemy(x, y, width, height, design) {
-    // Small, fast enemy scout - advanced triangular shape
+// Draw kamikaze enemy
+function drawKamikazeEnemy(x, y, width, height, design) {
+    // Kamikaze enemies have a distinctive red color and warning stripes
     ctx.fillStyle = design.color;
-    ctx.beginPath();
-    ctx.moveTo(x + width/2, y + height); // Bottom point
-    ctx.lineTo(x + width - 3, y + height/4); // Upper right curve
-    ctx.lineTo(x + width, y); // Top right
-    ctx.lineTo(x + width/2, y + 2); // Top center
-    ctx.lineTo(x, y); // Top left
-    ctx.lineTo(x + 3, y + height/4); // Upper left curve
-    ctx.closePath();
-    ctx.fill();
+    ctx.fillRect(x, y, width, height);
     
-    // Advanced cockpit with targeting system
+    // Warning stripes
     ctx.fillStyle = design.accentColor;
-    ctx.beginPath();
-    ctx.ellipse(x + width/2, y + height/3, 5, 4, 0, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.fillRect(x, y + height/4, width, height/8);
+    ctx.fillRect(x, y + height*3/4, width, height/8);
     
-    // Targeting reticle
+    // Explosive symbol
     ctx.fillStyle = '#ff0000';
-    ctx.fillRect(x + width/2 - 1, y + height/3 - 1, 2, 2);
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('💥', x + width/2, y + height/2 + 4);
+}
+
+// Draw shielded enemy
+function drawShieldedEnemy(x, y, width, height, design, enemy) {
+    // Draw shield effect
+    if (enemy.health > 1) {
+        ctx.strokeStyle = '#4444ff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(x + width/2, y + height/2, width/2 + 5, 0, Math.PI * 2);
+        ctx.stroke();
+    }
     
-    // Enhanced engine glow with pulsing effect
+    // Draw enemy ship
+    ctx.fillStyle = design.color;
+    ctx.fillRect(x, y, width, height);
+    
+    // Shield indicator
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '10px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(`🛡️${enemy.health}`, x + width/2, y + height/2 + 3);
+}
+
+// Draw splitter enemy
+function drawSplitterEnemy(x, y, width, height, design) {
+    // Splitter enemies have a distinctive orange color
+    ctx.fillStyle = design.color;
+    ctx.fillRect(x, y, width, height);
+    
+    // Split indicator
+    ctx.fillStyle = design.accentColor;
+    ctx.fillRect(x + width/4, y + height/4, width/2, height/2);
+    
+    // Split symbol
+    ctx.fillStyle = '#ff8800';
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('⚡', x + width/2, y + height/2 + 4);
+}
+
+// Draw teleporter enemy
+function drawTeleporterEnemy(x, y, width, height, design) {
+    // Teleporter enemies have a purple color and teleport effect
+    ctx.fillStyle = design.color;
+    ctx.fillRect(x, y, width, height);
+    
+    // Teleport effect (pulsing)
     const time = Date.now() * 0.01;
-    const glowIntensity = Math.sin(time) * 0.5 + 0.5;
-    ctx.fillStyle = `rgba(255, 0, 0, ${glowIntensity})`;
-    ctx.fillRect(x + width/4, y + height - 4, width/2, 3);
+    const alpha = Math.sin(time) * 0.5 + 0.5;
+    ctx.strokeStyle = `rgba(136, 0, 255, ${alpha})`;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x - 2, y - 2, width + 4, height + 4);
     
-    // Secondary engine trails
-    ctx.fillStyle = `rgba(255, 100, 100, ${glowIntensity * 0.7})`;
-    ctx.fillRect(x + width/4 + 2, y + height - 2, width/2 - 4, 2);
-}
-
-function drawEnemyFighter(x, y, width, height, design) {
-    // Standard enemy fighter - advanced space invader style
-    ctx.fillStyle = design.color;
-    ctx.beginPath();
-    ctx.moveTo(x + width/2, y + height); // Bottom center
-    ctx.lineTo(x + width - 6, y + height/3); // Upper right curve
-    ctx.lineTo(x + width - 3, y + height/6); // Upper right
-    ctx.lineTo(x + width - 1, y); // Top right
-    ctx.lineTo(x + width/2, y + 3); // Top center
-    ctx.lineTo(x + 1, y); // Top left
-    ctx.lineTo(x + 3, y + height/6); // Upper left
-    ctx.lineTo(x + 6, y + height/3); // Upper left curve
-    ctx.closePath();
-    ctx.fill();
-    
-    // Advanced cockpit with HUD
-    ctx.fillStyle = design.accentColor;
-    ctx.fillRect(x + width/2 - 4, y + height/3, 8, 6);
-    
-    // HUD display elements
-    ctx.fillStyle = '#ff0000';
-    ctx.fillRect(x + width/2 - 2, y + height/3 + 1, 4, 2);
-    ctx.fillRect(x + width/2 - 1, y + height/3 + 4, 2, 2);
-    
-    // Advanced weapon pods with targeting
-    ctx.fillStyle = design.color;
-    ctx.fillRect(x + 2, y + height/2, 6, 5);
-    ctx.fillRect(x + width - 8, y + height/2, 6, 5);
-    
-    // Weapon targeting indicators
-    ctx.fillStyle = '#ff0000';
-    ctx.fillRect(x + 3, y + height/2 + 1, 4, 3);
-    ctx.fillRect(x + width - 7, y + height/2 + 1, 4, 3);
-    
-    // Enhanced engine glow with multiple colors
-    const time = Date.now() * 0.015;
-    const glowIntensity = Math.sin(time) * 0.5 + 0.5;
-    ctx.fillStyle = `rgba(255, 68, 68, ${glowIntensity})`;
-    ctx.fillRect(x + width/4, y + height - 3, width/2, 3);
-    
-    // Secondary engine trails
-    ctx.fillStyle = `rgba(255, 120, 120, ${glowIntensity * 0.6})`;
-    ctx.fillRect(x + width/4 + 3, y + height - 1, width/2 - 6, 2);
-}
-
-function drawDestroyerEnemy(x, y, width, height, design) {
-    // Larger, more powerful enemy destroyer with advanced armor
-    ctx.fillStyle = design.color;
-    ctx.beginPath();
-    ctx.moveTo(x + width/2, y + height); // Bottom center
-    ctx.lineTo(x + width - 8, y + height/3); // Upper right curve
-    ctx.lineTo(x + width - 6, y + height/6); // Upper right
-    ctx.lineTo(x + width - 3, y); // Top right
-    ctx.lineTo(x + width/2, y + 4); // Top center
-    ctx.lineTo(x + 3, y); // Top left
-    ctx.lineTo(x + 6, y + height/6); // Upper left
-    ctx.lineTo(x + 8, y + height/3); // Upper left curve
-    ctx.closePath();
-    ctx.fill();
-    
-    // Heavy armor plating
-    ctx.fillStyle = '#cc4444';
-    ctx.fillRect(x + width/6, y + height/4, width/1.5, 6);
-    ctx.fillRect(x + width/4, y + height/2, width/2, 4);
-    
-    // Advanced cockpit with multiple layers
-    ctx.fillStyle = design.accentColor;
-    ctx.fillRect(x + width/2 - 6, y + height/4, 12, 8);
-    
-    // Cockpit details
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(x + width/2 - 4, y + height/4 + 2, 8, 4);
-    
-    // Multiple weapon systems
-    ctx.fillStyle = design.color;
-    // Primary weapons
-    ctx.fillRect(x + 3, y + height/2, 8, 6);
-    ctx.fillRect(x + width - 11, y + height/2, 8, 6);
-    
-    // Secondary weapons
-    ctx.fillStyle = '#ff0000';
-    ctx.fillRect(x + 5, y + height/2 + 1, 4, 4);
-    ctx.fillRect(x + width - 9, y + height/2 + 1, 4, 4);
-    
-    // Central weapon system
-    ctx.fillStyle = '#ff6600';
-    ctx.fillRect(x + width/2 - 3, y + height/2, 6, 6);
-    
-    // Enhanced engine array
-    ctx.fillStyle = '#ff4444';
-    for (let i = 0; i < 3; i++) {
-        ctx.fillRect(x + width/4 + i * width/8, y + height - 5, 4, 4);
-    }
-    
-    // Shield generators
-    ctx.fillStyle = '#ff00ff';
-    ctx.fillRect(x + 2, y + height/6, 4, 4);
-    ctx.fillRect(x + width - 6, y + height/6, 4, 4);
-}
-
-function drawBattleshipEnemy(x, y, width, height, design) {
-    // Massive enemy battleship with multiple weapon systems
-    ctx.fillStyle = design.color;
-    ctx.fillRect(x + width/8, y, width/1.25, height);
-    
-    // Command bridge with advanced systems
-    ctx.fillStyle = design.accentColor;
-    ctx.fillRect(x + width/2 - 10, y + height/8, 20, 10);
-    
-    // Bridge windows and controls
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(x + width/2 - 8, y + height/8 + 2, 16, 6);
-    
-    // Bridge control panels
-    ctx.fillStyle = '#ff0000';
-    ctx.fillRect(x + width/2 - 6, y + height/8 + 4, 12, 2);
-    
-    // Heavy armor plating with multiple layers
-    ctx.fillStyle = '#cc6666';
-    ctx.fillRect(x + width/10, y + height/4, width/1.1, 8);
-    ctx.fillStyle = '#aa4444';
-    ctx.fillRect(x + width/8, y + height/3, width/1.25, 6);
-    
-    // Multiple weapon systems
-    ctx.fillStyle = design.accentColor;
-    // Primary heavy weapons
-    ctx.fillRect(x + 4, y + height/3, 10, 10);
-    ctx.fillRect(x + width - 14, y + height/3, 10, 10);
-    ctx.fillRect(x + width/2 - 5, y + height/2, 10, 10);
-    
-    // Secondary weapons
-    ctx.fillStyle = '#ff0000';
-    ctx.fillRect(x + width/4, y + height/4, 8, 8);
-    ctx.fillRect(x + width * 3/4 - 4, y + height/4, 8, 8);
-    
-    // Tertiary weapons
-    ctx.fillStyle = '#ff6600';
-    ctx.fillRect(x + width/6, y + height/2, 6, 6);
-    ctx.fillRect(x + width * 5/6 - 3, y + height/2, 6, 6);
-    
-    // Advanced engine array with power indicators
-    ctx.fillStyle = '#ff4444';
-    for (let i = 0; i < 6; i++) {
-        ctx.fillRect(x + width/8 + i * width/12, y + height - 7, 5, 6);
-    }
-    
-    // Shield generators and defense systems
-    ctx.fillStyle = '#ff00ff';
-    ctx.fillRect(x + 3, y + height/8, 5, 5);
-    ctx.fillRect(x + width - 8, y + height/8, 5, 5);
-    
-    // Defense turrets
-    ctx.fillStyle = '#ffff00';
-    ctx.fillRect(x + width/2 - 2, y + height/6, 4, 4);
+    // Teleport symbol
+    ctx.fillStyle = '#8800ff';
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('🌀', x + width/2, y + height/2 + 4);
 }
 
 // Draw power-ups
