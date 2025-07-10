@@ -1,14 +1,20 @@
-const CACHE_NAME = 'space-adventures-v3.3.0';
-const STATIC_CACHE = 'static-v3.3.0';
-const DYNAMIC_CACHE = 'dynamic-v3.3.0';
-
-// Files to cache immediately
-const STATIC_FILES = [
-  '/',
-  '/index.html',
-  '/main.js',
-  '/style.css',
-  '/manifest.json'
+const CACHE_NAME = 'space-adventures-v3.1';
+const urlsToCache = [
+    '/',
+    '/index.html',
+    '/css/style.css',
+    '/js/main.js',
+    '/manifest.json',
+    '/assets/images/favicon.ico',
+    '/assets/images/spaceship_modern.png',
+    '/assets/images/enemy_ship1.png',
+    '/assets/images/enemy_ship2.png',
+    '/assets/images/enemy_ship3.png',
+    '/assets/images/blueship1.png',
+    '/assets/images/blueship2.png',
+    '/assets/images/blueship3.png',
+    '/assets/images/blueship4.png',
+    '/assets/images/space_background.jpg'
 ];
 
 // Install event - cache static files
