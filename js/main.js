@@ -631,7 +631,7 @@ function updateEnemies() {
         // Remove enemies that go off screen
         if (enemies[i].y > canvas.height) {
             enemies.splice(i, 1);
-            lives--;
+            if (lives > 0) lives--;
             if (lives <= 0) {
                 gameOver();
             }
