@@ -1,5 +1,5 @@
 // Simple Space Shooter Game
-// Version 1.2 - Core shooting mechanics with ship designs
+// Version 1.4 - Core shooting mechanics with ship designs, collectibles, and advanced weapons
 
 // Game variables
 let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, startScreen, finalScoreElement, restartBtn, startBtn, highScoreElement;
@@ -19,7 +19,9 @@ let player = {
     width: 40,
     height: 40,
     speed: 5,
-    shipType: 'fighter' // fighter, interceptor, blaster, cruiser
+    shipType: 'fighter', // fighter, interceptor, blaster, cruiser
+    weaponType: 'laser', // laser, plasma, missile, spread
+    powerUps: []
 };
 
 // Ship designs
@@ -59,6 +61,66 @@ const SHIP_DESIGNS = {
         speed: 3,
         fireRate: 0.6,
         damage: 3
+    }
+};
+
+// Weapon types
+const WEAPON_TYPES = {
+    laser: {
+        name: 'Laser',
+        color: '#00ffff',
+        damage: 1,
+        speed: 8,
+        fireRate: 1
+    },
+    plasma: {
+        name: 'Plasma',
+        color: '#ff00ff',
+        damage: 2,
+        speed: 6,
+        fireRate: 0.8
+    },
+    missile: {
+        name: 'Missile',
+        color: '#ffff00',
+        damage: 3,
+        speed: 5,
+        fireRate: 0.6
+    },
+    spread: {
+        name: 'Spread',
+        color: '#ff8800',
+        damage: 1,
+        speed: 7,
+        fireRate: 1.2
+    }
+};
+
+// Power-up types
+const POWERUP_TYPES = {
+    health: {
+        name: 'Health',
+        color: '#00ff00',
+        symbol: '❤️',
+        effect: 'restore'
+    },
+    weapon: {
+        name: 'Weapon',
+        color: '#ff8800',
+        symbol: '⚔️',
+        effect: 'upgrade'
+    },
+    speed: {
+        name: 'Speed',
+        color: '#00ffff',
+        symbol: '⚡',
+        effect: 'boost'
+    },
+    shield: {
+        name: 'Shield',
+        color: '#8888ff',
+        symbol: '🛡️',
+        effect: 'protect'
     }
 };
 
@@ -103,6 +165,8 @@ let bullets = [];
 let enemies = [];
 let explosions = [];
 let stars = [];
+let powerUps = [];
+let collectibles = [];
 
 // Game constants
 const BULLET_SPEED = 7;
@@ -110,6 +174,8 @@ const ENEMY_SPEED = 2;
 const ENEMY_SHOOT_RATE = 0.02;
 const ENEMY_BULLET_SPEED = 4;
 const SHOT_DELAY = 200;
+const POWERUP_SPAWN_RATE = 0.005;
+const COLLECTIBLE_SPAWN_RATE = 0.01;
 
 // Input handling
 let keys = {};
@@ -220,10 +286,13 @@ function startGame() {
     bullets = [];
     enemies = [];
     explosions = [];
+    powerUps = [];
+    collectibles = [];
     
-    // Reset player position
+    // Reset player position and power-ups
     player.x = 400;
     player.y = 550;
+    player.powerUps = [];
     
     // Hide start screen
     if (startScreen) startScreen.style.display = 'none';
@@ -270,19 +339,66 @@ function restartGame() {
 function shoot() {
     const currentTime = Date.now();
     const shipDesign = SHIP_DESIGNS[player.shipType];
-    const fireDelay = SHOT_DELAY / shipDesign.fireRate;
+    const weaponType = WEAPON_TYPES[player.weaponType];
+    const fireDelay = SHOT_DELAY / (shipDesign.fireRate * weaponType.fireRate);
     
     if (currentTime - lastShotTime < fireDelay) return;
     lastShotTime = currentTime;
     
-    bullets.push({
-        x: player.x + player.width / 2 - 2,
-        y: player.y,
-        width: 4,
-        height: 8,
-        speed: BULLET_SPEED,
-        damage: shipDesign.damage
-    });
+    // Create bullets based on weapon type
+    switch(player.weaponType) {
+        case 'laser':
+            bullets.push({
+                x: player.x + player.width / 2 - 2,
+                y: player.y,
+                width: 4,
+                height: 8,
+                speed: weaponType.speed,
+                damage: weaponType.damage * shipDesign.damage,
+                color: weaponType.color,
+                type: 'laser'
+            });
+            break;
+        case 'plasma':
+            bullets.push({
+                x: player.x + player.width / 2 - 3,
+                y: player.y,
+                width: 6,
+                height: 10,
+                speed: weaponType.speed,
+                damage: weaponType.damage * shipDesign.damage,
+                color: weaponType.color,
+                type: 'plasma'
+            });
+            break;
+        case 'missile':
+            bullets.push({
+                x: player.x + player.width / 2 - 4,
+                y: player.y,
+                width: 8,
+                height: 12,
+                speed: weaponType.speed,
+                damage: weaponType.damage * shipDesign.damage,
+                color: weaponType.color,
+                type: 'missile'
+            });
+            break;
+        case 'spread':
+            // Create multiple bullets in a spread pattern
+            for (let i = -1; i <= 1; i++) {
+                bullets.push({
+                    x: player.x + player.width / 2 - 2 + (i * 8),
+                    y: player.y,
+                    width: 4,
+                    height: 8,
+                    speed: weaponType.speed,
+                    damage: weaponType.damage * shipDesign.damage,
+                    color: weaponType.color,
+                    type: 'spread'
+                });
+            }
+            break;
+    }
 }
 
 // Spawn enemy
@@ -299,6 +415,40 @@ function spawnEnemy() {
             speed: enemyDesign.speed + Math.random() * 2,
             type: enemyType,
             design: enemyDesign
+        });
+    }
+}
+
+// Spawn power-up
+function spawnPowerUp() {
+    if (Math.random() < POWERUP_SPAWN_RATE) {
+        const powerUpTypes = Object.keys(POWERUP_TYPES);
+        const randomType = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
+        const powerUpDesign = POWERUP_TYPES[randomType];
+        
+        powerUps.push({
+            x: Math.random() * (canvas.width - 30),
+            y: -30,
+            width: 30,
+            height: 30,
+            speed: 2,
+            type: randomType,
+            design: powerUpDesign
+        });
+    }
+}
+
+// Spawn collectible
+function spawnCollectible() {
+    if (Math.random() < COLLECTIBLE_SPAWN_RATE) {
+        collectibles.push({
+            x: Math.random() * (canvas.width - 20),
+            y: -20,
+            width: 20,
+            height: 20,
+            speed: 3,
+            value: Math.floor(Math.random() * 5) + 5, // 5-10 points
+            color: '#ffd700'
         });
     }
 }
@@ -354,6 +504,30 @@ function updateEnemies() {
     }
 }
 
+// Update power-ups
+function updatePowerUps() {
+    for (let i = powerUps.length - 1; i >= 0; i--) {
+        powerUps[i].y += powerUps[i].speed;
+        
+        // Remove power-ups that go off screen
+        if (powerUps[i].y > canvas.height) {
+            powerUps.splice(i, 1);
+        }
+    }
+}
+
+// Update collectibles
+function updateCollectibles() {
+    for (let i = collectibles.length - 1; i >= 0; i--) {
+        collectibles[i].y += collectibles[i].speed;
+        
+        // Remove collectibles that go off screen
+        if (collectibles[i].y > canvas.height) {
+            collectibles.splice(i, 1);
+        }
+    }
+}
+
 // Update explosions
 function updateExplosions() {
     for (let i = explosions.length - 1; i >= 0; i--) {
@@ -400,6 +574,45 @@ function checkCollisions() {
             }
         }
     }
+    
+    // Player vs Power-up collisions
+    for (let i = powerUps.length - 1; i >= 0; i--) {
+        if (checkCollision(player, powerUps[i])) {
+            const powerUp = powerUps[i];
+            
+            // Apply power-up effect
+            switch(powerUp.type) {
+                case 'health':
+                    lives = Math.min(lives + 1, 5);
+                    break;
+                case 'weapon':
+                    // Cycle through weapon types
+                    const weaponTypes = Object.keys(WEAPON_TYPES);
+                    const currentIndex = weaponTypes.indexOf(player.weaponType);
+                    const nextIndex = (currentIndex + 1) % weaponTypes.length;
+                    player.weaponType = weaponTypes[nextIndex];
+                    break;
+                case 'speed':
+                    player.powerUps.push({ type: 'speed', duration: 300 });
+                    break;
+                case 'shield':
+                    player.powerUps.push({ type: 'shield', duration: 300 });
+                    break;
+            }
+            
+            // Remove power-up
+            powerUps.splice(i, 1);
+            score += 5;
+        }
+    }
+    
+    // Player vs Collectible collisions
+    for (let i = collectibles.length - 1; i >= 0; i--) {
+        if (checkCollision(player, collectibles[i])) {
+            score += collectibles[i].value;
+            collectibles.splice(i, 1);
+        }
+    }
 }
 
 // Collision detection
@@ -442,6 +655,12 @@ function render() {
     // Draw enemies
     drawEnemies();
     
+    // Draw power-ups
+    drawPowerUps();
+    
+    // Draw collectibles
+    drawCollectibles();
+    
     // Draw explosions
     drawExplosions();
 }
@@ -457,6 +676,16 @@ function drawStars() {
 // Draw player
 function drawPlayer() {
     const shipDesign = SHIP_DESIGNS[player.shipType];
+    
+    // Draw shield effect if active
+    const hasShield = player.powerUps.some(p => p.type === 'shield');
+    if (hasShield) {
+        ctx.strokeStyle = '#8888ff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(player.x + player.width / 2, player.y + player.height / 2, player.width / 2 + 5, 0, Math.PI * 2);
+        ctx.stroke();
+    }
     
     // Draw ship body
     ctx.fillStyle = shipDesign.color;
@@ -491,8 +720,8 @@ function drawPlayer() {
 
 // Draw bullets
 function drawBullets() {
-    ctx.fillStyle = '#ffff00';
     for (let bullet of bullets) {
+        ctx.fillStyle = bullet.color || '#ffff00';
         ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
     }
 }
@@ -516,6 +745,38 @@ function drawEnemies() {
     }
 }
 
+// Draw power-ups
+function drawPowerUps() {
+    for (let powerUp of powerUps) {
+        const design = powerUp.design;
+        
+        // Draw power-up background
+        ctx.fillStyle = design.color;
+        ctx.fillRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+        
+        // Draw power-up symbol
+        ctx.fillStyle = '#fff';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(design.symbol, powerUp.x + powerUp.width / 2, powerUp.y + powerUp.height / 2 + 5);
+    }
+}
+
+// Draw collectibles
+function drawCollectibles() {
+    for (let collectible of collectibles) {
+        // Draw collectible
+        ctx.fillStyle = collectible.color;
+        ctx.fillRect(collectible.x, collectible.y, collectible.width, collectible.height);
+        
+        // Draw value
+        ctx.fillStyle = '#fff';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(collectible.value.toString(), collectible.x + collectible.width / 2, collectible.y + collectible.height / 2 + 3);
+    }
+}
+
 // Draw explosions
 function drawExplosions() {
     for (let explosion of explosions) {
@@ -533,12 +794,16 @@ function update() {
         updatePlayer();
         updateBullets();
         updateEnemies();
+        updatePowerUps();
+        updateCollectibles();
         updateExplosions();
         updateStars();
         checkCollisions();
         updateLevel();
         updateUI();
         spawnEnemy();
+        spawnPowerUp();
+        spawnCollectible();
         render();
     }
 }
