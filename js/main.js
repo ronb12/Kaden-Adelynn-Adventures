@@ -1,8 +1,75 @@
 // Simple Space Shooter Game
-// Version 2.8 - Enemy shooting, damage system, and improved ship designs
+// Version 2.9 - Top score tracking, enhanced weapons, and sound system
 
 // Game variables
 let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, startScreen, finalScoreElement, restartBtn, startBtn, highScoreElement, fullscreenBtn;
+
+// Audio system
+let audioContext;
+let sounds = {};
+
+// Initialize audio system
+function initAudio() {
+    try {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        createSounds();
+    } catch (e) {
+        console.log('Audio not supported:', e);
+    }
+}
+
+// Create sound effects
+function createSounds() {
+    // Laser sound
+    sounds.laser = createTone(800, 0.1, 'sine');
+    
+    // Plasma sound
+    sounds.plasma = createTone(600, 0.15, 'square');
+    
+    // Missile sound
+    sounds.missile = createTone(400, 0.3, 'sawtooth');
+    
+    // Explosion sound
+    sounds.explosion = createTone(200, 0.4, 'triangle');
+    
+    // Power-up sound
+    sounds.powerup = createTone(1200, 0.2, 'sine');
+    
+    // Enemy hit sound
+    sounds.enemyHit = createTone(300, 0.1, 'square');
+    
+    // Player hit sound
+    sounds.playerHit = createTone(150, 0.3, 'sawtooth');
+}
+
+// Create a tone with specified frequency, duration, and waveform
+function createTone(frequency, duration, type = 'sine') {
+    return function() {
+        if (!audioContext) return;
+        
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+        oscillator.type = type;
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + duration);
+    };
+}
+
+// Play sound function
+function playSound(soundName) {
+    if (sounds[soundName]) {
+        sounds[soundName]();
+    }
+}
 
 // Game state
 let gameState = 'start';
@@ -11,6 +78,25 @@ let lives = 50;
 let level = 1;
 let gameLoop;
 let highScore = localStorage.getItem('spaceShooterHighScore') || 0;
+
+// Top score tracking system
+let topScores = JSON.parse(localStorage.getItem('spaceShooterTopScores') || '[]');
+
+// Add score to top scores
+function addToTopScores(score) {
+    topScores.push({
+        score: score,
+        date: new Date().toLocaleDateString(),
+        level: level
+    });
+    
+    // Sort by score (highest first) and keep only top 10
+    topScores.sort((a, b) => b.score - a.score);
+    topScores = topScores.slice(0, 10);
+    
+    // Save to localStorage
+    localStorage.setItem('spaceShooterTopScores', JSON.stringify(topScores));
+}
 
 // Player
 let player = {
@@ -76,35 +162,77 @@ const SHIP_DESIGNS = {
     }
 };
 
-// Weapon types
+// Weapon types with enhanced firing patterns
 const WEAPON_TYPES = {
     laser: {
         name: 'Laser',
         color: '#00ffff',
         damage: 1,
         speed: 8,
-        fireRate: 1
+        fireRate: 1,
+        pattern: 'single',
+        rapidFire: false,
+        multiShot: 1
     },
     plasma: {
         name: 'Plasma',
         color: '#ff00ff',
         damage: 2,
         speed: 6,
-        fireRate: 0.8
+        fireRate: 0.8,
+        pattern: 'single',
+        rapidFire: false,
+        multiShot: 1
     },
     missile: {
         name: 'Missile',
         color: '#ffff00',
         damage: 3,
         speed: 5,
-        fireRate: 0.6
+        fireRate: 0.6,
+        pattern: 'single',
+        rapidFire: false,
+        multiShot: 1
     },
     spread: {
         name: 'Spread',
         color: '#ff8800',
         damage: 1,
         speed: 7,
-        fireRate: 1.2
+        fireRate: 1.2,
+        pattern: 'spread',
+        rapidFire: false,
+        multiShot: 3
+    },
+    rapid: {
+        name: 'Rapid',
+        color: '#00ff00',
+        damage: 1,
+        speed: 9,
+        fireRate: 0.3,
+        pattern: 'single',
+        rapidFire: true,
+        multiShot: 1
+    },
+    burst: {
+        name: 'Burst',
+        color: '#ff0080',
+        damage: 2,
+        speed: 7,
+        fireRate: 0.5,
+        pattern: 'burst',
+        rapidFire: false,
+        multiShot: 3
+    },
+    shotgun: {
+        name: 'Shotgun',
+        color: '#ff6600',
+        damage: 1,
+        speed: 6,
+        fireRate: 0.8,
+        pattern: 'shotgun',
+        rapidFire: false,
+        multiShot: 5
     }
 };
 
@@ -385,57 +513,89 @@ function handleTouchEnd(e) {
     }
 }
 
-// Start game
+// Start game function
 function startGame() {
+    // Initialize audio on first user interaction
+    if (!audioContext) {
+        initAudio();
+    }
+    
+    // Reset game state
     gameState = 'playing';
     score = 0;
     lives = 50;
     level = 1;
     
-    // Clear arrays
-    bullets = [];
-    enemies = [];
-    explosions = [];
-    powerUps = [];
-    collectibles = [];
-    
-    // Reset player position and power-ups
+    // Reset player
     player.x = 400;
     player.y = 550;
     player.powerUps = [];
     player.health = player.maxHealth; // Reset player health
     
     // Switch from menu to game screen
-    const menuContainer = document.getElementById('menuContainer');
-    const gameContainer = document.getElementById('gameContainer');
+    document.getElementById('menuContainer').classList.add('hidden');
+    document.getElementById('gameContainer').classList.remove('hidden');
     
-    if (menuContainer) menuContainer.classList.add('hidden');
-    if (gameContainer) gameContainer.classList.remove('hidden');
+    // Clear arrays
+    bullets = [];
+    enemyBullets = [];
+    enemies = [];
+    explosions = [];
+    powerUps = [];
+    collectibles = [];
     
-    // Hide game over screen if visible
-    if (gameOverScreen) gameOverScreen.style.display = 'none';
+    // Initialize stars
+    initStars();
     
-    console.log('Game started!');
+    // Start game loop
+    gameLoop = setInterval(update, 1000 / 60);
 }
 
-// Game over
+// Game over function
 function gameOver() {
     gameState = 'gameOver';
+    clearInterval(gameLoop);
     
-    // Check for new high score
+    // Update high score
     if (score > highScore) {
         highScore = score;
         localStorage.setItem('spaceShooterHighScore', highScore);
     }
     
+    // Add current score to top scores
+    addToTopScores(score);
+    
     // Update final score display
     if (finalScoreElement) finalScoreElement.textContent = score;
     if (highScoreElement) highScoreElement.textContent = highScore;
     
-    // Show game over screen
-    if (gameOverScreen) gameOverScreen.style.display = 'block';
+    // Display top scores
+    displayTopScores();
     
-    console.log('Game over! Score:', score, 'High score:', highScore);
+    // Show game over screen
+    if (gameOverScreen) {
+        gameOverScreen.classList.remove('hidden');
+    }
+}
+
+// Display top scores
+function displayTopScores() {
+    const topScoresList = document.getElementById('topScoresList');
+    if (!topScoresList) return;
+    
+    topScoresList.innerHTML = '';
+    
+    topScores.forEach((scoreData, index) => {
+        const scoreItem = document.createElement('div');
+        scoreItem.className = 'top-score-item';
+        scoreItem.innerHTML = `
+            <span class="top-score-rank">#${index + 1}</span>
+            <span class="top-score-value">${scoreData.score.toLocaleString()}</span>
+            <span class="top-score-date">${scoreData.date}</span>
+            <span class="top-score-level">Lvl ${scoreData.level}</span>
+        `;
+        topScoresList.appendChild(scoreItem);
+    });
 }
 
 // Restart game
@@ -464,69 +624,89 @@ function returnToMenu() {
     console.log('Returned to main menu');
 }
 
-// Shoot function
+// Enhanced shooting function with multiple patterns
 function shoot() {
-    const currentTime = Date.now();
-    const shipDesign = SHIP_DESIGNS[player.shipType];
+    const now = Date.now();
     const weaponType = WEAPON_TYPES[player.weaponType];
-    const fireDelay = SHOT_DELAY / (shipDesign.fireRate * weaponType.fireRate);
     
-    if (currentTime - lastShotTime < fireDelay) return;
-    lastShotTime = currentTime;
-    
-    // Create bullets based on weapon type
-    switch(player.weaponType) {
-        case 'laser':
-            bullets.push({
-                x: player.x + player.width / 2 - 2,
-                y: player.y,
-                width: 4,
-                height: 8,
-                speed: weaponType.speed,
-                damage: weaponType.damage * shipDesign.damage,
-                color: weaponType.color,
-                type: 'laser'
-            });
-            break;
-        case 'plasma':
-            bullets.push({
-                x: player.x + player.width / 2 - 3,
-                y: player.y,
-                width: 6,
-                height: 10,
-                speed: weaponType.speed,
-                damage: weaponType.damage * shipDesign.damage,
-                color: weaponType.color,
-                type: 'plasma'
-            });
-            break;
-        case 'missile':
-            bullets.push({
-                x: player.x + player.width / 2 - 4,
-                y: player.y,
-                width: 8,
-                height: 12,
-                speed: weaponType.speed,
-                damage: weaponType.damage * shipDesign.damage,
-                color: weaponType.color,
-                type: 'missile'
-            });
-            break;
-        case 'spread':
-            // Create multiple bullets in a spread pattern
-            for (let i = -1; i <= 1; i++) {
+    if (now - lastShotTime > weaponType.fireRate * 1000) {
+        const bulletSpeed = weaponType.speed;
+        const bulletDamage = weaponType.damage;
+        const bulletColor = weaponType.color;
+        
+        switch(weaponType.pattern) {
+            case 'single':
+                // Single shot
                 bullets.push({
-                    x: player.x + player.width / 2 - 2 + (i * 8),
+                    x: player.x + player.width / 2 - 2,
                     y: player.y,
                     width: 4,
                     height: 8,
-                    speed: weaponType.speed,
-                    damage: weaponType.damage * shipDesign.damage,
-                    color: weaponType.color,
-                    type: 'spread'
+                    speed: bulletSpeed,
+                    damage: bulletDamage,
+                    color: bulletColor
                 });
-            }
-            break;
+                playSound('laser');
+                break;
+                
+            case 'spread':
+                // Spread shot - 3 bullets in a spread pattern
+                for (let i = 0; i < weaponType.multiShot; i++) {
+                    const spread = (i - 1) * 15; // -15, 0, +15 degrees
+                    const angle = (spread * Math.PI) / 180;
+                    bullets.push({
+                        x: player.x + player.width / 2 - 2,
+                        y: player.y,
+                        width: 4,
+                        height: 8,
+                        speed: bulletSpeed,
+                        damage: bulletDamage,
+                        color: bulletColor,
+                        angle: angle
+                    });
+                }
+                playSound('plasma');
+                break;
+                
+            case 'burst':
+                // Burst fire - 3 bullets in quick succession
+                for (let i = 0; i < weaponType.multiShot; i++) {
+                    setTimeout(() => {
+                        bullets.push({
+                            x: player.x + player.width / 2 - 2,
+                            y: player.y,
+                            width: 4,
+                            height: 8,
+                            speed: bulletSpeed,
+                            damage: bulletDamage,
+                            color: bulletColor
+                        });
+                        playSound('laser');
+                    }, i * 100);
+                }
+                break;
+                
+            case 'shotgun':
+                // Shotgun - 5 bullets in a wide spread
+                for (let i = 0; i < weaponType.multiShot; i++) {
+                    const spread = (i - 2) * 20; // -40, -20, 0, +20, +40 degrees
+                    const angle = (spread * Math.PI) / 180;
+                    bullets.push({
+                        x: player.x + player.width / 2 - 2,
+                        y: player.y,
+                        width: 4,
+                        height: 8,
+                        speed: bulletSpeed,
+                        damage: bulletDamage,
+                        color: bulletColor,
+                        angle: angle
+                    });
+                }
+                playSound('missile');
+                break;
+        }
+        
+        lastShotTime = now;
     }
 }
 
@@ -651,11 +831,21 @@ function updatePlayer() {
     }
 }
 
-// Update bullets
+// Update bullets with angled movement
 function updateBullets() {
     for (let i = bullets.length - 1; i >= 0; i--) {
-        bullets[i].y -= bullets[i].speed;
-        if (bullets[i].y < 0) {
+        const bullet = bullets[i];
+        
+        if (bullet.angle) {
+            // Angled bullet movement
+            bullet.x += Math.sin(bullet.angle) * bullet.speed * 0.5;
+            bullet.y -= Math.cos(bullet.angle) * bullet.speed;
+        } else {
+            // Straight bullet movement
+            bullet.y -= bullet.speed;
+        }
+        
+        if (bullet.y < 0) {
             bullets.splice(i, 1);
         }
     }
@@ -735,7 +925,7 @@ function updateStars() {
     }
 }
 
-// Check collisions
+// Check collisions with sound effects
 function checkCollisions() {
     // Bullet vs Enemy collisions
     for (let i = bullets.length - 1; i >= 0; i--) {
@@ -747,6 +937,9 @@ function checkCollisions() {
                     y: enemies[j].y + enemies[j].height / 2,
                     life: 10
                 });
+                
+                // Play explosion sound
+                playSound('explosion');
                 
                 // Remove bullet and enemy
                 bullets.splice(i, 1);
@@ -769,6 +962,9 @@ function checkCollisions() {
             
             // Damage player
             player.health--;
+            
+            // Play player hit sound
+            playSound('playerHit');
             
             // Make player invulnerable temporarily
             player.invulnerable = true;
@@ -797,6 +993,9 @@ function checkCollisions() {
     for (let i = powerUps.length - 1; i >= 0; i--) {
         if (checkCollision(player, powerUps[i])) {
             const powerUp = powerUps[i];
+            
+            // Play power-up sound
+            playSound('powerup');
             
             // Apply power-up effect
             switch(powerUp.type) {

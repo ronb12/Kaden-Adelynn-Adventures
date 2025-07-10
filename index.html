@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta http-equiv="ETag" content="v2.8">
+    <meta http-equiv="ETag" content="v2.9">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0, s-maxage=0">
     <title>Space Shooter Game</title>
     <style>
@@ -234,6 +234,57 @@
             margin: 10px 0;
         }
         
+        .top-scores {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #4a90e2;
+        }
+        
+        .top-scores h3 {
+            color: #4a90e2;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .top-scores-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .top-score-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            margin: 5px 0;
+            background: rgba(74, 144, 226, 0.1);
+            border-radius: 5px;
+            border: 1px solid #4a90e2;
+        }
+        
+        .top-score-rank {
+            font-weight: bold;
+            color: #ffd700;
+            min-width: 30px;
+        }
+        
+        .top-score-value {
+            font-weight: bold;
+            color: #4a90e2;
+        }
+        
+        .top-score-date {
+            color: #ccc;
+            font-size: 0.9em;
+        }
+        
+        .top-score-level {
+            color: #00ff88;
+            font-size: 0.9em;
+        }
+        
         /* Additional content for scrolling */
         .game-info {
             background: rgba(0, 0, 0, 0.6);
@@ -456,6 +507,21 @@
                                 <div class="weapon-name">Spread</div>
                                 <div class="weapon-stats">Fast | Multiple Shots | Wide Coverage</div>
                             </div>
+                            <div class="weapon-option" data-weapon="rapid">
+                                <div class="weapon-preview" style="background: #00ff00;">⚡</div>
+                                <div class="weapon-name">Rapid</div>
+                                <div class="weapon-stats">Very Fast | Rapid Fire | High Speed</div>
+                            </div>
+                            <div class="weapon-option" data-weapon="burst">
+                                <div class="weapon-preview" style="background: #ff0080;">💥</div>
+                                <div class="weapon-name">Burst</div>
+                                <div class="weapon-stats">Medium | Burst Fire | High Damage</div>
+                            </div>
+                            <div class="weapon-option" data-weapon="shotgun">
+                                <div class="weapon-preview" style="background: #ff6600;">🔫</div>
+                                <div class="weapon-name">Shotgun</div>
+                                <div class="weapon-stats">Medium | Wide Spread | Multiple Shots</div>
+                            </div>
                         </div>
                     </div>
                     
@@ -544,12 +610,21 @@
             <h2>Game Over!</h2>
             <div class="final-score">Final Score: <span id="finalScore">0</span></div>
             <div class="high-score">High Score: <span id="highScore">0</span></div>
+            
+            <!-- Top Scores Display -->
+            <div class="top-scores">
+                <h3>🏆 Top Scores</h3>
+                <div id="topScoresList" class="top-scores-list">
+                    <!-- Top scores will be populated here -->
+                </div>
+            </div>
+            
             <button id="restartBtn">Play Again</button>
             <button id="menuBtn">Back to Menu</button>
         </div>
     </div>
     
-    <script src="js/main.js?v=2.8"></script>
+    <script src="js/main.js?v=2.9"></script>
     <script>
         // Tab switching logic
         document.addEventListener('DOMContentLoaded', function() {
