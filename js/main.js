@@ -1,8 +1,8 @@
 // Simple Space Shooter Game
-// Version 2.6 - 50 lives and bigger ships
+// Version 2.7 - Fullscreen button added
 
 // Game variables
-let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, startScreen, finalScoreElement, restartBtn, startBtn, highScoreElement;
+let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, startScreen, finalScoreElement, restartBtn, startBtn, highScoreElement, fullscreenBtn;
 
 // Game state
 let gameState = 'start';
@@ -222,6 +222,7 @@ function initializeGameElements() {
     highScoreElement = document.getElementById('highScore');
     restartBtn = document.getElementById('restartBtn');
     startBtn = document.getElementById('startBtn');
+    fullscreenBtn = document.getElementById('fullscreenBtn');
     
     console.log('Document ready state:', document.readyState);
     console.log('Window loaded:', window.loaded);
@@ -306,6 +307,11 @@ function setupEventListeners() {
     const menuBtn = document.getElementById('menuBtn');
     if (menuBtn) {
         menuBtn.addEventListener('click', returnToMenu);
+    }
+    
+    // Fullscreen button
+    if (fullscreenBtn) {
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
     }
 }
 
@@ -1199,6 +1205,48 @@ function update() {
         spawnPowerUp();
         spawnCollectible();
         render();
+    }
+}
+
+// Fullscreen toggle function
+function toggleFullscreen() {
+    const gameContainer = document.getElementById('gameContainer');
+    
+    if (!document.fullscreenElement) {
+        // Enter fullscreen
+        if (gameContainer.requestFullscreen) {
+            gameContainer.requestFullscreen();
+        } else if (gameContainer.webkitRequestFullscreen) {
+            gameContainer.webkitRequestFullscreen();
+        } else if (gameContainer.msRequestFullscreen) {
+            gameContainer.msRequestFullscreen();
+        }
+        fullscreenBtn.textContent = '⛶ Exit Fullscreen';
+    } else {
+        // Exit fullscreen
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+        fullscreenBtn.textContent = '⛶ Fullscreen';
+    }
+}
+
+// Listen for fullscreen change events
+document.addEventListener('fullscreenchange', updateFullscreenButton);
+document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
+document.addEventListener('msfullscreenchange', updateFullscreenButton);
+
+function updateFullscreenButton() {
+    if (fullscreenBtn) {
+        if (document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement) {
+            fullscreenBtn.textContent = '⛶ Exit Fullscreen';
+        } else {
+            fullscreenBtn.textContent = '⛶ Fullscreen';
+        }
     }
 }
 
