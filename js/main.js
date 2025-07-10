@@ -1,6 +1,6 @@
-// Kaden & Adelynn Space Adventures - Enhanced Version 3.4
+// Kaden & Adelynn Space Adventures - Enhanced Version 3.5
 // A space shooter game with multiple ships, weapons, and power-ups
-// Boss battles, phases, and checkpoint system
+// Boss battles, phases, checkpoint system, and enhanced power-ups
 
 // Game variables
 let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, startScreen, finalScoreElement, restartBtn, startBtn, highScoreElement, fullscreenBtn;
@@ -99,20 +99,31 @@ function addToTopScores(score) {
     localStorage.setItem('spaceShooterTopScores', JSON.stringify(topScores));
 }
 
-// Player
+// Enhanced score calculation with multiplier
+function addScore(points) {
+    score += points * player.scoreMultiplier;
+}
+
+// Player with enhanced power-up tracking
 let player = {
     x: 400,
     y: 550,
     width: 60,
     height: 60,
     speed: 5,
-    shipType: 'fighter', // fighter, interceptor, blaster, cruiser
-    weaponType: 'laser', // laser, plasma, missile, spread
+    shipType: 'fighter',
+    weaponType: 'laser',
     powerUps: [],
-    health: 5, // Player now has health instead of just lives
+    health: 5,
     maxHealth: 5,
     invulnerable: false,
-    invulnerabilityTime: 0
+    invulnerabilityTime: 0,
+    shieldActive: false,
+    shieldEndTime: 0,
+    speedBoostActive: false,
+    speedBoostEndTime: 0,
+    scoreMultiplier: 1,
+    multiplierEndTime: 0
 };
 
 // Enhanced ship designs with detailed visual representations
@@ -237,31 +248,56 @@ const WEAPON_TYPES = {
     }
 };
 
-// Power-up types
+// Enhanced power-up types
 const POWERUP_TYPES = {
     health: {
         name: 'Health',
         color: '#00ff00',
         symbol: '❤️',
-        effect: 'restore'
+        effect: 'restore',
+        duration: 0
     },
     weapon: {
         name: 'Weapon',
         color: '#ff8800',
         symbol: '⚔️',
-        effect: 'upgrade'
+        effect: 'upgrade',
+        duration: 0
     },
     speed: {
         name: 'Speed',
         color: '#00ffff',
         symbol: '⚡',
-        effect: 'boost'
+        effect: 'boost',
+        duration: 10000 // 10 seconds
     },
     shield: {
         name: 'Shield',
         color: '#8888ff',
         symbol: '🛡️',
-        effect: 'protect'
+        effect: 'protect',
+        duration: 8000 // 8 seconds
+    },
+    bomb: {
+        name: 'Bomb',
+        color: '#ff0080',
+        symbol: '💣',
+        effect: 'clear',
+        duration: 0
+    },
+    multiplier: {
+        name: 'Multiplier',
+        color: '#ffff00',
+        symbol: '⭐',
+        effect: 'multiply',
+        duration: 15000 // 15 seconds
+    },
+    life: {
+        name: 'Life',
+        color: '#ff0000',
+        symbol: '💖',
+        effect: 'extend',
+        duration: 0
     }
 };
 
@@ -590,6 +626,7 @@ function gameLoop() {
         updateEnemies();
         updateBoss();
         updatePowerUps();
+        updatePowerUpEffects(); // Add this line
         updateCollectibles();
         updateExplosions();
         updateStars();
@@ -840,6 +877,57 @@ function spawnCollectible() {
     }
 }
 
+// Enhanced power-up collection logic
+function collectPowerUp(powerUp) {
+    const powerUpType = POWERUP_TYPES[powerUp.type];
+    const now = Date.now();
+    
+    switch(powerUpType.effect) {
+        case 'restore':
+            player.health = Math.min(player.maxHealth, player.health + 2);
+            break;
+        case 'upgrade':
+            // Cycle through weapon types
+            const weaponTypes = Object.keys(WEAPON_TYPES);
+            const currentIndex = weaponTypes.indexOf(player.weaponType);
+            const nextIndex = (currentIndex + 1) % weaponTypes.length;
+            player.weaponType = weaponTypes[nextIndex];
+            break;
+        case 'boost':
+            player.speedBoostActive = true;
+            player.speedBoostEndTime = now + powerUpType.duration;
+            player.speed = 8; // Boosted speed
+            break;
+        case 'protect':
+            player.shieldActive = true;
+            player.shieldEndTime = now + powerUpType.duration;
+            break;
+        case 'clear':
+            // Clear all enemies and bullets
+            enemies.length = 0;
+            enemyBullets.length = 0;
+            // Add explosion effects
+            for (let i = 0; i < 20; i++) {
+                explosions.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    life: 15
+                });
+            }
+            break;
+        case 'multiply':
+            player.scoreMultiplier = 3;
+            player.multiplierEndTime = now + powerUpType.duration;
+            break;
+        case 'extend':
+            lives++;
+            break;
+    }
+    
+    playSound('powerup');
+    powerUps.splice(powerUps.indexOf(powerUp), 1);
+}
+
 // Boss spawn logic (call at level milestones)
 function maybeSpawnBoss() {
     if (level % 3 === 0 && !bossActive) {
@@ -999,7 +1087,28 @@ function updateStars() {
     }
 }
 
-// Check collisions with sound effects
+// Update power-up effects
+function updatePowerUpEffects() {
+    const now = Date.now();
+    
+    // Update shield
+    if (player.shieldActive && now > player.shieldEndTime) {
+        player.shieldActive = false;
+    }
+    
+    // Update speed boost
+    if (player.speedBoostActive && now > player.speedBoostEndTime) {
+        player.speedBoostActive = false;
+        player.speed = 5; // Reset to normal speed
+    }
+    
+    // Update score multiplier
+    if (player.scoreMultiplier > 1 && now > player.multiplierEndTime) {
+        player.scoreMultiplier = 1;
+    }
+}
+
+// Enhanced collision detection with shield protection
 function checkCollisions() {
     // Bullet vs Enemy collisions
     for (let i = bullets.length - 1; i >= 0; i--) {
@@ -1021,16 +1130,16 @@ function checkCollisions() {
                 
                 // Increase score based on enemy type
                 const points = enemies[j] ? enemies[j].design.points : 10;
-                score += points;
+                addScore(points);
                 
                 break;
             }
         }
     }
     
-    // Enemy bullets vs Player collisions
+    // Enemy bullets vs Player collisions (with shield protection)
     for (let i = enemyBullets.length - 1; i >= 0; i--) {
-        if (!player.invulnerable && checkCollision(enemyBullets[i], player)) {
+        if (!player.invulnerable && !player.shieldActive && checkCollision(enemyBullets[i], player)) {
             // Remove enemy bullet
             enemyBullets.splice(i, 1);
             
@@ -1060,6 +1169,16 @@ function checkCollisions() {
                     gameOver();
                 }
             }
+        } else if (player.shieldActive && checkCollision(enemyBullets[i], player)) {
+            // Shield absorbs the bullet
+            enemyBullets.splice(i, 1);
+            // Create shield effect
+            explosions.push({
+                x: player.x + player.width / 2,
+                y: player.y + player.height / 2,
+                life: 5,
+                type: 'shield'
+            });
         }
     }
     
@@ -1204,7 +1323,7 @@ function updateBoss() {
     }
 }
 
-// Update UI
+// Update UI to show active power-ups
 function updateUI() {
     if (scoreElement) scoreElement.textContent = score;
     if (livesElement) livesElement.textContent = lives;
@@ -1222,6 +1341,28 @@ function updateUI() {
         const currentWeapon = WEAPON_TYPES[player.weaponType];
         weaponElement.textContent = currentWeapon.name;
         weaponElement.style.color = currentWeapon.color;
+    }
+    
+    // Update power-up status display
+    const powerUpStatusElement = document.getElementById('powerUpStatus');
+    if (powerUpStatusElement) {
+        let statusText = '';
+        const now = Date.now();
+        
+        if (player.shieldActive) {
+            const shieldTime = Math.ceil((player.shieldEndTime - now) / 1000);
+            statusText += `🛡️ Shield: ${shieldTime}s `;
+        }
+        if (player.speedBoostActive) {
+            const speedTime = Math.ceil((player.speedBoostEndTime - now) / 1000);
+            statusText += `⚡ Speed: ${speedTime}s `;
+        }
+        if (player.scoreMultiplier > 1) {
+            const multiplierTime = Math.ceil((player.multiplierEndTime - now) / 1000);
+            statusText += `⭐ x${player.scoreMultiplier}: ${multiplierTime}s `;
+        }
+        
+        powerUpStatusElement.textContent = statusText;
     }
 }
 
@@ -1309,6 +1450,16 @@ function drawBullets() {
 // Enhanced player ship drawing with detailed designs
 function drawPlayer() {
     if (!player.invulnerable || Math.floor(Date.now() / 100) % 2) {
+        // Draw shield effect
+        if (player.shieldActive) {
+            ctx.strokeStyle = '#8888ff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(player.x + player.width/2, player.y + player.height/2, 
+                   player.width/2 + 10, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        
         const shipDesign = SHIP_DESIGNS[player.shipType];
         
         switch(player.shipType) {
@@ -1765,7 +1916,16 @@ function drawExplosions() {
             ctx.beginPath();
             ctx.arc(explosion.x, explosion.y, 30 * alpha, 0, Math.PI * 2);
             ctx.stroke();
-        } else {
+        } else if (explosion.type === 'shield') {
+            // Draw shield effect
+            const alpha = explosion.life / 5;
+            ctx.strokeStyle = `rgba(136, 136, 255, ${alpha})`;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(explosion.x, explosion.y, 10, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        else {
             // Regular explosion
             const alpha = explosion.life / 10;
             ctx.fillStyle = `rgba(255, 255, 0, ${alpha})`;
