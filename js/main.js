@@ -1,5 +1,5 @@
 // Simple Space Shooter Game
-// Version 2.9 - Top score tracking, enhanced weapons, and sound system
+// Version 3.0 - Performance fixes and rapid fire improvements
 
 // Game variables
 let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, startScreen, finalScoreElement, restartBtn, startBtn, highScoreElement, fullscreenBtn;
@@ -169,7 +169,7 @@ const WEAPON_TYPES = {
         color: '#00ffff',
         damage: 1,
         speed: 8,
-        fireRate: 1,
+        fireRate: 0.2, // 200ms between shots
         pattern: 'single',
         rapidFire: false,
         multiShot: 1
@@ -179,7 +179,7 @@ const WEAPON_TYPES = {
         color: '#ff00ff',
         damage: 2,
         speed: 6,
-        fireRate: 0.8,
+        fireRate: 0.3, // 300ms between shots
         pattern: 'single',
         rapidFire: false,
         multiShot: 1
@@ -189,7 +189,7 @@ const WEAPON_TYPES = {
         color: '#ffff00',
         damage: 3,
         speed: 5,
-        fireRate: 0.6,
+        fireRate: 0.5, // 500ms between shots
         pattern: 'single',
         rapidFire: false,
         multiShot: 1
@@ -199,7 +199,7 @@ const WEAPON_TYPES = {
         color: '#ff8800',
         damage: 1,
         speed: 7,
-        fireRate: 1.2,
+        fireRate: 0.4, // 400ms between shots
         pattern: 'spread',
         rapidFire: false,
         multiShot: 3
@@ -209,7 +209,7 @@ const WEAPON_TYPES = {
         color: '#00ff00',
         damage: 1,
         speed: 9,
-        fireRate: 0.3,
+        fireRate: 0.05, // 50ms between shots - very fast!
         pattern: 'single',
         rapidFire: true,
         multiShot: 1
@@ -219,7 +219,7 @@ const WEAPON_TYPES = {
         color: '#ff0080',
         damage: 2,
         speed: 7,
-        fireRate: 0.5,
+        fireRate: 0.3, // 300ms between bursts
         pattern: 'burst',
         rapidFire: false,
         multiShot: 3
@@ -229,7 +229,7 @@ const WEAPON_TYPES = {
         color: '#ff6600',
         damage: 1,
         speed: 6,
-        fireRate: 0.8,
+        fireRate: 0.6, // 600ms between shots
         pattern: 'shotgun',
         rapidFire: false,
         multiShot: 5
@@ -318,10 +318,10 @@ let powerUps = [];
 let collectibles = [];
 
 // Game constants
-const BULLET_SPEED = 7;
-const ENEMY_SPEED = 2;
+const BULLET_SPEED = 10; // Increased from 7
+const ENEMY_SPEED = 3; // Increased from 2
 const ENEMY_SHOOT_RATE = 0.01; // Increased enemy shooting rate
-const ENEMY_BULLET_SPEED = 4;
+const ENEMY_BULLET_SPEED = 5; // Increased from 4
 const SHOT_DELAY = 200;
 const POWERUP_SPAWN_RATE = 0.005;
 const COLLECTIBLE_SPAWN_RATE = 0.01;
@@ -395,9 +395,6 @@ function initializeGameElements() {
         
         // Setup event listeners
         setupEventListeners();
-        
-        // Start the game loop
-        gameLoop = setInterval(update, 1000 / 60);
         
         console.log('=== GAME INITIALIZATION COMPLETE ===');
     }
@@ -547,8 +544,34 @@ function startGame() {
     // Initialize stars
     initStars();
     
-    // Start game loop
-    gameLoop = setInterval(update, 1000 / 60);
+    // Start game loop with requestAnimationFrame for better performance
+    if (gameLoop) clearInterval(gameLoop);
+    gameLoop = requestAnimationFrame(gameLoop);
+}
+
+// Improved game loop function
+function gameLoop() {
+    if (gameState === 'playing') {
+        updatePlayer();
+        updateBullets();
+        updateEnemies();
+        updatePowerUps();
+        updateCollectibles();
+        updateExplosions();
+        updateStars();
+        checkCollisions();
+        updateLevel();
+        updateUI();
+        spawnEnemy();
+        spawnPowerUp();
+        spawnCollectible();
+        render();
+    }
+    
+    // Continue the loop
+    if (gameState === 'playing') {
+        requestAnimationFrame(gameLoop);
+    }
 }
 
 // Game over function
