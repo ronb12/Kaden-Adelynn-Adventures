@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Actual Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 20px;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .game-frame {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #4a90e2;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .test-results {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+        button {
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #357abd;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎮 Test Actual Game</h1>
+        <p>This loads the actual game page to test if it works without freezing.</p>
+        
+        <button onclick="testGameFunctionality()">Test Game Functionality</button>
+        <button onclick="clearResults()">Clear Results</button>
+        
+        <div class="game-frame">
+            <iframe id="gameFrame" src="index.html" width="100%" height="100%" frameborder="0"></iframe>
+        </div>
+        
+        <div class="test-results" id="testResults">Test results will appear here...</div>
+    </div>
+
+    <script>
+        const testResults = document.getElementById('testResults');
+        const gameFrame = document.getElementById('gameFrame');
+        
+        function log(message) {
+            testResults.textContent += message + '\n';
+            testResults.scrollTop = testResults.scrollHeight;
+            console.log(message);
+        }
+        
+        function clearResults() {
+            testResults.textContent = '';
+        }
+        
+        function testGameFunctionality() {
+            clearResults();
+            log('=== TESTING ACTUAL GAME ===');
+            
+            // Wait for iframe to load
+            gameFrame.onload = function() {
+                log('✅ Game page loaded successfully');
+                
+                try {
+                    // Try to access game functions from iframe
+                    const iframeWindow = gameFrame.contentWindow;
+                    
+                    if (iframeWindow && iframeWindow.startGame) {
+                        log('✅ startGame function accessible');
+                    } else {
+                        log('❌ startGame function not accessible');
+                    }
+                    
+                    if (iframeWindow && iframeWindow.drawBullets) {
+                        log('✅ drawBullets function accessible');
+                    } else {
+                        log('❌ drawBullets function not accessible');
+                    }
+                    
+                    if (iframeWindow && iframeWindow.gameState) {
+                        log('✅ gameState variable accessible');
+                    } else {
+                        log('❌ gameState variable not accessible');
+                    }
+                    
+                    log('=== GAME TEST COMPLETE ===');
+                    log('If you can see the game menu above, the game is working!');
+                    log('Try clicking "Start Game" to test if it works without freezing.');
+                    
+                } catch (error) {
+                    log(`❌ Error accessing game: ${error.message}`);
+                }
+            };
+            
+            // If iframe is already loaded
+            if (gameFrame.contentDocument && gameFrame.contentDocument.readyState === 'complete') {
+                gameFrame.onload();
+            }
+        }
+        
+        // Auto-test after page loads
+        setTimeout(testGameFunctionality, 2000);
+    </script>
+</body>
+</html> 

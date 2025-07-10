@@ -324,6 +324,68 @@
                 height: auto;
             }
         }
+        
+        /* Tab Navigation Styles */
+        .tab-navigation {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            gap: 10px;
+        }
+        
+        .tab-btn {
+            background: rgba(74, 144, 226, 0.2);
+            color: #4a90e2;
+            border: 2px solid #4a90e2;
+            padding: 12px 24px;
+            font-size: 1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        
+        .tab-btn:hover {
+            background: rgba(74, 144, 226, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .tab-btn.active {
+            background: #4a90e2;
+            color: white;
+            box-shadow: 0 4px 8px rgba(74, 144, 226, 0.3);
+        }
+        
+        .tab-content {
+            margin-top: 20px;
+        }
+        
+        .tab-panel {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        .tab-panel.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Responsive tab design */
+        @media (max-width: 768px) {
+            .tab-navigation {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .tab-btn {
+                padding: 10px 16px;
+                font-size: 0.9em;
+            }
+        }
     </style>
 </head>
 <body>
@@ -334,115 +396,131 @@
             <h1 class="game-title">🚀 Space Shooter 🚀</h1>
             <p class="game-subtitle">Defend the galaxy from enemy ships!</p>
             
-            <div class="ship-selection">
-                <h3>🚀 Choose Your Ship</h3>
-                <div class="ship-grid">
-                    <div class="ship-option selected" data-ship="fighter">
-                        <div class="ship-preview" style="background: #4a90e2;">⚔️</div>
-                        <div class="ship-name">Fighter</div>
-                        <div class="ship-stats">Speed: Fast | Fire Rate: Normal | Damage: Normal</div>
-                    </div>
-                    <div class="ship-option" data-ship="interceptor">
-                        <div class="ship-preview" style="background: #00ff88;">⚡</div>
-                        <div class="ship-name">Interceptor</div>
-                        <div class="ship-stats">Speed: Very Fast | Fire Rate: High | Damage: Normal</div>
-                    </div>
-                    <div class="ship-option" data-ship="blaster">
-                        <div class="ship-preview" style="background: #ff6b35;">💥</div>
-                        <div class="ship-name">Blaster</div>
-                        <div class="ship-stats">Speed: Slow | Fire Rate: Low | Damage: High</div>
-                </div>
-                    <div class="ship-option" data-ship="cruiser">
-                        <div class="ship-preview" style="background: #9b59b6;">🛡️</div>
-                        <div class="ship-name">Cruiser</div>
-                        <div class="ship-stats">Speed: Very Slow | Fire Rate: Low | Damage: Very High</div>
-                    </div>
-                </div>
+            <!-- Tab Navigation -->
+            <div class="tab-navigation">
+                <button class="tab-btn active" data-tab="setup">🎮 Setup</button>
+                <button class="tab-btn" data-tab="info">📖 Info</button>
+                <button class="tab-btn" data-tab="help">❓ Help</button>
             </div>
+            
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Setup Tab -->
+                <div id="setup-tab" class="tab-panel active">
+                    <div class="ship-selection">
+                        <h3>🚀 Choose Your Ship</h3>
+                        <div class="ship-grid">
+                            <div class="ship-option selected" data-ship="fighter">
+                                <div class="ship-preview" style="background: #4a90e2;">⚔️</div>
+                                <div class="ship-name">Fighter</div>
+                                <div class="ship-stats">Speed: Fast | Fire Rate: Normal | Damage: Normal</div>
+                            </div>
+                            <div class="ship-option" data-ship="interceptor">
+                                <div class="ship-preview" style="background: #00ff88;">⚡</div>
+                                <div class="ship-name">Interceptor</div>
+                                <div class="ship-stats">Speed: Very Fast | Fire Rate: High | Damage: Normal</div>
+                            </div>
+                            <div class="ship-option" data-ship="blaster">
+                                <div class="ship-preview" style="background: #ff6b35;">💥</div>
+                                <div class="ship-name">Blaster</div>
+                                <div class="ship-stats">Speed: Slow | Fire Rate: Low | Damage: High</div>
+                            </div>
+                            <div class="ship-option" data-ship="cruiser">
+                                <div class="ship-preview" style="background: #9b59b6;">🛡️</div>
+                                <div class="ship-name">Cruiser</div>
+                                <div class="ship-stats">Speed: Very Slow | Fire Rate: Low | Damage: Very High</div>
+                            </div>
+                        </div>
+                    </div>
 
-            <div class="weapon-selection">
-                <h3>⚔️ Choose Your Weapon</h3>
-                <div class="weapon-grid">
-                    <div class="weapon-option selected" data-weapon="laser">
-                        <div class="weapon-preview" style="background: #00ffff;">💎</div>
-                        <div class="weapon-name">Laser</div>
-                        <div class="weapon-stats">Fast | Normal Damage | High Speed</div>
+                    <div class="weapon-selection">
+                        <h3>⚔️ Choose Your Weapon</h3>
+                        <div class="weapon-grid">
+                            <div class="weapon-option selected" data-weapon="laser">
+                                <div class="weapon-preview" style="background: #00ffff;">💎</div>
+                                <div class="weapon-name">Laser</div>
+                                <div class="weapon-stats">Fast | Normal Damage | High Speed</div>
+                            </div>
+                            <div class="weapon-option" data-weapon="plasma">
+                                <div class="weapon-preview" style="background: #ff00ff;">🔥</div>
+                                <div class="weapon-name">Plasma</div>
+                                <div class="weapon-stats">Medium | High Damage | Medium Speed</div>
+                            </div>
+                            <div class="weapon-option" data-weapon="missile">
+                                <div class="weapon-preview" style="background: #ffff00;">🚀</div>
+                                <div class="weapon-name">Missile</div>
+                                <div class="weapon-stats">Slow | Very High Damage | Low Speed</div>
+                            </div>
+                            <div class="weapon-option" data-weapon="spread">
+                                <div class="weapon-preview" style="background: #ff8800;">🎯</div>
+                                <div class="weapon-name">Spread</div>
+                                <div class="weapon-stats">Fast | Multiple Shots | Wide Coverage</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="weapon-option" data-weapon="plasma">
-                        <div class="weapon-preview" style="background: #ff00ff;">🔥</div>
-                        <div class="weapon-name">Plasma</div>
-                        <div class="weapon-stats">Medium | High Damage | Medium Speed</div>
-                    </div>
-                    <div class="weapon-option" data-weapon="missile">
-                        <div class="weapon-preview" style="background: #ffff00;">🚀</div>
-                        <div class="weapon-name">Missile</div>
-                        <div class="weapon-stats">Slow | Very High Damage | Low Speed</div>
-                    </div>
-                    <div class="weapon-option" data-weapon="spread">
-                        <div class="weapon-preview" style="background: #ff8800;">🎯</div>
-                        <div class="weapon-name">Spread</div>
-                        <div class="weapon-stats">Fast | Multiple Shots | Wide Coverage</div>
-                    </div>
+                    
+                    <button id="startBtn">Start Game</button>
+                </div>
+                
+                <!-- Info Tab -->
+                <div id="info-tab" class="tab-panel">
+                    <h3>🎮 Game Features</h3>
+                    <div class="features-list">
+                        <div class="feature-item">
+                            <h4>🚀 4 Unique Ships</h4>
+                            <p>Choose from Fighter, Interceptor, Blaster, or Cruiser. Each ship has different speed, fire rate, and damage characteristics.</p>
+                        </div>
+                        <div class="feature-item">
+                            <h4>⚔️ 4 Weapon Types</h4>
+                            <p>Laser, Plasma, Missile, and Spread weapons. Each has unique damage, speed, and firing patterns.</p>
+                        </div>
+                        <div class="feature-item">
+                            <h4>⭐ Power-Up System</h4>
+                            <p>Collect health, weapon, speed, and shield power-ups during gameplay for temporary boosts and upgrades.</p>
+                        </div>
+                        <div class="feature-item">
+                            <h4>💰 Collectibles</h4>
+                            <p>Gather golden collectibles for bonus points. Different enemies give different point values.</p>
+                        </div>
+                        <div class="feature-item">
+                            <h4>🎯 Progressive Difficulty</h4>
+                            <p>Enemies become more challenging as you level up. Score more points to advance to higher levels.</p>
+                        </div>
+                        <div class="feature-item">
+                            <h4>🏆 High Score System</h4>
+                            <p>Your best score is automatically saved. Try to beat your record with different ship and weapon combinations!</p>
+                        </div>
                     </div>
                 </div>
                 
-            <div class="controls">
-                <h3>🎮 Controls</h3>
-                <ul>
-                    <li>Arrow Keys or WASD - Move ship</li>
-                    <li>Spacebar - Shoot</li>
-                    <li><strong>Mobile:</strong> Touch and drag to move ship</li>
-                    <li><strong>Mobile:</strong> Touch anywhere to auto-shoot</li>
-                    <li>Collect power-ups for upgrades</li>
-                    <li>Gather golden collectibles for points</li>
-                    <li>Avoid letting enemies pass you</li>
-                </ul>
-                            </div>
-            
-            <button id="startBtn">Start Game</button>
-                            </div>
-        
-        <!-- Game Info Section -->
-        <div class="game-info">
-            <h3>🎮 Game Features</h3>
-            <div class="features-list">
-                <div class="feature-item">
-                    <h4>🚀 4 Unique Ships</h4>
-                    <p>Choose from Fighter, Interceptor, Blaster, or Cruiser. Each ship has different speed, fire rate, and damage characteristics.</p>
-                </div>
-                <div class="feature-item">
-                    <h4>⚔️ 4 Weapon Types</h4>
-                    <p>Laser, Plasma, Missile, and Spread weapons. Each has unique damage, speed, and firing patterns.</p>
-                </div>
-                            <div class="feature-item">
-                    <h4>⭐ Power-Up System</h4>
-                    <p>Collect health, weapon, speed, and shield power-ups during gameplay for temporary boosts and upgrades.</p>
-                            </div>
-                            <div class="feature-item">
-                    <h4>💰 Collectibles</h4>
-                    <p>Gather golden collectibles for bonus points. Different enemies give different point values.</p>
-                </div>
-                <div class="feature-item">
-                    <h4>🎯 Progressive Difficulty</h4>
-                    <p>Enemies become more challenging as you level up. Score more points to advance to higher levels.</p>
-                </div>
-                <div class="feature-item">
-                    <h4>🏆 High Score System</h4>
-                    <p>Your best score is automatically saved. Try to beat your record with different ship and weapon combinations!</p>
+                <!-- Help Tab -->
+                <div id="help-tab" class="tab-panel">
+                    <div class="controls">
+                        <h3>🎮 Controls</h3>
+                        <ul>
+                            <li>Arrow Keys or WASD - Move ship</li>
+                            <li>Spacebar - Shoot</li>
+                            <li><strong>Mobile:</strong> Touch and drag to move ship</li>
+                            <li><strong>Mobile:</strong> Touch anywhere to auto-shoot</li>
+                            <li>Collect power-ups for upgrades</li>
+                            <li>Gather golden collectibles for points</li>
+                            <li>Avoid letting enemies pass you</li>
+                        </ul>
+                    </div>
+                    
+                    <h3>🎯 Game Tips</h3>
+                    <p><strong>Beginner:</strong> Start with Fighter + Laser for balanced gameplay. Focus on avoiding enemies and collecting power-ups.</p>
+                    <p><strong>Advanced:</strong> Try Cruiser + Missile for maximum damage, or Interceptor + Spread for rapid-fire coverage.</p>
+                    <p><strong>Pro:</strong> Master the timing of power-up collection and weapon switching for maximum efficiency.</p>
+                    
+                    <h3>🌟 Power-Up Guide</h3>
+                    <p><strong>❤️ Health:</strong> Restores 1 life (maximum 5 lives)</p>
+                    <p><strong>⚔️ Weapon:</strong> Cycles through weapon types - Laser → Plasma → Missile → Spread</p>
+                    <p><strong>⚡ Speed:</strong> Temporary speed boost for 5 seconds</p>
+                    <p><strong>🛡️ Shield:</strong> Temporary invincibility for 5 seconds</p>
                 </div>
             </div>
-            
-            <h3>🎯 Game Tips</h3>
-            <p><strong>Beginner:</strong> Start with Fighter + Laser for balanced gameplay. Focus on avoiding enemies and collecting power-ups.</p>
-            <p><strong>Advanced:</strong> Try Cruiser + Missile for maximum damage, or Interceptor + Spread for rapid-fire coverage.</p>
-            <p><strong>Pro:</strong> Master the timing of power-up collection and weapon switching for maximum efficiency.</p>
-            
-            <h3>🌟 Power-Up Guide</h3>
-            <p><strong>❤️ Health:</strong> Restores 1 life (maximum 5 lives)</p>
-            <p><strong>⚔️ Weapon:</strong> Cycles through weapon types - Laser → Plasma → Missile → Spread</p>
-            <p><strong>⚡ Speed:</strong> Temporary speed boost for 5 seconds</p>
-            <p><strong>🛡️ Shield:</strong> Temporary invincibility for 5 seconds</p>
-    </div>
+        </div>
     
         </div>
     </div>
@@ -471,41 +549,21 @@
     
     <script src="js/main.js?v=2.5"></script>
     <script>
-        // Ship and weapon selection functionality
+        // Tab switching logic
         document.addEventListener('DOMContentLoaded', function() {
-            const shipOptions = document.querySelectorAll('.ship-option');
-            const weaponOptions = document.querySelectorAll('.weapon-option');
-            
-            shipOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    // Remove selected class from all options
-                    shipOptions.forEach(opt => opt.classList.remove('selected'));
-                    
-                    // Add selected class to clicked option
-                    this.classList.add('selected');
-                    
-                    // Update player ship type
-                    const shipType = this.getAttribute('data-ship');
-                    if (window.player) {
-                        window.player.shipType = shipType;
-                                }
-                            });
-                        });
-            
-            weaponOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    // Remove selected class from all options
-                    weaponOptions.forEach(opt => opt.classList.remove('selected'));
-                    
-                    // Add selected class to clicked option
-                    this.classList.add('selected');
-                    
-                    // Update player weapon type
-                    const weaponType = this.getAttribute('data-weapon');
-                    if (window.player) {
-                        window.player.weaponType = weaponType;
-                    }
-                    });
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabPanels = document.querySelectorAll('.tab-panel');
+
+            tabButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Remove active from all
+                    tabButtons.forEach(b => b.classList.remove('active'));
+                    tabPanels.forEach(panel => panel.classList.remove('active'));
+                    // Add active to clicked
+                    this.classList.add('active');
+                    const tab = this.getAttribute('data-tab');
+                    document.getElementById(tab + '-tab').classList.add('active');
+                });
             });
         });
     </script>

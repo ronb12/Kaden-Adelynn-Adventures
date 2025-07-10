@@ -69,7 +69,7 @@
         <button onclick="runFreezeTest()">Run Freeze Test</button>
         <button onclick="clearResults()">Clear Results</button>
         
-        <div id="testOutput">Click a button to run tests...</div>
+        <div id="testOutput">Waiting for game initialization...</div>
         
         <div id="results"></div>
     </div>
@@ -99,9 +99,33 @@
             resultsDiv.innerHTML = '';
         }
         
-        function runQuickTest() {
+        // Wait for game initialization
+        function waitForGameInit() {
+            return new Promise((resolve) => {
+                const checkInit = () => {
+                    const canvas = document.getElementById('gameCanvas');
+                    const gameState = window.gameState;
+                    const player = window.player;
+                    const startBtn = document.getElementById('startBtn');
+                    
+                    if (canvas && typeof gameState !== 'undefined' && player && startBtn) {
+                        log('✅ Game fully initialized - running tests...');
+                        resolve();
+                    } else {
+                        log('⏳ Waiting for game initialization...');
+                        setTimeout(checkInit, 200);
+                    }
+                };
+                checkInit();
+            });
+        }
+        
+        async function runQuickTest() {
             clearResults();
             log('=== QUICK GAME TEST STARTING ===');
+            
+            // Wait for game initialization
+            await waitForGameInit();
             
             // Test 1: Check if main.js loaded
             log('1. Checking if main.js loaded...');
@@ -247,8 +271,10 @@
             log('=== FREEZE TEST COMPLETE ===');
         }
         
-        // Auto-run quick test after page loads
-        setTimeout(runQuickTest, 1000);
+        // Auto-run quick test after waiting for initialization
+        setTimeout(async () => {
+            await runQuickTest();
+        }, 1000);
     </script>
 </body>
 </html> 
