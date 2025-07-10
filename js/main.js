@@ -1,5 +1,5 @@
 // Simple Space Shooter Game
-// Version 1.4 - Core shooting mechanics with ship designs, collectibles, and advanced weapons
+// Version 1.6 - Core shooting mechanics with enhanced ship designs
 
 // Game variables
 let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, startScreen, finalScoreElement, restartBtn, startBtn, highScoreElement;
@@ -24,43 +24,51 @@ let player = {
     powerUps: []
 };
 
-// Ship designs
+// Enhanced ship designs with detailed visual representations
 const SHIP_DESIGNS = {
     fighter: {
         name: 'Fighter',
         color: '#4a90e2',
+        accentColor: '#ffffff',
         width: 40,
         height: 40,
         speed: 5,
         fireRate: 1,
-        damage: 1
+        damage: 1,
+        design: 'fighter'
     },
     interceptor: {
         name: 'Interceptor',
         color: '#00ff88',
+        accentColor: '#ffffff',
         width: 35,
         height: 45,
         speed: 6,
         fireRate: 1.2,
-        damage: 1
+        damage: 1,
+        design: 'interceptor'
     },
     blaster: {
         name: 'Blaster',
         color: '#ff6b35',
+        accentColor: '#ffffff',
         width: 45,
         height: 35,
         speed: 4,
         fireRate: 0.8,
-        damage: 2
+        damage: 2,
+        design: 'blaster'
     },
     cruiser: {
         name: 'Cruiser',
         color: '#9b59b6',
+        accentColor: '#ffffff',
         width: 50,
         height: 50,
         speed: 3,
         fireRate: 0.6,
-        damage: 3
+        damage: 3,
+        design: 'cruiser'
     }
 };
 
@@ -124,39 +132,47 @@ const POWERUP_TYPES = {
     }
 };
 
-// Enemy ship designs
+// Enhanced enemy ship designs
 const ENEMY_DESIGNS = [
     {
         name: 'Scout',
         color: '#ff4444',
+        accentColor: '#ffffff',
         width: 30,
         height: 30,
         speed: 3,
-        points: 10
+        points: 10,
+        design: 'scout'
     },
     {
         name: 'Fighter',
         color: '#ff6666',
+        accentColor: '#ffffff',
         width: 35,
         height: 35,
         speed: 2.5,
-        points: 15
+        points: 15,
+        design: 'enemy_fighter'
     },
     {
         name: 'Destroyer',
         color: '#ff8888',
+        accentColor: '#ffffff',
         width: 40,
         height: 40,
         speed: 2,
-        points: 20
+        points: 20,
+        design: 'destroyer'
     },
     {
         name: 'Battleship',
         color: '#ffaaaa',
+        accentColor: '#ffffff',
         width: 45,
         height: 45,
         speed: 1.5,
-        points: 25
+        points: 25,
+        design: 'battleship'
     }
 ];
 
@@ -673,7 +689,7 @@ function drawStars() {
     }
 }
 
-// Draw player
+// Enhanced player ship drawing with detailed designs
 function drawPlayer() {
     const shipDesign = SHIP_DESIGNS[player.shipType];
     
@@ -687,62 +703,260 @@ function drawPlayer() {
         ctx.stroke();
     }
     
-    // Draw ship body
-    ctx.fillStyle = shipDesign.color;
-    ctx.fillRect(player.x, player.y, player.width, player.height);
-    
-    // Draw ship details based on type
-    ctx.fillStyle = '#fff';
-    
+    // Draw ship based on type
     switch(player.shipType) {
         case 'fighter':
-            // Fighter design - sleek and fast
-            ctx.fillRect(player.x + 15, player.y + 10, 10, 20);
-            ctx.fillRect(player.x + 10, player.y + 15, 20, 10);
+            drawFighterShip(player.x, player.y, player.width, player.height, shipDesign);
             break;
         case 'interceptor':
-            // Interceptor design - narrow and fast
-            ctx.fillRect(player.x + 12, player.y + 8, 16, 24);
-            ctx.fillRect(player.x + 8, player.y + 12, 24, 16);
+            drawInterceptorShip(player.x, player.y, player.width, player.height, shipDesign);
             break;
         case 'blaster':
-            // Blaster design - wide and powerful
-            ctx.fillRect(player.x + 18, player.y + 12, 4, 16);
-            ctx.fillRect(player.x + 12, player.y + 18, 16, 4);
+            drawBlasterShip(player.x, player.y, player.width, player.height, shipDesign);
             break;
         case 'cruiser':
-            // Cruiser design - large and heavy
-            ctx.fillRect(player.x + 20, player.y + 15, 10, 20);
-            ctx.fillRect(player.x + 15, player.y + 20, 20, 10);
+            drawCruiserShip(player.x, player.y, player.width, player.height, shipDesign);
             break;
     }
 }
 
-// Draw bullets
-function drawBullets() {
-    for (let bullet of bullets) {
-        ctx.fillStyle = bullet.color || '#ffff00';
-        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-    }
+// Enhanced ship drawing functions with advanced designs
+function drawFighterShip(x, y, width, height, design) {
+    // Main body - sleek fighter design
+    ctx.fillStyle = design.color;
+    ctx.beginPath();
+    ctx.moveTo(x + width/2, y);
+    ctx.lineTo(x + width - 5, y + height/3);
+    ctx.lineTo(x + width - 8, y + height - 10);
+    ctx.lineTo(x + width/2, y + height);
+    ctx.lineTo(x + 8, y + height - 10);
+    ctx.lineTo(x + 5, y + height/3);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Cockpit
+    ctx.fillStyle = design.accentColor;
+    ctx.beginPath();
+    ctx.ellipse(x + width/2, y + height/3, 8, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Wings
+    ctx.fillStyle = design.color;
+    ctx.fillRect(x - 3, y + height/2, 8, 4);
+    ctx.fillRect(x + width - 5, y + height/2, 8, 4);
+    
+    // Engine glow
+    ctx.fillStyle = '#ffff00';
+    ctx.fillRect(x + width/2 - 3, y + height - 2, 6, 2);
+    ctx.fillStyle = '#ff8800';
+    ctx.fillRect(x + width/2 - 2, y + height - 1, 4, 1);
 }
 
-// Draw enemies
+function drawInterceptorShip(x, y, width, height, design) {
+    // Main body - fast interceptor design
+    ctx.fillStyle = design.color;
+    ctx.beginPath();
+    ctx.moveTo(x + width/2, y);
+    ctx.lineTo(x + width - 3, y + height/4);
+    ctx.lineTo(x + width - 5, y + height/2);
+    ctx.lineTo(x + width - 3, y + height - 5);
+    ctx.lineTo(x + width/2, y + height);
+    ctx.lineTo(x + 3, y + height - 5);
+    ctx.lineTo(x + 5, y + height/2);
+    ctx.lineTo(x + 3, y + height/4);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Cockpit
+    ctx.fillStyle = design.accentColor;
+    ctx.beginPath();
+    ctx.ellipse(x + width/2, y + height/3, 6, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Extended wings
+    ctx.fillStyle = design.color;
+    ctx.fillRect(x - 8, y + height/3, 12, 3);
+    ctx.fillRect(x + width - 4, y + height/3, 12, 3);
+    
+    // Engine glow
+    ctx.fillStyle = '#00ffff';
+    ctx.fillRect(x + width/2 - 2, y + height - 1, 4, 1);
+    ctx.fillStyle = '#0088ff';
+    ctx.fillRect(x + width/2 - 1, y + height, 2, 1);
+}
+
+function drawBlasterShip(x, y, width, height, design) {
+    // Main body - heavy blaster design
+    ctx.fillStyle = design.color;
+    ctx.beginPath();
+    ctx.moveTo(x + width/2, y);
+    ctx.lineTo(x + width - 8, y + height/4);
+    ctx.lineTo(x + width - 5, y + height/2);
+    ctx.lineTo(x + width - 8, y + height - 8);
+    ctx.lineTo(x + width/2, y + height);
+    ctx.lineTo(x + 8, y + height - 8);
+    ctx.lineTo(x + 5, y + height/2);
+    ctx.lineTo(x + 8, y + height/4);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Cockpit
+    ctx.fillStyle = design.accentColor;
+    ctx.fillRect(x + width/2 - 4, y + height/3, 8, 8);
+    
+    // Weapon pods
+    ctx.fillStyle = design.color;
+    ctx.fillRect(x + 2, y + 5, 10, 10);
+    ctx.fillRect(x + width - 12, y + 5, 10, 10);
+    
+    // Engine glow
+    ctx.fillStyle = '#ff4400';
+    ctx.fillRect(x + width/2 - 4, y + height - 3, 8, 3);
+    ctx.fillStyle = '#ff8800';
+    ctx.fillRect(x + width/2 - 2, y + height - 1, 4, 1);
+}
+
+function drawCruiserShip(x, y, width, height, design) {
+    // Main body - massive cruiser design
+    ctx.fillStyle = design.color;
+    ctx.beginPath();
+    ctx.moveTo(x + width/2, y);
+    ctx.lineTo(x + width - 10, y + height/5);
+    ctx.lineTo(x + width - 8, y + height/2);
+    ctx.lineTo(x + width - 10, y + height - 10);
+    ctx.lineTo(x + width/2, y + height);
+    ctx.lineTo(x + 10, y + height - 10);
+    ctx.lineTo(x + 8, y + height/2);
+    ctx.lineTo(x + 10, y + height/5);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Cockpit
+    ctx.fillStyle = design.accentColor;
+    ctx.fillRect(x + width/2 - 6, y + height/4, 12, 12);
+    
+    // Heavy armor plates
+    ctx.fillStyle = design.color;
+    ctx.fillRect(x + 1, y + height/3, 8, 8);
+    ctx.fillRect(x + width - 9, y + height/3, 8, 8);
+    
+    // Engine glow
+    ctx.fillStyle = '#ff00ff';
+    ctx.fillRect(x + width/2 - 6, y + height - 4, 12, 4);
+    ctx.fillStyle = '#ff88ff';
+    ctx.fillRect(x + width/2 - 3, y + height - 1, 6, 1);
+}
+
+// Enhanced enemy ship drawing
 function drawEnemies() {
     for (let enemy of enemies) {
         const design = enemy.design;
         
-        // Draw enemy body
-        ctx.fillStyle = design.color;
-        ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
-        
-        // Draw enemy details
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(enemy.x + 10, enemy.y + 10, enemy.width - 20, enemy.height - 20);
-        
-        // Draw enemy type indicator
-        ctx.fillStyle = '#000';
-        ctx.fillRect(enemy.x + 15, enemy.y + 15, enemy.width - 30, enemy.height - 30);
+        switch(design.design) {
+            case 'scout':
+                drawScoutEnemy(enemy.x, enemy.y, enemy.width, enemy.height, design);
+                break;
+            case 'enemy_fighter':
+                drawEnemyFighter(enemy.x, enemy.y, enemy.width, enemy.height, design);
+                break;
+            case 'destroyer':
+                drawDestroyerEnemy(enemy.x, enemy.y, enemy.width, enemy.height, design);
+                break;
+            case 'battleship':
+                drawBattleshipEnemy(enemy.x, enemy.y, enemy.width, enemy.height, design);
+                break;
+        }
     }
+}
+
+// Enhanced enemy ship designs
+function drawScoutEnemy(x, y, width, height, design) {
+    // Small, fast enemy scout
+    ctx.fillStyle = design.color;
+    ctx.beginPath();
+    ctx.moveTo(x + width/2, y + height);
+    ctx.lineTo(x + width - 3, y + height/2);
+    ctx.lineTo(x + width - 2, y);
+    ctx.lineTo(x + width/2, y + 2);
+    ctx.lineTo(x + 2, y);
+    ctx.lineTo(x + 3, y + height/2);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Cockpit
+    ctx.fillStyle = design.accentColor;
+    ctx.beginPath();
+    ctx.ellipse(x + width/2, y + height/3, 4, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function drawEnemyFighter(x, y, width, height, design) {
+    // Standard enemy fighter
+    ctx.fillStyle = design.color;
+    ctx.beginPath();
+    ctx.moveTo(x + width/2, y + height);
+    ctx.lineTo(x + width - 5, y + height/3);
+    ctx.lineTo(x + width - 3, y);
+    ctx.lineTo(x + width/2, y + 3);
+    ctx.lineTo(x + 3, y);
+    ctx.lineTo(x + 5, y + height/3);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Cockpit
+    ctx.fillStyle = design.accentColor;
+    ctx.fillRect(x + width/2 - 3, y + height/3, 6, 4);
+    
+    // Wings
+    ctx.fillStyle = design.color;
+    ctx.fillRect(x + 1, y + height/2, 4, 3);
+    ctx.fillRect(x + width - 5, y + height/2, 4, 3);
+}
+
+function drawDestroyerEnemy(x, y, width, height, design) {
+    // Larger, more powerful enemy destroyer
+    ctx.fillStyle = design.color;
+    ctx.beginPath();
+    ctx.moveTo(x + width/2, y + height);
+    ctx.lineTo(x + width - 8, y + height/3);
+    ctx.lineTo(x + width - 5, y);
+    ctx.lineTo(x + width/2, y + 5);
+    ctx.lineTo(x + 5, y);
+    ctx.lineTo(x + 8, y + height/3);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Cockpit
+    ctx.fillStyle = design.accentColor;
+    ctx.fillRect(x + width/2 - 5, y + height/4, 10, 8);
+    
+    // Weapon pods
+    ctx.fillStyle = design.color;
+    ctx.fillRect(x + 2, y + 3, 6, 6);
+    ctx.fillRect(x + width - 8, y + 3, 6, 6);
+}
+
+function drawBattleshipEnemy(x, y, width, height, design) {
+    // Largest, most powerful enemy battleship
+    ctx.fillStyle = design.color;
+    ctx.beginPath();
+    ctx.moveTo(x + width/2, y + height);
+    ctx.lineTo(x + width - 12, y + height/3);
+    ctx.lineTo(x + width - 8, y);
+    ctx.lineTo(x + width/2, y + 8);
+    ctx.lineTo(x + 8, y);
+    ctx.lineTo(x + 12, y + height/3);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Cockpit
+    ctx.fillStyle = design.accentColor;
+    ctx.fillRect(x + width/2 - 8, y + height/5, 16, 12);
+    
+    // Heavy armor
+    ctx.fillStyle = design.color;
+    ctx.fillRect(x + 1, y + height/3, 6, 6);
+    ctx.fillRect(x + width - 7, y + height/3, 6, 6);
 }
 
 // Draw power-ups

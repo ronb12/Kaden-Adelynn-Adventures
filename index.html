@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    <meta http-equiv="ETag" content="v2.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0, s-maxage=0">
     <title>Space Shooter Game</title>
     <style>
         * {
@@ -21,6 +23,11 @@
             min-height: 100vh;
             overflow-x: hidden;
             overflow-y: auto;
+            /* Prevent mobile screen movement */
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            -webkit-overflow-scrolling: touch;
         }
         
         .game-container {
@@ -248,11 +255,21 @@
         @media (max-width: 768px) {
             .game-container {
                 padding: 10px;
+                /* Prevent mobile screen movement */
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
             }
             
             .screen {
                 padding: 20px;
                 margin: 10px auto;
+                /* Prevent touch scrolling issues */
+                touch-action: pan-y;
             }
             
             .game-title {
@@ -265,6 +282,17 @@
             
             .features-list {
                 grid-template-columns: 1fr;
+            }
+            
+            /* Prevent zoom on input focus */
+            input, textarea, select {
+                font-size: 16px;
+            }
+            
+            /* Prevent viewport issues */
+            #gameCanvas {
+                max-width: 100%;
+                height: auto;
             }
         }
     </style>
@@ -293,7 +321,7 @@
                         <div class="ship-preview" style="background: #ff6b35;">💥</div>
                         <div class="ship-name">Blaster</div>
                         <div class="ship-stats">Speed: Slow | Fire Rate: Low | Damage: High</div>
-                    </div>
+                </div>
                     <div class="ship-option" data-ship="cruiser">
                         <div class="ship-preview" style="background: #9b59b6;">🛡️</div>
                         <div class="ship-name">Cruiser</div>
@@ -301,7 +329,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="weapon-selection">
                 <h3>⚔️ Choose Your Weapon</h3>
                 <div class="weapon-grid">
@@ -325,9 +353,9 @@
                         <div class="weapon-name">Spread</div>
                         <div class="weapon-stats">Fast | Multiple Shots | Wide Coverage</div>
                     </div>
+                    </div>
                 </div>
-            </div>
-            
+                
             <div class="controls">
                 <h3>🎮 Controls</h3>
                 <ul>
@@ -337,10 +365,10 @@
                     <li>Gather golden collectibles for points</li>
                     <li>Avoid letting enemies pass you</li>
                 </ul>
-            </div>
+                            </div>
             
             <button id="startBtn">Start Game</button>
-        </div>
+                            </div>
         
         <!-- Game Info Section -->
         <div class="game-info">
@@ -354,11 +382,11 @@
                     <h4>⚔️ 4 Weapon Types</h4>
                     <p>Laser, Plasma, Missile, and Spread weapons. Each has unique damage, speed, and firing patterns.</p>
                 </div>
-                <div class="feature-item">
+                            <div class="feature-item">
                     <h4>⭐ Power-Up System</h4>
                     <p>Collect health, weapon, speed, and shield power-ups during gameplay for temporary boosts and upgrades.</p>
-                </div>
-                <div class="feature-item">
+                            </div>
+                            <div class="feature-item">
                     <h4>💰 Collectibles</h4>
                     <p>Gather golden collectibles for bonus points. Different enemies give different point values.</p>
                 </div>
@@ -382,8 +410,8 @@
             <p><strong>⚔️ Weapon:</strong> Cycles through weapon types - Laser → Plasma → Missile → Spread</p>
             <p><strong>⚡ Speed:</strong> Temporary speed boost for 5 seconds</p>
             <p><strong>🛡️ Shield:</strong> Temporary invincibility for 5 seconds</p>
-        </div>
-        
+    </div>
+    
         <!-- Game Canvas -->
         <canvas id="gameCanvas" width="800" height="600"></canvas>
         
@@ -403,7 +431,7 @@
         </div>
     </div>
     
-    <script src="js/main.js?v=1.5"></script>
+    <script src="js/main.js?v=2.0"></script>
     <script>
         // Ship and weapon selection functionality
         document.addEventListener('DOMContentLoaded', function() {
@@ -422,9 +450,9 @@
                     const shipType = this.getAttribute('data-ship');
                     if (window.player) {
                         window.player.shipType = shipType;
-                    }
-                });
-            });
+                                }
+                            });
+                        });
             
             weaponOptions.forEach(option => {
                 option.addEventListener('click', function() {
@@ -439,7 +467,7 @@
                     if (window.player) {
                         window.player.weaponType = weaponType;
                     }
-                });
+                    });
             });
         });
     </script>
