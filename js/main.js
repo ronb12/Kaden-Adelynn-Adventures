@@ -1,6 +1,6 @@
-// Kaden & Adelynn Space Adventures - Enhanced Version 3.6
+// Kaden & Adelynn Space Adventures - Enhanced Version 3.7
 // A space shooter game with multiple ships, weapons, and power-ups
-// Boss battles, phases, checkpoint system, enhanced power-ups, and advanced enemy types
+// Boss battles, phases, checkpoint system, enhanced power-ups, advanced enemy types, and advanced weapon systems
 
 // Game variables
 let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, startScreen, finalScoreElement, restartBtn, startBtn, highScoreElement, fullscreenBtn;
@@ -104,7 +104,7 @@ function addScore(points) {
     score += points * player.scoreMultiplier;
 }
 
-// Player with enhanced power-up tracking
+// Player with weapon heat tracking
 let player = {
     x: 400,
     y: 550,
@@ -123,7 +123,11 @@ let player = {
     speedBoostActive: false,
     speedBoostEndTime: 0,
     scoreMultiplier: 1,
-    multiplierEndTime: 0
+    multiplierEndTime: 0,
+    weaponHeat: 0,
+    charging: false,
+    chargeLevel: 0,
+    maxChargeLevel: 100
 };
 
 // Enhanced ship designs with detailed visual representations
@@ -174,77 +178,157 @@ const SHIP_DESIGNS = {
     }
 };
 
-// Weapon types with enhanced firing patterns
+// Enhanced weapon types with advanced systems
 const WEAPON_TYPES = {
     laser: {
         name: 'Laser',
         color: '#00ffff',
         damage: 1,
         speed: 8,
-        fireRate: 0.05, // 50ms between shots (4x faster)
+        fireRate: 0.05,
         pattern: 'single',
         rapidFire: false,
-        multiShot: 1
+        multiShot: 1,
+        chargeable: false,
+        homing: false,
+        beam: false,
+        heat: 0,
+        maxHeat: 100
     },
     plasma: {
         name: 'Plasma',
         color: '#ff00ff',
         damage: 2,
         speed: 6,
-        fireRate: 0.075, // 75ms between shots (4x faster)
+        fireRate: 0.075,
         pattern: 'single',
         rapidFire: false,
-        multiShot: 1
+        multiShot: 1,
+        chargeable: false,
+        homing: false,
+        beam: false,
+        heat: 0,
+        maxHeat: 100
     },
     missile: {
         name: 'Missile',
         color: '#ffff00',
         damage: 3,
         speed: 5,
-        fireRate: 0.125, // 125ms between shots (4x faster)
+        fireRate: 0.125,
         pattern: 'single',
         rapidFire: false,
-        multiShot: 1
+        multiShot: 1,
+        chargeable: false,
+        homing: true,
+        beam: false,
+        heat: 0,
+        maxHeat: 100
     },
     spread: {
         name: 'Spread',
         color: '#ff8800',
         damage: 1,
         speed: 7,
-        fireRate: 0.1, // 100ms between shots (4x faster)
+        fireRate: 0.1,
         pattern: 'spread',
         rapidFire: false,
-        multiShot: 3
+        multiShot: 3,
+        chargeable: false,
+        homing: false,
+        beam: false,
+        heat: 0,
+        maxHeat: 100
     },
     rapid: {
         name: 'Rapid',
         color: '#00ff00',
         damage: 1,
         speed: 9,
-        fireRate: 0.0125, // 12.5ms between shots - extremely fast! (4x faster)
+        fireRate: 0.0125,
         pattern: 'single',
         rapidFire: true,
-        multiShot: 1
+        multiShot: 1,
+        chargeable: false,
+        homing: false,
+        beam: false,
+        heat: 0,
+        maxHeat: 100
     },
     burst: {
         name: 'Burst',
         color: '#ff0080',
         damage: 2,
         speed: 7,
-        fireRate: 0.075, // 75ms between bursts (4x faster)
+        fireRate: 0.075,
         pattern: 'burst',
         rapidFire: false,
-        multiShot: 3
+        multiShot: 3,
+        chargeable: false,
+        homing: false,
+        beam: false,
+        heat: 0,
+        maxHeat: 100
     },
     shotgun: {
         name: 'Shotgun',
         color: '#ff6600',
         damage: 1,
         speed: 6,
-        fireRate: 0.15, // 150ms between shots (4x faster)
+        fireRate: 0.15,
         pattern: 'shotgun',
         rapidFire: false,
-        multiShot: 5
+        multiShot: 5,
+        chargeable: false,
+        homing: false,
+        beam: false,
+        heat: 0,
+        maxHeat: 100
+    },
+    charge: {
+        name: 'Charge',
+        color: '#ff00ff',
+        damage: 5,
+        speed: 10,
+        fireRate: 0.5,
+        pattern: 'charge',
+        rapidFire: false,
+        multiShot: 1,
+        chargeable: true,
+        homing: false,
+        beam: false,
+        heat: 0,
+        maxHeat: 150
+    },
+    beam: {
+        name: 'Beam',
+        color: '#00ffff',
+        damage: 2,
+        speed: 0,
+        fireRate: 0.1,
+        pattern: 'beam',
+        rapidFire: false,
+        multiShot: 1,
+        chargeable: false,
+        homing: false,
+        beam: true,
+        heat: 0,
+        maxHeat: 200
+    },
+    homing: {
+        name: 'Homing',
+        color: '#ffff00',
+        damage: 3,
+        speed: 6,
+        fireRate: 0.2,
+        pattern: 'single',
+        rapidFire: false,
+        multiShot: 1,
+        chargeable: false,
+        homing: true,
+        beam: false,
+        heat: 0,
+        maxHeat: 100
     }
 };
 
@@ -677,7 +761,8 @@ function gameLoop() {
         updateEnemies();
         updateBoss();
         updatePowerUps();
-        updatePowerUpEffects(); // Add this line
+        updatePowerUpEffects();
+        updateWeaponSystems(); // Add this line
         updateCollectibles();
         updateExplosions();
         updateStars();
@@ -769,15 +854,23 @@ function returnToMenu() {
     console.log('Returned to main menu');
 }
 
-// Enhanced shooting function with multiple patterns
+// Enhanced shooting function with advanced weapon systems
 function shoot() {
     const now = Date.now();
     const weaponType = WEAPON_TYPES[player.weaponType];
+    
+    // Check weapon heat
+    if (player.weaponHeat >= weaponType.maxHeat) {
+        return; // Weapon overheated
+    }
     
     if (now - lastShotTime > weaponType.fireRate * 1000) {
         const bulletSpeed = weaponType.speed;
         const bulletDamage = weaponType.damage;
         const bulletColor = weaponType.color;
+        
+        // Add heat to weapon
+        player.weaponHeat += 10;
         
         switch(weaponType.pattern) {
             case 'single':
@@ -789,15 +882,17 @@ function shoot() {
                     height: 8,
                     speed: bulletSpeed,
                     damage: bulletDamage,
-                    color: bulletColor
+                    color: bulletColor,
+                    homing: weaponType.homing,
+                    beam: weaponType.beam
                 });
                 playSound('laser');
                 break;
                 
             case 'spread':
-                // Spread shot - 3 bullets in a spread pattern
+                // Spread shot
                 for (let i = 0; i < weaponType.multiShot; i++) {
-                    const spread = (i - 1) * 15; // -15, 0, +15 degrees
+                    const spread = (i - 1) * 15;
                     const angle = (spread * Math.PI) / 180;
                     bullets.push({
                         x: player.x + player.width / 2 - 2,
@@ -807,47 +902,62 @@ function shoot() {
                         speed: bulletSpeed,
                         damage: bulletDamage,
                         color: bulletColor,
-                        angle: angle
+                        angle: angle,
+                        homing: weaponType.homing,
+                        beam: weaponType.beam
                     });
                 }
                 playSound('plasma');
                 break;
                 
-            case 'burst':
-                // Burst fire - 3 bullets in quick succession
-                for (let i = 0; i < weaponType.multiShot; i++) {
-                    setTimeout(() => {
-                        bullets.push({
-                            x: player.x + player.width / 2 - 2,
-                            y: player.y,
-                            width: 4,
-                            height: 8,
-                            speed: bulletSpeed,
-                            damage: bulletDamage,
-                            color: bulletColor
-                        });
-                        playSound('laser');
-                    }, i * 100);
-                }
+            case 'charge':
+                // Charge weapon - damage based on charge level
+                const chargeDamage = bulletDamage + Math.floor(player.chargeLevel / 10);
+                bullets.push({
+                    x: player.x + player.width / 2 - 3,
+                    y: player.y,
+                    width: 6,
+                    height: 12,
+                    speed: bulletSpeed,
+                    damage: chargeDamage,
+                    color: bulletColor,
+                    homing: weaponType.homing,
+                    beam: weaponType.beam
+                });
+                player.chargeLevel = 0;
+                playSound('missile');
                 break;
                 
-            case 'shotgun':
-                // Shotgun - 5 bullets in a wide spread
-                for (let i = 0; i < weaponType.multiShot; i++) {
-                    const spread = (i - 2) * 20; // -40, -20, 0, +20, +40 degrees
-                    const angle = (spread * Math.PI) / 180;
-                    bullets.push({
-                        x: player.x + player.width / 2 - 2,
-                        y: player.y,
-                        width: 4,
-                        height: 8,
-                        speed: bulletSpeed,
-                        damage: bulletDamage,
-                        color: bulletColor,
-                        angle: angle
-                    });
-                }
-                playSound('missile');
+            case 'beam':
+                // Beam weapon - continuous damage
+                bullets.push({
+                    x: player.x + player.width / 2 - 2,
+                    y: 0,
+                    width: 4,
+                    height: player.y,
+                    speed: 0,
+                    damage: bulletDamage,
+                    color: bulletColor,
+                    homing: false,
+                    beam: true
+                });
+                playSound('plasma');
+                break;
+                
+            default:
+                // Default single shot
+                bullets.push({
+                    x: player.x + player.width / 2 - 2,
+                    y: player.y,
+                    width: 4,
+                    height: 8,
+                    speed: bulletSpeed,
+                    damage: bulletDamage,
+                    color: bulletColor,
+                    homing: weaponType.homing,
+                    beam: weaponType.beam
+                });
+                playSound('laser');
                 break;
         }
         
@@ -1174,7 +1284,46 @@ function updateBullets() {
     for (let i = bullets.length - 1; i >= 0; i--) {
         const bullet = bullets[i];
         
-        if (bullet.angle) {
+        if (bullet.beam) {
+            // Beam weapons stay in place
+            bullet.y = 0;
+            bullet.height = player.y;
+        } else if (bullet.homing) {
+            // Homing missiles
+            if (enemies.length > 0) {
+                // Find closest enemy
+                let closestEnemy = null;
+                let closestDistance = Infinity;
+                
+                for (let enemy of enemies) {
+                    const dx = enemy.x - bullet.x;
+                    const dy = enemy.y - bullet.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestEnemy = enemy;
+                    }
+                }
+                
+                if (closestEnemy) {
+                    // Move toward closest enemy
+                    const dx = closestEnemy.x - bullet.x;
+                    const dy = closestEnemy.y - bullet.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance > 0) {
+                        bullet.x += (dx / distance) * bullet.speed * 0.1;
+                        bullet.y += (dy / distance) * bullet.speed * 0.1;
+                    }
+                } else {
+                    // No enemies, move straight
+                    bullet.y -= bullet.speed;
+                }
+            } else {
+                bullet.y -= bullet.speed;
+            }
+        } else if (bullet.angle) {
             // Angled bullet movement
             bullet.x += Math.sin(bullet.angle) * bullet.speed * 0.5;
             bullet.y -= Math.cos(bullet.angle) * bullet.speed;
@@ -1309,6 +1458,21 @@ function updatePowerUpEffects() {
     // Update score multiplier
     if (player.scoreMultiplier > 1 && now > player.multiplierEndTime) {
         player.scoreMultiplier = 1;
+    }
+}
+
+// Update weapon heat and charge
+function updateWeaponSystems() {
+    const now = Date.now();
+    
+    // Cool down weapon heat
+    if (player.weaponHeat > 0) {
+        player.weaponHeat = Math.max(0, player.weaponHeat - 2);
+    }
+    
+    // Update charge level
+    if (player.charging) {
+        player.chargeLevel = Math.min(player.maxChargeLevel, player.chargeLevel + 2);
     }
 }
 
@@ -1620,6 +1784,33 @@ function updateUI() {
         
         powerUpStatusElement.textContent = statusText;
     }
+    
+    // Update weapon heat display
+    const weaponHeatElement = document.getElementById('weaponHeat');
+    if (weaponHeatElement) {
+        const currentWeapon = WEAPON_TYPES[player.weaponType];
+        const heatPercent = Math.round((player.weaponHeat / currentWeapon.maxHeat) * 100);
+        weaponHeatElement.textContent = `Heat: ${heatPercent}%`;
+        
+        // Change color based on heat level
+        if (heatPercent > 80) {
+            weaponHeatElement.style.color = '#ff0000';
+        } else if (heatPercent > 50) {
+            weaponHeatElement.style.color = '#ff8800';
+        } else {
+            weaponHeatElement.style.color = '#00ff00';
+        }
+    }
+    
+    // Update charge level display
+    const chargeLevelElement = document.getElementById('chargeLevel');
+    if (chargeLevelElement && WEAPON_TYPES[player.weaponType].chargeable) {
+        const chargePercent = Math.round((player.chargeLevel / player.maxChargeLevel) * 100);
+        chargeLevelElement.textContent = `Charge: ${chargePercent}%`;
+        chargeLevelElement.style.color = '#ff00ff';
+    } else if (chargeLevelElement) {
+        chargeLevelElement.textContent = '';
+    }
 }
 
 // Render function
@@ -1673,32 +1864,47 @@ function drawStars() {
     }
 }
 
-// Draw bullets
+// Enhanced bullet drawing with beam effects
 function drawBullets() {
     for (let bullet of bullets) {
-        // Draw bullet based on type
-        switch(bullet.type) {
-            case 'laser':
-                ctx.fillStyle = '#00ffff';
-                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-                break;
-            case 'plasma':
-                ctx.fillStyle = '#ff00ff';
-                ctx.beginPath();
-                ctx.arc(bullet.x + bullet.width/2, bullet.y + bullet.height/2, bullet.width/2, 0, Math.PI * 2);
-                ctx.fill();
-                break;
-            case 'missile':
-                ctx.fillStyle = '#ff8800';
-                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-                // Add missile trail
-                ctx.fillStyle = 'rgba(255, 136, 0, 0.5)';
-                ctx.fillRect(bullet.x, bullet.y + bullet.height, bullet.width, 3);
-                break;
-            default:
-                ctx.fillStyle = '#ffff00';
-                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-                break;
+        if (bullet.beam) {
+            // Draw beam weapon
+            const gradient = ctx.createLinearGradient(bullet.x, bullet.y, bullet.x, bullet.y + bullet.height);
+            gradient.addColorStop(0, bullet.color);
+            gradient.addColorStop(1, 'transparent');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+            
+            // Add beam glow effect
+            ctx.strokeStyle = bullet.color;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(bullet.x - 1, bullet.y, bullet.width + 2, bullet.height);
+        } else {
+            // Draw regular bullet based on type
+            switch(bullet.type) {
+                case 'laser':
+                    ctx.fillStyle = '#00ffff';
+                    ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                    break;
+                case 'plasma':
+                    ctx.fillStyle = '#ff00ff';
+                    ctx.beginPath();
+                    ctx.arc(bullet.x + bullet.width/2, bullet.y + bullet.height/2, bullet.width/2, 0, Math.PI * 2);
+                    ctx.fill();
+                    break;
+                case 'missile':
+                    ctx.fillStyle = '#ff8800';
+                    ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                    // Add missile trail
+                    ctx.fillStyle = 'rgba(255, 136, 0, 0.5)';
+                    ctx.fillRect(bullet.x, bullet.y + bullet.height, bullet.width, 3);
+                    break;
+                default:
+                    ctx.fillStyle = bullet.color || '#ffff00';
+                    ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                    break;
+            }
         }
     }
 }
@@ -2191,3 +2397,56 @@ if (document.readyState === 'loading') {
 } else {
     initializeGameElements();
 }
+
+// Add weapon switching hotkeys
+document.addEventListener('keydown', function(e) {
+    keys[e.key] = true;
+    
+    // Weapon switching hotkeys
+    if (gameState === 'playing') {
+        const weaponTypes = Object.keys(WEAPON_TYPES);
+        const currentIndex = weaponTypes.indexOf(player.weaponType);
+        
+        switch(e.key) {
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+                const weaponIndex = parseInt(e.key) - 1;
+                if (weaponIndex < weaponTypes.length) {
+                    player.weaponType = weaponTypes[weaponIndex];
+                }
+                break;
+            case 'q':
+                // Previous weapon
+                const prevIndex = (currentIndex - 1 + weaponTypes.length) % weaponTypes.length;
+                player.weaponType = weaponTypes[prevIndex];
+                break;
+            case 'e':
+                // Next weapon
+                const nextIndex = (currentIndex + 1) % weaponTypes.length;
+                player.weaponType = weaponTypes[nextIndex];
+                break;
+            case ' ':
+                // Space bar for charge weapons
+                if (WEAPON_TYPES[player.weaponType].chargeable) {
+                    player.charging = true;
+                }
+                break;
+        }
+    }
+});
+
+document.addEventListener('keyup', function(e) {
+    keys[e.key] = false;
+    
+    if (e.key === ' ' && player.charging) {
+        player.charging = false;
+        shoot(); // Fire charged shot
+    }
+});
