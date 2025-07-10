@@ -1,4 +1,4 @@
-// Kaden & Adelynn Space Adventures - Enhanced Version 3.9
+// Kaden & Adelynn Space Adventures - Enhanced Version 3.10
 // A space shooter game with multiple ships, weapons, and power-ups
 // Boss battles, phases, checkpoint system, enhanced power-ups, advanced enemy types, advanced weapon systems, environmental hazards, and visual enhancements
 
@@ -3014,4 +3014,56 @@ function updateShipDamageAnimation() {
     if (shipDamageAnimation > 0) {
         shipDamageAnimation--;
     }
+}
+
+// Draw enemy fighter
+function drawEnemyFighter(x, y, width, height, design) {
+    // Enemy fighter - triangular design
+    ctx.fillStyle = design.color;
+    ctx.beginPath();
+    ctx.moveTo(x + width/2, y + height); // Bottom point
+    ctx.lineTo(x + width, y); // Top right
+    ctx.lineTo(x + width/2, y + height/4); // Upper center
+    ctx.lineTo(x, y); // Top left
+    ctx.closePath();
+    ctx.fill();
+    
+    // Cockpit
+    ctx.fillStyle = design.accentColor;
+    ctx.beginPath();
+    ctx.ellipse(x + width/2, y + height/3, width/8, height/12, 0, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+// Draw destroyer enemy
+function drawDestroyerEnemy(x, y, width, height, design) {
+    // Destroyer - larger, more armored design
+    ctx.fillStyle = design.color;
+    ctx.fillRect(x, y, width, height);
+    
+    // Armor plates
+    ctx.fillStyle = design.accentColor;
+    ctx.fillRect(x + width/4, y + height/4, width/2, height/2);
+    
+    // Weapon ports
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(x + width/6, y + height/3, width/12, height/6);
+    ctx.fillRect(x + width*2/3, y + height/3, width/12, height/6);
+}
+
+// Draw battleship enemy
+function drawBattleshipEnemy(x, y, width, height, design) {
+    // Battleship - largest enemy design
+    ctx.fillStyle = design.color;
+    ctx.fillRect(x, y, width, height);
+    
+    // Multiple weapon turrets
+    ctx.fillStyle = design.accentColor;
+    ctx.fillRect(x + width/6, y + height/4, width/6, height/6);
+    ctx.fillRect(x + width*2/3, y + height/4, width/6, height/6);
+    ctx.fillRect(x + width/3, y + height/2, width/3, height/6);
+    
+    // Command bridge
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x + width/3, y + height/6, width/3, height/6);
 }
