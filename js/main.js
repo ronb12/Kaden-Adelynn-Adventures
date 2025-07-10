@@ -1,4 +1,4 @@
-// Kaden & Adelynn Space Adventures - Enhanced Version 3.11
+// Kaden & Adelynn Space Adventures - Enhanced Version 3.12
 // A space shooter game with multiple ships, weapons, and power-ups
 // Boss battles, phases, checkpoint system, enhanced power-ups, advanced enemy types, advanced weapon systems, environmental hazards, and visual enhancements
 
@@ -175,6 +175,39 @@ const SHIP_DESIGNS = {
         fireRate: 0.6,
         damage: 3,
         design: 'cruiser'
+    },
+    quantumFighter: {
+        name: 'Quantum Fighter',
+        color: '#00ffff',
+        accentColor: '#ffffff',
+        width: 65,
+        height: 65,
+        speed: 7,
+        fireRate: 1.5,
+        damage: 2,
+        design: 'quantumFighter'
+    },
+    neonInterceptor: {
+        name: 'Neon Interceptor',
+        color: '#00ff88',
+        accentColor: '#ffffff',
+        width: 60,
+        height: 70,
+        speed: 8,
+        fireRate: 1.8,
+        damage: 1,
+        design: 'neonInterceptor'
+    },
+    cyberCruiser: {
+        name: 'Cyber Cruiser',
+        color: '#9b59b6',
+        accentColor: '#ffffff',
+        width: 75,
+        height: 75,
+        speed: 4,
+        fireRate: 0.7,
+        damage: 4,
+        design: 'cyberCruiser'
     }
 };
 
@@ -1985,8 +2018,23 @@ function checkCollisions() {
     }
 }
 
-// Collision detection
+// Enhanced collision detection with better error handling
 function checkCollision(rect1, rect2) {
+    // Check if either object is undefined, null, or doesn't have required properties
+    if (!rect1 || !rect2 || 
+        typeof rect1.x === 'undefined' || typeof rect1.y === 'undefined' || 
+        typeof rect1.width === 'undefined' || typeof rect1.height === 'undefined' ||
+        typeof rect2.x === 'undefined' || typeof rect2.y === 'undefined' || 
+        typeof rect2.width === 'undefined' || typeof rect2.height === 'undefined') {
+        return false;
+    }
+    
+    // Additional safety checks for NaN values
+    if (isNaN(rect1.x) || isNaN(rect1.y) || isNaN(rect1.width) || isNaN(rect1.height) ||
+        isNaN(rect2.x) || isNaN(rect2.y) || isNaN(rect2.width) || isNaN(rect2.height)) {
+        return false;
+    }
+    
     return rect1.x < rect2.x + rect2.width &&
            rect1.x + rect1.width > rect2.x &&
            rect1.y < rect2.y + rect2.height &&
@@ -2206,229 +2254,530 @@ function drawBullets() {
     }
 }
 
-// Enhanced player ship drawing with detailed designs
-function drawPlayer() {
-    if (!player.invulnerable || Math.floor(Date.now() / 100) % 2) {
-        // Apply screen shake
-        const shakeX = screenShake > 0 ? (Math.random() - 0.5) * screenShake : 0;
-        const shakeY = screenShake > 0 ? (Math.random() - 0.5) * screenShake : 0;
-        
-        ctx.save();
-        ctx.translate(shakeX, shakeY);
-        
-        // Draw damage animation effect
-        if (shipDamageAnimation > 0) {
-            ctx.globalAlpha = 0.5;
-            ctx.fillStyle = '#ff0000';
-            ctx.fillRect(player.x - 5, player.y - 5, player.width + 10, player.height + 10);
-            ctx.globalAlpha = 1;
-        }
-        
-        // Draw shield effect
-        if (player.shieldActive) {
-            ctx.strokeStyle = '#8888ff';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.arc(player.x + player.width/2, player.y + player.height/2, 
-                   player.width/2 + 10, 0, Math.PI * 2);
-            ctx.stroke();
-        }
-        
-        // Draw ship
-        const shipDesign = SHIP_DESIGNS[player.shipType];
-        
-        switch(player.shipType) {
-            case 'fighter':
-                drawFighterShip(player.x, player.y, player.width, player.height, shipDesign);
-                break;
-            case 'interceptor':
-                drawInterceptorShip(player.x, player.y, player.width, player.height, shipDesign);
-                break;
-            case 'blaster':
-                drawBlasterShip(player.x, player.y, player.width, player.height, shipDesign);
-                break;
-            case 'cruiser':
-                drawCruiserShip(player.x, player.y, player.width, player.height, shipDesign);
-                break;
-        }
-        
-        ctx.restore();
-    }
-}
-
-// Enhanced ship drawing functions with advanced designs
-function drawFighterShip(x, y, width, height, design) {
-    // Main body - advanced triangular shape with armor plates
-    ctx.fillStyle = design.color;
+// Ultra-advanced futuristic ship designs with holographic effects
+function drawQuantumFighter(ctx, x, y, width, height, isPlayer = true) {
+    const centerX = x + width / 2;
+    const centerY = y + height / 2;
+    const time = Date.now() * 0.001;
+    
+    // Quantum energy field
+    const quantumGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, width * 0.8);
+    quantumGradient.addColorStop(0, isPlayer ? '#00FFFF' : '#FF00FF');
+    quantumGradient.addColorStop(0.3, isPlayer ? '#0080FF' : '#FF0080');
+    quantumGradient.addColorStop(0.7, isPlayer ? '#0040FF' : '#FF0040');
+    quantumGradient.addColorStop(1, 'transparent');
+    ctx.fillStyle = quantumGradient;
     ctx.beginPath();
-    ctx.moveTo(x + width/2, y); // Top point
-    ctx.lineTo(x + width - 2, y + height/3); // Upper right
-    ctx.lineTo(x + width, y + height); // Bottom right
-    ctx.lineTo(x + width/2, y + height - 2); // Bottom center
-    ctx.lineTo(x, y + height); // Bottom left
-    ctx.lineTo(x + 2, y + height/3); // Upper left
+    ctx.arc(centerX, centerY, width * 0.8, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Holographic main body
+    ctx.fillStyle = isPlayer ? 'rgba(74, 144, 226, 0.8)' : 'rgba(231, 76, 60, 0.8)';
+    ctx.beginPath();
+    ctx.moveTo(centerX, y + height * 0.05);
+    ctx.lineTo(centerX - width * 0.35, y + height * 0.25);
+    ctx.lineTo(centerX - width * 0.25, y + height * 0.85);
+    ctx.lineTo(centerX + width * 0.25, y + height * 0.85);
+    ctx.lineTo(centerX + width * 0.35, y + height * 0.25);
     ctx.closePath();
     ctx.fill();
     
-    // Advanced cockpit with multiple layers
-    ctx.fillStyle = design.accentColor;
+    // Quantum cockpit with pulsing effect
+    const cockpitGradient = ctx.createRadialGradient(centerX, y + height * 0.2, 0, centerX, y + height * 0.2, width * 0.2);
+    cockpitGradient.addColorStop(0, '#FFFFFF');
+    cockpitGradient.addColorStop(0.5, '#87CEEB');
+    cockpitGradient.addColorStop(1, 'rgba(135, 206, 235, 0.3)');
+    ctx.fillStyle = cockpitGradient;
     ctx.beginPath();
-    ctx.ellipse(x + width/2, y + height/3, width/6, height/8, 0, 0, Math.PI * 2);
+    ctx.ellipse(centerX, y + height * 0.2, width * 0.18, height * 0.15, Math.sin(time) * 0.1, 0, Math.PI * 2);
     ctx.fill();
     
-    // Inner cockpit detail
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.ellipse(x + width/2, y + height/3, width/10, height/12, 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Enhanced engine glow with multiple colors
-    const time = Date.now() * 0.01;
-    const glowIntensity = Math.sin(time) * 0.5 + 0.5;
-    ctx.fillStyle = `rgba(255, 255, 0, ${glowIntensity})`;
-    ctx.fillRect(x + width/4, y + height - 5, width/2, 3);
-    
-    // Secondary engine glow
-    ctx.fillStyle = `rgba(0, 255, 255, ${glowIntensity * 0.7})`;
-    ctx.fillRect(x + width/4 + 2, y + height - 3, width/2 - 4, 2);
-    
-    // Advanced wing design with multiple segments
-    ctx.fillStyle = design.color;
-    // Left wing
-    ctx.fillRect(x + 2, y + height/2, 8, 6);
-    ctx.fillRect(x + 4, y + height/2 + 2, 4, 2);
-    // Right wing
-    ctx.fillRect(x + width - 10, y + height/2, 8, 6);
-    ctx.fillRect(x + width - 8, y + height/2 + 2, 4, 2);
-    
-    // Weapon ports
-    ctx.fillStyle = '#ff0000';
-    ctx.fillRect(x + width/2 - 2, y + height - 8, 4, 3);
-}
-
-function drawInterceptorShip(x, y, width, height, design) {
-    // Sleek, aerodynamic design with advanced curves
-    ctx.fillStyle = design.color;
-    ctx.beginPath();
-    ctx.moveTo(x + width/2, y); // Top point
-    ctx.lineTo(x + width - 4, y + height/4); // Upper right curve
-    ctx.lineTo(x + width - 2, y + height/2); // Middle right
-    ctx.lineTo(x + width, y + height); // Bottom right
-    ctx.lineTo(x + width/2, y + height - 3); // Bottom center
-    ctx.lineTo(x, y + height); // Bottom left
-    ctx.lineTo(x + 2, y + height/2); // Middle left
-    ctx.lineTo(x + 4, y + height/4); // Upper left curve
-    ctx.closePath();
-    ctx.fill();
-    
-    // Advanced cockpit with HUD elements
-    ctx.fillStyle = design.accentColor;
-    ctx.fillRect(x + width/2 - 5, y + height/4, 10, 8);
-    
-    // HUD display
-    ctx.fillStyle = '#00ffff';
-    ctx.fillRect(x + width/2 - 3, y + height/4 + 2, 6, 2);
-    ctx.fillRect(x + width/2 - 1, y + height/4 + 5, 2, 2);
-    
-    // Enhanced engine trails with particle effect
-    const time = Date.now() * 0.02;
+    // Energy wings with flowing patterns
+    ctx.strokeStyle = isPlayer ? '#00FFFF' : '#FF00FF';
+    ctx.lineWidth = 3;
     for (let i = 0; i < 3; i++) {
-        const alpha = Math.sin(time + i) * 0.5 + 0.5;
-        ctx.fillStyle = `rgba(0, 255, 255, ${alpha})`;
-        ctx.fillRect(x + width/4 + i * 2, y + height - 3 - i, 2, 2);
+        const wingOffset = Math.sin(time + i) * 5;
+        ctx.beginPath();
+        ctx.moveTo(centerX - width * 0.4 + i * width * 0.2, y + height * 0.3 + wingOffset);
+        ctx.lineTo(centerX - width * 0.6 + i * width * 0.2, y + height * 0.5 + wingOffset);
+        ctx.lineTo(centerX - width * 0.5 + i * width * 0.2, y + height * 0.8 + wingOffset);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(centerX + width * 0.4 - i * width * 0.2, y + height * 0.3 + wingOffset);
+        ctx.lineTo(centerX + width * 0.6 - i * width * 0.2, y + height * 0.5 + wingOffset);
+        ctx.lineTo(centerX + width * 0.5 - i * width * 0.2, y + height * 0.8 + wingOffset);
+        ctx.stroke();
     }
+    
+    // Quantum weapon systems
+    ctx.fillStyle = '#FF4500';
+    for (let i = 0; i < 2; i++) {
+        ctx.beginPath();
+        ctx.rect(centerX - width * 0.08 + i * width * 0.16, y + height * 0.02, width * 0.06, height * 0.08);
+        ctx.fill();
+    }
+    
+    // Energy exhaust with particle effects
+    ctx.fillStyle = '#FFD700';
+    ctx.beginPath();
+    ctx.rect(centerX - width * 0.15, y + height * 0.88, width * 0.3, height * 0.08);
+    ctx.fill();
+    
+    // Holographic energy lines
+    ctx.strokeStyle = isPlayer ? '#00FFFF' : '#FF00FF';
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.7;
+    for (let i = 0; i < 5; i++) {
+        const lineOffset = Math.sin(time + i) * 3;
+        ctx.beginPath();
+        ctx.moveTo(centerX - width * 0.3 + i * width * 0.15, y + height * 0.15 + lineOffset);
+        ctx.lineTo(centerX + width * 0.3 - i * width * 0.15, y + height * 0.15 + lineOffset);
+        ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+}
+
+function drawNeonInterceptor(ctx, x, y, width, height, isPlayer = true) {
+    const centerX = x + width / 2;
+    const centerY = y + height / 2;
+    const time = Date.now() * 0.002;
+    
+    // Neon energy field
+    const neonGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, width * 0.7);
+    neonGradient.addColorStop(0, isPlayer ? '#00FF88' : '#FF0088');
+    neonGradient.addColorStop(0.4, isPlayer ? '#00CC66' : '#CC0066');
+    neonGradient.addColorStop(1, 'transparent');
+    ctx.fillStyle = neonGradient;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, width * 0.7, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Sleek neon body
+    ctx.fillStyle = isPlayer ? '#00FF88' : '#FF0088';
+    ctx.beginPath();
+    ctx.moveTo(centerX, y + height * 0.1);
+    ctx.lineTo(centerX - width * 0.3, y + height * 0.35);
+    ctx.lineTo(centerX - width * 0.2, y + height * 0.9);
+    ctx.lineTo(centerX + width * 0.2, y + height * 0.9);
+    ctx.lineTo(centerX + width * 0.3, y + height * 0.35);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Neon cockpit
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.ellipse(centerX, y + height * 0.25, width * 0.12, height * 0.1, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Neon wing systems
+    ctx.strokeStyle = isPlayer ? '#00FF88' : '#FF0088';
+    ctx.lineWidth = 4;
+    ctx.shadowColor = isPlayer ? '#00FF88' : '#FF0088';
+    ctx.shadowBlur = 10;
+    
+    // Left wing
+    ctx.beginPath();
+    ctx.moveTo(centerX - width * 0.3, y + height * 0.35);
+    ctx.lineTo(centerX - width * 0.5, y + height * 0.45);
+    ctx.lineTo(centerX - width * 0.4, y + height * 0.75);
+    ctx.stroke();
+    
+    // Right wing
+    ctx.beginPath();
+    ctx.moveTo(centerX + width * 0.3, y + height * 0.35);
+    ctx.lineTo(centerX + width * 0.5, y + height * 0.45);
+    ctx.lineTo(centerX + width * 0.4, y + height * 0.75);
+    ctx.stroke();
+    
+    ctx.shadowBlur = 0;
+    
+    // Pulsing neon engines
+    ctx.fillStyle = '#FFD700';
+    for (let i = 0; i < 2; i++) {
+        const pulse = Math.sin(time + i * Math.PI) * 0.3 + 0.7;
+        ctx.globalAlpha = pulse;
+        ctx.beginPath();
+        ctx.rect(centerX - width * 0.08 + i * width * 0.16, y + height * 0.85, width * 0.06, height * 0.1);
+        ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    
+    // Neon weapon arrays
+    ctx.fillStyle = '#FF4500';
+    for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.rect(centerX - width * 0.1 + i * width * 0.1, y + height * 0.05, width * 0.04, height * 0.06);
+        ctx.fill();
+    }
+}
+
+function drawCyberCruiser(ctx, x, y, width, height, isPlayer = true) {
+    const centerX = x + width / 2;
+    const centerY = y + height / 2;
+    const time = Date.now() * 0.001;
+    
+    // Cyber energy matrix
+    const cyberGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, width * 0.9);
+    cyberGradient.addColorStop(0, isPlayer ? '#9B59B6' : '#8B0000');
+    cyberGradient.addColorStop(0.3, isPlayer ? '#8E44AD' : '#A52A2A');
+    cyberGradient.addColorStop(0.7, isPlayer ? '#7D3C98' : '#8B4513');
+    cyberGradient.addColorStop(1, 'transparent');
+    ctx.fillStyle = cyberGradient;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, width * 0.9, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Cyber armored hull
+    ctx.fillStyle = isPlayer ? '#9B59B6' : '#8B0000';
+    ctx.beginPath();
+    ctx.moveTo(centerX, y + height * 0.02);
+    ctx.lineTo(centerX - width * 0.4, y + height * 0.2);
+    ctx.lineTo(centerX - width * 0.35, y + height * 0.9);
+    ctx.lineTo(centerX + width * 0.35, y + height * 0.9);
+    ctx.lineTo(centerX + width * 0.4, y + height * 0.2);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Cyber command center
+    ctx.fillStyle = '#6C5CE7';
+    ctx.beginPath();
+    ctx.rect(centerX - width * 0.25, y + height * 0.1, width * 0.5, height * 0.35);
+    ctx.fill();
+    
+    // Cyber windows with scanning effect
+    ctx.fillStyle = '#74B9FF';
+    for (let i = 0; i < 4; i++) {
+        const scanOffset = Math.sin(time + i) * 2;
+        ctx.beginPath();
+        ctx.rect(centerX - width * 0.2 + i * width * 0.1, y + height * 0.15 + scanOffset, width * 0.04, height * 0.2);
+        ctx.fill();
+    }
+    
+    // Cyber weapon platforms
+    ctx.fillStyle = '#E74C3C';
+    // Top platform
+    ctx.beginPath();
+    ctx.rect(centerX - width * 0.3, y + height * 0.05, width * 0.6, height * 0.06);
+    ctx.fill();
+    
+    // Side platforms
+    ctx.beginPath();
+    ctx.rect(centerX - width * 0.4, y + height * 0.25, width * 0.12, height * 0.35);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.rect(centerX + width * 0.28, y + height * 0.25, width * 0.12, height * 0.35);
+    ctx.fill();
+    
+    // Cyber plasma cannons
+    ctx.fillStyle = '#FF4500';
+    for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.arc(centerX - width * 0.15 + i * width * 0.15, y + height * 0.07, width * 0.05, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    // Cyber engine arrays
+    ctx.fillStyle = '#FFD700';
+    for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        ctx.rect(centerX - width * 0.25 + i * width * 0.1, y + height * 0.88, width * 0.06, height * 0.1);
+        ctx.fill();
+    }
+    
+    // Cyber energy grid
+    ctx.strokeStyle = '#00FFFF';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 6; i++) {
+        ctx.beginPath();
+        ctx.moveTo(centerX - width * 0.4 + i * width * 0.15, y + height * 0.02);
+        ctx.lineTo(centerX - width * 0.4 + i * width * 0.15, y + height * 0.2);
+        ctx.stroke();
+    }
+}
+
+// Advanced futuristic ship designs
+function drawFighterShip(ctx, x, y, width, height, isPlayer = true) {
+    const centerX = x + width / 2;
+    const centerY = y + height / 2;
+    
+    // Main body - sleek aerodynamic design
+    ctx.fillStyle = isPlayer ? '#4A90E2' : '#E74C3C';
+    ctx.beginPath();
+    ctx.moveTo(centerX, y + height * 0.1);
+    ctx.lineTo(centerX - width * 0.4, y + height * 0.3);
+    ctx.lineTo(centerX - width * 0.3, y + height * 0.8);
+    ctx.lineTo(centerX + width * 0.3, y + height * 0.8);
+    ctx.lineTo(centerX + width * 0.4, y + height * 0.3);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Cockpit - advanced glass design
+    ctx.fillStyle = '#87CEEB';
+    ctx.beginPath();
+    ctx.ellipse(centerX, y + height * 0.25, width * 0.15, height * 0.12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Energy core glow
+    const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, width * 0.3);
+    gradient.addColorStop(0, isPlayer ? '#00FFFF' : '#FF4500');
+    gradient.addColorStop(1, 'transparent');
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, width * 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Wing systems - advanced geometric patterns
+    ctx.fillStyle = isPlayer ? '#2E86AB' : '#C0392B';
+    // Left wing
+    ctx.beginPath();
+    ctx.moveTo(centerX - width * 0.4, y + height * 0.3);
+    ctx.lineTo(centerX - width * 0.6, y + height * 0.4);
+    ctx.lineTo(centerX - width * 0.5, y + height * 0.7);
+    ctx.lineTo(centerX - width * 0.3, y + height * 0.8);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Right wing
+    ctx.beginPath();
+    ctx.moveTo(centerX + width * 0.4, y + height * 0.3);
+    ctx.lineTo(centerX + width * 0.6, y + height * 0.4);
+    ctx.lineTo(centerX + width * 0.5, y + height * 0.7);
+    ctx.lineTo(centerX + width * 0.3, y + height * 0.8);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Engine exhausts with particle effects
+    ctx.fillStyle = isPlayer ? '#FFD700' : '#FF6347';
+    ctx.beginPath();
+    ctx.rect(centerX - width * 0.1, y + height * 0.85, width * 0.2, height * 0.1);
+    ctx.fill();
+    
+    // Energy field lines
+    ctx.strokeStyle = isPlayer ? '#00FFFF' : '#FF4500';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(centerX - width * 0.3, y + height * 0.2);
+    ctx.lineTo(centerX + width * 0.3, y + height * 0.2);
+    ctx.stroke();
     
     // Advanced weapon systems
-    ctx.fillStyle = '#ff00ff';
-    ctx.fillRect(x + 1, y + height/2, 6, 4);
-    ctx.fillRect(x + width - 7, y + height/2, 6, 4);
+    ctx.fillStyle = '#FF4500';
+    ctx.beginPath();
+    ctx.rect(centerX - width * 0.05, y + height * 0.05, width * 0.1, height * 0.1);
+    ctx.fill();
 }
 
-function drawBlasterShip(x, y, width, height, design) {
-    // Heavy, armored design with multiple weapon systems
-    ctx.fillStyle = design.color;
+function drawDestroyerShip(ctx, x, y, width, height, isPlayer = true) {
+    const centerX = x + width / 2;
+    const centerY = y + height / 2;
+    
+    // Main hull - massive and imposing
+    ctx.fillStyle = isPlayer ? '#2C3E50' : '#8B0000';
     ctx.beginPath();
-    ctx.moveTo(x + width/2, y + 3); // Top center
-    ctx.lineTo(x + width - 6, y + height/4); // Upper right
-    ctx.lineTo(x + width - 3, y + height/2); // Middle right
-    ctx.lineTo(x + width, y + height); // Bottom right
-    ctx.lineTo(x + width/2, y + height - 4); // Bottom center
-    ctx.lineTo(x, y + height); // Bottom left
-    ctx.lineTo(x + 3, y + height/2); // Middle left
-    ctx.lineTo(x + 6, y + height/4); // Upper left
+    ctx.moveTo(centerX, y + height * 0.05);
+    ctx.lineTo(centerX - width * 0.45, y + height * 0.2);
+    ctx.lineTo(centerX - width * 0.4, y + height * 0.9);
+    ctx.lineTo(centerX + width * 0.4, y + height * 0.9);
+    ctx.lineTo(centerX + width * 0.45, y + height * 0.2);
     ctx.closePath();
     ctx.fill();
     
-    // Heavy armor plates with metallic effect
-    ctx.fillStyle = '#ff4400';
-    ctx.fillRect(x + width/4, y + height/3, width/2, 6);
-    ctx.fillRect(x + width/6, y + height/2, width/3, 4);
+    // Command bridge - multi-level design
+    ctx.fillStyle = '#34495E';
+    ctx.beginPath();
+    ctx.rect(centerX - width * 0.2, y + height * 0.15, width * 0.4, height * 0.3);
+    ctx.fill();
     
-    // Advanced weapon pods with targeting systems
-    ctx.fillStyle = design.accentColor;
-    // Left weapon pod
-    ctx.fillRect(x + 2, y + height/2, 10, 8);
-    ctx.fillStyle = '#ff0000';
-    ctx.fillRect(x + 4, y + height/2 + 2, 6, 4);
+    // Bridge windows
+    ctx.fillStyle = '#87CEEB';
+    for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.rect(centerX - width * 0.15 + i * width * 0.1, y + height * 0.2, width * 0.05, height * 0.15);
+        ctx.fill();
+    }
     
-    // Right weapon pod
-    ctx.fillStyle = design.accentColor;
-    ctx.fillRect(x + width - 12, y + height/2, 10, 8);
-    ctx.fillStyle = '#ff0000';
-    ctx.fillRect(x + width - 10, y + height/2 + 2, 6, 4);
+    // Heavy weapon turrets
+    ctx.fillStyle = '#E74C3C';
+    // Left turret
+    ctx.beginPath();
+    ctx.arc(centerX - width * 0.3, y + height * 0.4, width * 0.08, 0, Math.PI * 2);
+    ctx.fill();
+    // Right turret
+    ctx.beginPath();
+    ctx.arc(centerX + width * 0.3, y + height * 0.4, width * 0.08, 0, Math.PI * 2);
+    ctx.fill();
     
-    // Central weapon system
-    ctx.fillStyle = '#ffff00';
-    ctx.fillRect(x + width/2 - 4, y + height/2, 8, 6);
+    // Energy shield generator
+    const shieldGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, width * 0.5);
+    shieldGradient.addColorStop(0, isPlayer ? '#4169E1' : '#DC143C');
+    shieldGradient.addColorStop(0.5, isPlayer ? '#1E90FF' : '#B22222');
+    shieldGradient.addColorStop(1, 'transparent');
+    ctx.fillStyle = shieldGradient;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, width * 0.5, 0, Math.PI * 2);
+    ctx.fill();
     
-    // Engine array with power indicators
-    ctx.fillStyle = '#ff6600';
+    // Engine arrays
+    ctx.fillStyle = '#FFD700';
     for (let i = 0; i < 4; i++) {
-        ctx.fillRect(x + width/5 + i * width/8, y + height - 5, 3, 4);
+        ctx.beginPath();
+        ctx.rect(centerX - width * 0.25 + i * width * 0.15, y + height * 0.85, width * 0.08, height * 0.12);
+        ctx.fill();
+    }
+    
+    // Advanced sensor arrays
+    ctx.strokeStyle = '#00FFFF';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(centerX - width * 0.4, y + height * 0.1);
+    ctx.lineTo(centerX + width * 0.4, y + height * 0.1);
+    ctx.stroke();
+}
+
+function drawBattleship(ctx, x, y, width, height, isPlayer = true) {
+    const centerX = x + width / 2;
+    const centerY = y + height / 2;
+    
+    // Massive armored hull
+    ctx.fillStyle = isPlayer ? '#1A1A1A' : '#4B0082';
+    ctx.beginPath();
+    ctx.moveTo(centerX, y + height * 0.02);
+    ctx.lineTo(centerX - width * 0.5, y + height * 0.15);
+    ctx.lineTo(centerX - width * 0.45, y + height * 0.95);
+    ctx.lineTo(centerX + width * 0.45, y + height * 0.95);
+    ctx.lineTo(centerX + width * 0.5, y + height * 0.15);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Central command tower
+    ctx.fillStyle = '#2F2F2F';
+    ctx.beginPath();
+    ctx.rect(centerX - width * 0.25, y + height * 0.1, width * 0.5, height * 0.4);
+    ctx.fill();
+    
+    // Multiple weapon platforms
+    ctx.fillStyle = '#DC143C';
+    // Top platform
+    ctx.beginPath();
+    ctx.rect(centerX - width * 0.35, y + height * 0.05, width * 0.7, height * 0.08);
+    ctx.fill();
+    
+    // Side platforms
+    ctx.beginPath();
+    ctx.rect(centerX - width * 0.45, y + height * 0.3, width * 0.15, height * 0.4);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.rect(centerX + width * 0.3, y + height * 0.3, width * 0.15, height * 0.4);
+    ctx.fill();
+    
+    // Heavy plasma cannons
+    ctx.fillStyle = '#FF4500';
+    for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.arc(centerX - width * 0.2 + i * width * 0.2, y + height * 0.08, width * 0.06, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    // Energy matrix
+    const matrixGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, width * 0.6);
+    matrixGradient.addColorStop(0, isPlayer ? '#00CED1' : '#FF1493');
+    matrixGradient.addColorStop(0.3, isPlayer ? '#20B2AA' : '#FF69B4');
+    matrixGradient.addColorStop(1, 'transparent');
+    ctx.fillStyle = matrixGradient;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, width * 0.6, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Multiple engine banks
+    ctx.fillStyle = '#FFD700';
+    for (let i = 0; i < 6; i++) {
+        ctx.beginPath();
+        ctx.rect(centerX - width * 0.3 + i * width * 0.1, y + height * 0.88, width * 0.06, height * 0.1);
+        ctx.fill();
+    }
+    
+    // Advanced targeting systems
+    ctx.strokeStyle = '#00FFFF';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        ctx.moveTo(centerX - width * 0.4 + i * width * 0.2, y + height * 0.02);
+        ctx.lineTo(centerX - width * 0.4 + i * width * 0.2, y + height * 0.15);
+        ctx.stroke();
     }
 }
 
-function drawCruiserShip(x, y, width, height, design) {
-    // Massive, battleship design with multiple weapon systems
-    ctx.fillStyle = design.color;
-    ctx.fillRect(x + width/6, y, width/1.5, height);
+function drawEnemyFighter(ctx, x, y, width, height) {
+    const centerX = x + width / 2;
+    const centerY = y + height / 2;
     
-    // Command bridge
-    ctx.fillStyle = design.accentColor;
-    ctx.fillRect(x + width/2 - 8, y + height/6, 16, 8);
+    // Alien design - organic yet technological
+    ctx.fillStyle = '#8B0000';
+    ctx.beginPath();
+    ctx.moveTo(centerX, y + height * 0.15);
+    ctx.lineTo(centerX - width * 0.35, y + height * 0.4);
+    ctx.lineTo(centerX - width * 0.25, y + height * 0.85);
+    ctx.lineTo(centerX + width * 0.25, y + height * 0.85);
+    ctx.lineTo(centerX + width * 0.35, y + height * 0.4);
+    ctx.closePath();
+    ctx.fill();
     
-    // Bridge windows
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(x + width/2 - 6, y + height/6 + 2, 12, 4);
+    // Bio-mechanical cockpit
+    ctx.fillStyle = '#FF6347';
+    ctx.beginPath();
+    ctx.ellipse(centerX, y + height * 0.3, width * 0.12, height * 0.1, 0, 0, Math.PI * 2);
+    ctx.fill();
     
-    // Heavy armor plating with multiple layers
-    ctx.fillStyle = '#8b4513';
-    ctx.fillRect(x + width/8, y + height/4, width/1.3, height/2);
-    ctx.fillStyle = '#654321';
-    ctx.fillRect(x + width/6, y + height/3, width/1.5, height/3);
+    // Energy core with pulsing effect
+    const coreGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, width * 0.25);
+    coreGradient.addColorStop(0, '#FF4500');
+    coreGradient.addColorStop(0.5, '#FF6347');
+    coreGradient.addColorStop(1, 'transparent');
+    ctx.fillStyle = coreGradient;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, width * 0.25, 0, Math.PI * 2);
+    ctx.fill();
     
-    // Multiple weapon systems
-    ctx.fillStyle = design.accentColor;
-    // Primary weapons
-    ctx.fillRect(x + 4, y + height/3, 8, 8);
-    ctx.fillRect(x + width - 12, y + height/3, 8, 8);
-    ctx.fillRect(x + width/2 - 4, y + height/2, 8, 8);
+    // Organic wing structures
+    ctx.fillStyle = '#B22222';
+    // Left wing
+    ctx.beginPath();
+    ctx.moveTo(centerX - width * 0.35, y + height * 0.4);
+    ctx.lineTo(centerX - width * 0.55, y + height * 0.5);
+    ctx.lineTo(centerX - width * 0.4, y + height * 0.75);
+    ctx.lineTo(centerX - width * 0.25, y + height * 0.85);
+    ctx.closePath();
+    ctx.fill();
     
-    // Secondary weapons
-    ctx.fillStyle = '#ff0000';
-    ctx.fillRect(x + width/4, y + height/4, 6, 6);
-    ctx.fillRect(x + width * 3/4 - 3, y + height/4, 6, 6);
+    // Right wing
+    ctx.beginPath();
+    ctx.moveTo(centerX + width * 0.35, y + height * 0.4);
+    ctx.lineTo(centerX + width * 0.55, y + height * 0.5);
+    ctx.lineTo(centerX + width * 0.4, y + height * 0.75);
+    ctx.lineTo(centerX + width * 0.25, y + height * 0.85);
+    ctx.closePath();
+    ctx.fill();
     
-    // Advanced engine array with power indicators
-    ctx.fillStyle = '#ff6600';
-    for (let i = 0; i < 5; i++) {
-        ctx.fillRect(x + width/6 + i * width/10, y + height - 6, 4, 5);
-    }
+    // Bio-weapon systems
+    ctx.fillStyle = '#FF1493';
+    ctx.beginPath();
+    ctx.rect(centerX - width * 0.08, y + height * 0.1, width * 0.16, height * 0.08);
+    ctx.fill();
     
-    // Shield generators
-    ctx.fillStyle = '#00ffff';
-    ctx.fillRect(x + 2, y + height/6, 4, 4);
-    ctx.fillRect(x + width - 6, y + height/6, 4, 4);
+    // Energy field
+    ctx.strokeStyle = '#FF4500';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(centerX - width * 0.3, y + height * 0.25);
+    ctx.lineTo(centerX + width * 0.3, y + height * 0.25);
+    ctx.stroke();
+    
+    // Engine exhausts
+    ctx.fillStyle = '#FFD700';
+    ctx.beginPath();
+    ctx.rect(centerX - width * 0.12, y + height * 0.88, width * 0.24, height * 0.08);
+    ctx.fill();
 }
 
 // Enhanced enemy ship drawing with advanced types
@@ -3019,54 +3368,33 @@ function updateShipDamageAnimation() {
     }
 }
 
-// Draw enemy fighter
-function drawEnemyFighter(x, y, width, height, design) {
-    // Enemy fighter - triangular design
-    ctx.fillStyle = design.color;
-    ctx.beginPath();
-    ctx.moveTo(x + width/2, y + height); // Bottom point
-    ctx.lineTo(x + width, y); // Top right
-    ctx.lineTo(x + width/2, y + height/4); // Upper center
-    ctx.lineTo(x, y); // Top left
-    ctx.closePath();
-    ctx.fill();
-    
-    // Cockpit
-    ctx.fillStyle = design.accentColor;
-    ctx.beginPath();
-    ctx.ellipse(x + width/2, y + height/3, width/8, height/12, 0, 0, Math.PI * 2);
-    ctx.fill();
-}
-
-// Draw destroyer enemy
-function drawDestroyerEnemy(x, y, width, height, design) {
-    // Destroyer - larger, more armored design
-    ctx.fillStyle = design.color;
-    ctx.fillRect(x, y, width, height);
-    
-    // Armor plates
-    ctx.fillStyle = design.accentColor;
-    ctx.fillRect(x + width/4, y + height/4, width/2, height/2);
-    
-    // Weapon ports
-    ctx.fillStyle = '#ff0000';
-    ctx.fillRect(x + width/6, y + height/3, width/12, height/6);
-    ctx.fillRect(x + width*2/3, y + height/3, width/12, height/6);
-}
-
-// Draw battleship enemy
-function drawBattleshipEnemy(x, y, width, height, design) {
-    // Battleship - largest enemy design
-    ctx.fillStyle = design.color;
-    ctx.fillRect(x, y, width, height);
-    
-    // Multiple weapon turrets
-    ctx.fillStyle = design.accentColor;
-    ctx.fillRect(x + width/6, y + height/4, width/6, height/6);
-    ctx.fillRect(x + width*2/3, y + height/4, width/6, height/6);
-    ctx.fillRect(x + width/3, y + height/2, width/3, height/6);
-    
-    // Command bridge
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(x + width/3, y + height/6, width/3, height/6);
+// Draw player ship with advanced ship selection
+function drawPlayer() {
+    const shipDesign = SHIP_DESIGNS[player.shipType];
+    if (!shipDesign) return;
+    switch (shipDesign.design) {
+        case 'quantumFighter':
+            drawQuantumFighter(ctx, player.x, player.y, player.width, player.height, true);
+            break;
+        case 'neonInterceptor':
+            drawNeonInterceptor(ctx, player.x, player.y, player.width, player.height, true);
+            break;
+        case 'cyberCruiser':
+            drawCyberCruiser(ctx, player.x, player.y, player.width, player.height, true);
+            break;
+        case 'fighter':
+            drawFighterShip(ctx, player.x, player.y, player.width, player.height, true);
+            break;
+        case 'interceptor':
+            drawFighterShip(ctx, player.x, player.y, player.width, player.height, true);
+            break;
+        case 'blaster':
+            drawFighterShip(ctx, player.x, player.y, player.width, player.height, true);
+            break;
+        case 'cruiser':
+            drawFighterShip(ctx, player.x, player.y, player.width, player.height, true);
+            break;
+        default:
+            drawFighterShip(ctx, player.x, player.y, player.width, player.height, true);
+    }
 }
