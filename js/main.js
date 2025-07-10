@@ -1,5 +1,5 @@
-// Simple Space Shooter Game
-// Version 3.1 - Fixed syntax error and game loop conflicts
+// Kaden & Adelynn Space Adventures - Enhanced Version 3.2
+// A space shooter game with multiple ships, weapons, and power-ups
 
 // Game variables
 let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, startScreen, finalScoreElement, restartBtn, startBtn, highScoreElement, fullscreenBtn;
@@ -1026,11 +1026,23 @@ function checkCollisions() {
                     player.health = Math.min(player.health + 1, player.maxHealth);
                     break;
                 case 'weapon':
-                    // Cycle through weapon types
+                    // Cycle through weapon types with visual feedback
                     const weaponTypes = Object.keys(WEAPON_TYPES);
                     const currentIndex = weaponTypes.indexOf(player.weaponType);
                     const nextIndex = (currentIndex + 1) % weaponTypes.length;
                     player.weaponType = weaponTypes[nextIndex];
+                    
+                    // Add visual feedback for weapon change
+                    console.log('Weapon changed to:', WEAPON_TYPES[player.weaponType].name);
+                    
+                    // Create a temporary weapon change indicator
+                    explosions.push({
+                        x: player.x + player.width / 2,
+                        y: player.y + player.height / 2,
+                        life: 20,
+                        type: 'weapon_change',
+                        weaponName: WEAPON_TYPES[player.weaponType].name
+                    });
                     break;
                 case 'speed':
                     player.powerUps.push({ type: 'speed', duration: 300 });
@@ -1080,6 +1092,14 @@ function updateUI() {
     const healthElement = document.getElementById('health');
     if (healthElement) {
         healthElement.textContent = player.health;
+    }
+    
+    // Update current weapon display
+    const weaponElement = document.getElementById('currentWeapon');
+    if (weaponElement) {
+        const currentWeapon = WEAPON_TYPES[player.weaponType];
+        weaponElement.textContent = currentWeapon.name;
+        weaponElement.style.color = currentWeapon.color;
     }
 }
 
@@ -1443,11 +1463,28 @@ function drawCollectibles() {
 // Draw explosions
 function drawExplosions() {
     for (let explosion of explosions) {
-        const alpha = explosion.life / 10;
-        ctx.fillStyle = `rgba(255, 255, 0, ${alpha})`;
-        ctx.beginPath();
-        ctx.arc(explosion.x, explosion.y, 20 * alpha, 0, Math.PI * 2);
-        ctx.fill();
+        if (explosion.type === 'weapon_change') {
+            // Draw weapon change indicator
+            const alpha = explosion.life / 20;
+            ctx.fillStyle = `rgba(0, 255, 255, ${alpha})`;
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(explosion.weaponName, explosion.x, explosion.y - 10);
+            
+            // Draw weapon change glow
+            ctx.strokeStyle = `rgba(0, 255, 255, ${alpha})`;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(explosion.x, explosion.y, 30 * alpha, 0, Math.PI * 2);
+            ctx.stroke();
+        } else {
+            // Regular explosion
+            const alpha = explosion.life / 10;
+            ctx.fillStyle = `rgba(255, 255, 0, ${alpha})`;
+            ctx.beginPath();
+            ctx.arc(explosion.x, explosion.y, 20 * alpha, 0, Math.PI * 2);
+            ctx.fill();
+        }
     }
 }
 
