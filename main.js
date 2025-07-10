@@ -4001,7 +4001,6 @@ function updateUI() {
         if (titleElement) titleElement.textContent = `🚀 ${currentMission.title}`;
         if (progressElement) progressElement.textContent = `${currentMission.progress}/${currentMission.target}`;
     }
-}
     
     // Update character info
     const characterElement = document.getElementById('characterInfo');
@@ -4973,7 +4972,6 @@ function initializeGameElements() {
     console.log('Game elements initialized successfully');
     console.log('Canvas size:', canvas.width, 'x', canvas.height);
     console.log('Player position:', player.x, player.y);
-    console.log('=== GAME INITIALIZATION COMPLETE ===');
     
     // Set up canvas event listeners
     canvas.addEventListener('mousemove', (e) => {
@@ -5014,6 +5012,25 @@ function initializeGameElements() {
     
     // Initialize background effects
     initBackgroundEffects();
+    
+    console.log('=== GAME INITIALIZATION COMPLETE ===');
+    
+    // Test speech synthesis immediately
+    setTimeout(() => {
+        console.log('=== IMMEDIATE SPEECH TEST ===');
+        if (speechSynthesis) {
+            const testUtterance = new SpeechSynthesisUtterance('Speech synthesis test');
+            testUtterance.rate = 1.0;
+            testUtterance.volume = 1.0;
+            speechSynthesis.speak(testUtterance);
+            console.log('Immediate speech test completed');
+        } else {
+            console.log('Speech synthesis not available for immediate test');
+        }
+    }, 2000);
+    
+    resizeCanvas();
+    return true;
 }
 
 // Test radio chatter on first user interaction
@@ -5059,26 +5076,6 @@ function testRadioChatter() {
     }
 }
     
-    console.log('=== GAME INITIALIZATION COMPLETE ===');
-    
-    // Test speech synthesis immediately
-    setTimeout(() => {
-        console.log('=== IMMEDIATE SPEECH TEST ===');
-        if (speechSynthesis) {
-            const testUtterance = new SpeechSynthesisUtterance('Speech synthesis test');
-            testUtterance.rate = 1.0;
-            testUtterance.volume = 1.0;
-            speechSynthesis.speak(testUtterance);
-            console.log('Immediate speech test completed');
-        } else {
-            console.log('Speech synthesis not available for immediate test');
-        }
-    }, 2000);
-    
-    resizeCanvas();
-    return true;
-}
-
 function setupCharacterSelection() {
     const characterCards = document.querySelectorAll('.character-card');
     
