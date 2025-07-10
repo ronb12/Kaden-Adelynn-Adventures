@@ -123,7 +123,7 @@ body::after {
     }
 }
 
-/* Game container with glass effect */
+/* Game container - initially hidden until game starts */
 .game-container {
     position: fixed;
     top: 0;
@@ -139,6 +139,36 @@ body::after {
     -webkit-backdrop-filter: blur(10px);
     overflow: hidden;
     z-index: 1;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+/* Show game container when game is active */
+.game-container.game-active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Canvas - initially hidden */
+#gameCanvas {
+    border: 2px solid rgba(0, 255, 255, 0.5);
+    border-radius: 10px;
+    box-shadow: 
+        0 0 30px rgba(0, 255, 255, 0.3),
+        inset 0 0 20px rgba(0, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+/* Show canvas when game is active */
+.game-container.game-active #gameCanvas {
+    opacity: 1;
+    visibility: visible;
 }
 
 /* Enhanced start screen */
@@ -278,18 +308,6 @@ body::after {
     box-shadow: 
         0 0 40px rgba(255, 0, 128, 0.8),
         inset 0 0 20px rgba(255, 255, 255, 0.2);
-}
-
-/* Canvas with enhanced styling */
-#gameCanvas {
-    border: 2px solid rgba(0, 255, 255, 0.5);
-    border-radius: 10px;
-    box-shadow: 
-        0 0 30px rgba(0, 255, 255, 0.3),
-        inset 0 0 20px rgba(0, 255, 255, 0.1);
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
 }
 
 /* UI overlay with glass effect */

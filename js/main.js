@@ -3068,6 +3068,12 @@ function startGame() {
         startScreen.classList.add('hidden');
     }
     
+    // Show game container and canvas
+    const gameContainer = document.querySelector('.game-container');
+    if (gameContainer) {
+        gameContainer.classList.add('game-active');
+    }
+    
     // Show game canvas
     if (canvas) {
         canvas.style.display = 'block';
@@ -6148,6 +6154,12 @@ function restartGame() {
     
     // Remove game-playing class to show mobile tab bar
     document.body.classList.remove('game-playing');
+    
+    // Hide game container and show start screen
+    const gameContainer = document.querySelector('.game-container');
+    if (gameContainer) {
+        gameContainer.classList.remove('game-active');
+    }
     
     // Show start screen
     if (startScreen) {
