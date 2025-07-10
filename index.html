@@ -86,6 +86,66 @@
             color: #4a90e2;
         }
         
+        .ship-selection {
+            background: rgba(74, 144, 226, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #4a90e2;
+        }
+        
+        .ship-selection h3 {
+            color: #4a90e2;
+            margin-bottom: 15px;
+        }
+        
+        .ship-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .ship-option {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .ship-option:hover {
+            border-color: #4a90e2;
+            background: rgba(74, 144, 226, 0.2);
+        }
+        
+        .ship-option.selected {
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.2);
+        }
+        
+        .ship-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .ship-stats {
+            font-size: 0.9em;
+            color: #ccc;
+        }
+        
+        .ship-preview {
+            width: 40px;
+            height: 40px;
+            margin: 10px auto;
+            border: 1px solid #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+        }
+        
         button {
             background: linear-gradient(45deg, #4a90e2, #357abd);
             color: white;
@@ -143,6 +203,32 @@
             <h1 class="game-title">🚀 Space Shooter 🚀</h1>
             <p class="game-subtitle">Defend the galaxy from enemy ships!</p>
             
+            <div class="ship-selection">
+                <h3>🚀 Choose Your Ship</h3>
+                <div class="ship-grid">
+                    <div class="ship-option selected" data-ship="fighter">
+                        <div class="ship-preview" style="background: #4a90e2;">⚔️</div>
+                        <div class="ship-name">Fighter</div>
+                        <div class="ship-stats">Speed: Fast | Fire Rate: Normal | Damage: Normal</div>
+                    </div>
+                    <div class="ship-option" data-ship="interceptor">
+                        <div class="ship-preview" style="background: #00ff88;">⚡</div>
+                        <div class="ship-name">Interceptor</div>
+                        <div class="ship-stats">Speed: Very Fast | Fire Rate: High | Damage: Normal</div>
+                    </div>
+                    <div class="ship-option" data-ship="blaster">
+                        <div class="ship-preview" style="background: #ff6b35;">💥</div>
+                        <div class="ship-name">Blaster</div>
+                        <div class="ship-stats">Speed: Slow | Fire Rate: Low | Damage: High</div>
+                    </div>
+                    <div class="ship-option" data-ship="cruiser">
+                        <div class="ship-preview" style="background: #9b59b6;">🛡️</div>
+                        <div class="ship-name">Cruiser</div>
+                        <div class="ship-stats">Speed: Very Slow | Fire Rate: Low | Damage: Very High</div>
+                    </div>
+                </div>
+            </div>
+            
             <div class="controls">
                 <h3>🎮 Controls</h3>
                 <ul>
@@ -175,6 +261,28 @@
         </div>
     </div>
     
-    <script src="js/main.js?v=1.2"></script>
+    <script src="js/main.js?v=1.3"></script>
+    <script>
+        // Ship selection functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const shipOptions = document.querySelectorAll('.ship-option');
+            
+            shipOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove selected class from all options
+                    shipOptions.forEach(opt => opt.classList.remove('selected'));
+                    
+                    // Add selected class to clicked option
+                    this.classList.add('selected');
+                    
+                    // Update player ship type
+                    const shipType = this.getAttribute('data-ship');
+                    if (window.player) {
+                        window.player.shipType = shipType;
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html> 

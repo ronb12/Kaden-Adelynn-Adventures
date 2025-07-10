@@ -1,5 +1,5 @@
 // Simple Space Shooter Game
-// Version 1.0 - Core shooting mechanics with score tracking
+// Version 1.2 - Core shooting mechanics with ship designs
 
 // Game variables
 let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, startScreen, finalScoreElement, restartBtn, startBtn, highScoreElement;
@@ -18,8 +18,85 @@ let player = {
     y: 550,
     width: 40,
     height: 40,
-    speed: 5
+    speed: 5,
+    shipType: 'fighter' // fighter, interceptor, blaster, cruiser
 };
+
+// Ship designs
+const SHIP_DESIGNS = {
+    fighter: {
+        name: 'Fighter',
+        color: '#4a90e2',
+        width: 40,
+        height: 40,
+        speed: 5,
+        fireRate: 1,
+        damage: 1
+    },
+    interceptor: {
+        name: 'Interceptor',
+        color: '#00ff88',
+        width: 35,
+        height: 45,
+        speed: 6,
+        fireRate: 1.2,
+        damage: 1
+    },
+    blaster: {
+        name: 'Blaster',
+        color: '#ff6b35',
+        width: 45,
+        height: 35,
+        speed: 4,
+        fireRate: 0.8,
+        damage: 2
+    },
+    cruiser: {
+        name: 'Cruiser',
+        color: '#9b59b6',
+        width: 50,
+        height: 50,
+        speed: 3,
+        fireRate: 0.6,
+        damage: 3
+    }
+};
+
+// Enemy ship designs
+const ENEMY_DESIGNS = [
+    {
+        name: 'Scout',
+        color: '#ff4444',
+        width: 30,
+        height: 30,
+        speed: 3,
+        points: 10
+    },
+    {
+        name: 'Fighter',
+        color: '#ff6666',
+        width: 35,
+        height: 35,
+        speed: 2.5,
+        points: 15
+    },
+    {
+        name: 'Destroyer',
+        color: '#ff8888',
+        width: 40,
+        height: 40,
+        speed: 2,
+        points: 20
+    },
+    {
+        name: 'Battleship',
+        color: '#ffaaaa',
+        width: 45,
+        height: 45,
+        speed: 1.5,
+        points: 25
+    }
+];
 
 // Game objects
 let bullets = [];
@@ -85,6 +162,7 @@ function initializeGameElements() {
         console.log('Game elements initialized successfully');
         console.log('Canvas size:', canvas.width, 'x', canvas.height);
         console.log('Player position:', player.x, player.y);
+        console.log('Player ship type:', player.shipType);
         
         // Initialize stars
         initStars();
@@ -191,7 +269,10 @@ function restartGame() {
 // Shoot function
 function shoot() {
     const currentTime = Date.now();
-    if (currentTime - lastShotTime < SHOT_DELAY) return;
+    const shipDesign = SHIP_DESIGNS[player.shipType];
+    const fireDelay = SHOT_DELAY / shipDesign.fireRate;
+    
+    if (currentTime - lastShotTime < fireDelay) return;
     lastShotTime = currentTime;
     
     bullets.push({
@@ -199,25 +280,34 @@ function shoot() {
         y: player.y,
         width: 4,
         height: 8,
-        speed: BULLET_SPEED
+        speed: BULLET_SPEED,
+        damage: shipDesign.damage
     });
 }
 
 // Spawn enemy
 function spawnEnemy() {
     if (Math.random() < 0.02) {
+        const enemyType = Math.floor(Math.random() * ENEMY_DESIGNS.length);
+        const enemyDesign = ENEMY_DESIGNS[enemyType];
+        
         enemies.push({
-            x: Math.random() * (canvas.width - 40),
-            y: -40,
-            width: 40,
-            height: 40,
-            speed: ENEMY_SPEED + Math.random() * 2
+            x: Math.random() * (canvas.width - enemyDesign.width),
+            y: -enemyDesign.height,
+            width: enemyDesign.width,
+            height: enemyDesign.height,
+            speed: enemyDesign.speed + Math.random() * 2,
+            type: enemyType,
+            design: enemyDesign
         });
     }
 }
 
 // Update player
 function updatePlayer() {
+    const shipDesign = SHIP_DESIGNS[player.shipType];
+    player.speed = shipDesign.speed;
+    
     // Movement
     if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
         player.x = Math.max(0, player.x - player.speed);
@@ -302,8 +392,9 @@ function checkCollisions() {
                 bullets.splice(i, 1);
                 enemies.splice(j, 1);
                 
-                // Increase score
-                score += 10;
+                // Increase score based on enemy type
+                const points = enemies[j] ? enemies[j].design.points : 10;
+                score += points;
                 
                 break;
             }
@@ -365,13 +456,37 @@ function drawStars() {
 
 // Draw player
 function drawPlayer() {
-    ctx.fillStyle = '#4a90e2';
+    const shipDesign = SHIP_DESIGNS[player.shipType];
+    
+    // Draw ship body
+    ctx.fillStyle = shipDesign.color;
     ctx.fillRect(player.x, player.y, player.width, player.height);
     
-    // Draw player details
+    // Draw ship details based on type
     ctx.fillStyle = '#fff';
-    ctx.fillRect(player.x + 15, player.y + 10, 10, 20);
-    ctx.fillRect(player.x + 10, player.y + 15, 20, 10);
+    
+    switch(player.shipType) {
+        case 'fighter':
+            // Fighter design - sleek and fast
+            ctx.fillRect(player.x + 15, player.y + 10, 10, 20);
+            ctx.fillRect(player.x + 10, player.y + 15, 20, 10);
+            break;
+        case 'interceptor':
+            // Interceptor design - narrow and fast
+            ctx.fillRect(player.x + 12, player.y + 8, 16, 24);
+            ctx.fillRect(player.x + 8, player.y + 12, 24, 16);
+            break;
+        case 'blaster':
+            // Blaster design - wide and powerful
+            ctx.fillRect(player.x + 18, player.y + 12, 4, 16);
+            ctx.fillRect(player.x + 12, player.y + 18, 16, 4);
+            break;
+        case 'cruiser':
+            // Cruiser design - large and heavy
+            ctx.fillRect(player.x + 20, player.y + 15, 10, 20);
+            ctx.fillRect(player.x + 15, player.y + 20, 20, 10);
+            break;
+    }
 }
 
 // Draw bullets
@@ -384,14 +499,20 @@ function drawBullets() {
 
 // Draw enemies
 function drawEnemies() {
-    ctx.fillStyle = '#ff4444';
     for (let enemy of enemies) {
+        const design = enemy.design;
+        
+        // Draw enemy body
+        ctx.fillStyle = design.color;
         ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
         
         // Draw enemy details
         ctx.fillStyle = '#fff';
-        ctx.fillRect(enemy.x + 10, enemy.y + 10, 20, 20);
-        ctx.fillStyle = '#ff4444';
+        ctx.fillRect(enemy.x + 10, enemy.y + 10, enemy.width - 20, enemy.height - 20);
+        
+        // Draw enemy type indicator
+        ctx.fillStyle = '#000';
+        ctx.fillRect(enemy.x + 15, enemy.y + 15, enemy.width - 30, enemy.height - 30);
     }
 }
 
