@@ -1,6 +1,6 @@
-// Kaden & Adelynn Space Adventures - Enhanced Version 3.3
+// Kaden & Adelynn Space Adventures - Enhanced Version 3.4
 // A space shooter game with multiple ships, weapons, and power-ups
-// Enhanced ship designs and 4x faster autofire
+// Boss battles, phases, and checkpoint system
 
 // Game variables
 let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, startScreen, finalScoreElement, restartBtn, startBtn, highScoreElement, fullscreenBtn;
@@ -309,6 +309,38 @@ const ENEMY_DESIGNS = [
     }
 ];
 
+// Boss object
+let boss = null;
+let bossActive = false;
+let bossPhase = 0;
+let bossHealthBarHeight = 20;
+
+// Boss designs
+const BOSS_DESIGNS = [
+    {
+        name: 'Dreadnought',
+        color: '#ff00cc',
+        accentColor: '#fff',
+        width: 180,
+        height: 120,
+        maxHealth: 200,
+        phases: 3,
+        pattern: 'dreadnought',
+        reward: 500
+    },
+    {
+        name: 'Obliterator',
+        color: '#00ffcc',
+        accentColor: '#fff',
+        width: 200,
+        height: 140,
+        maxHealth: 300,
+        phases: 4,
+        pattern: 'obliterator',
+        reward: 1000
+    }
+];
+
 // Game objects
 let bullets = [];
 let enemyBullets = [];
@@ -556,6 +588,7 @@ function gameLoop() {
         updatePlayer();
         updateBullets();
         updateEnemies();
+        updateBoss();
         updatePowerUps();
         updateCollectibles();
         updateExplosions();
@@ -736,6 +769,7 @@ function shoot() {
 
 // Spawn enemy
 function spawnEnemy() {
+    if (bossActive) return; // Don't spawn regular enemies during boss
     if (Math.random() < 0.02) {
         const enemyType = Math.floor(Math.random() * ENEMY_DESIGNS.length);
         const enemyDesign = ENEMY_DESIGNS[enemyType];
@@ -803,6 +837,22 @@ function spawnCollectible() {
             value: Math.floor(Math.random() * 5) + 5, // 5-10 points
             color: '#ffd700'
         });
+    }
+}
+
+// Boss spawn logic (call at level milestones)
+function maybeSpawnBoss() {
+    if (level % 3 === 0 && !bossActive) {
+        const bossDesign = BOSS_DESIGNS[(level/3-1) % BOSS_DESIGNS.length];
+        boss = {
+            ...bossDesign,
+            x: canvas.width/2 - bossDesign.width/2,
+            y: 40,
+            health: bossDesign.maxHealth,
+            phase: 1,
+            active: true
+        };
+        bossActive = true;
     }
 }
 
@@ -1066,6 +1116,46 @@ function checkCollisions() {
             collectibles.splice(i, 1);
         }
     }
+
+    // Bullet vs Boss collisions
+    if (boss && boss.active) {
+        for (let i = bullets.length - 1; i >= 0; i--) {
+            if (
+                bullets[i].x < boss.x + boss.width &&
+                bullets[i].x + bullets[i].width > boss.x &&
+                bullets[i].y < boss.y + boss.height &&
+                bullets[i].y + bullets[i].height > boss.y
+            ) {
+                boss.health -= WEAPON_TYPES[player.weaponType].damage;
+                explosions.push({
+                    x: bullets[i].x,
+                    y: bullets[i].y,
+                    life: 10
+                });
+                playSound('explosion');
+                bullets.splice(i, 1);
+                if (boss.health <= 0) {
+                    // Boss defeated
+                    score += boss.reward;
+                    explosions.push({
+                        x: boss.x + boss.width/2,
+                        y: boss.y + boss.height/2,
+                        life: 40
+                    });
+                    boss.active = false;
+                    boss = null;
+                    bossActive = false;
+                    // Advance to next level
+                    level++;
+                    // Save checkpoint
+                    checkpoint.level = level;
+                    checkpoint.score = score;
+                    // Optional: drop power-ups or special rewards
+                }
+                break;
+            }
+        }
+    }
 }
 
 // Collision detection
@@ -1076,10 +1166,41 @@ function checkCollision(rect1, rect2) {
            rect1.y + rect1.height > rect2.y;
 }
 
-// Update level
+// Update level and spawn boss if needed
 function updateLevel() {
-    if (score > level * 100) {
+    // Only increment level if boss is not active
+    if (!bossActive && score > level * 100) {
         level++;
+        maybeSpawnBoss();
+        // Optional: checkpoint logic here
+    }
+}
+
+// Update boss logic
+function updateBoss() {
+    if (!boss || !boss.active) return;
+    // Simple movement: oscillate horizontally
+    boss.x += Math.sin(Date.now() / 500) * 2;
+    // Boss attacks: fire bullets at intervals
+    if (!boss.lastShot) boss.lastShot = Date.now();
+    if (Date.now() - boss.lastShot > 800 - boss.phase * 100) {
+        // Fire a spread of bullets
+        for (let i = -1; i <= 1; i++) {
+            enemyBullets.push({
+                x: boss.x + boss.width / 2 + i * 30,
+                y: boss.y + boss.height,
+                width: 8,
+                height: 16,
+                speed: 6 + boss.phase,
+                color: '#ff00cc'
+            });
+        }
+        boss.lastShot = Date.now();
+    }
+    // Boss phase logic: increase phase at health thresholds
+    if (boss.phase < boss.phases && boss.health < boss.maxHealth * (1 - boss.phase / boss.phases)) {
+        boss.phase++;
+        // Optional: add effects or change attack pattern
     }
 }
 
@@ -1142,6 +1263,9 @@ function render() {
     
     // Draw touch indicator for mobile
     drawTouchIndicator();
+
+    // Draw boss
+    drawBoss();
 }
 
 // Draw stars
@@ -1680,6 +1804,29 @@ function drawTouchIndicator() {
         ctx.lineTo(touchControls.touchX, touchControls.touchY);
         ctx.stroke();
     }
+}
+
+// Boss rendering
+function drawBoss() {
+    if (!boss || !boss.active) return;
+    // Draw boss ship (simple rectangle for now, can enhance later)
+    ctx.save();
+    ctx.globalAlpha = 0.95;
+    ctx.fillStyle = boss.color;
+    ctx.fillRect(boss.x, boss.y, boss.width, boss.height);
+    ctx.restore();
+    // Draw boss health bar
+    ctx.fillStyle = '#222';
+    ctx.fillRect(canvas.width/2 - 100, 10, 200, bossHealthBarHeight);
+    ctx.fillStyle = '#ff00cc';
+    ctx.fillRect(canvas.width/2 - 100, 10, 200 * (boss.health / boss.maxHealth), bossHealthBarHeight);
+    ctx.strokeStyle = '#fff';
+    ctx.strokeRect(canvas.width/2 - 100, 10, 200, bossHealthBarHeight);
+    // Draw boss name
+    ctx.fillStyle = '#fff';
+    ctx.font = '18px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(boss.name + ' (Phase ' + boss.phase + ')', canvas.width/2, 40);
 }
 
 // Fullscreen toggle function
