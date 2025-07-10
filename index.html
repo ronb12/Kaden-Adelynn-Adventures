@@ -2,559 +2,176 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#4a90e2">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Space Adventures">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Space Adventures">
-    <meta name="msapplication-TileColor" content="#4a90e2">
-    <meta name="msapplication-config" content="none">
-    
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="Epic space shooter game with missions, characters, and boss battles. Defend the galaxy from the Zorath Empire!">
-    <meta name="keywords" content="space shooter, game, adventure, missions, characters, boss battles, offline game">
-    <meta name="author" content="Kaden & Adelynn Adventures">
-    <meta name="robots" content="index, follow">
-    
-    <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="Kaden & Adelynn Space Adventures">
-    <meta property="og:description" content="Epic space shooter game with missions, characters, and boss battles. Defend the galaxy from the Zorath Empire!">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://space-adventures.game">
-    <meta property="og:image" content="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI2MzAiIHZpZXdCb3g9IjAgMCAxMjAwIDYzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNjMwIiBmaWxsPSIjMDAwMDAwIi8+Cjx0ZXh0IHg9IjYwMCIgeT0iMzE1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iNDgiIGZpbGw9IiNmZmZmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkthZGVuICYgQWRlbHlubiBTcGFjZSBBZHZlbnR1cmVzPC90ZXh0Pgo8dGV4dCB4PSI2MDAiIHk9IjM3NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjI0IiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5FcGljIFNwYWNlIFNob290ZXIgR2FtZTwvdGV4dD4KPC9zdmc+">
-    
-    <!-- Twitter Card Meta Tags -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Kaden & Adelynn Space Adventures">
-    <meta name="twitter:description" content="Epic space shooter game with missions, characters, and boss battles. Defend the galaxy from the Zorath Empire!">
-    <meta name="twitter:image" content="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI2MzAiIHZpZXdCb3g9IjAgMCAxMjAwIDYzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNjMwIiBmaWxsPSIjMDAwMDAwIi8+Cjx0ZXh0IHg9IjYwMCIgeT0iMzE1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iNDgiIGZpbGw9IiNmZmZmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkthZGVuICYgQWRlbHlubiBTcGFjZSBBZHZlbnR1cmVzPC90ZXh0Pgo8dGV4dCB4PSI2MDAiIHk9IjM3NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjI0IiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5FcGljIFNwYWNlIFNob290ZXIgR2FtZTwvdGV4dD4KPC9zdmc+">
-
-    <title>Kaden & Adelynn Space Adventures</title>
-    
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json">
-    
-    <!-- Icons -->
-    <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjMDAwMDAwIi8+CjxyZWN0IHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgZmlsbD0idXJsKCNncmFkaWVudCkiLz4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwIiB5MT0iMCIgeDI9IjMyIiB5Mj0iMzIiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzRhOTBlMjtzdG9wLW9wYWNpdHk6MSIvPgo8c3RvcCBvZmZzZXQ9IjUwJSIgc3R5bGU9InN0b3AtY29sb3I6IzFhMWExZTtzdG9wLW9wYWNpdHk6MSIvPgo8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMzYjJlMmE7c3RvcC1vcGFjaXR5OjEiLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIxNCIgZmlsbD0iIzRhOTBlMiIvPgo8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIxMCIgZmlsbD0iIzFhMWExZSIvPgo8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSI2IiBmaWxsPSIjM2IyZTJhIi8+CjxwYXRoIGQ9Ik0xNiA2TDIwIDEwSDEyTDE2IDZaIiBmaWxsPSIjZmY0NDQ0Ii8+CjxwYXRoIGQ9Ik0xNiAyNkwxMiAyMEgyMEwxNiAyNloiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTYgMTZMMTAgMTJWMjBMNiAxNloiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTI2IDE2TDIyIDIwVjEyTDI2IDE2WiIgZmlsbD0iI2ZmNDQ0NCIvPgo8L3N2Zz4=">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjMDAwMDAwIi8+CjxyZWN0IHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgZmlsbD0idXJsKCNncmFkaWVudCkiLz4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwIiB5MT0iMCIgeDI9IjMyIiB5Mj0iMzIiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzRhOTBlMjtzdG9wLW9wYWNpdHk6MSIvPgo8c3RvcCBvZmZzZXQ9IjUwJSIgc3R5bGU9InN0b3AtY29sb3I6IzFhMWExZTtzdG9wLW9wYWNpdHk6MSIvPgo8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMzYjJlMmE7c3RvcC1vcGFjaXR5OjEiLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIxNCIgZmlsbD0iIzRhOTBlMiIvPgo8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIxMCIgZmlsbD0iIzFhMWExZSIvPgo8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSI2IiBmaWxsPSIjM2IyZTJhIi8+CjxwYXRoIGQ9Ik0xNiA2TDIwIDEwSDEyTDE2IDZaIiBmaWxsPSIjZmY0NDQ0Ii8+CjxwYXRoIGQ9Ik0xNiAyNkwxMiAyMEgyMEwxNiAyNloiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTYgMTZMMTAgMTJWMjBMNiAxNloiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTI2IDE2TDIyIDIwVjEyTDI2IDE2WiIgZmlsbD0iI2ZmNDQ0NCIvPgo8L3N2Zz4=">
-    
-    <!-- Apple Touch Icons -->
-    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDE4MCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiBmaWxsPSIjMDAwMDAwIi8+CjxyZWN0IHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiBmaWxsPSJ1cmwoI2dyYWRpZW50KSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJncmFkaWVudCIgeDE9IjAiIHkxPSIwIiB4Mj0iMTgwIiB5Mj0iMTgwIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CjxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM0YTkwZTI7c3RvcC1vcGFjaXR5OjEiLz4KPHN0b3Agb2Zmc2V0PSI1MCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMxYTFhMmU7c3RvcC1vcGFjaXR5OjEiLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojM2IyZTJhO3N0b3Atb3BhY2l0eToxIi8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNzUiIGZpbGw9IiM0YTkwZTIiLz4KPGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNTYiIGZpbGw9IiMxYTFhMmUiLz4KPGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iMzciIGZpbGw9IiMzYjJlMmEiLz4KPHBhdGggZD0iTTkwIDM3TDExMyA3NUg2N0w5MCAzN1oiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTkwIDE0M0w2NyAxMDVIMTEzTDkwIDE0M1oiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTM3IDkwTDc1IDY3VjExM0wzNyA5MFoiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTE0MyA5MEwxMDUgMTEzVjY3TDE0MyA5MFoiIGZpbGw9IiNmZjQ0NDQiLz4KPHNwYW4geD0iOTAiIHk9IjE1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5LYWRlbiAmPC9zcGFuPgo8c3BhbiB4PSI5MCIgeT0iMTY1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiNmZmZmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkFkZWx5bm48L3NwYW4+Cjwvc3ZnPg==">
-    <link rel="apple-touch-icon" sizes="152x152" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUyIiBoZWlnaHQ9IjE1MiIgdmlld0JveD0iMCAwIDE1MiAxNTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTIiIGhlaWdodD0iMTUyIiBmaWxsPSIjMDAwMDAwIi8+CjxyZWN0IHdpZHRoPSIxNTIiIGhlaWdodD0iMTUyIiBmaWxsPSJ1cmwoI2dyYWRpZW50KSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJncmFkaWVudCIgeDE9IjAiIHkxPSIwIiB4Mj0iMTUyIiB5Mj0iMTUyIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CjxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM0YTkwZTI7c3RvcC1vcGFjaXR5OjEiLz4KPHN0b3Agb2Zmc2V0PSI1MCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMxYTFhMmU7c3RvcC1vcGFjaXR5OjEiLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojM2IyZTJhO3N0b3Atb3BhY2l0eToxIi8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPGNpcmNsZSBjeD0iNzYiIGN5PSI3NiIgcj0iNjMiIGZpbGw9IiM0YTkwZTIiLz4KPGNpcmNsZSBjeD0iNzYiIGN5PSI3NiIgcj0iNDciIGZpbGw9IiMxYTFhMmUiLz4KPGNpcmNsZSBjeD0iNzYiIGN5PSI3NiIgcj0iMzEiIGZpbGw9IiMzYjJlMmEiLz4KPHBhdGggZD0iTTc2IDMxTDk2IDYzSDU2TDc2IDMxWiIgZmlsbD0iI2ZmNDQ0NCIvPgo8cGF0aCBkPSJNNzYgMTIxTDU2IDg5SDk2TDc2IDEyMVoiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTMxIDc2TDU5IDU2Vjk2TDMxIDc2WiIgZmlsbD0iI2ZmNDQ0NCIvPgo8cGF0aCBkPSJNMTIxIDc2TDkzIDk2VjU2TDEyMSA3NloiIGZpbGw9IiNmZjQ0NDQiLz4KPHNwYW4geD0iNzYiIHk9IjEzMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5LYWRlbiAmPC9zcGFuPgo8c3BhbiB4PSI3MiIgeT0iMTQyIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiNmZmZmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkFkZWx5bm48L3NwYW4+Cjwvc3ZnPg==">
-    <link rel="apple-touch-icon" sizes="167x167" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTY3IiBoZWlnaHQ9IjE2NyIgdmlld0JveD0iMCAwIDE2NyAxNjciIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNjciIGhlaWdodD0iMTY3IiBmaWxsPSIjMDAwMDAwIi8+CjxyZWN0IHdpZHRoPSIxNjciIGhlaWdodD0iMTY3IiBmaWxsPSJ1cmwoI2dyYWRpZW50KSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJncmFkaWVudCIgeDE9IjAiIHkxPSIwIiB4Mj0iMTY3IiB5Mj0iMTY3IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CjxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM0YTkwZTI7c3RvcC1vcGFjaXR5OjEiLz4KPHN0b3Agb2Zmc2V0PSI1MCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMxYTFhMmU7c3RvcC1vcGFjaXR5OjEiLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojM2IyZTJhO3N0b3Atb3BhY2l0eToxIi8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPGNpcmNsZSBjeD0iODMuNSIgY3k9IjgzLjUiIHI9IjY5IiBmaWxsPSIjNGE5MGUyIi8+CjxjaXJjbGUgY3g9IjgzLjUiIGN5PSI4My41IiByPSI1MSIgZmlsbD0iIzFhMWEyZSIvPgo8Y2lyY2xlIGN4PSI4My41IiBjeT0iODMuNSIgcj0iMzMiIGZpbGw9IiMzYjJlMmEiLz4KPHBhdGggZD0iTTgzLjUgMzRMMTA0IDY5SDYzTDgzLjUgMzRaIiBmaWxsPSIjZmY0NDQ0Ii8+CjxwYXRoIGQ9Ik04My41IDEzM0w2MyA5OEgxMDRMODMuNSAxMzNaIiBmaWxsPSIjZmY0NDQ0Ii8+CjxwYXRoIGQ9Ik0zNCA4My41TDY0IDYxVjEwNkwzNCA4My41WiIgZmlsbD0iI2ZmNDQ0NCIvPgo8cGF0aCBkPSJNMTMzIDgzLjVMMTAzIDEwNlY2MUwxMzMgODMuNVoiIGZpbGw9IiNmZjQ0NDQiLz4KPHNwYW4geD0iODMuNSIgeT0iMTQwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTMiIGZpbGw9IiNmZmZmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkthZGVuICY8L3NwYW4+CjxzcGFuIHg9IjgzLjUiIHk9IjE1MyIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEzIiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5BZGVseW5uPC9zcGFuPgo8L3N2Zz4=">
-    <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDE4MCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiBmaWxsPSIjMDAwMDAwIi8+CjxyZWN0IHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiBmaWxsPSJ1cmwoI2dyYWRpZW50KSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJncmFkaWVudCIgeDE9IjAiIHkxPSIwIiB4Mj0iMTgwIiB5Mj0iMTgwIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CjxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM0YTkwZTI7c3RvcC1vcGFjaXR5OjEiLz4KPHN0b3Agb2Zmc2V0PSI1MCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMxYTFhMmU7c3RvcC1vcGFjaXR5OjEiLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojM2IyZTJhO3N0b3Atb3BhY2l0eToxIi8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNzUiIGZpbGw9IiM0YTkwZTIiLz4KPGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNTYiIGZpbGw9IiMxYTFhMmUiLz4KPGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iMzciIGZpbGw9IiMzYjJlMmEiLz4KPHBhdGggZD0iTTkwIDM3TDExMyA3NUg2N0w5MCAzN1oiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTkwIDE0M0w2NyAxMDVIMTEzTDkwIDE0M1oiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTM3IDkwTDc1IDY3VjExM0wzNyA5MFoiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTE0MyA5MEwxMDUgMTEzVjY3TDE0MyA5MFoiIGZpbGw9IiNmZjQ0NDQiLz4KPHNwYW4geD0iOTAiIHk9IjE1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5LYWRlbiAmPC9zcGFuPgo8c3BhbiB4PSI5MCIgeT0iMTY1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiNmZmZmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkFkZWx5bm48L3NwYW4+Cjwvc3ZnPg==">
-    
-    <!-- Microsoft Tiles -->
-    <meta name="msapplication-TileImage" content="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQ0IiBoZWlnaHQ9IjE0NCIgdmlld0JveD0iMCAwIDE0NCAxNDQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNDQiIGhlaWdodD0iMTQ0IiBmaWxsPSIjMDAwMDAwIi8+CjxyZWN0IHdpZHRoPSIxNDQiIGhlaWdodD0iMTQ0IiBmaWxsPSJ1cmwoI2dyYWRpZW50KSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJncmFkaWVudCIgeDE9IjAiIHkxPSIwIiB4Mj0iMTQ0IiB5Mj0iMTQ0IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CjxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM0YTkwZTI7c3RvcC1vcGFjaXR5OjEiLz4KPHN0b3Agb2Zmc2V0PSI1MCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMxYTFhMmU7c3RvcC1vcGFjaXR5OjEiLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojM2IyZTJhO3N0b3Atb3BhY2l0eToxIi8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPGNpcmNsZSBjeD0iNzIiIGN5PSI3MiIgcj0iNjAiIGZpbGw9IiM0YTkwZTIiLz4KPGNpcmNsZSBjeD0iNzIiIGN5PSI3MiIgcj0iNDUiIGZpbGw9IiMxYTFhMmUiLz4KPGNpcmNsZSBjeD0iNzIiIGN5PSI3MiIgcj0iMzAiIGZpbGw9IiMzYjJlMmEiLz4KPHBhdGggZD0iTTcyIDI5TDkwIDU5SDU0TDcyIDI5WiIgZmlsbD0iI2ZmNDQ0NCIvPgo8cGF0aCBkPSJNNzIgMTE1TDU0IDg1SDkwTDcyIDExNVoiIGZpbGw9IiNmZjQ0NDQiLz4KPHBhdGggZD0iTTI5IDcyTDU5IDU0VjkwTDI5IDcyWiIgZmlsbD0iI2ZmNDQ0NCIvPgo8cGF0aCBkPSJNMTE1IDcyTDg1IDkwVjU0TDExNSA3MloiIGZpbGw9IiNmZjQ0NDQiLz4KPHNwYW4geD0iNzIiIHk9IjEyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjExIiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5LYWRlbiAmPC9zcGFuPgo8c3BhbiB4PSI3MiIgeT0iMTMxIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiNmZmZmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkFkZWx5bm48L3NwYW4+Cjwvc3ZnPg==">
-    
-    <link rel="stylesheet" href="css/style.css?v=4.2">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Shooter Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        .game-container {
+            text-align: center;
+            position: relative;
+        }
+        
+        #gameCanvas {
+            border: 2px solid #4a90e2;
+            background: #000;
+            display: none;
+        }
+        
+        .screen {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 40px;
+            border-radius: 10px;
+            border: 2px solid #4a90e2;
+            max-width: 600px;
+            margin: 20px;
+        }
+        
+        .game-title {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #4a90e2;
+            text-shadow: 0 0 10px #4a90e2;
+        }
+        
+        .game-subtitle {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            color: #ccc;
+        }
+        
+        .controls {
+            background: rgba(74, 144, 226, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #4a90e2;
+        }
+        
+        .controls h3 {
+            color: #4a90e2;
+            margin-bottom: 10px;
+        }
+        
+        .controls ul {
+            text-align: left;
+            list-style: none;
+        }
+        
+        .controls li {
+            margin: 5px 0;
+            padding: 5px 0;
+        }
+        
+        .controls li:before {
+            content: "▶ ";
+            color: #4a90e2;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #4a90e2, #357abd);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:hover {
+            background: linear-gradient(45deg, #357abd, #4a90e2);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+        
+        .score-display {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #4a90e2;
+        }
+        
+        .score-display div {
+            margin: 5px 0;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .final-score {
+            font-size: 2em;
+            color: #4a90e2;
+            margin: 20px 0;
+        }
+        
+        .high-score {
+            font-size: 1.2em;
+            color: #ffd700;
+            margin: 10px 0;
+        }
+    </style>
 </head>
 <body>
-    <!-- Main Menu Container -->
-    <div id="mainMenu" class="main-menu">
-        <div id="startScreen" class="start-screen">
-            <!-- Hero Section -->
-            <div class="hero-section">
-                <div class="hero-content">
-                    <h1 class="game-title">Kaden & Adelynn<br>Space Adventures</h1>
-                    <p class="game-subtitle">🚀 Epic Space Shooter Game 🚀</p>
-                    <div class="hero-buttons">
-                        <button id="startBtn" class="hero-button primary">
-                            <span class="button-text">Start Game</span>
-                            <span class="button-icon">🚀</span>
-                        </button>
-                        <button id="toggleMultiplayer" class="hero-button secondary">
-                            <span class="button-text">Multiplayer</span>
-                            <span class="button-icon">👥</span>
-                        </button>
-                        <button id="fullScreenBtn" class="hero-button tertiary">
-                            <span class="button-text">Full Screen</span>
-                            <span class="button-icon">⛶</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="hero-visual">
-                    <div class="spaceship-preview">
-                        <div class="ship-glow"></div>
-                        <div class="ship-model">🚀</div>
-                    </div>
-                </div>
-            </div>
-
+    <div class="game-container">
+        <!-- Start Screen -->
+        <div id="startScreen" class="screen">
+            <h1 class="game-title">🚀 Space Shooter 🚀</h1>
+            <p class="game-subtitle">Defend the galaxy from enemy ships!</p>
             
-            <!-- Tab Content Container -->
-            <div class="tab-content-container">
-                <!-- Home Tab View -->
-                <div class="tab-view active" id="home-view">
-                    <div class="home-content">
-                        <div class="welcome-section">
-                            <h2>Welcome to Space Adventures!</h2>
-                            <p>Embark on an epic journey through the cosmos. Choose your hero, upgrade your ship, and defend the galaxy from the Zorath Empire!</p>
-                        </div>
-                        
-                        <div class="quick-actions">
-                            <h3>Quick Actions</h3>
-                            <div class="action-grid">
-                                <button class="action-card" onclick="document.querySelector('[data-tab=&quot;characters&quot;]').click()">
-                                    <div class="action-icon">👥</div>
-                                    <div class="action-title">Choose Character</div>
-                                    <div class="action-desc">Select your hero</div>
-                                </button>
-                                <button class="action-card" onclick="document.querySelector('[data-tab=&quot;ships&quot;]').click()">
-                                    <div class="action-icon">🚀</div>
-                                    <div class="action-title">Select Ship</div>
-                                    <div class="action-desc">Pick your vessel</div>
-                                </button>
-                                <button class="action-card" onclick="document.querySelector('[data-tab=&quot;story&quot;]').click()">
-                                    <div class="action-icon">📖</div>
-                                    <div class="action-title">View Story</div>
-                                    <div class="action-desc">Learn the lore</div>
-                                </button>
-                                <button class="action-card" onclick="document.querySelector('[data-tab=&quot;features&quot;]').click()">
-                                    <div class="action-icon">⭐</div>
-                                    <div class="action-title">Game Features</div>
-                                    <div class="action-desc">See what's included</div>
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="game-stats">
-                            <h3>Game Statistics</h3>
-                            <div class="stats-grid">
-                                <div class="stat-card">
-                                    <div class="stat-number">20</div>
-                                    <div class="stat-label">Epic Missions</div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-number">10</div>
-                                    <div class="stat-label">Unique Characters</div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-number">4</div>
-                                    <div class="stat-label">Ship Types</div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-number">∞</div>
-                                    <div class="stat-label">Fun Hours</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="pro-tips">
-                            <h3>💡 Pro Tips</h3>
-                            <div class="tips-grid">
-                                <div class="tip-item">
-                                    <div class="tip-icon">⌨️</div>
-                                    <div class="tip-text">Use arrow keys to move your ship</div>
-                                </div>
-                                <div class="tip-item">
-                                    <div class="tip-icon">🔫</div>
-                                    <div class="tip-text">Press SPACE to shoot enemies</div>
-                                </div>
-                                <div class="tip-item">
-                                    <div class="tip-icon">⚡</div>
-                                    <div class="tip-text">Collect power-ups for special abilities</div>
-                                </div>
-                                <div class="tip-item">
-                                    <div class="tip-icon">🛩️</div>
-                                    <div class="tip-text">Buy wingmen to help in battle</div>
-                                </div>
-                                <div class="tip-item">
-                                    <div class="tip-icon">🎯</div>
-                                    <div class="tip-text">Complete missions for rewards</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Story Tab View -->
-                <div class="tab-view" id="story-view">
-                    <div class="story-intro">
-                        <p class="story-tagline">🚀 Defend the Galaxy from the Zorath Empire! 🚀</p>
-                        <p class="story-brief">Rise from Cadet to Admiral in this epic space adventure. Complete missions, build your squadron, and become a legend!</p>
-                    </div>
-                    <div class="story-highlights">
-                        <div class="highlight-item">
-                            <span class="highlight-icon">🎖️</span>
-                            <span class="highlight-text">20 Epic Missions</span>
-                        </div>
-                        <div class="highlight-item">
-                            <span class="highlight-icon">👾</span>
-                            <span class="highlight-text">Epic Boss Battles</span>
-                        </div>
-                        <div class="highlight-item">
-                            <span class="highlight-icon">💰</span>
-                            <span class="highlight-text">Money System</span>
-                        </div>
-                        <div class="highlight-item">
-                            <span class="highlight-icon">🛩️</span>
-                            <span class="highlight-text">Wingman Squadrons</span>
-                        </div>
-                        <div class="highlight-item">
-                            <span class="highlight-icon">⚡</span>
-                            <span class="highlight-text">Special Abilities</span>
-                        </div>
-                        <div class="highlight-item">
-                            <span class="highlight-icon">🏆</span>
-                            <span class="highlight-text">Achievements</span>
-                        </div>
-                    </div>
-                    <div class="story-missions">
-                        <h3>Current Mission: Training Day</h3>
-                        <p>Complete your basic training to unlock advanced missions and special abilities.</p>
-                    </div>
-                </div>
-                
-                <!-- Characters Tab View -->
-                <div class="tab-view" id="characters-view">
-                    <div class="character-selection">
-                        <h3>Choose Your Hero:</h3>
-                        <div class="character-grid">
-                            <div class="character-card" data-character="kaden">
-                                <div class="character-avatar">👨🏾‍🚀</div>
-                                <h4>Kaden</h4>
-                                <p>Rapid Fire</p>
-                                <p class="character-desc">Enhanced firepower</p>
-                            </div>
-                            <div class="character-card" data-character="adelynn">
-                                <div class="character-avatar">👩🏼‍🚀</div>
-                                <h4>Adelynn</h4>
-                                <p>Shield Burst</p>
-                                <p class="character-desc">Defensive mastery</p>
-                            </div>
-                            <div class="character-card" data-character="nova">
-                                <div class="character-avatar">👨🏼‍🚀</div>
-                                <h4>Nova</h4>
-                                <p>Time Warp</p>
-                                <p class="character-desc">Reality-bending powers</p>
-                            </div>
-                            <div class="character-card" data-character="blaze">
-                                <div class="character-avatar">🔥</div>
-                                <h4>Blaze</h4>
-                                <p>Inferno Blast</p>
-                                <p class="character-desc">Explosive attacks</p>
-                            </div>
-                            <div class="character-card" data-character="zara">
-                                <div class="character-avatar">👩🏽‍🚀</div>
-                                <h4>Zara</h4>
-                                <p>Star Burst</p>
-                                <p class="character-desc">Cosmic explorer</p>
-                            </div>
-                            <div class="character-card" data-character="max">
-                                <div class="character-avatar">👨🏿‍🚀</div>
-                                <h4>Max</h4>
-                                <p>Speed Boost</p>
-                                <p class="character-desc">Fastest pilot</p>
-                            </div>
-                            <div class="character-card" data-character="luna">
-                                <div class="character-avatar">👩🏾‍🚀</div>
-                                <h4>Luna</h4>
-                                <p>Moon Beam</p>
-                                <p class="character-desc">Lunar energy</p>
-                            </div>
-                            <div class="character-card" data-character="rocket">
-                                <div class="character-avatar">🚀</div>
-                                <h4>Rocket</h4>
-                                <p>Rocket Boost</p>
-                                <p class="character-desc">Speed demon</p>
-                            </div>
-                            <div class="character-card" data-character="stella">
-                                <div class="character-avatar">⭐</div>
-                                <h4>Stella</h4>
-                                <p>Star Power</p>
-                                <p class="character-desc">Cosmic energy</p>
-                            </div>
-                            <div class="character-card" data-character="thunder">
-                                <div class="character-avatar">⚡</div>
-                                <h4>Thunder</h4>
-                                <p>Lightning Strike</p>
-                                <p class="character-desc">Electric attacks</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Controls Tab View -->
-                <div class="tab-view" id="controls-view">
-                    <div class="controls-section">
-                        <h3>🎮 Game Controls</h3>
-                        <div class="control-grid">
-                            <div class="control-item">
-                                <span class="control-key">↑↓←→</span>
-                                <span class="control-desc">Move Ship</span>
-                            </div>
-                            <div class="control-item">
-                                <span class="control-key">SPACE</span>
-                                <span class="control-desc">Shoot</span>
-                            </div>
-                            <div class="control-item">
-                                <span class="control-key">SHIFT</span>
-                                <span class="control-desc">Activate Shield</span>
-                            </div>
-                            <div class="control-item">
-                                <span class="control-key">Q</span>
-                                <span class="control-desc">Special Ability</span>
-                            </div>
-                            <div class="control-item">
-                                <span class="control-key">P</span>
-                                <span class="control-desc">Pause Game</span>
-                            </div>
-                            <div class="control-item">
-                                <span class="control-key">B</span>
-                                <span class="control-desc">Buy Wingman</span>
-                            </div>
-                            <div class="control-item">
-                                <span class="control-key">M</span>
-                                <span class="control-desc">Toggle Sound</span>
-                            </div>
-                            <div class="control-item">
-                                <span class="control-key">N</span>
-                                <span class="control-desc">Toggle Music</span>
-                            </div>
-                            <div class="control-item">
-                                <span class="control-key">T</span>
-                                <span class="control-desc">Toggle Story</span>
-                            </div>
-                            <div class="control-item mobile-only">
-                                <span class="control-key">👆 TOUCH</span>
-                                <span class="control-desc">Move & Shoot</span>
-                            </div>
-                            <div class="control-item mobile-only">
-                                <span class="control-key">👆 HOLD</span>
-                                <span class="control-desc">Auto Shoot</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Features Tab View -->
-                <div class="tab-view" id="features-view">
-                    <div class="features-section">
-                        <h3>⭐ Game Features</h3>
-                        <div class="feature-grid">
-                            <div class="feature-item">
-                                <span class="feature-icon">❤️</span>
-                                <span class="feature-text">50 Lives</span>
-                            </div>
-                            <div class="feature-item">
-                                <span class="feature-icon">🎯</span>
-                                <span class="feature-text">Enemy Ships Shoot Back</span>
-                            </div>
-                            <div class="feature-item">
-                                <span class="feature-icon">🏆</span>
-                                <span class="feature-text">Achievement System</span>
-                            </div>
-                            <div class="feature-item">
-                                <span class="feature-icon">💰</span>
-                                <span class="feature-text">Money & Economy</span>
-                            </div>
-                            <div class="feature-item">
-                                <span class="feature-icon">📋</span>
-                                <span class="feature-text">Story Missions</span>
-                            </div>
-                            <div class="feature-item">
-                                <span class="feature-icon">⚡</span>
-                                <span class="feature-text">Special Abilities</span>
-                            </div>
-                            <div class="feature-item">
-                                <span class="feature-icon">🛩️</span>
-                                <span class="feature-text">Wingman System</span>
-                            </div>
-                            <div class="feature-item">
-                                <span class="feature-icon">🎖️</span>
-                                <span class="feature-text">Rank Progression</span>
-                            </div>
-                            <div class="feature-item">
-                                <span class="feature-icon">🏆</span>
-                                <span class="feature-text">Achievements</span>
-                            </div>
-                            <div class="feature-item mobile-only">
-                                <span class="feature-icon">📱</span>
-                                <span class="feature-text">Touch Controls</span>
-                            </div>
-                            <div class="feature-item mobile-only">
-                                <span class="feature-icon">⚡</span>
-                                <span class="feature-text">Mobile Optimized</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Ships Tab View -->
-                <div class="tab-view" id="ships-view">
-                    <div class="ships-selection">
-                        <h3>🚀 Select Your Ship</h3>
-                        <div class="ships-grid">
-                            <div class="ship-card" data-ship="fighter">
-                                <div class="ship-avatar">🛸</div>
-                                <h4>Fighter</h4>
-                                <p>Balanced Attack & Defense</p>
-                                <p class="ship-desc">Perfect for beginners</p>
-                            </div>
-                            <div class="ship-card" data-ship="interceptor">
-                                <div class="ship-avatar">⚡</div>
-                                <h4>Interceptor</h4>
-                                <p>High Speed & Agility</p>
-                                <p class="ship-desc">Fast and nimble</p>
-                            </div>
-                            <div class="ship-card" data-ship="destroyer">
-                                <div class="ship-avatar">💥</div>
-                                <h4>Destroyer</h4>
-                                <p>Heavy Firepower</p>
-                                <p class="ship-desc">Maximum damage output</p>
-                            </div>
-                            <div class="ship-card" data-ship="defender">
-                                <div class="ship-avatar">🛡️</div>
-                                <h4>Defender</h4>
-                                <p>Enhanced Shields</p>
-                                <p class="ship-desc">Maximum survivability</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Radio Tab View -->
-                <div class="tab-view" id="radio-view">
-                    <div class="radio-section">
-                        <h3>📡 Radio Chatter</h3>
-                        <div class="radio-messages">
-                            <div class="radio-message">
-                                <span class="radio-time">[08:42]</span>
-                                <span class="radio-sender">Commander:</span>
-                                <span class="radio-text">"Cadet, welcome to the Space Academy. Your training begins now."</span>
-                            </div>
-                            <div class="radio-message">
-                                <span class="radio-time">[08:45]</span>
-                                <span class="radio-sender">Flight Control:</span>
-                                <span class="radio-text">"Enemy ships detected in sector 7. All pilots to battle stations!"</span>
-                            </div>
-                            <div class="radio-message">
-                                <span class="radio-time">[08:47]</span>
-                                <span class="radio-sender">Wingman Alpha:</span>
-                                <span class="radio-text">"I've got your back, rookie. Let's show them what we're made of!"</span>
-                            </div>
-                            <div class="radio-message">
-                                <span class="radio-time">[08:50]</span>
-                                <span class="radio-sender">Mission Control:</span>
-                                <span class="radio-text">"Boss ship approaching. This is your moment to prove yourself!"</span>
-                            </div>
-                        </div>
-                        <div class="radio-controls">
-                            <button class="radio-btn" id="toggleRadio">🔊 Toggle Radio</button>
-                            <button class="radio-btn" id="clearRadio">🗑️ Clear Messages</button>
-                        </div>
-                    </div>
-                </div>
+            <div class="controls">
+                <h3>🎮 Controls</h3>
+                <ul>
+                    <li>Arrow Keys or WASD - Move ship</li>
+                    <li>Spacebar - Shoot</li>
+                    <li>Destroy enemies to score points</li>
+                    <li>Avoid letting enemies pass you</li>
+                </ul>
             </div>
             
-            <!-- Remove duplicate buttons - they're now in the hero section -->
+            <button id="startBtn">Start Game</button>
         </div>
-    </div>
-    
-    <!-- Game Container (hidden by default) -->
-    <div id="game-container" class="game-container" style="display: none;">
+        
+        <!-- Game Canvas -->
         <canvas id="gameCanvas" width="800" height="600"></canvas>
         
-        <!-- Game UI Overlay -->
-        <div id="gameUI" class="game-ui">
-            <div class="game-stats">
-                <div class="stat-item">
-                    <span class="stat-label">Score:</span>
-                    <span id="score" class="stat-value">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Lives:</span>
-                    <span id="lives" class="stat-value">50</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Level:</span>
-                    <span id="level" class="stat-value">1</span>
-                </div>
-            </div>
-            
-            <!-- Game Controls -->
-            <div class="game-controls">
-                <button id="pauseBtn" class="game-btn">⏸️</button>
-                <button id="musicBtn" class="game-btn">🎵</button>
-                <button id="radioBtn" class="game-btn">📡</button>
-            </div>
+        <!-- Score Display -->
+        <div id="scoreDisplay" class="score-display hidden">
+            <div>Score: <span id="score">0</span></div>
+            <div>Lives: <span id="lives">3</span></div>
+            <div>Level: <span id="level">1</span></div>
         </div>
         
         <!-- Game Over Screen -->
-        <div id="gameOver" class="game-over-screen" style="display: none;">
-            <div class="game-over-content">
-                <h2>Game Over</h2>
-                <p>Final Score: <span id="finalScore">0</span></p>
-                <button id="restartBtn" class="restart-btn">Play Again</button>
-                <button id="menuBtn" class="menu-btn">Main Menu</button>
-            </div>
+        <div id="gameOverScreen" class="screen hidden">
+            <h2>Game Over!</h2>
+            <div class="final-score">Final Score: <span id="finalScore">0</span></div>
+            <div class="high-score">High Score: <span id="highScore">0</span></div>
+            <button id="restartBtn">Play Again</button>
         </div>
     </div>
     
-    <script>
-        // PWA Service Worker Registration
-        if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./js/sw.js')
-                    .then((registration) => {
-                        console.log('Service Worker registered successfully:', registration.scope);
-                        
-                        // Check for updates
-                        registration.addEventListener('updatefound', () => {
-                            const newWorker = registration.installing;
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // New version available
-                                    showUpdateNotification();
-                                }
-                            });
-                        });
-                    })
-                    .catch((error) => {
-                        console.error('Service Worker registration failed:', error);
-                    });
-            });
-        } else {
-            console.log('Service Worker not supported or not running on HTTPS/localhost');
-        }
-
-        // Show update notification
-        function showUpdateNotification() {
-            if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification('Space Adventures Updated!', {
-                    body: 'A new version is available. Refresh to update!',
-                    icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5yIiB2aWV3Qm94PSIwIDAgMTkyIDE5MiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIHJ4PSIyNCIgZmlsbD0iIzAwMDAwMCIvPgo8Y2lyY2xlIGN4PSI5NiIgY3k9Ijk2IiByPSI4MCIgZmlsbD0iIzRhOTBlMiIvPgo8L3N2Zz4=',
-                    tag: 'update-notification'
-                });
-            }
-        }
-
-        // Request notification permission
-        if ('Notification' in window && Notification.permission === 'default') {
-            // Request permission when user interacts with the page
-            document.addEventListener('click', () => {
-                Notification.requestPermission();
-            }, { once: true });
-        }
-    </script>
-    <script src="js/main.js?v=4.2"></script>
-    <!-- Mobile Tab Bar for navigation -->
-    <div class="mobile-tab-bar">
-        <button class="mobile-tab-btn" data-tab="home">🏠</button>
-        <button class="mobile-tab-btn" data-tab="story">📖</button>
-        <button class="mobile-tab-btn" data-tab="characters">👥</button>
-        <button class="mobile-tab-btn" data-tab="controls">🎮</button>
-        <button class="mobile-tab-btn" data-tab="features">⭐</button>
-        <button class="mobile-tab-btn" data-tab="ships">🚀</button>
-        <button class="mobile-tab-btn" data-tab="radio">📡</button>
-    </div>
+    <script src="js/main.js?v=1.1"></script>
 </body>
 </html> 
