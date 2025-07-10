@@ -1,6 +1,6 @@
-// Kaden & Adelynn Space Adventures - Enhanced Version 3.8
+// Kaden & Adelynn Space Adventures - Enhanced Version 3.9
 // A space shooter game with multiple ships, weapons, and power-ups
-// Boss battles, phases, checkpoint system, enhanced power-ups, advanced enemy types, advanced weapon systems, and environmental hazards
+// Boss battles, phases, checkpoint system, enhanced power-ups, advanced enemy types, advanced weapon systems, environmental hazards, and visual enhancements
 
 // Game variables
 let canvas, ctx, scoreElement, livesElement, levelElement, gameOverScreen, startScreen, finalScoreElement, restartBtn, startBtn, highScoreElement, fullscreenBtn;
@@ -590,6 +590,43 @@ const HAZARD_TYPES = {
     }
 };
 
+// Visual enhancement variables
+let particles = [];
+let screenShake = 0;
+let parallaxLayers = [];
+let lightingEffects = [];
+let shipDamageAnimation = 0;
+
+// Particle system
+class Particle {
+    constructor(x, y, color, velocity, life) {
+        this.x = x;
+        this.y = y;
+        this.vx = velocity.x;
+        this.vy = velocity.y;
+        this.color = color;
+        this.life = life;
+        this.maxLife = life;
+        this.size = Math.random() * 3 + 1;
+    }
+    
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.life--;
+        this.vx *= 0.98;
+        this.vy *= 0.98;
+    }
+    
+    draw(ctx) {
+        const alpha = this.life / this.maxLife;
+        ctx.fillStyle = `rgba(${this.color}, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
 // Initialize game elements
 function initializeGameElements() {
     console.log('=== GAME INITIALIZATION START ===');
@@ -790,6 +827,13 @@ function startGame() {
     explosions = [];
     powerUps = [];
     collectibles = [];
+    particles = [];
+    lightingEffects = [];
+    screenShake = 0;
+    shipDamageAnimation = 0;
+    
+    // Initialize visual effects
+    initParallaxBackground();
     
     // Initialize stars
     initStars();
@@ -809,7 +853,12 @@ function gameLoop() {
         updatePowerUps();
         updatePowerUpEffects();
         updateWeaponSystems();
-        updateHazards(); // Add this line
+        updateHazards();
+        updateParticles(); // Add this line
+        updateScreenShake(); // Add this line
+        updateParallaxBackground(); // Add this line
+        updateLightingEffects(); // Add this line
+        updateShipDamageAnimation(); // Add this line
         updateCollectibles();
         updateExplosions();
         updateStars();
@@ -819,7 +868,7 @@ function gameLoop() {
         spawnEnemy();
         spawnPowerUp();
         spawnCollectible();
-        spawnHazards(); // Add this line
+        spawnHazards();
         render();
     }
     
@@ -2061,8 +2110,14 @@ function render() {
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Draw stars
-    drawStars();
+    // Draw parallax background
+    drawParallaxBackground();
+    
+    // Draw lighting effects
+    drawLightingEffects();
+    
+    // Draw particles
+    drawParticles();
     
     // Draw player
     drawPlayer();
@@ -2151,6 +2206,21 @@ function drawBullets() {
 // Enhanced player ship drawing with detailed designs
 function drawPlayer() {
     if (!player.invulnerable || Math.floor(Date.now() / 100) % 2) {
+        // Apply screen shake
+        const shakeX = screenShake > 0 ? (Math.random() - 0.5) * screenShake : 0;
+        const shakeY = screenShake > 0 ? (Math.random() - 0.5) * screenShake : 0;
+        
+        ctx.save();
+        ctx.translate(shakeX, shakeY);
+        
+        // Draw damage animation effect
+        if (shipDamageAnimation > 0) {
+            ctx.globalAlpha = 0.5;
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(player.x - 5, player.y - 5, player.width + 10, player.height + 10);
+            ctx.globalAlpha = 1;
+        }
+        
         // Draw shield effect
         if (player.shieldActive) {
             ctx.strokeStyle = '#8888ff';
@@ -2161,6 +2231,7 @@ function drawPlayer() {
             ctx.stroke();
         }
         
+        // Draw ship
         const shipDesign = SHIP_DESIGNS[player.shipType];
         
         switch(player.shipType) {
@@ -2177,6 +2248,8 @@ function drawPlayer() {
                 drawCruiserShip(player.x, player.y, player.width, player.height, shipDesign);
                 break;
         }
+        
+        ctx.restore();
     }
 }
 
@@ -2696,11 +2769,21 @@ function createPlayerHitEffect() {
     player.invulnerable = true;
     player.invulnerabilityTime = Date.now() + PLAYER_INVULNERABILITY_TIME;
     
+    // Create explosion
     explosions.push({
         x: player.x + player.width / 2,
         y: player.y + player.height / 2,
         life: 15
     });
+    
+    // Create particles
+    createParticles(player.x + player.width / 2, player.y + player.height / 2, '255, 0, 0', 20);
+    
+    // Add screen shake
+    addScreenShake(5);
+    
+    // Trigger ship damage animation
+    triggerShipDamageAnimation();
     
     if (player.health <= 0) {
         lives--;
@@ -2719,6 +2802,18 @@ function createExplosion(x, y) {
         y: y,
         life: 10
     });
+    
+    // Create particle effects
+    createParticles(x, y, '255, 255, 255', 15);
+    createParticles(x, y, '255, 200, 0', 10);
+    createParticles(x, y, '255, 100, 0', 5);
+    
+    // Add screen shake
+    addScreenShake(3);
+    
+    // Create lighting effect
+    createLightingEffect(x, y, '#ffff00', 0.5);
+    
     playSound('explosion');
 }
 
@@ -2772,5 +2867,151 @@ function drawHazards() {
         ctx.font = '16px Arial';
         ctx.textAlign = 'center';
         ctx.fillText('⚠️', zone.x + zone.width/2, zone.y + zone.height/2 + 6);
+    }
+}
+
+// Create particle effects
+function createParticles(x, y, color, count = 10) {
+    for (let i = 0; i < count; i++) {
+        particles.push(new Particle(
+            x,
+            y,
+            color,
+            {
+                x: (Math.random() - 0.5) * 4,
+                y: (Math.random() - 0.5) * 4
+            },
+            Math.random() * 30 + 20
+        ));
+    }
+}
+
+// Update particles
+function updateParticles() {
+    for (let i = particles.length - 1; i >= 0; i--) {
+        particles[i].update();
+        if (particles[i].life <= 0) {
+            particles.splice(i, 1);
+        }
+    }
+}
+
+// Draw particles
+function drawParticles() {
+    for (let particle of particles) {
+        particle.draw(ctx);
+    }
+}
+
+// Screen shake effect
+function addScreenShake(intensity = 5) {
+    screenShake = Math.max(screenShake, intensity);
+}
+
+function updateScreenShake() {
+    if (screenShake > 0) {
+        screenShake *= 0.9;
+        if (screenShake < 0.1) screenShake = 0;
+    }
+}
+
+// Parallax background system
+function initParallaxBackground() {
+    parallaxLayers = [
+        {
+            stars: [],
+            speed: 0.5,
+            color: '#ffffff'
+        },
+        {
+            stars: [],
+            speed: 1,
+            color: '#cccccc'
+        },
+        {
+            stars: [],
+            speed: 1.5,
+            color: '#888888'
+        }
+    ];
+    
+    // Initialize stars for each layer
+    for (let layer of parallaxLayers) {
+        for (let i = 0; i < 50; i++) {
+            layer.stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 2 + 1
+            });
+        }
+    }
+}
+
+function updateParallaxBackground() {
+    for (let layer of parallaxLayers) {
+        for (let star of layer.stars) {
+            star.y += layer.speed;
+            if (star.y > canvas.height) {
+                star.y = -5;
+                star.x = Math.random() * canvas.width;
+            }
+        }
+    }
+}
+
+function drawParallaxBackground() {
+    for (let layer of parallaxLayers) {
+        ctx.fillStyle = layer.color;
+        for (let star of layer.stars) {
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+}
+
+// Lighting effects
+function createLightingEffect(x, y, color, intensity) {
+    lightingEffects.push({
+        x: x,
+        y: y,
+        color: color,
+        intensity: intensity,
+        life: 30
+    });
+}
+
+function updateLightingEffects() {
+    for (let i = lightingEffects.length - 1; i >= 0; i--) {
+        lightingEffects[i].life--;
+        if (lightingEffects[i].life <= 0) {
+            lightingEffects.splice(i, 1);
+        }
+    }
+}
+
+function drawLightingEffects() {
+    for (let effect of lightingEffects) {
+        const alpha = effect.life / 30;
+        const gradient = ctx.createRadialGradient(
+            effect.x, effect.y, 0,
+            effect.x, effect.y, 100
+        );
+        gradient.addColorStop(0, `${effect.color}${Math.floor(alpha * 255).toString(16).padStart(2, '0')}`);
+        gradient.addColorStop(1, 'transparent');
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(effect.x - 100, effect.y - 100, 200, 200);
+    }
+}
+
+// Ship damage animation
+function triggerShipDamageAnimation() {
+    shipDamageAnimation = 10;
+}
+
+function updateShipDamageAnimation() {
+    if (shipDamageAnimation > 0) {
+        shipDamageAnimation--;
     }
 }
