@@ -5115,7 +5115,8 @@ function setupCharacterSelection() {
 }
 
 function setupTabNavigation() {
-    const tabButtons = document.querySelectorAll('.tab-button');
+    // Use mobile tab buttons instead of desktop tab buttons
+    const tabButtons = document.querySelectorAll('.mobile-tab-btn');
     const tabViews = document.querySelectorAll('.tab-view');
     
     tabButtons.forEach(button => {
