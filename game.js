@@ -691,7 +691,7 @@ class Player {
         this.y = y;
         this.width = 40;
         this.height = 30;
-        this.speed = 200; // pixels per second (was 5 per frame)
+        this.speed = 150; // pixels per second - reduced from 200 for better balance
         this.lastShot = Date.now();
         this.shotCooldown = 200; // milliseconds
         this.weaponLevel = 1;
@@ -704,7 +704,7 @@ class Player {
     
     update(deltaTime, keys) {
         // Movement - scale by deltaTime for consistent speed
-        const moveSpeed = this.speed * (deltaTime / 16.67); // 16.67ms = 60fps
+        const moveSpeed = this.speed * (deltaTime / 1000); // Convert to pixels per second
         
         if (keys['ArrowLeft']) this.x -= moveSpeed;
         if (keys['ArrowRight']) this.x += moveSpeed;
@@ -805,7 +805,7 @@ class Enemy {
         this.y = y;
         this.width = 30;
         this.height = 25;
-        this.speed = 50 + Math.random() * 30; // pixels per second (was 2-4 per frame)
+        this.speed = 80 + Math.random() * 40; // pixels per second - increased from 50-80 to 80-120
         this.shootCooldown = 2000 + Math.random() * 1000; // 2-3 seconds between shots
         this.lastShot = Date.now();
     }
@@ -823,7 +823,7 @@ class Enemy {
         this.lastShot = Date.now();
         console.log('Enemy shooting straight down');
         // Shoot straight down
-        return new Bullet(this.x + this.width/2 - 2, this.y + this.height, 0, 200, true); // 200 pixels per second
+        return new Bullet(this.x + this.width/2 - 2, this.y + this.height, 0, 250, true); // 250 pixels per second - increased from 200
     }
     
     draw(ctx) {
@@ -849,7 +849,7 @@ class SidewaysEnemy {
         this.y = y;
         this.width = 35;
         this.height = 20;
-        this.speed = 40 + Math.random() * 20; // pixels per second (was 1.5-3 per frame)
+        this.speed = 60 + Math.random() * 30; // pixels per second - increased from 40-60 to 60-90
         this.shootCooldown = 2500 + Math.random() * 1500; // 2.5-4 seconds between shots
         this.lastShot = Date.now();
         this.shootDirection = Math.random() < 0.5 ? 'left' : 'right'; // Random initial direction
@@ -870,8 +870,8 @@ class SidewaysEnemy {
         
         // Shoot left and right bullets
         const bullets = [];
-        bullets.push(new Bullet(this.x, this.y + this.height/2, -200, 0, true)); // Left bullet, 200 pixels per second
-        bullets.push(new Bullet(this.x + this.width, this.y + this.height/2, 200, 0, true)); // Right bullet, 200 pixels per second
+        bullets.push(new Bullet(this.x, this.y + this.height/2, -250, 0, true)); // Left bullet, 250 pixels per second
+        bullets.push(new Bullet(this.x + this.width, this.y + this.height/2, 250, 0, true)); // Right bullet, 250 pixels per second
         
         // Toggle direction for next shot
         this.shootDirection = this.shootDirection === 'left' ? 'right' : 'left';
@@ -908,8 +908,8 @@ class Bullet {
     }
     
     update(deltaTime) {
-        this.x += this.vx * (deltaTime / 16.67); // Scale by deltaTime
-        this.y += this.vy * (deltaTime / 16.67); // Scale by deltaTime
+        this.x += this.vx * (deltaTime / 1000); // Convert to pixels per second
+        this.y += this.vy * (deltaTime / 1000); // Convert to pixels per second
     }
     
     draw(ctx) {
@@ -931,8 +931,8 @@ class Particle {
     }
     
     update(deltaTime) {
-        this.x += this.vx * (deltaTime / 16.67); // Scale by deltaTime
-        this.y += this.vy * (deltaTime / 16.67); // Scale by deltaTime
+        this.x += this.vx * (deltaTime / 1000); // Convert to pixels per second
+        this.y += this.vy * (deltaTime / 1000); // Convert to pixels per second
         this.life--;
     }
     
@@ -954,7 +954,7 @@ class Collectible {
         this.width = 32;
         this.height = 32;
         this.emoji = type === 'weapon' ? '🚀' : type === 'health' ? '❤️' : '💰';
-        this.speed = 30; // pixels per second (was 2 per frame)
+        this.speed = 50; // pixels per second - increased from 30 for better gameplay
     }
     update(deltaTime) {
         this.y += this.speed * (deltaTime / 1000); // Convert to pixels per second
