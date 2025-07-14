@@ -691,7 +691,7 @@ class Player {
         this.y = y;
         this.width = 40;
         this.height = 30;
-        this.speed = 150; // pixels per second - reduced from 200 for better balance
+        this.speed = 300; // pixels per second - increased for normal movement
         this.lastShot = Date.now();
         this.shotCooldown = 200; // milliseconds
         this.weaponLevel = 1;
@@ -805,7 +805,7 @@ class Enemy {
         this.y = y;
         this.width = 30;
         this.height = 25;
-        this.speed = 80 + Math.random() * 40; // pixels per second - increased from 50-80 to 80-120
+        this.speed = 120 + Math.random() * 60; // pixels per second - increased for normal movement
         this.shootCooldown = 2000 + Math.random() * 1000; // 2-3 seconds between shots
         this.lastShot = Date.now();
     }
@@ -849,7 +849,7 @@ class SidewaysEnemy {
         this.y = y;
         this.width = 35;
         this.height = 20;
-        this.speed = 60 + Math.random() * 30; // pixels per second - increased from 40-60 to 60-90
+        this.speed = 100 + Math.random() * 40; // pixels per second - increased for normal movement
         this.shootCooldown = 2500 + Math.random() * 1500; // 2.5-4 seconds between shots
         this.lastShot = Date.now();
         this.shootDirection = Math.random() < 0.5 ? 'left' : 'right'; // Random initial direction
@@ -954,7 +954,7 @@ class Collectible {
         this.width = 32;
         this.height = 32;
         this.emoji = type === 'weapon' ? '🚀' : type === 'health' ? '❤️' : '💰';
-        this.speed = 50; // pixels per second - increased from 30 for better gameplay
+        this.speed = 80; // pixels per second - increased for normal movement
     }
     update(deltaTime) {
         this.y += this.speed * (deltaTime / 1000); // Convert to pixels per second
