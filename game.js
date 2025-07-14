@@ -14,7 +14,7 @@ class Game {
         this.collectibles = [];
         
         this.score = 0;
-        this.lives = 3;
+        this.lives = 5;
         this.level = 1;
         this.gameState = 'start'; // Add game state
         this.gameRunning = false;
@@ -279,7 +279,7 @@ class Game {
         this.gameState = 'playing';
         this.gameRunning = true;
         this.score = 0;
-        this.lives = 3;
+        this.lives = 5;
         this.level = 1;
         this.money = 0; // Reset money for new game
         this.enemies = [];
@@ -372,11 +372,19 @@ class Game {
         
         // Dynamic enemy spawn rate
         this.enemySpawnTimer += deltaTime;
-        // Decrease interval as score increases (min 400ms)
-        this.enemySpawnInterval = Math.max(400, 1200 - Math.floor(this.score / 50) * 100);
+        // Decrease interval as score increases (min 300ms)
+        this.enemySpawnInterval = Math.max(300, 1200 - Math.floor(this.score / 50) * 100);
         if (this.enemySpawnTimer > this.enemySpawnInterval) {
             this.spawnEnemy();
             this.enemySpawnTimer = 0;
+            
+            // Spawn additional enemies at higher scores
+            if (this.score > 200 && Math.random() < 0.3) {
+                this.spawnEnemy(); // Spawn second enemy
+            }
+            if (this.score > 500 && Math.random() < 0.2) {
+                this.spawnEnemy(); // Spawn third enemy
+            }
         }
         
         // Update enemies
