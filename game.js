@@ -650,7 +650,7 @@ class Player {
         this.width = 40;
         this.height = 30;
         this.speed = 5;
-        this.lastShot = 0;
+        this.lastShot = Date.now();
         this.shotCooldown = 200; // milliseconds
         this.weaponLevel = 1;
         this.game = null; // Reference to game for upgrades

@@ -19,29 +19,82 @@
         <canvas id="gameCanvas" width="800" height="600"></canvas>
         
         <div id="startScreen" class="screen">
-            <h1>🚀 Kaden & Adelynn Adventures</h1>
-            <p><strong>Controls:</strong> Arrow keys/WASD to move, <strong>SPACEBAR to shoot</strong></p>
-            <p><strong>Mobile:</strong> Touch and drag to move, <strong>touch to shoot</strong></p>
-            <p>Collect 💰 money to buy upgrades! <strong>Press P for shop</strong></p>
-            <p><strong>Shop Items:</strong></p>
-            <ul style="text-align: left; max-width: 400px; margin: 0 auto; font-size: 14px;">
-                <li>🔫 Weapon Upgrades - Better damage</li>
-                <li>🛡️ Shield - Block enemy bullets</li>
-                <li>⚡ Rapid Fire - Faster shooting</li>
-                <li>🎯 Homing Missiles - Auto-targeting</li>
-                <li>🔫 Multi Shot - Multiple bullets</li>
-                <li>⭐ Score Multiplier - 2x points</li>
-                <li>❤️ Extra Life - Gain 1 life</li>
-                <li>💥 Special Weapon - Powerful one-time weapon</li>
-            </ul>
-            <button id="startBtn">Start Game</button>
+            <div class="menu-header">
+                <h1>🚀 Kaden & Adelynn Adventures</h1>
+                <p class="subtitle">Space Combat Simulator</p>
+            </div>
+            
+            <div class="menu-content">
+                <div class="controls-section">
+                    <h3>🎮 Controls</h3>
+                    <div class="control-grid">
+                        <div class="control-item">
+                            <span class="control-key">WASD</span>
+                            <span class="control-desc">Move Ship</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="control-key">SPACEBAR</span>
+                            <span class="control-desc">Fire Weapons</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="control-key">P</span>
+                            <span class="control-desc">Open Shop</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="control-key">S</span>
+                            <span class="control-desc">Special Weapon</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mobile-section">
+                    <h3>📱 Mobile Controls</h3>
+                    <p>Touch and drag to move • Tap to shoot automatically</p>
+                </div>
+                
+                <div class="shop-section">
+                    <h3>🛒 Shop System</h3>
+                    <p>Collect 💰 money to purchase upgrades!</p>
+                    <div class="shop-items">
+                        <div class="shop-item">🔫 Weapon Upgrades</div>
+                        <div class="shop-item">🛡️ Shield Protection</div>
+                        <div class="shop-item">⚡ Rapid Fire</div>
+                        <div class="shop-item">🎯 Homing Missiles</div>
+                        <div class="shop-item">🔫 Multi Shot</div>
+                        <div class="shop-item">⭐ Score Multiplier</div>
+                        <div class="shop-item">❤️ Extra Lives</div>
+                        <div class="shop-item">💥 Special Weapons</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="menu-footer">
+                <button id="startBtn" class="primary-btn">🚀 Start Mission</button>
+            </div>
         </div>
         
         <div id="gameOverScreen" class="screen hidden">
-            <h2>Game Over</h2>
-            <p>Final Score: <span id="finalScore">0</span></p>
-            <p>Money Collected: <span id="finalMoney">0</span></p>
-            <button id="restartBtn">Play Again</button>
+            <div class="menu-header">
+                <h2>💀 Mission Failed</h2>
+                <p class="subtitle">Game Over</p>
+            </div>
+            
+            <div class="menu-content">
+                <div class="stats-section">
+                    <div class="stat-item">
+                        <span class="stat-label">Final Score:</span>
+                        <span class="stat-value" id="finalScore">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Money Collected:</span>
+                        <span class="stat-value" id="finalMoney">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="menu-footer">
+                <button id="restartBtn" class="primary-btn">🔄 New Mission</button>
+            </div>
         </div>
     </div>
     
