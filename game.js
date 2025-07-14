@@ -111,8 +111,15 @@ class Game {
             enemy.update(deltaTime);
             // Enemy shooting logic
             if (enemy.canShoot()) {
-                const bullet = enemy.shootAt(this.player);
-                if (bullet) this.enemyBullets.push(bullet);
+                const bullets = enemy.shootAt(this.player);
+                if (bullets) {
+                    // Handle both single bullets and arrays of bullets
+                    if (Array.isArray(bullets)) {
+                        bullets.forEach(bullet => this.enemyBullets.push(bullet));
+                    } else {
+                        this.enemyBullets.push(bullets);
+                    }
+                }
             }
         });
         
@@ -160,8 +167,14 @@ class Game {
     
     spawnEnemy() {
         const x = Math.random() * (this.canvas.width - 40);
-        const enemy = new Enemy(x, -30);
-        this.enemies.push(enemy);
+        // 70% chance for regular enemy, 30% chance for sideways enemy
+        if (Math.random() < 0.7) {
+            const enemy = new Enemy(x, -30);
+            this.enemies.push(enemy);
+        } else {
+            const sidewaysEnemy = new SidewaysEnemy(x, -30);
+            this.enemies.push(sidewaysEnemy);
+        }
     }
     
     checkCollisions() {
@@ -400,6 +413,59 @@ class Enemy {
         // Draw enemy cockpit
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(this.x + this.width/2 - 2, this.y + 2, 4, 6);
+    }
+}
+
+// SidewaysEnemy class - shoots left and right
+class SidewaysEnemy {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.width = 35;
+        this.height = 20;
+        this.speed = 1.5 + Math.random() * 1.5; // Slightly slower
+        this.shootCooldown = 2500 + Math.random() * 1500; // 2.5-4 seconds between shots
+        this.lastShot = Date.now();
+        this.shootDirection = Math.random() < 0.5 ? 'left' : 'right'; // Random initial direction
+    }
+    
+    update(deltaTime) {
+        this.y += this.speed;
+    }
+    
+    canShoot() {
+        return Date.now() - this.lastShot > this.shootCooldown;
+    }
+    
+    shootAt(player) {
+        if (!player) return null;
+        this.lastShot = Date.now();
+        console.log('Sideways enemy shooting ' + this.shootDirection);
+        
+        // Shoot left and right bullets
+        const bullets = [];
+        bullets.push(new Bullet(this.x, this.y + this.height/2, -4, 0, true)); // Left bullet
+        bullets.push(new Bullet(this.x + this.width, this.y + this.height/2, 4, 0, true)); // Right bullet
+        
+        // Toggle direction for next shot
+        this.shootDirection = this.shootDirection === 'left' ? 'right' : 'left';
+        
+        return bullets;
+    }
+    
+    draw(ctx) {
+        // Draw sideways enemy ship (purple rectangle with wings)
+        ctx.fillStyle = '#8844ff';
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+        
+        // Draw wings
+        ctx.fillStyle = '#6622cc';
+        ctx.fillRect(this.x - 5, this.y + 5, 5, 10);
+        ctx.fillRect(this.x + this.width, this.y + 5, 5, 10);
+        
+        // Draw cockpit
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(this.x + this.width/2 - 3, this.y + 5, 6, 8);
     }
 }
 
