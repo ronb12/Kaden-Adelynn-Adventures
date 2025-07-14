@@ -555,6 +555,26 @@ class Game {
             o.onended = () => ctx.close();
         };
     }
+    
+    shootSound() {
+        // Simple beep sound for shooting
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.type = 'square';
+            o.frequency.value = 440;
+            g.gain.value = 0.1;
+            o.connect(g);
+            g.connect(ctx.destination);
+            o.start();
+            o.stop(ctx.currentTime + 0.08);
+            o.onended = () => ctx.close();
+        } catch (e) {
+            // Silently fail if audio is not supported
+            console.log('Audio not supported');
+        }
+    }
 
     activateSpecialWeapon() {
         if (this.specialWeapons.length > 0) {
