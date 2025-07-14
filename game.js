@@ -279,14 +279,18 @@ class Game {
             
             // Handle shooting (automatic when space is held)
             if (this.keys['Space']) {
+                console.log('Space key pressed, attempting to shoot');
                 const bullets = this.player.shoot();
                 if (bullets) {
+                    console.log('Bullets created:', bullets.length);
                     if (Array.isArray(bullets)) {
                         this.bullets.push(...bullets);
                     } else {
                         this.bullets.push(bullets);
                     }
                     this.shootSound();
+                } else {
+                    console.log('No bullets created (cooldown)');
                 }
             }
         }
@@ -642,10 +646,8 @@ class Player {
             this.lastShot = now;
             const bullets = [];
             
-            // Base weapon level
-            if (this.game && this.game.weaponLevel >= 1) {
-                bullets.push(new Bullet(this.x + this.width/2 - 2, this.y, 0, -8));
-            }
+            // Always shoot at least one bullet
+            bullets.push(new Bullet(this.x + this.width/2 - 2, this.y, 0, -8));
             
             // Multi shot ability
             if (this.game && this.game.specialAbilities.multiShot) {
@@ -653,13 +655,13 @@ class Player {
                 bullets.push(new Bullet(this.x + this.width - 12, this.y, 0, -8));
             }
             
-            // Weapon level 2+ (double shot)
+            // Weapon level 2+ (double shot) - only if not multi shot
             if (this.game && this.game.weaponLevel >= 2 && !this.game.specialAbilities.multiShot) {
                 bullets.push(new Bullet(this.x + 8, this.y, 0, -8));
                 bullets.push(new Bullet(this.x + this.width - 12, this.y, 0, -8));
             }
             
-            // Weapon level 3+ (triple shot)
+            // Weapon level 3+ (triple shot) - additional center bullet
             if (this.game && this.game.weaponLevel >= 3) {
                 bullets.push(new Bullet(this.x + this.width/2 - 2, this.y, 0, -10)); // Center, faster
             }
@@ -683,7 +685,7 @@ class Player {
                 }
             }
             
-            return bullets.length > 0 ? bullets : null;
+            return bullets;
         }
         return null;
     }
