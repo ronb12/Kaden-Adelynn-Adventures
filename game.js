@@ -382,14 +382,9 @@ class Enemy {
     shootAt(player) {
         if (!player) return null;
         this.lastShot = Date.now();
-        console.log('Enemy shooting at player');
-        // Aim at player
-        const dx = (player.x + player.width/2) - (this.x + this.width/2);
-        const dy = (player.y + player.height/2) - (this.y + this.height);
-        const mag = Math.sqrt(dx*dx + dy*dy);
-        const vx = (dx / mag) * 4;
-        const vy = (dy / mag) * 4;
-        return new Bullet(this.x + this.width/2 - 2, this.y + this.height, vx, vy, true);
+        console.log('Enemy shooting straight down');
+        // Shoot straight down
+        return new Bullet(this.x + this.width/2 - 2, this.y + this.height, 0, 4, true);
     }
     
     draw(ctx) {
