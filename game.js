@@ -20,6 +20,9 @@ class Game {
         this.gameRunning = false;
         this.lastTime = 0;
         
+        // Top score tracking
+        this.topScore = this.loadTopScore();
+        
         // Enemy spawning
         this.enemySpawnTimer = 0;
         this.enemySpawnInterval = 1200;
@@ -54,6 +57,19 @@ class Game {
         this.keys = {};
         this.setupInput();
         this.createShootSound = this.createShootSound();
+    }
+    
+    loadTopScore() {
+        const topScore = localStorage.getItem('topScore');
+        return topScore ? parseInt(topScore) : 0;
+    }
+    
+    saveTopScore() {
+        localStorage.setItem('topScore', this.topScore);
+    }
+    
+    initializeTopScoreDisplay() {
+        document.getElementById('topScoreDisplay').textContent = this.topScore;
     }
     
     setupInput() {
@@ -297,8 +313,33 @@ class Game {
     
     gameOver() {
         this.gameState = 'gameOver';
+        
+        // Check if current score is higher than top score
+        const isNewRecord = this.score > this.topScore;
+        if (isNewRecord) {
+            this.topScore = this.score;
+            this.saveTopScore();
+        }
+        
         document.getElementById('finalScore').textContent = this.score;
         document.getElementById('finalMoney').textContent = this.money;
+        document.getElementById('topScore').textContent = this.topScore;
+        
+        // Show new record message if applicable
+        const newRecordElement = document.getElementById('newRecord');
+        if (isNewRecord) {
+            if (!newRecordElement) {
+                const statsSection = document.querySelector('.stats-section');
+                const newRecordDiv = document.createElement('div');
+                newRecordDiv.id = 'newRecord';
+                newRecordDiv.className = 'new-record';
+                newRecordDiv.innerHTML = '🎉 NEW RECORD! 🎉';
+                statsSection.insertBefore(newRecordDiv, statsSection.firstChild);
+            }
+        } else if (newRecordElement) {
+            newRecordElement.remove();
+        }
+        
         document.getElementById('gameOverScreen').classList.remove('hidden');
     }
     
@@ -496,7 +537,7 @@ class Game {
     createExplosion(x, y) {
         for (let i = 0; i < 8; i++) {
             const angle = (Math.PI * 2 * i) / 8;
-            const speed = 2 + Math.random() * 2;
+            const speed = 100 + Math.random() * 100; // 100-200 pixels per second
             const particle = new Particle(
                 x, y,
                 Math.cos(angle) * speed,
@@ -511,6 +552,7 @@ class Game {
         document.getElementById('score').textContent = this.score;
         document.getElementById('lives').textContent = this.lives;
         document.getElementById('level').textContent = this.level;
+        document.getElementById('topScoreDisplay').textContent = this.topScore;
         
         // Add money display to HUD
         const moneyElement = document.getElementById('money');
@@ -628,7 +670,7 @@ class Game {
                 // Create a big explosion effect
                 for (let i = 0; i < 20; i++) {
                     const angle = (Math.PI * 2 * i) / 20;
-                    const speed = 3 + Math.random() * 3;
+                    const speed = 150 + Math.random() * 150; // 150-300 pixels per second
                     const particle = new Particle(
                         this.canvas.width/2, this.canvas.height/2,
                         Math.cos(angle) * speed,
@@ -649,7 +691,7 @@ class Player {
         this.y = y;
         this.width = 40;
         this.height = 30;
-        this.speed = 5;
+        this.speed = 200; // pixels per second (was 5 per frame)
         this.lastShot = Date.now();
         this.shotCooldown = 200; // milliseconds
         this.weaponLevel = 1;
@@ -661,11 +703,13 @@ class Player {
     }
     
     update(deltaTime, keys) {
-        // Movement
-        if (keys['ArrowLeft']) this.x -= this.speed;
-        if (keys['ArrowRight']) this.x += this.speed;
-        if (keys['ArrowUp']) this.y -= this.speed;
-        if (keys['ArrowDown']) this.y += this.speed;
+        // Movement - scale by deltaTime for consistent speed
+        const moveSpeed = this.speed * (deltaTime / 16.67); // 16.67ms = 60fps
+        
+        if (keys['ArrowLeft']) this.x -= moveSpeed;
+        if (keys['ArrowRight']) this.x += moveSpeed;
+        if (keys['ArrowUp']) this.y -= moveSpeed;
+        if (keys['ArrowDown']) this.y += moveSpeed;
         
         // Keep player on screen
         this.x = Math.max(0, Math.min(760, this.x));
@@ -681,23 +725,23 @@ class Player {
             const bullets = [];
             
             // Always shoot at least one bullet
-            bullets.push(new Bullet(this.x + this.width/2 - 2, this.y, 0, -8));
+            bullets.push(new Bullet(this.x + this.width/2 - 2, this.y, 0, -300)); // 300 pixels per second
             
             // Multi shot ability
             if (this.game && this.game.specialAbilities.multiShot) {
-                bullets.push(new Bullet(this.x + 8, this.y, 0, -8));
-                bullets.push(new Bullet(this.x + this.width - 12, this.y, 0, -8));
+                bullets.push(new Bullet(this.x + 8, this.y, 0, -300));
+                bullets.push(new Bullet(this.x + this.width - 12, this.y, 0, -300));
             }
             
             // Weapon level 2+ (double shot) - only if not multi shot
             if (this.game && this.game.weaponLevel >= 2 && !this.game.specialAbilities.multiShot) {
-                bullets.push(new Bullet(this.x + 8, this.y, 0, -8));
-                bullets.push(new Bullet(this.x + this.width - 12, this.y, 0, -8));
+                bullets.push(new Bullet(this.x + 8, this.y, 0, -300));
+                bullets.push(new Bullet(this.x + this.width - 12, this.y, 0, -300));
             }
             
             // Weapon level 3+ (triple shot) - additional center bullet
             if (this.game && this.game.weaponLevel >= 3) {
-                bullets.push(new Bullet(this.x + this.width/2 - 2, this.y, 0, -10)); // Center, faster
+                bullets.push(new Bullet(this.x + this.width/2 - 2, this.y, 0, -350)); // Center, faster
             }
             
             // Homing missiles
@@ -714,7 +758,7 @@ class Player {
                         const dy = nearest.enemy.y - this.y;
                         const angle = Math.atan2(dy, dx);
                         bullets.push(new Bullet(this.x + this.width/2, this.y, 
-                            Math.cos(angle) * 6, Math.sin(angle) * 6));
+                            Math.cos(angle) * 250, Math.sin(angle) * 250));
                     }
                 }
             }
@@ -761,13 +805,13 @@ class Enemy {
         this.y = y;
         this.width = 30;
         this.height = 25;
-        this.speed = 2 + Math.random() * 2;
+        this.speed = 50 + Math.random() * 30; // pixels per second (was 2-4 per frame)
         this.shootCooldown = 2000 + Math.random() * 1000; // 2-3 seconds between shots
         this.lastShot = Date.now();
     }
     
     update(deltaTime) {
-        this.y += this.speed;
+        this.y += this.speed * (deltaTime / 1000); // Convert to pixels per second
     }
     
     canShoot() {
@@ -779,7 +823,7 @@ class Enemy {
         this.lastShot = Date.now();
         console.log('Enemy shooting straight down');
         // Shoot straight down
-        return new Bullet(this.x + this.width/2 - 2, this.y + this.height, 0, 4, true);
+        return new Bullet(this.x + this.width/2 - 2, this.y + this.height, 0, 200, true); // 200 pixels per second
     }
     
     draw(ctx) {
@@ -805,14 +849,14 @@ class SidewaysEnemy {
         this.y = y;
         this.width = 35;
         this.height = 20;
-        this.speed = 1.5 + Math.random() * 1.5; // Slightly slower
+        this.speed = 40 + Math.random() * 20; // pixels per second (was 1.5-3 per frame)
         this.shootCooldown = 2500 + Math.random() * 1500; // 2.5-4 seconds between shots
         this.lastShot = Date.now();
         this.shootDirection = Math.random() < 0.5 ? 'left' : 'right'; // Random initial direction
     }
     
     update(deltaTime) {
-        this.y += this.speed;
+        this.y += this.speed * (deltaTime / 1000); // Convert to pixels per second
     }
     
     canShoot() {
@@ -826,8 +870,8 @@ class SidewaysEnemy {
         
         // Shoot left and right bullets
         const bullets = [];
-        bullets.push(new Bullet(this.x, this.y + this.height/2, -4, 0, true)); // Left bullet
-        bullets.push(new Bullet(this.x + this.width, this.y + this.height/2, 4, 0, true)); // Right bullet
+        bullets.push(new Bullet(this.x, this.y + this.height/2, -200, 0, true)); // Left bullet, 200 pixels per second
+        bullets.push(new Bullet(this.x + this.width, this.y + this.height/2, 200, 0, true)); // Right bullet, 200 pixels per second
         
         // Toggle direction for next shot
         this.shootDirection = this.shootDirection === 'left' ? 'right' : 'left';
@@ -864,8 +908,8 @@ class Bullet {
     }
     
     update(deltaTime) {
-        this.x += this.vx;
-        this.y += this.vy;
+        this.x += this.vx * (deltaTime / 16.67); // Scale by deltaTime
+        this.y += this.vy * (deltaTime / 16.67); // Scale by deltaTime
     }
     
     draw(ctx) {
@@ -887,8 +931,8 @@ class Particle {
     }
     
     update(deltaTime) {
-        this.x += this.vx;
-        this.y += this.vy;
+        this.x += this.vx * (deltaTime / 16.67); // Scale by deltaTime
+        this.y += this.vy * (deltaTime / 16.67); // Scale by deltaTime
         this.life--;
     }
     
@@ -910,10 +954,10 @@ class Collectible {
         this.width = 32;
         this.height = 32;
         this.emoji = type === 'weapon' ? '🚀' : type === 'health' ? '❤️' : '💰';
-        this.speed = 2;
+        this.speed = 30; // pixels per second (was 2 per frame)
     }
     update(deltaTime) {
-        this.y += this.speed;
+        this.y += this.speed * (deltaTime / 1000); // Convert to pixels per second
     }
     draw(ctx) {
         ctx.font = '28px serif';
@@ -926,6 +970,9 @@ class Collectible {
 // Initialize game when page loads
 document.addEventListener('DOMContentLoaded', () => {
     const game = new Game();
+    
+    // Initialize top score display
+    game.initializeTopScoreDisplay();
     
     // Add event listeners for buttons
     document.getElementById('startBtn').addEventListener('click', () => {
