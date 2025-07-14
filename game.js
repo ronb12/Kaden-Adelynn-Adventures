@@ -3,52 +3,223 @@ class Game {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
-        this.gameState = 'start'; // start, playing, gameOver
-        this.score = 0;
-        this.lives = 3;
-        this.level = 1;
+        this.canvas.width = 800;
+        this.canvas.height = 600;
         
-        // Game objects
         this.player = null;
         this.enemies = [];
         this.bullets = [];
-        this.particles = [];
         this.enemyBullets = [];
+        this.particles = [];
         this.collectibles = [];
         
-        // Input handling
+        this.score = 0;
+        this.lives = 3;
+        this.level = 1;
+        this.gameRunning = false;
+        this.lastTime = 0;
+        
+        // Shop system
+        this.money = 0;
+        this.shopOpen = false;
+        this.weaponLevel = 1;
+        this.shieldLevel = 0;
+        this.specialAbilities = {
+            rapidFire: false,
+            homingMissiles: false,
+            shield: false,
+            multiShot: false
+        };
+        this.shipType = 'basic';
+        this.scoreMultiplier = 1;
+        this.specialWeapons = [];
+        
+        // Shop items
+        this.shopItems = [
+            { id: 'weapon_upgrade', name: 'Weapon Upgrade', cost: 50, emoji: '🔫', description: 'Upgrade weapon damage' },
+            { id: 'shield', name: 'Shield', cost: 75, emoji: '🛡️', description: 'Block enemy bullets' },
+            { id: 'rapid_fire', name: 'Rapid Fire', cost: 100, emoji: '⚡', description: 'Faster shooting' },
+            { id: 'homing_missiles', name: 'Homing Missiles', cost: 150, emoji: '🎯', description: 'Auto-targeting missiles' },
+            { id: 'multi_shot', name: 'Multi Shot', cost: 120, emoji: '🔫', description: 'Shoot multiple bullets' },
+            { id: 'score_multiplier', name: 'Score Multiplier', cost: 80, emoji: '⭐', description: '2x score points' },
+            { id: 'extra_life', name: 'Extra Life', cost: 200, emoji: '❤️', description: 'Gain 1 life' },
+            { id: 'special_weapon', name: 'Special Weapon', cost: 300, emoji: '💥', description: 'One-time powerful weapon' }
+        ];
+        
         this.keys = {};
         this.setupInput();
-        
-        // Game timing
-        this.lastTime = 0;
-        this.enemySpawnTimer = 0;
-        this.enemySpawnRate = 2000; // milliseconds
-        
-        // Start game loop
-        this.gameLoop();
+        this.createShootSound = this.createShootSound();
     }
     
     setupInput() {
         document.addEventListener('keydown', (e) => {
-            this.keys[e.code] = true;
-            if (e.code === 'Space') {
-                e.preventDefault();
+            this.keys[e.key] = true;
+            
+            // Shop controls
+            if (e.key === 'p' || e.key === 'P') {
+                this.toggleShop();
+            }
+            
+            // Special weapon activation
+            if (e.key === 's' || e.key === 'S') {
+                this.activateSpecialWeapon();
+            }
+            
+            // Number keys for shop items
+            if (this.shopOpen && e.key >= '1' && e.key <= '8') {
+                this.buyShopItem(parseInt(e.key) - 1);
             }
         });
         
         document.addEventListener('keyup', (e) => {
-            this.keys[e.code] = false;
+            this.keys[e.key] = false;
         });
         
-        // Button event listeners
-        document.getElementById('startBtn').addEventListener('click', () => {
-            this.startGame();
+        // Mobile touch controls
+        this.canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = this.canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            
+            if (this.player) {
+                this.player.x = x - this.player.width/2;
+                this.player.y = y - this.player.height/2;
+            }
         });
         
-        document.getElementById('restartBtn').addEventListener('click', () => {
-            this.restartGame();
+        this.canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = this.canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            
+            if (this.player) {
+                this.player.x = x - this.player.width/2;
+                this.player.y = y - this.player.height/2;
+            }
         });
+    }
+    
+    toggleShop() {
+        this.shopOpen = !this.shopOpen;
+        if (this.shopOpen) {
+            this.pauseGame();
+        } else {
+            this.resumeGame();
+        }
+        this.drawShop();
+    }
+    
+    pauseGame() {
+        this.gameRunning = false;
+    }
+    
+    resumeGame() {
+        this.gameRunning = true;
+        this.gameLoop();
+    }
+    
+    buyShopItem(itemIndex) {
+        if (itemIndex >= 0 && itemIndex < this.shopItems.length) {
+            const item = this.shopItems[itemIndex];
+            
+            if (this.money >= item.cost) {
+                this.money -= item.cost;
+                
+                switch (item.id) {
+                    case 'weapon_upgrade':
+                        this.weaponLevel = Math.min(3, this.weaponLevel + 1);
+                        break;
+                    case 'shield':
+                        this.shieldLevel = Math.min(3, this.shieldLevel + 1);
+                        this.specialAbilities.shield = true;
+                        break;
+                    case 'rapid_fire':
+                        this.specialAbilities.rapidFire = true;
+                        break;
+                    case 'homing_missiles':
+                        this.specialAbilities.homingMissiles = true;
+                        break;
+                    case 'multi_shot':
+                        this.specialAbilities.multiShot = true;
+                        break;
+                    case 'score_multiplier':
+                        this.scoreMultiplier = 2;
+                        break;
+                    case 'extra_life':
+                        this.lives = Math.min(5, this.lives + 1);
+                        break;
+                    case 'special_weapon':
+                        this.specialWeapons.push('nuke');
+                        break;
+                }
+                
+                this.updateHUD();
+                this.drawShop();
+            }
+        }
+    }
+    
+    drawShop() {
+        if (!this.shopOpen) return;
+        
+        // Semi-transparent overlay
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Shop background
+        this.ctx.fillStyle = '#2a2a2a';
+        this.ctx.fillRect(100, 50, 600, 500);
+        
+        // Shop title
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.font = 'bold 24px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('🛒 SHOP - Press P to close', 400, 90);
+        
+        // Money display
+        this.ctx.fillStyle = '#ffff00';
+        this.ctx.font = 'bold 20px Arial';
+        this.ctx.fillText(`💰 Money: ${this.money}`, 400, 120);
+        
+        // Shop items
+        this.ctx.font = '16px Arial';
+        this.ctx.textAlign = 'left';
+        
+        for (let i = 0; i < this.shopItems.length; i++) {
+            const item = this.shopItems[i];
+            const y = 160 + i * 50;
+            const canAfford = this.money >= item.cost;
+            
+            // Item background
+            this.ctx.fillStyle = canAfford ? '#4a4a4a' : '#3a3a3a';
+            this.ctx.fillRect(120, y - 10, 560, 40);
+            
+            // Item number
+            this.ctx.fillStyle = '#ffffff';
+            this.ctx.fillText(`${i + 1}.`, 130, y + 5);
+            
+            // Item emoji and name
+            this.ctx.fillStyle = canAfford ? '#ffffff' : '#888888';
+            this.ctx.fillText(`${item.emoji} ${item.name}`, 160, y + 5);
+            
+            // Cost
+            this.ctx.fillStyle = canAfford ? '#ffff00' : '#888888';
+            this.ctx.fillText(`$${item.cost}`, 400, y + 5);
+            
+            // Description
+            this.ctx.fillStyle = '#cccccc';
+            this.ctx.fillText(item.description, 500, y + 5);
+        }
+        
+        // Instructions
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.font = '14px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('Press number keys (1-8) to buy items', 400, 580);
     }
     
     startGame() {
@@ -63,6 +234,7 @@ class Game {
         this.collectibles = [];
         
         this.player = new Player(400, 500);
+        this.player.setGame(this); // Set game reference
         
         document.getElementById('startScreen').classList.add('hidden');
         document.getElementById('gameOverScreen').classList.add('hidden');
@@ -75,6 +247,7 @@ class Game {
     gameOver() {
         this.gameState = 'gameOver';
         document.getElementById('finalScore').textContent = this.score;
+        document.getElementById('finalMoney').textContent = this.money;
         document.getElementById('gameOverScreen').classList.remove('hidden');
     }
     
@@ -85,25 +258,27 @@ class Game {
         if (this.player) {
             this.player.update(deltaTime, this.keys);
             
-            // Handle shooting
+            // Handle shooting (automatic when space is held)
             if (this.keys['Space']) {
-                const bullet = this.player.shoot();
-                if (bullet) {
-                    if (Array.isArray(bullet)) {
-                        this.bullets.push(...bullet);
+                const bullets = this.player.shoot();
+                if (bullets) {
+                    if (Array.isArray(bullets)) {
+                        this.bullets.push(...bullets);
                     } else {
-                        this.bullets.push(bullet);
+                        this.bullets.push(bullets);
                     }
+                    this.shootSound();
                 }
             }
         }
         
-        // Spawn enemies
+        // Dynamic enemy spawn rate
         this.enemySpawnTimer += deltaTime;
-        if (this.enemySpawnTimer >= this.enemySpawnRate) {
+        // Decrease interval as score increases (min 400ms)
+        this.enemySpawnInterval = Math.max(400, 1200 - Math.floor(this.score / 50) * 100);
+        if (this.enemySpawnTimer > this.enemySpawnInterval) {
             this.spawnEnemy();
             this.enemySpawnTimer = 0;
-            this.enemySpawnRate = Math.max(500, this.enemySpawnRate - 50); // Faster spawning
         }
         
         // Update enemies
@@ -119,6 +294,7 @@ class Game {
                     } else {
                         this.enemyBullets.push(bullets);
                     }
+                    this.shootSound();
                 }
             }
         });
@@ -137,14 +313,14 @@ class Game {
         });
         
         // Spawn collectibles randomly
-        if (Math.random() < 0.01) { // Increased from 0.002 to 0.01
-            // 50% chance weapon, 50% health
-            if (Math.random() < 0.5) {
+        if (Math.random() < 0.01) {
+            const r = Math.random();
+            if (r < 0.4) {
                 this.collectibles.push(new Collectible(Math.random() * (this.canvas.width - 32), -32, 'weapon'));
-                console.log('Spawned weapon collectible');
-            } else {
+            } else if (r < 0.8) {
                 this.collectibles.push(new Collectible(Math.random() * (this.canvas.width - 32), -32, 'health'));
-                console.log('Spawned health collectible');
+            } else {
+                this.collectibles.push(new Collectible(Math.random() * (this.canvas.width - 32), -32, 'money'));
             }
         }
         // Update collectibles
@@ -217,13 +393,20 @@ class Game {
             this.enemyBullets.forEach((bullet, bulletIndex) => {
                 if (this.checkCollision(this.player, bullet)) {
                     this.enemyBullets.splice(bulletIndex, 1);
-                    this.lives--;
-                    this.createExplosion(this.player.x + this.player.width/2, this.player.y + this.player.height/2);
-                    if (this.lives <= 0) {
-                        this.gameOver();
+                    
+                    // Check if shield is active
+                    if (this.specialAbilities.shield) {
+                        // Shield blocks the bullet, no damage
+                        this.createExplosion(bullet.x, bullet.y);
                     } else {
-                        this.player.x = 400;
-                        this.player.y = 500;
+                        this.lives--;
+                        this.createExplosion(this.player.x + this.player.width/2, this.player.y + this.player.height/2);
+                        if (this.lives <= 0) {
+                            this.gameOver();
+                        } else {
+                            this.player.x = 400;
+                            this.player.y = 500;
+                        }
                     }
                 }
             });
@@ -236,6 +419,9 @@ class Game {
                         this.player.upgradeWeapon();
                     } else if (c.type === 'health') {
                         this.lives = Math.min(5, this.lives + 1);
+                    } else if (c.type === 'money') {
+                        this.money += 25;
+                        this.score += 25 * this.scoreMultiplier;
                     }
                     this.collectibles.splice(i, 1);
                 }
@@ -268,6 +454,23 @@ class Game {
         document.getElementById('score').textContent = this.score;
         document.getElementById('lives').textContent = this.lives;
         document.getElementById('level').textContent = this.level;
+        
+        // Add money display to HUD
+        const moneyElement = document.getElementById('money');
+        if (moneyElement) {
+            moneyElement.textContent = this.money;
+        } else {
+            // Create money display if it doesn't exist
+            const hud = document.querySelector('.hud');
+            if (hud) {
+                const moneyDiv = document.createElement('div');
+                moneyDiv.id = 'money';
+                moneyDiv.innerHTML = `💰 <span id="moneyAmount">${this.money}</span>`;
+                moneyDiv.style.color = '#ffff00';
+                moneyDiv.style.fontWeight = 'bold';
+                hud.appendChild(moneyDiv);
+            }
+        }
     }
     
     draw() {
@@ -287,8 +490,12 @@ class Game {
         this.bullets.forEach(bullet => bullet.draw(this.ctx));
         this.enemyBullets.forEach(bullet => bullet.draw(this.ctx));
         this.particles.forEach(particle => particle.draw(this.ctx));
-        // Draw collectibles (to be implemented)
         this.collectibles.forEach(c => c.draw(this.ctx));
+        
+        // Draw shop if open
+        if (this.shopOpen) {
+            this.drawShop();
+        }
     }
     
     drawStarfield() {
@@ -309,6 +516,50 @@ class Game {
         
         requestAnimationFrame((time) => this.gameLoop(time));
     }
+
+    createShootSound() {
+        // Returns a function to play a beep sound
+        return () => {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.type = 'square';
+            o.frequency.value = 440;
+            g.gain.value = 0.1;
+            o.connect(g);
+            g.connect(ctx.destination);
+            o.start();
+            o.stop(ctx.currentTime + 0.08);
+            o.onended = () => ctx.close();
+        };
+    }
+
+    activateSpecialWeapon() {
+        if (this.specialWeapons.length > 0) {
+            const weapon = this.specialWeapons.pop();
+            if (weapon === 'nuke') {
+                // Nuke destroys all enemies on screen
+                this.enemies.forEach(enemy => {
+                    this.createExplosion(enemy.x + enemy.width/2, enemy.y + enemy.height/2);
+                    this.score += 10;
+                });
+                this.enemies = [];
+                
+                // Create a big explosion effect
+                for (let i = 0; i < 20; i++) {
+                    const angle = (Math.PI * 2 * i) / 20;
+                    const speed = 3 + Math.random() * 3;
+                    const particle = new Particle(
+                        this.canvas.width/2, this.canvas.height/2,
+                        Math.cos(angle) * speed,
+                        Math.sin(angle) * speed,
+                        '#ff0000'
+                    );
+                    this.particles.push(particle);
+                }
+            }
+        }
+    }
 }
 
 // Player class
@@ -322,6 +573,11 @@ class Player {
         this.lastShot = 0;
         this.shotCooldown = 200; // milliseconds
         this.weaponLevel = 1;
+        this.game = null; // Reference to game for upgrades
+    }
+    
+    setGame(game) {
+        this.game = game;
     }
     
     update(deltaTime, keys) {
@@ -338,22 +594,60 @@ class Player {
     
     shoot() {
         const now = Date.now();
-        if (now - this.lastShot >= this.shotCooldown) {
+        const cooldown = this.game && this.game.specialAbilities.rapidFire ? 100 : 200;
+        
+        if (now - this.lastShot >= cooldown) {
             this.lastShot = now;
-            if (this.weaponLevel > 1) {
-                // Double shot
-                return [
-                    new Bullet(this.x + 8, this.y, 0, -8),
-                    new Bullet(this.x + this.width - 12, this.y, 0, -8)
-                ];
+            const bullets = [];
+            
+            // Base weapon level
+            if (this.game && this.game.weaponLevel >= 1) {
+                bullets.push(new Bullet(this.x + this.width/2 - 2, this.y, 0, -8));
             }
-            return new Bullet(this.x + this.width/2 - 2, this.y, 0, -8);
+            
+            // Multi shot ability
+            if (this.game && this.game.specialAbilities.multiShot) {
+                bullets.push(new Bullet(this.x + 8, this.y, 0, -8));
+                bullets.push(new Bullet(this.x + this.width - 12, this.y, 0, -8));
+            }
+            
+            // Weapon level 2+ (double shot)
+            if (this.game && this.game.weaponLevel >= 2 && !this.game.specialAbilities.multiShot) {
+                bullets.push(new Bullet(this.x + 8, this.y, 0, -8));
+                bullets.push(new Bullet(this.x + this.width - 12, this.y, 0, -8));
+            }
+            
+            // Weapon level 3+ (triple shot)
+            if (this.game && this.game.weaponLevel >= 3) {
+                bullets.push(new Bullet(this.x + this.width/2 - 2, this.y, 0, -10)); // Center, faster
+            }
+            
+            // Homing missiles
+            if (this.game && this.game.specialAbilities.homingMissiles) {
+                // Find nearest enemy
+                if (this.game.enemies.length > 0) {
+                    const nearest = this.game.enemies.reduce((nearest, enemy) => {
+                        const dist = Math.sqrt((enemy.x - this.x)**2 + (enemy.y - this.y)**2);
+                        return dist < nearest.dist ? {enemy, dist} : nearest;
+                    }, {enemy: null, dist: Infinity});
+                    
+                    if (nearest.enemy) {
+                        const dx = nearest.enemy.x - this.x;
+                        const dy = nearest.enemy.y - this.y;
+                        const angle = Math.atan2(dy, dx);
+                        bullets.push(new Bullet(this.x + this.width/2, this.y, 
+                            Math.cos(angle) * 6, Math.sin(angle) * 6));
+                    }
+                }
+            }
+            
+            return bullets.length > 0 ? bullets : null;
         }
         return null;
     }
     
     upgradeWeapon() {
-        this.weaponLevel = Math.min(2, this.weaponLevel + 1);
+        this.weaponLevel = Math.min(3, this.weaponLevel + 1);
     }
     
     draw(ctx) {
@@ -369,6 +663,16 @@ class Player {
         // Draw cockpit
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(this.x + this.width/2 - 3, this.y + 5, 6, 8);
+        
+        // Draw shield if active
+        if (this.game && this.game.specialAbilities.shield) {
+            ctx.strokeStyle = '#00ffff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(this.x + this.width/2, this.y + this.height/2, 
+                this.width/2 + 5, 0, Math.PI * 2);
+            ctx.stroke();
+        }
     }
 }
 
@@ -527,7 +831,7 @@ class Collectible {
         this.type = type; // 'weapon' or 'health'
         this.width = 32;
         this.height = 32;
-        this.emoji = type === 'weapon' ? '🚀' : '❤️';
+        this.emoji = type === 'weapon' ? '🚀' : type === 'health' ? '❤️' : '💰';
         this.speed = 2;
     }
     update(deltaTime) {

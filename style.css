@@ -42,6 +42,11 @@ body {
     margin-bottom: 5px;
 }
 
+.money {
+    color: #ffff00 !important;
+    text-shadow: 0 0 5px #ffff00 !important;
+}
+
 .screen {
     position: absolute;
     top: 50%;

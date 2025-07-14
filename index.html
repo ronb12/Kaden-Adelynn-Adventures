@@ -12,6 +12,7 @@
             <div class="score">Score: <span id="score">0</span></div>
             <div class="lives">Lives: <span id="lives">3</span></div>
             <div class="level">Level: <span id="level">1</span></div>
+            <div class="money">💰 Money: <span id="money">0</span></div>
         </div>
         
         <canvas id="gameCanvas" width="800" height="600"></canvas>
@@ -19,13 +20,26 @@
         <div id="startScreen" class="screen">
             <h1>🚀 Kaden & Adelynn Adventures</h1>
             <p>Use arrow keys to move, spacebar to shoot</p>
-            <p>Destroy enemies and survive!</p>
+            <p>Collect 💰 money to buy upgrades!</p>
+            <p><strong>Press P to open the shop</strong></p>
+            <p>Shop Items:</p>
+            <ul style="text-align: left; max-width: 400px; margin: 0 auto;">
+                <li>🔫 Weapon Upgrades - Better damage</li>
+                <li>🛡️ Shield - Block enemy bullets</li>
+                <li>⚡ Rapid Fire - Faster shooting</li>
+                <li>🎯 Homing Missiles - Auto-targeting</li>
+                <li>🔫 Multi Shot - Multiple bullets</li>
+                <li>⭐ Score Multiplier - 2x points</li>
+                <li>❤️ Extra Life - Gain 1 life</li>
+                <li>💥 Special Weapon - Powerful one-time weapon</li>
+            </ul>
             <button id="startBtn">Start Game</button>
         </div>
         
         <div id="gameOverScreen" class="screen hidden">
             <h2>Game Over</h2>
             <p>Final Score: <span id="finalScore">0</span></p>
+            <p>Money Collected: <span id="finalMoney">0</span></p>
             <button id="restartBtn">Play Again</button>
         </div>
     </div>
