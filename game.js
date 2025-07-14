@@ -74,6 +74,11 @@ class Game {
             if (this.shopOpen && e.key >= '1' && e.key <= '8') {
                 this.buyShopItem(parseInt(e.key) - 1);
             }
+            
+            // Debug spacebar
+            if (e.key === ' ') {
+                console.log('Spacebar pressed!');
+            }
         });
         
         document.addEventListener('keyup', (e) => {
@@ -81,8 +86,14 @@ class Game {
         });
         
         // Mobile touch controls
+        let isTouching = false;
+        let touchShootTimer = 0;
+        
         this.canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            isTouching = true;
+            touchShootTimer = 0;
+            
             const touch = e.touches[0];
             const rect = this.canvas.getBoundingClientRect();
             const x = touch.clientX - rect.left;
@@ -106,6 +117,27 @@ class Game {
                 this.player.y = y - this.player.height/2;
             }
         });
+        
+        this.canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            isTouching = false;
+        });
+        
+        // Store touch state for shooting
+        this.isTouching = false;
+        this.touchShootTimer = 0;
+        
+        // Update touch state in game loop
+        this.updateTouchShooting = () => {
+            if (isTouching) {
+                this.touchShootTimer += 16; // Assuming 60fps
+                if (this.touchShootTimer >= 200) { // Shoot every 200ms on touch
+                    this.touchShootTimer = 0;
+                    return true;
+                }
+            }
+            return false;
+        };
     }
     
     toggleShop() {
@@ -277,9 +309,11 @@ class Game {
         if (this.player) {
             this.player.update(deltaTime, this.keys);
             
-            // Handle shooting (automatic when space is held)
-            if (this.keys['Space']) {
-                console.log('Space key pressed, attempting to shoot');
+            // Handle shooting (spacebar or touch)
+            const shouldShoot = this.keys[' '] || this.keys['Space'] || this.updateTouchShooting();
+            
+            if (shouldShoot) {
+                console.log('Shooting triggered by:', this.keys[' '] ? 'spacebar' : this.keys['Space'] ? 'Space' : 'touch');
                 const bullets = this.player.shoot();
                 if (bullets) {
                     console.log('Bullets created:', bullets.length);
