@@ -1,0 +1,98 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: #000;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+.game-container {
+    position: relative;
+    width: 800px;
+    height: 600px;
+    background: #000;
+}
+
+#gameCanvas {
+    display: block;
+    border: 2px solid #0f0;
+    background: #000;
+}
+
+.hud {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+    font-size: 16px;
+    font-weight: bold;
+    text-shadow: 0 0 5px #0f0;
+}
+
+.hud > div {
+    margin-bottom: 5px;
+}
+
+.screen {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    background: rgba(0, 0, 0, 0.9);
+    padding: 40px;
+    border: 2px solid #0f0;
+    border-radius: 10px;
+    z-index: 20;
+}
+
+.screen h1 {
+    font-size: 48px;
+    color: #0f0;
+    text-shadow: 0 0 20px #0f0;
+    margin-bottom: 20px;
+}
+
+.screen h2 {
+    font-size: 36px;
+    color: #f00;
+    text-shadow: 0 0 15px #f00;
+    margin-bottom: 20px;
+}
+
+.screen p {
+    margin-bottom: 15px;
+    color: #ccc;
+    font-size: 18px;
+}
+
+button {
+    background: #333;
+    color: #0f0;
+    border: 2px solid #0f0;
+    padding: 15px 30px;
+    font-family: 'Arial', sans-serif;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.3s;
+    border-radius: 5px;
+}
+
+button:hover {
+    background: #0f0;
+    color: #000;
+    transform: scale(1.05);
+}
+
+.hidden {
+    display: none;
+} 
