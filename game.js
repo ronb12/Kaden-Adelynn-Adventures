@@ -16,8 +16,13 @@ class Game {
         this.score = 0;
         this.lives = 3;
         this.level = 1;
+        this.gameState = 'start'; // Add game state
         this.gameRunning = false;
         this.lastTime = 0;
+        
+        // Enemy spawning
+        this.enemySpawnTimer = 0;
+        this.enemySpawnInterval = 1200;
         
         // Shop system
         this.money = 0;
@@ -224,14 +229,28 @@ class Game {
     
     startGame() {
         this.gameState = 'playing';
+        this.gameRunning = true;
         this.score = 0;
         this.lives = 3;
         this.level = 1;
+        this.money = 0; // Reset money for new game
         this.enemies = [];
         this.bullets = [];
         this.particles = [];
         this.enemyBullets = [];
         this.collectibles = [];
+        
+        // Reset shop upgrades
+        this.weaponLevel = 1;
+        this.shieldLevel = 0;
+        this.specialAbilities = {
+            rapidFire: false,
+            homingMissiles: false,
+            shield: false,
+            multiShot: false
+        };
+        this.scoreMultiplier = 1;
+        this.specialWeapons = [];
         
         this.player = new Player(400, 500);
         this.player.setGame(this); // Set game reference
@@ -511,7 +530,10 @@ class Game {
         const deltaTime = currentTime - this.lastTime;
         this.lastTime = currentTime;
         
-        this.update(deltaTime);
+        if (this.gameState === 'playing' && this.gameRunning) {
+            this.update(deltaTime);
+        }
+        
         this.draw();
         
         requestAnimationFrame((time) => this.gameLoop(time));
@@ -847,5 +869,16 @@ class Collectible {
 
 // Initialize game when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    new Game();
+    const game = new Game();
+    
+    // Add event listeners for buttons
+    document.getElementById('startBtn').addEventListener('click', () => {
+        game.startGame();
+        game.gameLoop();
+    });
+    
+    document.getElementById('restartBtn').addEventListener('click', () => {
+        game.restartGame();
+        game.gameLoop();
+    });
 }); 
