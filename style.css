@@ -54,39 +54,71 @@ body {
     transform: translate(-50%, -50%);
     text-align: center;
     background: rgba(0, 0, 0, 0.9);
-    padding: 40px;
+    padding: 20px;
     border: 2px solid #0f0;
     border-radius: 10px;
     z-index: 20;
+    max-height: 550px;
+    overflow-y: auto;
+    max-width: 750px;
+}
+
+/* Custom scrollbar for the menu */
+.screen::-webkit-scrollbar {
+    width: 8px;
+}
+
+.screen::-webkit-scrollbar-track {
+    background: #333;
+    border-radius: 4px;
+}
+
+.screen::-webkit-scrollbar-thumb {
+    background: #0f0;
+    border-radius: 4px;
+}
+
+.screen::-webkit-scrollbar-thumb:hover {
+    background: #00ff00;
 }
 
 .screen h1 {
-    font-size: 48px;
+    font-size: 36px;
     color: #0f0;
     text-shadow: 0 0 20px #0f0;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .screen h2 {
-    font-size: 36px;
+    font-size: 28px;
     color: #f00;
     text-shadow: 0 0 15px #f00;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .screen p {
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     color: #ccc;
-    font-size: 18px;
+    font-size: 16px;
+}
+
+.screen ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.screen li {
+    margin-bottom: 5px;
+    color: #ccc;
 }
 
 button {
     background: #333;
     color: #0f0;
     border: 2px solid #0f0;
-    padding: 15px 30px;
+    padding: 12px 25px;
     font-family: 'Arial', sans-serif;
-    font-size: 18px;
+    font-size: 16px;
     cursor: pointer;
     transition: all 0.3s;
     border-radius: 5px;
