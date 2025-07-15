@@ -52,7 +52,6 @@ let player = {
     weaponType: 'normal', // normal, rapid, spread, laser, missile
     hasSpeed: false,
     hasShield: false,
-    hasRapidFire: false,
     rapidFireTimer: 0,
     weaponLevel: 1,
     maxWeaponLevel: 3
@@ -271,15 +270,17 @@ function updatePlayer() {
     if (keys.ArrowUp && player.y > 0) player.y -= moveSpeed;
     if (keys.ArrowDown && player.y < canvas.height - player.height) player.y += moveSpeed;
     
-    // Shooting
+    // Shooting with automatic rapid fire
     if (keys.Space && !window.gameState.paused) {
         if (!keys.SpacePressed) {
+            // First shot when space is pressed
             createBullet();
             keys.SpacePressed = true;
-        } else if (player.hasRapidFire) {
-            // Rapid fire mode
+            player.rapidFireTimer = 0;
+        } else {
+            // Rapid fire when space is held down
             player.rapidFireTimer++;
-            if (player.rapidFireTimer >= 5) { // Fire every 5 frames
+            if (player.rapidFireTimer >= 8) { // Fire every 8 frames (adjust for speed)
                 createBullet();
                 player.rapidFireTimer = 0;
             }
@@ -577,7 +578,6 @@ function resetGame() {
     player.invulnerable = false;
     player.hasSpeed = false;
     player.hasShield = false;
-    player.hasRapidFire = false;
     player.rapidFireTimer = 0;
     player.weaponType = 'normal';
     player.weaponLevel = 1;
@@ -1069,16 +1069,12 @@ function drawUI() {
         ctx.fillStyle = '#ffff00';
         ctx.fillText('SHIELD ACTIVE', canvas.width - 150, 70);
     }
-    if (player.hasRapidFire) {
-        ctx.fillStyle = '#ff8800';
-        ctx.fillText('RAPID FIRE', canvas.width - 150, 90);
-    }
     
     // Draw controls hint
     ctx.fillStyle = '#888888';
     ctx.font = '12px Arial';
     ctx.fillText('1-5: Switch Weapons', 10, canvas.height - 40);
-    ctx.fillText('S: Activate Power-up', 10, canvas.height - 20);
+    ctx.fillText('Hold SPACE: Rapid Fire', 10, canvas.height - 20);
 }
 
 // Main game loop
