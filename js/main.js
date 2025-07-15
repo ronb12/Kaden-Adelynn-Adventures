@@ -414,7 +414,6 @@ function resetGame() {
     
     // Hide game over screen
     document.getElementById('gameOverScreen').classList.add('hidden');
-    document.getElementById('startScreen').classList.remove('hidden');
 }
 
 // Draw functions
@@ -598,6 +597,9 @@ function startGame() {
         // Reset game state
         resetGame();
         
+        // Hide start screen and show game
+        document.getElementById('startScreen').classList.add('hidden');
+        
         // Start the game loop
         window.gameState.paused = false;
         gameLoop();
@@ -620,10 +622,15 @@ window.game = {
     restartGame
 };
 
+// Debug: Check if game object is created
+console.log('🎮 Game object created:', window.game);
+console.log('🎮 startGame function available:', typeof window.game.startGame);
+
 // Initialize when page loads
 window.addEventListener('load', () => {
     console.log('✅ Enhanced game loaded and ready!');
     console.log('🎮 Click "Start Game" to begin!');
+    console.log('🎮 Game object available:', window.game);
     
     // Load high score
     if (typeof GameStorageManager !== 'undefined') {
