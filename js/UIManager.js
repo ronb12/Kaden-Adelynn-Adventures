@@ -90,10 +90,6 @@ class UIManager {
         if (this.hudElements.level) {
             this.hudElements.level.textContent = `Level: ${levelManager.getCurrentLevel()}`;
         }
-        const moneyElement = document.getElementById('moneyAmount');
-        if (moneyElement) {
-            moneyElement.textContent = `💰: ${window.gameState.money}`;
-        }
     }
 
     draw(ctx) {

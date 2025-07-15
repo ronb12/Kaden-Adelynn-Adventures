@@ -16,7 +16,7 @@ window.gameState = {
     score: 0,
     lives: 3,
     level: 1,
-    money: 0, // Add this line
+    money: 0, // Recreate money property
     paused: false,
     powerUpBar: {
         speed: false,

@@ -241,13 +241,6 @@ class PowerUpManager {
         }
     }
     
-    updateMoneyHUD() {
-        const moneyElement = document.getElementById('moneyAmount');
-        if (moneyElement) {
-            moneyElement.textContent = `💰: ${window.gameState.money}`;
-        }
-    }
-    
     draw(ctx) {
         for (let powerUp of this.powerUps) {
             // Draw power-up with enhanced visuals
@@ -487,5 +480,12 @@ class PowerUpManager {
         ctx.fill();
         ctx.fillStyle = '#333';
         ctx.fillText('C', x + size/2 - 3, y + size/2 + 3);
+    }
+
+    updateMoneyHUD() {
+        const moneyElement = document.getElementById('moneyAmount');
+        if (moneyElement) {
+            moneyElement.textContent = `💰: ${window.gameState.money}`;
+        }
     }
 } 
