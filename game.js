@@ -1,4 +1,4 @@
-// Enhanced Space Shooter Game with Boss Battles, Power-ups, and More!
+// Enhanced Space Shooter Game with Boss Battles, Power-ups, and Multiplayer!
 class Game {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
@@ -7,6 +7,7 @@ class Game {
         this.canvas.height = 600;
         
         this.player = null;
+        this.player2 = null; // Second player for multiplayer
         this.enemies = [];
         this.bullets = [];
         this.enemyBullets = [];
@@ -18,10 +19,12 @@ class Game {
         
         this.score = 0;
         this.lives = 5;
+        this.lives2 = 5; // Second player lives
         this.level = 1;
         this.gameState = 'start';
         this.gameRunning = false;
         this.lastTime = 0;
+        this.multiplayerMode = false; // Track if multiplayer is active
         
         // Top score tracking
         this.topScore = this.loadTopScore();
@@ -43,6 +46,12 @@ class Game {
             spreadShot: { active: false, duration: 0, maxDuration: 12000 },
             rapidFire: { active: false, duration: 0, maxDuration: 15000 }
         };
+        this.activePowerUps2 = { // Second player power-ups
+            invincibility: { active: false, duration: 0, maxDuration: 10000 },
+            speedBoost: { active: false, duration: 0, maxDuration: 8000 },
+            spreadShot: { active: false, duration: 0, maxDuration: 12000 },
+            rapidFire: { active: false, duration: 0, maxDuration: 15000 }
+        };
         
         // Achievement system
         this.achievements = {
@@ -52,7 +61,8 @@ class Game {
             score1000: { unlocked: false, name: "Master", description: "Reach 1000 points" },
             bossKiller: { unlocked: false, name: "Boss Slayer", description: "Defeat your first boss" },
             survivor: { unlocked: false, name: "Survivor", description: "Survive for 2 minutes" },
-            sharpshooter: { unlocked: false, name: "Sharpshooter", description: "Hit 50 enemies without missing" }
+            sharpshooter: { unlocked: false, name: "Sharpshooter", description: "Hit 50 enemies without missing" },
+            teamPlayer: { unlocked: false, name: "Team Player", description: "Play multiplayer mode" }
         };
         this.loadAchievements();
         
@@ -80,16 +90,27 @@ class Game {
         this.money = 0;
         this.shopOpen = false;
         this.weaponLevel = 1;
+        this.weaponLevel2 = 1; // Second player weapon level
         this.shieldLevel = 0;
+        this.shieldLevel2 = 0; // Second player shield level
         this.specialAbilities = {
             rapidFire: false,
             homingMissiles: false,
             shield: false,
             multiShot: false
         };
+        this.specialAbilities2 = { // Second player abilities
+            rapidFire: false,
+            homingMissiles: false,
+            shield: false,
+            multiShot: false
+        };
         this.shipType = 'basic';
+        this.shipType2 = 'basic'; // Second player ship type
         this.scoreMultiplier = 1;
+        this.scoreMultiplier2 = 1; // Second player score multiplier
         this.specialWeapons = [];
+        this.specialWeapons2 = []; // Second player special weapons
         
         // Enhanced shop items
         this.shopItems = [
@@ -106,6 +127,7 @@ class Game {
         ];
         
         this.keys = {};
+        this.keys2 = {}; // Second player keys
         this.setupInput();
         this.createShootSound = this.createShootSound();
     }
@@ -125,7 +147,19 @@ class Game {
     
     setupInput() {
         document.addEventListener('keydown', (e) => {
-            this.keys[e.key] = true;
+            // Player 1 controls (WASD + Space)
+            if (e.key === 'w' || e.key === 'W') this.keys2['w'] = true;
+            if (e.key === 's' || e.key === 'S') this.keys2['s'] = true;
+            if (e.key === 'a' || e.key === 'A') this.keys2['a'] = true;
+            if (e.key === 'd' || e.key === 'D') this.keys2['d'] = true;
+            if (e.key === ' ') this.keys[' '] = true; // Player 1 shoots with spacebar
+            
+            // Player 2 controls (Arrow keys + Enter)
+            if (e.key === 'ArrowLeft') this.keys['ArrowLeft'] = true;
+            if (e.key === 'ArrowRight') this.keys['ArrowRight'] = true;
+            if (e.key === 'ArrowUp') this.keys['ArrowUp'] = true;
+            if (e.key === 'ArrowDown') this.keys['ArrowDown'] = true;
+            if (e.key === 'Enter') this.keys2['Enter'] = true; // Player 2 shoots with Enter
             
             // Shop controls
             if (e.key === 'p' || e.key === 'P') {
@@ -136,10 +170,18 @@ class Game {
             if (e.key === 's' || e.key === 'S') {
                 this.activateSpecialWeapon();
             }
+            if (e.key === 'f' || e.key === 'F') {
+                this.activateSpecialWeapon2(); // Player 2 special weapon
+            }
             
             // Number keys for shop items
             if (this.shopOpen && e.key >= '1' && e.key <= '8') {
                 this.buyShopItem(parseInt(e.key) - 1);
+            }
+            
+            // Multiplayer toggle
+            if (e.key === 'm' || e.key === 'M') {
+                this.toggleMultiplayer();
             }
             
             // Debug spacebar
@@ -149,7 +191,19 @@ class Game {
         });
         
         document.addEventListener('keyup', (e) => {
-            this.keys[e.key] = false;
+            // Player 1 controls
+            if (e.key === 'w' || e.key === 'W') this.keys2['w'] = false;
+            if (e.key === 's' || e.key === 'S') this.keys2['s'] = false;
+            if (e.key === 'a' || e.key === 'A') this.keys2['a'] = false;
+            if (e.key === 'd' || e.key === 'D') this.keys2['d'] = false;
+            if (e.key === ' ') this.keys[' '] = false;
+            
+            // Player 2 controls
+            if (e.key === 'ArrowLeft') this.keys['ArrowLeft'] = false;
+            if (e.key === 'ArrowRight') this.keys['ArrowRight'] = false;
+            if (e.key === 'ArrowUp') this.keys['ArrowUp'] = false;
+            if (e.key === 'ArrowDown') this.keys['ArrowDown'] = false;
+            if (e.key === 'Enter') this.keys2['Enter'] = false;
         });
         
         // Mobile touch controls
@@ -339,8 +393,10 @@ class Game {
         this.gameRunning = true;
         this.score = 0;
         this.lives = 5;
+        this.lives2 = 5; // Reset second player lives
         this.level = 1;
-        this.money = 0; // Reset money for new game
+        
+        // Clear all game objects
         this.enemies = [];
         this.bullets = [];
         this.particles = [];
@@ -352,24 +408,50 @@ class Game {
         
         // Reset shop upgrades
         this.weaponLevel = 1;
+        this.weaponLevel2 = 1; // Reset second player weapon level
         this.shieldLevel = 0;
+        this.shieldLevel2 = 0; // Reset second player shield level
         this.specialAbilities = {
             rapidFire: false,
             homingMissiles: false,
             shield: false,
             multiShot: false
         };
+        this.specialAbilities2 = { // Reset second player abilities
+            rapidFire: false,
+            homingMissiles: false,
+            shield: false,
+            multiShot: false
+        };
         this.scoreMultiplier = 1;
+        this.scoreMultiplier2 = 1; // Reset second player score multiplier
         this.specialWeapons = [];
+        this.specialWeapons2 = []; // Reset second player special weapons
         this.activePowerUps = {
             invincibility: { active: false, duration: 0, maxDuration: 10000 },
             speedBoost: { active: false, duration: 0, maxDuration: 8000 },
             spreadShot: { active: false, duration: 0, maxDuration: 12000 },
             rapidFire: { active: false, duration: 0, maxDuration: 15000 }
         };
+        this.activePowerUps2 = { // Reset second player power-ups
+            invincibility: { active: false, duration: 0, maxDuration: 10000 },
+            speedBoost: { active: false, duration: 0, maxDuration: 8000 },
+            spreadShot: { active: false, duration: 0, maxDuration: 12000 },
+            rapidFire: { active: false, duration: 0, maxDuration: 15000 }
+        };
         
+        // Create players based on multiplayer mode
         this.player = new Player(400, 500);
         this.player.setGame(this); // Set game reference
+        
+        if (this.multiplayerMode) {
+            this.player2 = new Player(300, 500); // Second player starts on the left
+            this.player2.setGame(this); // Set game reference
+            this.player2.isPlayer2 = true; // Mark as second player
+            this.unlockAchievement('teamPlayer'); // Unlock multiplayer achievement
+        } else {
+            this.player2 = null;
+        }
         
         document.getElementById('startScreen').classList.add('hidden');
         document.getElementById('gameOverScreen').classList.add('hidden');
@@ -406,6 +488,22 @@ class Game {
             }
         } else if (newRecordElement) {
             newRecordElement.remove();
+        }
+        
+        // Show multiplayer result if applicable
+        if (this.multiplayerMode) {
+            const multiplayerResult = document.getElementById('multiplayerResult');
+            if (!multiplayerResult) {
+                const statsSection = document.querySelector('.stats-section');
+                const resultDiv = document.createElement('div');
+                resultDiv.id = 'multiplayerResult';
+                resultDiv.className = 'multiplayer-result';
+                resultDiv.innerHTML = `🎮 Multiplayer Game Complete! 🎮`;
+                resultDiv.style.color = '#00ffff';
+                resultDiv.style.fontWeight = 'bold';
+                resultDiv.style.margin = '10px 0';
+                statsSection.appendChild(resultDiv);
+            }
         }
         
         document.getElementById('gameOverScreen').classList.remove('hidden');
@@ -463,6 +561,27 @@ class Game {
                     this.shootSound();
                 } else {
                     console.log('No bullets created (cooldown)');
+                }
+            }
+        }
+        
+        // Update second player in multiplayer mode
+        if (this.player2 && this.multiplayerMode) {
+            this.player2.update(deltaTime, this.keys2);
+            
+            // Handle second player shooting (Enter key)
+            const shouldShoot2 = this.keys2['Enter'];
+            
+            if (shouldShoot2) {
+                const bullets = this.player2.shoot();
+                if (bullets) {
+                    if (Array.isArray(bullets)) {
+                        this.bullets.push(...bullets);
+                    } else {
+                        this.bullets.push(bullets);
+                    }
+                    this.stats.shotsFired += bullets.length;
+                    this.shootSound();
                 }
             }
         }
@@ -699,6 +818,26 @@ class Game {
                 }
             });
         }
+        
+        // Enemies vs player 2 (multiplayer)
+        if (this.player2 && this.multiplayerMode && !this.activePowerUps2.invincibility.active) {
+            this.enemies.forEach(enemy => {
+                if (this.checkCollision(this.player2, enemy)) {
+                    this.lives2--;
+                    this.createExplosion(this.player2.x + this.player2.width/2, this.player2.y + this.player2.height/2);
+                    
+                    if (this.lives2 <= 0) {
+                        // Player 2 is out, but game continues if player 1 is alive
+                        this.player2 = null;
+                    } else {
+                        // Reset player 2 position
+                        this.player2.x = 300;
+                        this.player2.y = 500;
+                    }
+                }
+            });
+        }
+        
         // Enemy bullets vs player
         if (this.player && !this.activePowerUps.invincibility.active) {
             this.enemyBullets.forEach((bullet, bulletIndex) => {
@@ -717,6 +856,31 @@ class Game {
                         } else {
                             this.player.x = 400;
                             this.player.y = 500;
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Enemy bullets vs player 2 (multiplayer)
+        if (this.player2 && this.multiplayerMode && !this.activePowerUps2.invincibility.active) {
+            this.enemyBullets.forEach((bullet, bulletIndex) => {
+                if (this.checkCollision(this.player2, bullet)) {
+                    this.enemyBullets.splice(bulletIndex, 1);
+                    
+                    // Check if shield is active
+                    if (this.specialAbilities2.shield) {
+                        // Shield blocks the bullet, no damage
+                        this.createExplosion(bullet.x, bullet.y);
+                    } else {
+                        this.lives2--;
+                        this.createExplosion(this.player2.x + this.player2.width/2, this.player2.y + this.player2.height/2);
+                        if (this.lives2 <= 0) {
+                            // Player 2 is out, but game continues if player 1 is alive
+                            this.player2 = null;
+                        } else {
+                            this.player2.x = 300;
+                            this.player2.y = 500;
                         }
                     }
                 }
@@ -765,6 +929,50 @@ class Game {
                 });
             }
         }
+        
+        // Player 2 vs collectibles (multiplayer)
+        if (this.player2 && this.multiplayerMode) {
+            this.collectibles.forEach((c, i) => {
+                if (this.checkCollision(this.player2, c)) {
+                    if (c.type === 'weapon') {
+                        this.player2.upgradeWeapon();
+                    } else if (c.type === 'health') {
+                        this.lives2 = Math.min(5, this.lives2 + 1);
+                    } else if (c.type === 'money') {
+                        this.money += 25;
+                        this.score += 25 * this.scoreMultiplier2;
+                    }
+                    this.collectibles.splice(i, 1);
+                }
+            });
+            
+            // Player 2 vs power-ups
+            this.powerUps.forEach((powerUp, i) => {
+                if (this.checkCollision(this.player2, powerUp)) {
+                    this.activatePowerUp2(powerUp.type);
+                    this.powerUps.splice(i, 1);
+                    this.stats.powerUpsCollected++;
+                }
+            });
+            
+            // Player 2 vs asteroids (if not invincible)
+            if (!this.activePowerUps2.invincibility.active) {
+                this.asteroids.forEach((asteroid, i) => {
+                    if (this.checkCollision(this.player2, asteroid)) {
+                        this.lives2--;
+                        this.createExplosion(this.player2.x + this.player2.width/2, this.player2.y + this.player2.height/2);
+                        this.asteroids.splice(i, 1);
+                        
+                        if (this.lives2 <= 0) {
+                            this.player2 = null;
+                        } else {
+                            this.player2.x = 300;
+                            this.player2.y = 500;
+                        }
+                    }
+                });
+            }
+        }
     }
     
     checkCollision(obj1, obj2) {
@@ -791,6 +999,35 @@ class Game {
             case 'rapidFire':
                 this.activePowerUps.rapidFire.active = true;
                 this.activePowerUps.rapidFire.duration = this.activePowerUps.rapidFire.maxDuration;
+                break;
+            case 'bomb':
+                // Clear all enemies on screen
+                this.enemies.forEach(enemy => {
+                    this.createExplosion(enemy.x + enemy.width/2, enemy.y + enemy.height/2);
+                });
+                this.enemies = [];
+                this.addScreenShake(8);
+                break;
+        }
+    }
+    
+    activatePowerUp2(type) {
+        switch (type) {
+            case 'invincibility':
+                this.activePowerUps2.invincibility.active = true;
+                this.activePowerUps2.invincibility.duration = this.activePowerUps2.invincibility.maxDuration;
+                break;
+            case 'speedBoost':
+                this.activePowerUps2.speedBoost.active = true;
+                this.activePowerUps2.speedBoost.duration = this.activePowerUps2.speedBoost.maxDuration;
+                break;
+            case 'spreadShot':
+                this.activePowerUps2.spreadShot.active = true;
+                this.activePowerUps2.spreadShot.duration = this.activePowerUps2.spreadShot.maxDuration;
+                break;
+            case 'rapidFire':
+                this.activePowerUps2.rapidFire.active = true;
+                this.activePowerUps2.rapidFire.duration = this.activePowerUps2.rapidFire.maxDuration;
                 break;
             case 'bomb':
                 // Clear all enemies on screen
@@ -857,11 +1094,50 @@ class Game {
             }
         }
         
+        // Update multiplayer HUD
+        if (this.multiplayerMode) {
+            this.updateMultiplayerHUD();
+        }
+        
         // Update power-up status display
         this.updatePowerUpDisplay();
         
         // Check for achievements
         this.checkAchievements();
+    }
+    
+    updateMultiplayerHUD() {
+        // Update or create player 2 lives display
+        let lives2Element = document.getElementById('lives2');
+        if (!lives2Element) {
+            const hud = document.querySelector('.hud');
+            if (hud) {
+                lives2Element = document.createElement('div');
+                lives2Element.id = 'lives2';
+                lives2Element.innerHTML = `P2 Lives: <span id="lives2Amount">${this.lives2}</span>`;
+                lives2Element.style.color = '#00ffff';
+                lives2Element.style.fontWeight = 'bold';
+                hud.appendChild(lives2Element);
+            }
+        } else {
+            lives2Element.innerHTML = `P2 Lives: <span id="lives2Amount">${this.lives2}</span>`;
+        }
+        
+        // Update player labels
+        let player1Label = document.getElementById('player1Label');
+        if (!player1Label) {
+            const hud = document.querySelector('.hud');
+            if (hud) {
+                player1Label = document.createElement('div');
+                player1Label.id = 'player1Label';
+                player1Label.innerHTML = `P1 Lives: <span id="lives1Amount">${this.lives}</span>`;
+                player1Label.style.color = '#ff00ff';
+                player1Label.style.fontWeight = 'bold';
+                hud.insertBefore(player1Label, hud.firstChild);
+            }
+        } else {
+            player1Label.innerHTML = `P1 Lives: <span id="lives1Amount">${this.lives}</span>`;
+        }
     }
     
     updatePowerUpDisplay() {
@@ -953,6 +1229,11 @@ class Game {
             this.player.draw(this.ctx);
         }
         
+        // Draw second player in multiplayer mode
+        if (this.player2 && this.multiplayerMode) {
+            this.player2.draw(this.ctx);
+        }
+        
         this.enemies.forEach(enemy => enemy.draw(this.ctx));
         this.bullets.forEach(bullet => bullet.draw(this.ctx));
         this.enemyBullets.forEach(bullet => bullet.draw(this.ctx));
@@ -973,6 +1254,16 @@ class Game {
             this.ctx.beginPath();
             this.ctx.arc(this.player.x + this.player.width/2, this.player.y + this.player.height/2, 
                 this.player.width/2 + 10, 0, Math.PI * 2);
+            this.ctx.stroke();
+        }
+        
+        // Draw power-up effects on player 2
+        if (this.player2 && this.multiplayerMode && this.activePowerUps2.invincibility.active) {
+            this.ctx.strokeStyle = '#00ffff';
+            this.ctx.lineWidth = 3;
+            this.ctx.beginPath();
+            this.ctx.arc(this.player2.x + this.player2.width/2, this.player2.y + this.player2.height/2, 
+                this.player2.width/2 + 10, 0, Math.PI * 2);
             this.ctx.stroke();
         }
         
@@ -1069,6 +1360,33 @@ class Game {
             }
         }
     }
+
+    activateSpecialWeapon2() {
+        if (this.specialWeapons2.length > 0) {
+            const weapon = this.specialWeapons2.pop();
+            if (weapon === 'nuke') {
+                // Nuke destroys all enemies on screen
+                this.enemies.forEach(enemy => {
+                    this.createExplosion(enemy.x + enemy.width/2, enemy.y + enemy.height/2);
+                    this.score += 10;
+                });
+                this.enemies = [];
+                
+                // Create a big explosion effect
+                for (let i = 0; i < 20; i++) {
+                    const angle = (Math.PI * 2 * i) / 20;
+                    const speed = 150 + Math.random() * 150; // 150-300 pixels per second
+                    const particle = new Particle(
+                        this.canvas.width/2, this.canvas.height/2,
+                        Math.cos(angle) * speed,
+                        Math.sin(angle) * speed,
+                        '#ff0000'
+                    );
+                    this.particles.push(particle);
+                }
+            }
+        }
+    }
 }
 
 // Player class
@@ -1097,11 +1415,24 @@ class Player {
         if (this.game && this.game.activePowerUps.speedBoost.active) {
             moveSpeed *= 1.5;
         }
+        if (this.isPlayer2 && this.game && this.game.activePowerUps2.speedBoost.active) {
+            moveSpeed *= 1.5;
+        }
         
-        if (keys['ArrowLeft']) this.x -= moveSpeed;
-        if (keys['ArrowRight']) this.x += moveSpeed;
-        if (keys['ArrowUp']) this.y -= moveSpeed;
-        if (keys['ArrowDown']) this.y += moveSpeed;
+        // Different controls for player 2
+        if (this.isPlayer2) {
+            // Player 2 uses WASD
+            if (keys['a']) this.x -= moveSpeed;
+            if (keys['d']) this.x += moveSpeed;
+            if (keys['w']) this.y -= moveSpeed;
+            if (keys['s']) this.y += moveSpeed;
+        } else {
+            // Player 1 uses arrow keys
+            if (keys['ArrowLeft']) this.x -= moveSpeed;
+            if (keys['ArrowRight']) this.x += moveSpeed;
+            if (keys['ArrowUp']) this.y -= moveSpeed;
+            if (keys['ArrowDown']) this.y += moveSpeed;
+        }
         
         // Keep player on screen
         this.x = Math.max(0, Math.min(760, this.x));
@@ -1116,13 +1447,21 @@ class Player {
         if (this.game && this.game.activePowerUps.rapidFire.active) {
             cooldown = 50;
         }
+        if (this.isPlayer2 && this.game && this.game.activePowerUps2.rapidFire.active) {
+            cooldown = 50;
+        }
         
         if (now - this.lastShot >= cooldown) {
             this.lastShot = now;
             const bullets = [];
             
+            // Get the appropriate power-ups and abilities for this player
+            const powerUps = this.isPlayer2 ? this.game.activePowerUps2 : this.game.activePowerUps;
+            const abilities = this.isPlayer2 ? this.game.specialAbilities2 : this.game.specialAbilities;
+            const weaponLevel = this.isPlayer2 ? this.game.weaponLevel2 : this.game.weaponLevel;
+            
             // Spread shot power-up
-            if (this.game && this.game.activePowerUps.spreadShot.active) {
+            if (powerUps.spreadShot.active) {
                 // Shoot in a spread pattern
                 for (let i = -2; i <= 2; i++) {
                     const angle = (Math.PI / 2) + (i * 0.3);
@@ -1139,24 +1478,24 @@ class Player {
                 bullets.push(new Bullet(this.x + this.width/2 - 2, this.y, 0, -300)); // 300 pixels per second
                 
                 // Multi shot ability
-                if (this.game && this.game.specialAbilities.multiShot) {
+                if (abilities.multiShot) {
                     bullets.push(new Bullet(this.x + 8, this.y, 0, -300));
                     bullets.push(new Bullet(this.x + this.width - 12, this.y, 0, -300));
                 }
                 
                 // Weapon level 2+ (double shot) - only if not multi shot
-                if (this.game && this.game.weaponLevel >= 2 && !this.game.specialAbilities.multiShot) {
+                if (weaponLevel >= 2 && !abilities.multiShot) {
                     bullets.push(new Bullet(this.x + 8, this.y, 0, -300));
                     bullets.push(new Bullet(this.x + this.width - 12, this.y, 0, -300));
                 }
                 
                 // Weapon level 3+ (triple shot) - additional center bullet
-                if (this.game && this.game.weaponLevel >= 3) {
+                if (weaponLevel >= 3) {
                     bullets.push(new Bullet(this.x + this.width/2 - 2, this.y, 0, -350)); // Center, faster
                 }
                 
                 // Homing missiles
-                if (this.game && this.game.specialAbilities.homingMissiles) {
+                if (abilities.homingMissiles) {
                     // Find nearest enemy
                     if (this.game.enemies.length > 0) {
                         const nearest = this.game.enemies.reduce((nearest, enemy) => {
@@ -1166,10 +1505,11 @@ class Player {
                         
                         if (nearest.enemy) {
                             const dx = nearest.enemy.x - this.x;
-                        const dy = nearest.enemy.y - this.y;
-                        const angle = Math.atan2(dy, dx);
-                        bullets.push(new Bullet(this.x + this.width/2, this.y, 
-                            Math.cos(angle) * 250, Math.sin(angle) * 250));
+                            const dy = nearest.enemy.y - this.y;
+                            const angle = Math.atan2(dy, dx);
+                            bullets.push(new Bullet(this.x + this.width/2, this.y, 
+                                Math.cos(angle) * 250, Math.sin(angle) * 250));
+                        }
                     }
                 }
             }
@@ -1184,28 +1524,34 @@ class Player {
     }
     
     draw(ctx) {
-        // Draw player ship (blue triangle)
-        ctx.fillStyle = '#0066ff';
-        ctx.beginPath();
-        ctx.moveTo(this.x + this.width/2, this.y);
-        ctx.lineTo(this.x, this.y + this.height);
-        ctx.lineTo(this.x + this.width, this.y + this.height);
-        ctx.closePath();
-        ctx.fill();
+        // Different colors for each player
+        if (this.isPlayer2) {
+            // Player 2 - Cyan color
+            ctx.fillStyle = '#00ffff';
+        } else {
+            // Player 1 - Blue color
+            ctx.fillStyle = '#0088ff';
+        }
+        
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+        
+        // Draw ship details
+        if (this.isPlayer2) {
+            ctx.fillStyle = '#0088aa';
+        } else {
+            ctx.fillStyle = '#004488';
+        }
+        ctx.fillRect(this.x + 5, this.y + 5, this.width - 10, this.height - 10);
         
         // Draw cockpit
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(this.x + this.width/2 - 3, this.y + 5, 6, 8);
+        ctx.fillRect(this.x + this.width/2 - 5, this.y + 8, 10, 8);
         
-        // Draw shield if active
-        if (this.game && this.game.specialAbilities.shield) {
-            ctx.strokeStyle = '#00ffff';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(this.x + this.width/2, this.y + this.height/2, 
-                this.width/2 + 5, 0, Math.PI * 2);
-            ctx.stroke();
-        }
+        // Draw player label
+        ctx.fillStyle = this.isPlayer2 ? '#00ffff' : '#0088ff';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(this.isPlayer2 ? 'P2' : 'P1', this.x + this.width/2, this.y - 5);
     }
 }
 

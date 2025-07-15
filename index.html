@@ -493,28 +493,37 @@
 
         <div id="startScreen" class="start-screen">
             <h1>🚀 Kaden & Adelynn Adventures 🚀</h1>
+            <div class="stats-section">
+                <h3>🏆 Top Score: <span id="topScoreDisplay">0</span></h3>
+                <div id="multiplayerText" style="color: #ff0000; font-weight: bold; margin: 10px 0;">Multiplayer: OFF</div>
+            </div>
             <div class="instructions">
-                <h3>Enhanced Space Shooter Game</h3>
-                <p>Navigate through space, defeat enemies, collect power-ups, and face epic boss battles!</p>
-                
-                <h4>🎮 Controls:</h4>
+                <h3>🎮 How to Play</h3>
                 <ul>
-                    <li><strong>Arrow Keys:</strong> Move your ship</li>
-                    <li><strong>Spacebar:</strong> Shoot</li>
-                    <li><strong>P:</strong> Open/Close Shop</li>
-                    <li><strong>S:</strong> Activate Special Weapon</li>
-                    <li><strong>Touch & Drag:</strong> Move (Mobile)</li>
-                    <li><strong>Touch:</strong> Shoot (Mobile)</li>
+                    <li><strong>Player 1:</strong> Arrow keys to move, Spacebar to shoot</li>
+                    <li><strong>Player 2 (Multiplayer):</strong> WASD to move, Enter to shoot</li>
+                    <li><strong>Shop:</strong> Press P to open shop, number keys to buy items</li>
+                    <li><strong>Special Weapons:</strong> Press S (P1) or F (P2) to activate</li>
+                    <li><strong>Multiplayer Toggle:</strong> Press M on main menu</li>
+                    <li><strong>Mobile:</strong> Touch and drag to move, touch to shoot</li>
                 </ul>
                 
-                <h4>🌟 New Features:</h4>
+                <h3>🎯 Multiplayer Mode</h3>
+                <ul>
+                    <li><strong>Toggle:</strong> Press M on main menu to enable/disable</li>
+                    <li><strong>Shared Score:</strong> Both players contribute to the same score</li>
+                    <li><strong>Individual Lives:</strong> Each player has their own lives</li>
+                    <li><strong>Power-ups:</strong> Each player can collect their own power-ups</li>
+                    <li><strong>Game Over:</strong> Game ends when both players lose all lives</li>
+                </ul>
+                
+                <h3>🌟 New Features</h3>
                 <ul>
                     <li><strong>Boss Battles:</strong> Epic boss fights every 500 points</li>
-                    <li><strong>Power-ups:</strong> Temporary boosts (invincibility, speed, spread shot, rapid fire)</li>
-                    <li><strong>Asteroids:</strong> Environmental obstacles</li>
-                    <li><strong>Achievements:</strong> Unlock achievements as you play</li>
-                    <li><strong>Statistics:</strong> Track your performance</li>
-                    <li><strong>Enhanced Shop:</strong> More upgrades and items</li>
+                    <li><strong>Power-ups:</strong> Temporary abilities (invincibility, speed boost, etc.)</li>
+                    <li><strong>Achievements:</strong> Unlock goals as you play</li>
+                    <li><strong>Asteroids:</strong> Environmental obstacles to avoid</li>
+                    <li><strong>Enhanced Visuals:</strong> Screen shake, particle effects, animations</li>
                 </ul>
             </div>
             <button onclick="game.startGame()">Start Game</button>
