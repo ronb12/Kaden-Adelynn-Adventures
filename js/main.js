@@ -82,7 +82,7 @@ function startGame() {
         PowerUpManager: typeof PowerUpManager,
         AudioManager: typeof AudioManager,
         UIManager: typeof UIManager,
-        StorageManager: typeof StorageManager
+        GameStorageManager: typeof GameStorageManager
     });
     
     gameStarted = true;
@@ -95,7 +95,7 @@ function startGame() {
         window.powerUpManager = new PowerUpManager(canvas, ctx);
         window.audioManager = new AudioManager();
         window.uiManager = new UIManager();
-        window.storageManager = new StorageManager();
+        window.storageManager = new GameStorageManager();
         
         // Set up Gradius-style power-up system
         setupGradiusPowerUpSystem();

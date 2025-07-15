@@ -1,4 +1,4 @@
-class StorageManager {
+class GameStorageManager {
     constructor() {}
     
     saveProgress(level, score, unlocks) {
