@@ -3,106 +3,539 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kaden & Adelynn Adventures</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Kaden & Adelynn Adventures - Enhanced Space Shooter</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game-container {
+            position: relative;
+            border: 3px solid #00ff00;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+        }
+
+        #gameCanvas {
+            display: block;
+            background: #000;
+        }
+
+        .hud {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            gap: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        .hud div {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid #00ff00;
+        }
+
+        .start-screen, .game-over-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 100;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+        }
+
+        .instructions {
+            max-width: 600px;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            border-radius: 10px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .instructions h3 {
+            color: #00ff00;
+            margin-top: 0;
+        }
+
+        .instructions ul {
+            text-align: left;
+            margin: 10px 0;
+        }
+
+        .instructions li {
+            margin: 5px 0;
+        }
+
+        button {
+            background: linear-gradient(45deg, #00ff00, #00cc00);
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 255, 0, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 255, 0, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .stats-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            border-radius: 10px;
+        }
+
+        .new-record {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 18px;
+            animation: pulse 1s infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .shop-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+
+        .shop-panel {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 2px solid #00ff00;
+            border-radius: 15px;
+            padding: 20px;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .shop-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .shop-item:hover {
+            background: rgba(0, 255, 0, 0.2);
+            transform: translateX(5px);
+        }
+
+        .shop-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .shop-item.disabled:hover {
+            transform: none;
+            background: rgba(0, 255, 0, 0.1);
+        }
+        
+        /* Boss warning animation */
+        .boss-warning {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, #ff0000, #ff6600);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 1000;
+            animation: bossWarning 3s ease-in-out;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
+        }
+        
+        @keyframes bossWarning {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            20% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+        }
+        
+        /* Achievement notification */
+        .achievement-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #000;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 16px;
+            z-index: 1000;
+            animation: achievementSlide 3s ease-in-out;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.6);
+        }
+        
+        @keyframes achievementSlide {
+            0% { transform: translateX(100%); opacity: 0; }
+            20% { transform: translateX(0); opacity: 1; }
+            80% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(100%); opacity: 0; }
+        }
+        
+        /* Power-up indicator */
+        .power-up-indicator {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #00ff00;
+            font-size: 12px;
+        }
+        
+        .power-up-indicator.active {
+            border-color: #ffff00;
+            background: rgba(255, 255, 0, 0.1);
+        }
+        
+        /* Enhanced HUD with power-up status */
+        .power-up-status {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .power-up-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            opacity: 0.3;
+            transition: opacity 0.3s ease;
+        }
+        
+        .power-up-icon.active {
+            opacity: 1;
+            animation: powerUpPulse 1s infinite;
+        }
+        
+        @keyframes powerUpPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        }
+
+        .item-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .item-emoji {
+            font-size: 24px;
+        }
+
+        .item-details h4 {
+            margin: 0;
+            color: #00ff00;
+        }
+
+        .item-details p {
+            margin: 5px 0 0 0;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .item-cost {
+            font-weight: bold;
+            color: #ffff00;
+        }
+
+        /* New CSS for enhanced features */
+        .boss-warning {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, #ff0000, #ff6600);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 1000;
+            animation: bossWarning 3s ease-in-out;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
+        }
+
+        @keyframes bossWarning {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            20% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+        }
+
+        .achievement-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #000;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: bold;
+            z-index: 1000;
+            animation: achievementSlide 3s ease-in-out;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.6);
+        }
+
+        @keyframes achievementSlide {
+            0% { transform: translateX(100%); opacity: 0; }
+            20% { transform: translateX(0); opacity: 1; }
+            80% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(100%); opacity: 0; }
+        }
+
+        .power-up-indicator {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            display: flex;
+            gap: 10px;
+            z-index: 50;
+        }
+
+        .power-up-icon {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #00ff00;
+            border-radius: 5px;
+            padding: 5px;
+            font-size: 20px;
+            position: relative;
+        }
+
+        .power-up-timer {
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: #00ff00;
+            white-space: nowrap;
+        }
+
+        .achievements-panel {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #00ff00;
+            border-radius: 10px;
+            padding: 15px;
+            max-width: 300px;
+            z-index: 50;
+        }
+
+        .achievement-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .achievement-item.unlocked {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid #00ff00;
+        }
+
+        .achievement-item.locked {
+            background: rgba(128, 128, 128, 0.2);
+            border: 1px solid #666;
+            opacity: 0.6;
+        }
+
+        .achievement-icon {
+            font-size: 20px;
+        }
+
+        .achievement-info h4 {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .achievement-info p {
+            margin: 2px 0 0 0;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .stats-display {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #00ff00;
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 12px;
+            z-index: 50;
+        }
+
+        .stats-display h4 {
+            margin: 0 0 5px 0;
+            color: #00ff00;
+            font-size: 14px;
+        }
+
+        .stats-display div {
+            margin: 2px 0;
+        }
+    </style>
 </head>
 <body>
     <div class="game-container">
-        <div class="hud">
-            <div class="score">Score: <span id="score">0</span></div>
-            <div class="lives">Lives: <span id="lives">3</span></div>
-            <div class="level">Level: <span id="level">1</span></div>
-            <div class="money">💰 Money: <span id="money">0</span></div>
-            <div class="top-score">🏆 Top Score: <span id="topScoreDisplay">0</span></div>
-        </div>
-        
         <canvas id="gameCanvas" width="800" height="600"></canvas>
         
-        <div id="startScreen" class="screen">
-            <div class="menu-header">
-                <h1>🚀 Kaden & Adelynn Adventures</h1>
-                <p class="subtitle">Space Combat Simulator</p>
-            </div>
-            
-            <div class="menu-content">
-                <div class="controls-section">
-                    <h3>🎮 Controls</h3>
-                    <div class="control-grid">
-                        <div class="control-item">
-                            <span class="control-key">WASD</span>
-                            <span class="control-desc">Move Ship</span>
-                        </div>
-                        <div class="control-item">
-                            <span class="control-key">SPACEBAR</span>
-                            <span class="control-desc">Fire Weapons</span>
-                        </div>
-                        <div class="control-item">
-                            <span class="control-key">P</span>
-                            <span class="control-desc">Open Shop</span>
-                        </div>
-                        <div class="control-item">
-                            <span class="control-key">S</span>
-                            <span class="control-desc">Special Weapon</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="mobile-section">
-                    <h3>📱 Mobile Controls</h3>
-                    <p>Touch and drag to move • Tap to shoot automatically</p>
-                </div>
-                
-                <div class="shop-section">
-                    <h3>🛒 Shop System</h3>
-                    <p>Collect 💰 money to purchase upgrades!</p>
-                    <div class="shop-items">
-                        <div class="shop-item">🔫 Weapon Upgrades</div>
-                        <div class="shop-item">🛡️ Shield Protection</div>
-                        <div class="shop-item">⚡ Rapid Fire</div>
-                        <div class="shop-item">🎯 Homing Missiles</div>
-                        <div class="shop-item">🔫 Multi Shot</div>
-                        <div class="shop-item">⭐ Score Multiplier</div>
-                        <div class="shop-item">❤️ Extra Lives</div>
-                        <div class="shop-item">💥 Special Weapons</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="menu-footer">
-                <button id="startBtn" class="primary-btn">🚀 Start Mission</button>
-            </div>
+        <div class="hud">
+            <div>Score: <span id="score">0</span></div>
+            <div>Lives: <span id="lives">5</span></div>
+            <div>Level: <span id="level">1</span></div>
+            <div>💰 <span id="moneyAmount">0</span></div>
+            <div>Top Score: <span id="topScoreDisplay">0</span></div>
         </div>
+
+        <div class="power-up-indicator" id="powerUpIndicator"></div>
         
-        <div id="gameOverScreen" class="screen hidden">
-            <div class="menu-header">
-                <h2>💀 Mission Failed</h2>
-                <p class="subtitle">Game Over</p>
+        <div class="achievements-panel" id="achievementsPanel">
+            <h4>Achievements</h4>
+            <div id="achievementsList"></div>
+        </div>
+
+        <div class="stats-display" id="statsDisplay">
+            <h4>Statistics</h4>
+            <div>Enemies Killed: <span id="enemiesKilled">0</span></div>
+            <div>Bosses Killed: <span id="bossesKilled">0</span></div>
+            <div>Power-ups: <span id="powerUpsCollected">0</span></div>
+            <div>Accuracy: <span id="accuracy">0%</span></div>
+        </div>
+
+        <div id="startScreen" class="start-screen">
+            <h1>🚀 Kaden & Adelynn Adventures 🚀</h1>
+            <div class="instructions">
+                <h3>Enhanced Space Shooter Game</h3>
+                <p>Navigate through space, defeat enemies, collect power-ups, and face epic boss battles!</p>
+                
+                <h4>🎮 Controls:</h4>
+                <ul>
+                    <li><strong>Arrow Keys:</strong> Move your ship</li>
+                    <li><strong>Spacebar:</strong> Shoot</li>
+                    <li><strong>P:</strong> Open/Close Shop</li>
+                    <li><strong>S:</strong> Activate Special Weapon</li>
+                    <li><strong>Touch & Drag:</strong> Move (Mobile)</li>
+                    <li><strong>Touch:</strong> Shoot (Mobile)</li>
+                </ul>
+                
+                <h4>🌟 New Features:</h4>
+                <ul>
+                    <li><strong>Boss Battles:</strong> Epic boss fights every 500 points</li>
+                    <li><strong>Power-ups:</strong> Temporary boosts (invincibility, speed, spread shot, rapid fire)</li>
+                    <li><strong>Asteroids:</strong> Environmental obstacles</li>
+                    <li><strong>Achievements:</strong> Unlock achievements as you play</li>
+                    <li><strong>Statistics:</strong> Track your performance</li>
+                    <li><strong>Enhanced Shop:</strong> More upgrades and items</li>
+                </ul>
             </div>
-            
-            <div class="menu-content">
-                <div class="stats-section">
-                    <div class="stat-item">
-                        <span class="stat-label">Final Score:</span>
-                        <span class="stat-value" id="finalScore">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Money Collected:</span>
-                        <span class="stat-value" id="finalMoney">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">🏆 Top Score:</span>
-                        <span class="stat-value" id="topScore">0</span>
-                    </div>
-                </div>
+            <button onclick="game.startGame()">Start Game</button>
+        </div>
+
+        <div id="gameOverScreen" class="game-over-screen hidden">
+            <h1>Game Over</h1>
+            <div class="stats-section">
+                <div>Final Score: <span id="finalScore">0</span></div>
+                <div>Money Earned: <span id="finalMoney">0</span></div>
+                <div>Top Score: <span id="topScore">0</span></div>
             </div>
-            
-            <div class="menu-footer">
-                <button id="restartBtn" class="primary-btn">🔄 New Mission</button>
-            </div>
+            <button onclick="game.restartGame()">Play Again</button>
         </div>
     </div>
-    
+
     <script src="game.js"></script>
+    <script>
+        const game = new Game();
+        game.initializeTopScoreDisplay();
+        game.gameLoop();
+    </script>
 </body>
 </html> 
