@@ -1104,7 +1104,8 @@ class Game {
     }
     
     addScreenShake(intensity) {
-        this.screenShake = Math.max(this.screenShake, intensity);
+        // Screen shake removed - no longer affects gameplay
+        // this.screenShake = Math.max(this.screenShake, intensity * 0.3);
     }
     
     createBossExplosion(x, y) {
@@ -1284,14 +1285,6 @@ class Game {
     }
     
     draw() {
-        // Apply screen shake
-        this.ctx.save();
-        if (this.screenShake > 0) {
-            const shakeX = (Math.random() - 0.5) * this.screenShake;
-            const shakeY = (Math.random() - 0.5) * this.screenShake;
-            this.ctx.translate(shakeX, shakeY);
-        }
-        
         // Clear canvas
         this.ctx.fillStyle = '#000';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -1346,8 +1339,6 @@ class Game {
         if (this.shopOpen) {
             this.drawShop();
         }
-        
-        this.ctx.restore();
     }
     
     drawStarfield() {
@@ -1599,34 +1590,34 @@ class Player {
     }
     
     draw(ctx) {
-        // Different colors for each player
-        if (this.isPlayer2) {
-            // Player 2 - Cyan color
-            ctx.fillStyle = '#00ffff';
-        } else {
-            // Player 1 - Blue color
-            ctx.fillStyle = '#0088ff';
-        }
-        
-        ctx.fillRect(this.x, this.y, this.width, this.height);
-        
-        // Draw ship details
-        if (this.isPlayer2) {
-            ctx.fillStyle = '#0088aa';
-        } else {
-            ctx.fillStyle = '#004488';
-        }
-        ctx.fillRect(this.x + 5, this.y + 5, this.width - 10, this.height - 10);
-        
-        // Draw cockpit
+        // Draw a classic arcade-style ship (triangle with cockpit)
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(this.x + this.width / 2, this.y); // Nose
+        ctx.lineTo(this.x, this.y + this.height);    // Left wing
+        ctx.lineTo(this.x + this.width, this.y + this.height); // Right wing
+        ctx.closePath();
+        ctx.fillStyle = this.isPlayer2 ? '#00ffff' : '#0088ff';
+        ctx.fill();
+        // Cockpit
+        ctx.beginPath();
+        ctx.arc(this.x + this.width / 2, this.y + this.height * 0.55, 7, 0, Math.PI * 2);
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(this.x + this.width/2 - 5, this.y + 8, 10, 8);
-        
-        // Draw player label
+        ctx.fill();
+        // Accents
+        ctx.beginPath();
+        ctx.moveTo(this.x + this.width / 2, this.y + this.height * 0.2);
+        ctx.lineTo(this.x + this.width * 0.35, this.y + this.height * 0.8);
+        ctx.lineTo(this.x + this.width * 0.65, this.y + this.height * 0.8);
+        ctx.closePath();
+        ctx.fillStyle = this.isPlayer2 ? '#0088aa' : '#004488';
+        ctx.fill();
+        // Player label
         ctx.fillStyle = this.isPlayer2 ? '#00ffff' : '#0088ff';
         ctx.font = '12px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText(this.isPlayer2 ? 'P2' : 'P1', this.x + this.width/2, this.y - 5);
+        ctx.fillText(this.isPlayer2 ? 'P2' : 'P1', this.x + this.width / 2, this.y - 5);
+        ctx.restore();
     }
 }
 
