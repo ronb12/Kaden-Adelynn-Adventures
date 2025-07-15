@@ -49,9 +49,13 @@ let player = {
     isAlive: true,
     invulnerable: false,
     invulnerabilityTime: 0,
-    weaponType: 'normal',
+    weaponType: 'normal', // normal, rapid, spread, laser, missile
     hasSpeed: false,
-    hasShield: false
+    hasShield: false,
+    hasRapidFire: false,
+    rapidFireTimer: 0,
+    weaponLevel: 1,
+    maxWeaponLevel: 3
 };
 
 let bullets = [];
@@ -69,7 +73,12 @@ let keys = {
     Space: false,
     SpacePressed: false,
     KeyS: false,
-    KeyP: false
+    KeyP: false,
+    Digit1: false,
+    Digit2: false,
+    Digit3: false,
+    Digit4: false,
+    Digit5: false
 };
 
 // Game settings
@@ -97,14 +106,91 @@ function initStars() {
 function createBullet() {
     if (bullets.length < MAX_BULLETS) {
         const bulletSpeed = player.hasSpeed ? BULLET_SPEED * 1.2 : BULLET_SPEED;
-        bullets.push({
-            x: player.x + player.width / 2 - 2,
-            y: player.y,
-            width: 4,
-            height: 10,
-            speed: bulletSpeed,
-            damage: 1
+        const bulletsToCreate = [];
+        
+        switch(player.weaponType) {
+            case 'rapid':
+                // Rapid fire - multiple bullets in quick succession
+                for (let i = 0; i < 3; i++) {
+                    bulletsToCreate.push({
+                        x: player.x + player.width / 2 - 2,
+                        y: player.y - i * 8,
+                        width: 4,
+                        height: 8,
+                        speed: bulletSpeed * 1.1,
+                        damage: 1,
+                        type: 'rapid'
+                    });
+                }
+                break;
+                
+            case 'spread':
+                // Spread shot - bullets in a fan pattern
+                const angles = [-15, 0, 15]; // degrees
+                angles.forEach(angle => {
+                    const rad = angle * Math.PI / 180;
+                    bulletsToCreate.push({
+                        x: player.x + player.width / 2 - 2,
+                        y: player.y,
+                        width: 4,
+                        height: 8,
+                        speed: bulletSpeed,
+                        damage: 1,
+                        type: 'spread',
+                        angle: rad,
+                        vx: Math.sin(rad) * bulletSpeed * 0.3
+                    });
+                });
+                break;
+                
+            case 'laser':
+                // Laser - powerful single beam
+                bulletsToCreate.push({
+                    x: player.x + player.width / 2 - 1,
+                    y: player.y,
+                    width: 2,
+                    height: 20,
+                    speed: bulletSpeed * 1.5,
+                    damage: 3,
+                    type: 'laser'
+                });
+                break;
+                
+            case 'missile':
+                // Missile - homing capability
+                bulletsToCreate.push({
+                    x: player.x + player.width / 2 - 3,
+                    y: player.y,
+                    width: 6,
+                    height: 12,
+                    speed: bulletSpeed * 0.8,
+                    damage: 2,
+                    type: 'missile',
+                    homing: true
+                });
+                break;
+                
+            default:
+                // Normal shot
+                bulletsToCreate.push({
+                    x: player.x + player.width / 2 - 2,
+                    y: player.y,
+                    width: 4,
+                    height: 10,
+                    speed: bulletSpeed,
+                    damage: 1,
+                    type: 'normal'
+                });
+                break;
+        }
+        
+        // Add bullets to the game
+        bulletsToCreate.forEach(bullet => {
+            if (bullets.length < MAX_BULLETS) {
+                bullets.push(bullet);
+            }
         });
+        
         window.gameState.shotsFired++;
     }
 }
@@ -144,7 +230,7 @@ function createEnemy() {
 // Create power-up
 function createPowerUp() {
     if (Math.random() < 0.001) {
-        const powerUpTypes = ['health', 'weapon', 'speed', 'shield'];
+        const powerUpTypes = ['health', 'weapon', 'speed', 'shield', 'rapidfire', 'spread', 'laser', 'missile'];
         const type = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
         
         powerUps.push({
@@ -153,7 +239,9 @@ function createPowerUp() {
             width: 20,
             height: 20,
             speed: POWERUP_SPEED,
-            type: type
+            type: type,
+            rotation: 0,
+            pulse: 0
         });
     }
 }
@@ -188,9 +276,17 @@ function updatePlayer() {
         if (!keys.SpacePressed) {
             createBullet();
             keys.SpacePressed = true;
+        } else if (player.hasRapidFire) {
+            // Rapid fire mode
+            player.rapidFireTimer++;
+            if (player.rapidFireTimer >= 5) { // Fire every 5 frames
+                createBullet();
+                player.rapidFireTimer = 0;
+            }
         }
     } else {
         keys.SpacePressed = false;
+        player.rapidFireTimer = 0;
     }
     
     // Power-up activation
@@ -200,6 +296,13 @@ function updatePlayer() {
     } else if (!keys.KeyS) {
         keys.KeySPressed = false;
     }
+    
+    // Weapon switching (number keys 1-5)
+    if (keys.Digit1) player.weaponType = 'normal';
+    if (keys.Digit2) player.weaponType = 'rapid';
+    if (keys.Digit3) player.weaponType = 'spread';
+    if (keys.Digit4) player.weaponType = 'laser';
+    if (keys.Digit5) player.weaponType = 'missile';
     
     // Update invulnerability
     if (player.invulnerable) {
@@ -213,8 +316,49 @@ function updatePlayer() {
 // Update bullets
 function updateBullets() {
     for (let i = bullets.length - 1; i >= 0; i--) {
-        bullets[i].y -= bullets[i].speed;
-        if (bullets[i].y < 0) {
+        const bullet = bullets[i];
+        
+        // Update position based on bullet type
+        if (bullet.type === 'spread' && bullet.vx) {
+            bullet.x += bullet.vx;
+            bullet.y -= bullet.speed;
+        } else if (bullet.type === 'missile' && bullet.homing) {
+            // Homing missile logic
+            let targetEnemy = null;
+            let closestDistance = Infinity;
+            
+            enemies.forEach(enemy => {
+                const distance = Math.sqrt(
+                    Math.pow(bullet.x - enemy.x, 2) + 
+                    Math.pow(bullet.y - enemy.y, 2)
+                );
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    targetEnemy = enemy;
+                }
+            });
+            
+            if (targetEnemy && closestDistance < 100) {
+                // Move towards target
+                const dx = targetEnemy.x - bullet.x;
+                const dy = targetEnemy.y - bullet.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 0) {
+                    bullet.x += (dx / distance) * bullet.speed * 0.5;
+                    bullet.y += (dy / distance) * bullet.speed * 0.5;
+                }
+            } else {
+                // Move straight up
+                bullet.y -= bullet.speed;
+            }
+        } else {
+            // Standard movement
+            bullet.y -= bullet.speed;
+        }
+        
+        // Remove bullets that are off screen
+        if (bullet.y < -bullet.height) {
             bullets.splice(i, 1);
         }
     }
@@ -353,6 +497,28 @@ function applyPowerUp(type) {
             player.hasShield = true;
             setTimeout(() => { player.hasShield = false; }, 15000); // 15 seconds
             break;
+        case 'rapidfire':
+            player.hasRapidFire = true;
+            setTimeout(() => { player.hasRapidFire = false; }, 12000); // 12 seconds
+            break;
+        case 'spread':
+            player.weaponType = 'spread';
+            setTimeout(() => { 
+                if (player.weaponType === 'spread') player.weaponType = 'normal'; 
+            }, 8000); // 8 seconds
+            break;
+        case 'laser':
+            player.weaponType = 'laser';
+            setTimeout(() => { 
+                if (player.weaponType === 'laser') player.weaponType = 'normal'; 
+            }, 8000); // 8 seconds
+            break;
+        case 'missile':
+            player.weaponType = 'missile';
+            setTimeout(() => { 
+                if (player.weaponType === 'missile') player.weaponType = 'normal'; 
+            }, 8000); // 8 seconds
+            break;
     }
 }
 
@@ -411,6 +577,10 @@ function resetGame() {
     player.invulnerable = false;
     player.hasSpeed = false;
     player.hasShield = false;
+    player.hasRapidFire = false;
+    player.rapidFireTimer = 0;
+    player.weaponType = 'normal';
+    player.weaponLevel = 1;
     
     // Hide game over screen
     document.getElementById('gameOverScreen').classList.add('hidden');
@@ -504,24 +674,72 @@ function drawPlayer() {
 
 function drawBullets() {
     bullets.forEach(bullet => {
-        // Different bullet designs based on player upgrades
-        if (player.hasSpeed) {
-            // Speed-enhanced bullets - longer and brighter
-            ctx.fillStyle = '#00ff00';
-            ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height + 4);
-            
-            // Glow effect
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(bullet.x, bullet.y, bullet.width, bullet.height + 4);
-        } else {
-            // Standard bullets
-            ctx.fillStyle = '#ffff00';
-            ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-            
-            // Bullet trail effect
-            ctx.fillStyle = 'rgba(255, 255, 0, 0.5)';
-            ctx.fillRect(bullet.x, bullet.y + bullet.height, bullet.width, 3);
+        switch(bullet.type) {
+            case 'rapid':
+                // Rapid fire bullets - multiple small bullets
+                ctx.fillStyle = '#00ff00';
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                break;
+                
+            case 'spread':
+                // Spread bullets - angled trajectory
+                ctx.fillStyle = '#ff8800';
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                break;
+                
+            case 'laser':
+                // Laser - bright beam
+                ctx.fillStyle = '#00ffff';
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                
+                // Laser glow effect
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(bullet.x - 1, bullet.y, bullet.width + 2, bullet.height);
+                break;
+                
+            case 'missile':
+                // Missile - larger with trail
+                ctx.fillStyle = '#ff4444';
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                
+                // Missile trail
+                ctx.fillStyle = 'rgba(255, 68, 68, 0.6)';
+                ctx.fillRect(bullet.x + 1, bullet.y + bullet.height, bullet.width - 2, 6);
+                
+                // Missile outline
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                break;
+                
+            default:
+                // Standard bullets
+                if (player.hasSpeed) {
+                    // Speed-enhanced bullets - longer and brighter
+                    ctx.fillStyle = '#00ff00';
+                    ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height + 4);
+                    
+                    // Glow effect
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(bullet.x, bullet.y, bullet.width, bullet.height + 4);
+                } else {
+                    // Standard bullets
+                    ctx.fillStyle = '#ffff00';
+                    ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                    
+                    // Bullet trail effect
+                    ctx.fillStyle = 'rgba(255, 255, 0, 0.5)';
+                    ctx.fillRect(bullet.x, bullet.y + bullet.height, bullet.width, 3);
+                }
+                break;
         }
         
         // Add sparkle effect
@@ -628,8 +846,13 @@ function drawEnemies() {
 
 function drawPowerUps() {
     powerUps.forEach(powerUp => {
+        // Update animation
+        powerUp.rotation += 0.1;
+        powerUp.pulse += 0.2;
+        
         const centerX = powerUp.x + powerUp.width / 2;
         const centerY = powerUp.y + powerUp.height / 2;
+        const pulse = Math.sin(powerUp.pulse) * 0.2 + 0.8;
         
         switch(powerUp.type) {
             case 'health':
@@ -712,6 +935,76 @@ function drawPowerUps() {
                 ctx.strokeRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
                 break;
                 
+            case 'rapidfire':
+                // Rapid fire power-up - multiple dots
+                ctx.fillStyle = '#ff8800';
+                ctx.fillRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+                
+                // Multiple dots
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(centerX - 3, powerUp.y + 4, 2, 2);
+                ctx.fillRect(centerX + 1, powerUp.y + 4, 2, 2);
+                ctx.fillRect(centerX - 1, powerUp.y + 8, 2, 2);
+                ctx.fillRect(centerX - 3, powerUp.y + 12, 2, 2);
+                ctx.fillRect(centerX + 1, powerUp.y + 12, 2, 2);
+                
+                // Glow effect
+                ctx.strokeStyle = '#ff8800';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+                break;
+                
+            case 'spread':
+                // Spread power-up - fan symbol
+                ctx.fillStyle = '#ff0088';
+                ctx.fillRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+                
+                // Fan symbol
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.moveTo(centerX, powerUp.y + 2);
+                ctx.lineTo(powerUp.x + 2, powerUp.y + powerUp.height - 2);
+                ctx.lineTo(powerUp.x + powerUp.width - 2, powerUp.y + powerUp.height - 2);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Glow effect
+                ctx.strokeStyle = '#ff0088';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+                break;
+                
+            case 'laser':
+                // Laser power-up - beam symbol
+                ctx.fillStyle = '#0088ff';
+                ctx.fillRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+                
+                // Beam symbol
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(centerX - 1, powerUp.y + 2, 2, powerUp.height - 4);
+                
+                // Glow effect
+                ctx.strokeStyle = '#0088ff';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+                break;
+                
+            case 'missile':
+                // Missile power-up - rocket symbol
+                ctx.fillStyle = '#ff4444';
+                ctx.fillRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+                
+                // Rocket symbol
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(centerX - 2, powerUp.y + 2, 4, 8);
+                ctx.fillRect(centerX - 1, powerUp.y + 10, 2, 6);
+                
+                // Glow effect
+                ctx.strokeStyle = '#ff4444';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+                break;
+                
             default:
                 // Default power-up
                 ctx.fillStyle = '#ffffff';
@@ -720,7 +1013,6 @@ function drawPowerUps() {
         }
         
         // Add pulsing animation
-        const pulse = Math.sin(Date.now() * 0.01) * 0.2 + 0.8;
         ctx.globalAlpha = pulse;
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 1;
@@ -762,6 +1054,31 @@ function drawUI() {
         const topScore = highScores.length > 0 ? highScores[0].score : 0;
         document.getElementById('topScoreDisplay').textContent = topScore;
     }
+    
+    // Draw weapon status on canvas
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '14px Arial';
+    ctx.fillText(`Weapon: ${player.weaponType.toUpperCase()}`, canvas.width - 150, 30);
+    
+    // Draw power-up status
+    if (player.hasSpeed) {
+        ctx.fillStyle = '#00ffff';
+        ctx.fillText('SPEED BOOST', canvas.width - 150, 50);
+    }
+    if (player.hasShield) {
+        ctx.fillStyle = '#ffff00';
+        ctx.fillText('SHIELD ACTIVE', canvas.width - 150, 70);
+    }
+    if (player.hasRapidFire) {
+        ctx.fillStyle = '#ff8800';
+        ctx.fillText('RAPID FIRE', canvas.width - 150, 90);
+    }
+    
+    // Draw controls hint
+    ctx.fillStyle = '#888888';
+    ctx.font = '12px Arial';
+    ctx.fillText('1-5: Switch Weapons', 10, canvas.height - 40);
+    ctx.fillText('S: Activate Power-up', 10, canvas.height - 20);
 }
 
 // Main game loop
