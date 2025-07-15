@@ -115,6 +115,11 @@ function startGame() {
     requestAnimationFrame(gameLoop);
 }
 
+// Make Gradius-style game API available globally for button onclicks
+window.game = {
+    startGame
+};
+
 function setupGradiusPowerUpSystem() {
     // Gradius power-up bar: Speed, Missile, Double, Laser, Option, Shield
     window.gameState.powerUpBar = {
