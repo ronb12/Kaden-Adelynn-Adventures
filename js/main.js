@@ -420,11 +420,17 @@ function checkCollisions() {
                 bullets[i].y < enemies[j].y + enemies[j].height &&
                 bullets[i].y + bullets[i].height > enemies[j].y) {
                 
+                // Store bullet damage before removing it
+                const bulletDamage = bullets[i].damage;
+                
                 // Create explosion particles
                 createParticle(enemies[j].x + enemies[j].width/2, enemies[j].y + enemies[j].height/2, '#ff4444');
                 
+                // Remove bullet
                 bullets.splice(i, 1);
-                enemies[j].health -= bullets[i].damage;
+                
+                // Apply damage to enemy
+                enemies[j].health -= bulletDamage;
                 
                 if (enemies[j].health <= 0) {
                     enemies.splice(j, 1);
