@@ -436,62 +436,296 @@ function drawPlayer() {
     
     // Draw player with invulnerability flash
     if (!player.invulnerable || Math.floor(Date.now() / 100) % 2) {
+        const centerX = player.x + player.width / 2;
+        const centerY = player.y + player.height / 2;
+        
+        // Main ship body (triangular shape)
         ctx.fillStyle = player.hasSpeed ? '#00ff00' : '#4a90e2';
-        ctx.fillRect(player.x, player.y, player.width, player.height);
+        ctx.beginPath();
+        ctx.moveTo(centerX, player.y); // Top point
+        ctx.lineTo(player.x, player.y + player.height); // Bottom left
+        ctx.lineTo(player.x + player.width, player.y + player.height); // Bottom right
+        ctx.closePath();
+        ctx.fill();
         
-        // Draw cockpit
+        // Ship outline
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Cockpit (circular)
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(player.x + 15, player.y + 10, 10, 10);
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 8, 0, Math.PI * 2);
+        ctx.fill();
         
-        // Draw engine glow
+        // Cockpit highlight
         ctx.fillStyle = '#00ffff';
-        ctx.fillRect(player.x + 5, player.y + player.height, 8, 5);
-        ctx.fillRect(player.x + 27, player.y + player.height, 8, 5);
+        ctx.beginPath();
+        ctx.arc(centerX - 2, centerY - 2, 3, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Engine glow (more detailed)
+        if (player.hasSpeed) {
+            // Speed boost effect
+            ctx.fillStyle = '#00ff00';
+            ctx.fillRect(player.x + 8, player.y + player.height, 8, 8);
+            ctx.fillRect(player.x + 24, player.y + player.height, 8, 8);
+            
+            // Speed particles
+            for (let i = 0; i < 3; i++) {
+                ctx.fillStyle = `rgba(0, 255, 0, ${0.7 - i * 0.2})`;
+                ctx.fillRect(player.x + 8 + i * 2, player.y + player.height + 8 + i * 3, 8 - i * 2, 4);
+                ctx.fillRect(player.x + 24 + i * 2, player.y + player.height + 8 + i * 3, 8 - i * 2, 4);
+            }
+        } else {
+            // Normal engine glow
+            ctx.fillStyle = '#00ffff';
+            ctx.fillRect(player.x + 8, player.y + player.height, 8, 6);
+            ctx.fillRect(player.x + 24, player.y + player.height, 8, 6);
+            
+            // Engine particles
+            ctx.fillStyle = 'rgba(0, 255, 255, 0.5)';
+            ctx.fillRect(player.x + 8, player.y + player.height + 6, 8, 3);
+            ctx.fillRect(player.x + 24, player.y + player.height + 6, 8, 3);
+        }
+        
+        // Wing details
+        ctx.fillStyle = '#357abd';
+        ctx.fillRect(player.x + 2, player.y + player.height - 8, 6, 8);
+        ctx.fillRect(player.x + player.width - 8, player.y + player.height - 8, 6, 8);
+        
+        // Wing highlights
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(player.x + 3, player.y + player.height - 7, 4, 2);
+        ctx.fillRect(player.x + player.width - 7, player.y + player.height - 7, 4, 2);
     }
 }
 
 function drawBullets() {
-    ctx.fillStyle = '#ffff00';
     bullets.forEach(bullet => {
-        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+        // Different bullet designs based on player upgrades
+        if (player.hasSpeed) {
+            // Speed-enhanced bullets - longer and brighter
+            ctx.fillStyle = '#00ff00';
+            ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height + 4);
+            
+            // Glow effect
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(bullet.x, bullet.y, bullet.width, bullet.height + 4);
+        } else {
+            // Standard bullets
+            ctx.fillStyle = '#ffff00';
+            ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+            
+            // Bullet trail effect
+            ctx.fillStyle = 'rgba(255, 255, 0, 0.5)';
+            ctx.fillRect(bullet.x, bullet.y + bullet.height, bullet.width, 3);
+        }
+        
+        // Add sparkle effect
+        if (Math.random() < 0.1) {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(bullet.x + Math.random() * bullet.width, bullet.y + Math.random() * bullet.height, 1, 1);
+        }
     });
 }
 
 function drawEnemies() {
     enemies.forEach(enemy => {
-        // Draw enemy body
-        ctx.fillStyle = enemy.type === 'tank' ? '#ff0000' : enemy.type === 'fast' ? '#ff8800' : '#ff4444';
-        ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+        const centerX = enemy.x + enemy.width / 2;
+        const centerY = enemy.y + enemy.height / 2;
         
-        // Draw enemy details
-        ctx.fillStyle = '#ff0000';
-        ctx.fillRect(enemy.x + 5, enemy.y + 5, enemy.width - 10, enemy.height - 10);
-        
-        // Draw enemy cockpit
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(enemy.x + 10, enemy.y + 10, 10, 10);
+        // Different designs based on enemy type
+        switch(enemy.type) {
+            case 'tank':
+                // Tank enemy - large, heavily armored
+                // Main body (rectangular)
+                ctx.fillStyle = '#ff0000';
+                ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+                
+                // Armor plates
+                ctx.fillStyle = '#cc0000';
+                ctx.fillRect(enemy.x + 2, enemy.y + 2, enemy.width - 4, 6);
+                ctx.fillRect(enemy.x + 2, enemy.y + enemy.height - 8, enemy.width - 4, 6);
+                
+                // Cockpit
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(enemy.x + 8, enemy.y + 8, 8, 8);
+                
+                // Weapon turrets
+                ctx.fillStyle = '#880000';
+                ctx.fillRect(enemy.x + 4, enemy.y + 4, 4, 4);
+                ctx.fillRect(enemy.x + enemy.width - 8, enemy.y + 4, 4, 4);
+                
+                // Engine glow
+                ctx.fillStyle = '#ff4444';
+                ctx.fillRect(enemy.x + 6, enemy.y + enemy.height, 6, 4);
+                ctx.fillRect(enemy.x + enemy.width - 12, enemy.y + enemy.height, 6, 4);
+                break;
+                
+            case 'fast':
+                // Fast enemy - sleek, aerodynamic
+                // Main body (diamond shape)
+                ctx.fillStyle = '#ff8800';
+                ctx.beginPath();
+                ctx.moveTo(centerX, enemy.y); // Top
+                ctx.lineTo(enemy.x + enemy.width, centerY); // Right
+                ctx.lineTo(centerX, enemy.y + enemy.height); // Bottom
+                ctx.lineTo(enemy.x, centerY); // Left
+                ctx.closePath();
+                ctx.fill();
+                
+                // Outline
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                
+                // Cockpit
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(enemy.x + 6, enemy.y + 6, 6, 6);
+                
+                // Engine trails
+                ctx.fillStyle = '#ffaa00';
+                ctx.fillRect(enemy.x + 4, enemy.y + enemy.height, 4, 6);
+                ctx.fillRect(enemy.x + enemy.width - 8, enemy.y + enemy.height, 4, 6);
+                break;
+                
+            default:
+                // Basic enemy - standard design
+                // Main body (triangular, pointing down)
+                ctx.fillStyle = '#ff4444';
+                ctx.beginPath();
+                ctx.moveTo(centerX, enemy.y + enemy.height); // Bottom point
+                ctx.lineTo(enemy.x, enemy.y); // Top left
+                ctx.lineTo(enemy.x + enemy.width, enemy.y); // Top right
+                ctx.closePath();
+                ctx.fill();
+                
+                // Outline
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                
+                // Cockpit
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(enemy.x + 8, enemy.y + 4, 6, 6);
+                
+                // Weapon ports
+                ctx.fillStyle = '#cc0000';
+                ctx.fillRect(enemy.x + 4, enemy.y + 2, 3, 3);
+                ctx.fillRect(enemy.x + enemy.width - 7, enemy.y + 2, 3, 3);
+                
+                // Engine glow
+                ctx.fillStyle = '#ff6666';
+                ctx.fillRect(enemy.x + 6, enemy.y + enemy.height, 4, 3);
+                ctx.fillRect(enemy.x + enemy.width - 10, enemy.y + enemy.height, 4, 3);
+                break;
+        }
     });
 }
 
 function drawPowerUps() {
     powerUps.forEach(powerUp => {
+        const centerX = powerUp.x + powerUp.width / 2;
+        const centerY = powerUp.y + powerUp.height / 2;
+        
         switch(powerUp.type) {
             case 'health':
+                // Health power-up - cross symbol
                 ctx.fillStyle = '#00ff00';
-                break;
-            case 'weapon':
-                ctx.fillStyle = '#ff00ff';
-                break;
-            case 'speed':
-                ctx.fillStyle = '#00ffff';
-                break;
-            case 'shield':
-                ctx.fillStyle = '#ffff00';
-                break;
-            default:
+                ctx.fillRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+                
+                // Cross symbol
                 ctx.fillStyle = '#ffffff';
+                ctx.fillRect(centerX - 1, powerUp.y + 4, 2, 8);
+                ctx.fillRect(powerUp.x + 4, centerY - 1, 8, 2);
+                
+                // Glow effect
+                ctx.strokeStyle = '#00ff00';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+                break;
+                
+            case 'weapon':
+                // Weapon power-up - star symbol
+                ctx.fillStyle = '#ff00ff';
+                ctx.fillRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+                
+                // Star symbol
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.moveTo(centerX, powerUp.y + 2);
+                ctx.lineTo(centerX + 2, centerY);
+                ctx.lineTo(centerX, powerUp.y + powerUp.height - 2);
+                ctx.lineTo(centerX - 2, centerY);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Glow effect
+                ctx.strokeStyle = '#ff00ff';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+                break;
+                
+            case 'speed':
+                // Speed power-up - lightning bolt
+                ctx.fillStyle = '#00ffff';
+                ctx.fillRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+                
+                // Lightning bolt
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.moveTo(centerX - 2, powerUp.y + 2);
+                ctx.lineTo(centerX + 1, centerY - 2);
+                ctx.lineTo(centerX - 1, centerY);
+                ctx.lineTo(centerX + 2, powerUp.y + powerUp.height - 2);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Glow effect
+                ctx.strokeStyle = '#00ffff';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+                break;
+                
+            case 'shield':
+                // Shield power-up - shield symbol
+                ctx.fillStyle = '#ffff00';
+                ctx.fillRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+                
+                // Shield symbol
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.moveTo(centerX, powerUp.y + 2);
+                ctx.lineTo(powerUp.x + 2, centerY);
+                ctx.lineTo(powerUp.x + 2, powerUp.y + powerUp.height - 2);
+                ctx.lineTo(powerUp.x + powerUp.width - 2, powerUp.y + powerUp.height - 2);
+                ctx.lineTo(powerUp.x + powerUp.width - 2, centerY);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Glow effect
+                ctx.strokeStyle = '#ffff00';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+                break;
+                
+            default:
+                // Default power-up
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+                break;
         }
-        ctx.fillRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+        
+        // Add pulsing animation
+        const pulse = Math.sin(Date.now() * 0.01) * 0.2 + 0.8;
+        ctx.globalAlpha = pulse;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(powerUp.x - 1, powerUp.y - 1, powerUp.width + 2, powerUp.height + 2);
+        ctx.globalAlpha = 1;
     });
 }
 
