@@ -686,6 +686,7 @@ class SpaceShooter {
                 } else if (collectible.type === 'money') {
                     this.money += 10; // Or any value you want
                     this.showAchievementPopup('💰 +10 Money!');
+                    this.updateHUD(); // Ensure HUD updates immediately
                 }
                 
                 this.playCollectSound();
@@ -1033,7 +1034,7 @@ class SpaceShooter {
         if (weaponElement) weaponElement.textContent = `Weapon: ${this.player.weapon.toUpperCase()}`;
         if (levelElement) levelElement.textContent = `Level: ${this.level}`;
         if (topScoreElement) topScoreElement.textContent = `Top Score: ${this.topScore}`;
-        if (moneyElement) moneyElement.textContent = this.money;
+        if (moneyElement) moneyElement.textContent = `💰: ${this.money}`;
     }
     
     gameOver() {
@@ -1051,12 +1052,10 @@ class SpaceShooter {
     }
     
     gameLoop(currentTime = 0) {
-        const deltaTime = currentTime - (this.lastTime || currentTime);
+        const deltaTime = (currentTime - (this.lastTime || currentTime)) / 1000; // Convert ms to seconds
         this.lastTime = currentTime;
-        
-        this.update(deltaTime);
+        this.update(deltaTime * 1000); // Pass ms to update (if update expects ms)
         this.draw();
-        
         requestAnimationFrame((time) => this.gameLoop(time));
     }
 
