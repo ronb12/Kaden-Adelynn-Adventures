@@ -2063,11 +2063,21 @@ class Collectible {
 // Initialize game when page loads
 let game;
 document.addEventListener('DOMContentLoaded', () => {
-    game = new Game();
+    console.log('DOMContentLoaded event fired');
+    console.log('Game class exists:', typeof Game !== 'undefined');
     
-    // Initialize top score display
-    game.initializeTopScoreDisplay();
-    
-    // Start the game loop
-    game.gameLoop();
+    try {
+        game = new Game();
+        console.log('Game object created successfully');
+        
+        // Initialize top score display
+        game.initializeTopScoreDisplay();
+        console.log('Top score display initialized');
+        
+        // Start the game loop
+        game.gameLoop();
+        console.log('Game loop started');
+    } catch (error) {
+        console.error('Error initializing game:', error);
+    }
 }); 
