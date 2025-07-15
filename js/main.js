@@ -198,7 +198,7 @@ function createBullet() {
 function createEnemy() {
     const spawnRate = 0.02 + (window.gameState.level - 1) * 0.005;
     if (Math.random() < spawnRate && enemies.length < MAX_ENEMIES) {
-        const enemyTypes = ['basic', 'fast', 'tank'];
+        const enemyTypes = ['basic', 'fast', 'tank', 'scout', 'destroyer'];
         const type = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
         
         let enemy = {
@@ -208,18 +208,28 @@ function createEnemy() {
             height: 30,
             speed: ENEMY_SPEED + Math.random() * 2 + (window.gameState.level - 1) * 0.5,
             type: type,
-            health: type === 'tank' ? 3 : 1
+            health: type === 'tank' ? 4 : type === 'destroyer' ? 3 : type === 'scout' ? 1 : 2,
+            animation: 0,
+            engineGlow: Math.random() * Math.PI * 2
         };
         
         // Adjust enemy properties based on type
         if (type === 'fast') {
-            enemy.speed *= 1.5;
-            enemy.width = 25;
-            enemy.height = 25;
+            enemy.speed *= 1.8;
+            enemy.width = 24;
+            enemy.height = 24;
         } else if (type === 'tank') {
-            enemy.speed *= 0.7;
-            enemy.width = 40;
-            enemy.height = 40;
+            enemy.speed *= 0.6;
+            enemy.width = 45;
+            enemy.height = 45;
+        } else if (type === 'scout') {
+            enemy.speed *= 2.2;
+            enemy.width = 20;
+            enemy.height = 20;
+        } else if (type === 'destroyer') {
+            enemy.speed *= 0.8;
+            enemy.width = 35;
+            enemy.height = 35;
         }
         
         enemies.push(enemy);
@@ -229,7 +239,7 @@ function createEnemy() {
 // Create power-up
 function createPowerUp() {
     if (Math.random() < 0.001) {
-        const powerUpTypes = ['health', 'weapon', 'speed', 'shield', 'rapidfire', 'spread', 'laser', 'missile'];
+        const powerUpTypes = ['health', 'weapon', 'speed', 'shield', 'rapidfire', 'spread', 'laser', 'missile', 'money', 'money', 'money']; // Money appears more often
         const type = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
         
         powerUps.push({
@@ -369,6 +379,8 @@ function updateBullets() {
 function updateEnemies() {
     for (let i = enemies.length - 1; i >= 0; i--) {
         enemies[i].y += enemies[i].speed;
+        enemies[i].animation += 0.1;
+        enemies[i].engineGlow += 0.2;
         if (enemies[i].y > canvas.height) {
             enemies.splice(i, 1);
         }
@@ -525,6 +537,10 @@ function applyPowerUp(type) {
             setTimeout(() => { 
                 if (player.weaponType === 'missile') player.weaponType = 'normal'; 
             }, 8000); // 8 seconds
+            break;
+        case 'money':
+            window.gameState.money += 10 + Math.floor(Math.random() * 20); // 10-30 money
+            window.gameState.score += 25;
             break;
     }
 }
@@ -846,6 +862,77 @@ function drawEnemies() {
                 ctx.globalAlpha = 1;
                 break;
                 
+            case 'scout':
+                // Scout enemy - tiny, ultra-fast stealth fighter
+                // Main body (small diamond shape)
+                ctx.fillStyle = '#9932CC';
+                ctx.beginPath();
+                ctx.moveTo(centerX, enemy.y); // Top
+                ctx.lineTo(enemy.x + enemy.width - 2, centerY); // Right
+                ctx.lineTo(centerX, enemy.y + enemy.height); // Bottom
+                ctx.lineTo(enemy.x + 2, centerY); // Left
+                ctx.closePath();
+                ctx.fill();
+                
+                // Stealth coating
+                ctx.fillStyle = '#8A2BE2';
+                ctx.fillRect(enemy.x + 3, enemy.y + 3, enemy.width - 6, 2);
+                ctx.fillRect(enemy.x + 3, enemy.y + enemy.height - 5, enemy.width - 6, 2);
+                
+                // Mini cockpit
+                ctx.fillStyle = '#00FFFF';
+                ctx.fillRect(enemy.x + 6, enemy.y + 6, 4, 3);
+                
+                // Stealth engine trails
+                ctx.fillStyle = '#9370DB';
+                ctx.fillRect(enemy.x + 2, enemy.y + enemy.height, 3, 6);
+                ctx.fillRect(enemy.x + enemy.width - 5, enemy.y + enemy.height, 3, 6);
+                
+                // Cloaking effect
+                ctx.globalAlpha = 0.7;
+                ctx.strokeStyle = '#C0C0C0';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(enemy.x - 1, enemy.y - 1, enemy.width + 2, enemy.height + 2);
+                ctx.globalAlpha = 1;
+                break;
+                
+            case 'destroyer':
+                // Destroyer enemy - medium armored cruiser
+                // Main body (rectangular with rounded corners)
+                ctx.fillStyle = '#2F4F4F';
+                ctx.fillRect(enemy.x + 2, enemy.y + 2, enemy.width - 4, enemy.height - 4);
+                
+                // Armor panels
+                ctx.fillStyle = '#696969';
+                ctx.fillRect(enemy.x + 4, enemy.y + 4, enemy.width - 8, 3);
+                ctx.fillRect(enemy.x + 4, enemy.y + enemy.height - 7, enemy.width - 8, 3);
+                ctx.fillRect(enemy.x + 4, enemy.y + 8, 3, enemy.height - 16);
+                ctx.fillRect(enemy.x + enemy.width - 7, enemy.y + 8, 3, enemy.height - 16);
+                
+                // Command center
+                ctx.fillStyle = '#FFD700';
+                ctx.fillRect(enemy.x + 8, enemy.y + 8, 8, 6);
+                
+                // Heavy weapon mounts
+                ctx.fillStyle = '#DC143C';
+                ctx.fillRect(enemy.x + 2, enemy.y + 2, 6, 6);
+                ctx.fillRect(enemy.x + enemy.width - 8, enemy.y + 2, 6, 6);
+                ctx.fillRect(enemy.x + 2, enemy.y + enemy.height - 8, 6, 6);
+                ctx.fillRect(enemy.x + enemy.width - 8, enemy.y + enemy.height - 8, 6, 6);
+                
+                // Engine banks
+                ctx.fillStyle = '#FF4500';
+                ctx.fillRect(enemy.x + 6, enemy.y + enemy.height, 6, 8);
+                ctx.fillRect(enemy.x + enemy.width - 12, enemy.y + enemy.height, 6, 8);
+                
+                // Energy field
+                ctx.globalAlpha = 0.4;
+                ctx.strokeStyle = '#00FFFF';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(enemy.x, enemy.y, enemy.width, enemy.height);
+                ctx.globalAlpha = 1;
+                break;
+                
             default:
                 // Basic enemy - classic fighter
                 // Main body (improved triangular shape)
@@ -894,6 +981,12 @@ function drawEnemies() {
         ctx.globalAlpha = 0.3;
         ctx.stroke();
         ctx.globalAlpha = 1;
+        
+        // Add engine glow animation
+        const glowIntensity = Math.sin(enemy.engineGlow) * 0.3 + 0.7;
+        ctx.fillStyle = `rgba(255, 100, 100, ${glowIntensity * 0.5})`;
+        ctx.fillRect(enemy.x + 4, enemy.y + enemy.height + 2, 6, 4);
+        ctx.fillRect(enemy.x + enemy.width - 10, enemy.y + enemy.height + 2, 6, 4);
     });
 }
 
@@ -970,6 +1063,12 @@ function drawPowerUps() {
                 // Missile power-up - rocket emoji
                 ctx.fillStyle = '#ff4444';
                 ctx.fillText('🚀', centerX, centerY);
+                break;
+                
+            case 'money':
+                // Money power-up - coin emoji
+                ctx.fillStyle = '#ffd700';
+                ctx.fillText('💰', centerX, centerY);
                 break;
                 
             default:
