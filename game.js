@@ -1103,6 +1103,10 @@ class Game {
         this.addScreenShake(2);
     }
     
+    addScreenShake(intensity) {
+        this.screenShake = Math.max(this.screenShake, intensity);
+    }
+    
     createBossExplosion(x, y) {
         // Epic boss explosion with many particles
         for (let i = 0; i < 20; i++) {
