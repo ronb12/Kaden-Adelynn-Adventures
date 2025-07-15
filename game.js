@@ -1967,19 +1967,13 @@ class Asteroid {
     }
     
     draw(ctx) {
-        ctx.save();
-        ctx.translate(this.x + this.width/2, this.y + this.height/2);
-        ctx.rotate(this.rotation);
-        
-        // Draw asteroid
+        // Draw asteroid without rotation to prevent screen movement
         ctx.fillStyle = '#888888';
-        ctx.fillRect(-this.width/2, -this.height/2, this.width, this.height);
+        ctx.fillRect(this.x, this.y, this.width, this.height);
         
         // Draw asteroid details
         ctx.fillStyle = '#666666';
-        ctx.fillRect(-this.width/2 + 2, -this.height/2 + 2, this.width - 4, this.height - 4);
-        
-        ctx.restore();
+        ctx.fillRect(this.x + 2, this.y + 2, this.width - 4, this.height - 4);
     }
 }
 
