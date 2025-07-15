@@ -132,6 +132,43 @@ class Game {
         this.createShootSound = this.createShootSound();
     }
     
+    loadAchievements() {
+        const savedAchievements = localStorage.getItem('achievements');
+        if (savedAchievements) {
+            const loaded = JSON.parse(savedAchievements);
+            Object.keys(loaded).forEach(key => {
+                if (this.achievements[key]) {
+                    this.achievements[key].unlocked = loaded[key].unlocked;
+                }
+            });
+        }
+    }
+    
+    saveAchievements() {
+        localStorage.setItem('achievements', JSON.stringify(this.achievements));
+    }
+    
+    initStarfield() {
+        this.starfield = [];
+        for (let i = 0; i < 100; i++) {
+            this.starfield.push({
+                x: Math.random() * this.canvas.width,
+                y: Math.random() * this.canvas.height,
+                speed: Math.random() * 50 + 10,
+                size: Math.random() * 2 + 1
+            });
+        }
+    }
+    
+    initAudio() {
+        // Initialize audio context for sound effects
+        try {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+            console.log('Audio not supported');
+        }
+    }
+    
     loadTopScore() {
         const topScore = localStorage.getItem('topScore');
         return topScore ? parseInt(topScore) : 0;
@@ -269,6 +306,17 @@ class Game {
             this.resumeGame();
         }
         this.drawShop();
+    }
+    
+    toggleMultiplayer() {
+        if (this.gameState === 'menu') {
+            this.multiplayer = !this.multiplayer;
+            const multiplayerText = document.getElementById('multiplayerText');
+            if (multiplayerText) {
+                multiplayerText.textContent = `Multiplayer: ${this.multiplayer ? 'ON' : 'OFF'}`;
+                multiplayerText.style.color = this.multiplayer ? '#00ff00' : '#ff0000';
+            }
+        }
     }
     
     pauseGame() {
@@ -1182,6 +1230,29 @@ class Game {
         }
     }
     
+    unlockAchievement(achievementId) {
+        if (this.achievements[achievementId] && !this.achievements[achievementId].unlocked) {
+            this.achievements[achievementId].unlocked = true;
+            this.saveAchievements();
+            
+            // Show achievement notification
+            this.showAchievementNotification(this.achievements[achievementId].name);
+        }
+    }
+    
+    showAchievementNotification(achievementName) {
+        const notification = document.createElement('div');
+        notification.className = 'achievement-notification';
+        notification.textContent = `🏆 Achievement Unlocked: ${achievementName}!`;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 3000);
+    }
+    
     checkAchievements() {
         // Score achievements
         if (this.score >= 100 && !this.achievements.score100.unlocked) {
@@ -1990,20 +2061,13 @@ class Collectible {
 }
 
 // Initialize game when page loads
+let game;
 document.addEventListener('DOMContentLoaded', () => {
-    const game = new Game();
+    game = new Game();
     
     // Initialize top score display
     game.initializeTopScoreDisplay();
     
-    // Add event listeners for buttons
-    document.getElementById('startBtn').addEventListener('click', () => {
-        game.startGame();
-        game.gameLoop();
-    });
-    
-    document.getElementById('restartBtn').addEventListener('click', () => {
-        game.restartGame();
-        game.gameLoop();
-    });
+    // Start the game loop
+    game.gameLoop();
 }); 
