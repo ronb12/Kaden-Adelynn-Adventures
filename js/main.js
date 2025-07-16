@@ -1606,34 +1606,30 @@ canvas.addEventListener('touchstart', (e) => {
     touchStartX = touch.clientX - rect.left;
     touchStartY = touch.clientY - rect.top;
     isTouching = true;
-    
     // Start shooting on touch
     keys.Space = true;
     keys.SpacePressed = false;
-    
     // Convert touch position to canvas coordinates
     const canvasX = (touch.clientX - rect.left) * (canvas.width / rect.width);
     const canvasY = (touch.clientY - rect.top) * (canvas.height / rect.height);
-    
     // Move player to touch position
-    player.x = Math.max(0, Math.min(canvas.width - player.width, canvasX - player.width / 2));
-    player.y = Math.max(0, Math.min(canvas.height - player.height, canvasY - player.height / 2));
+    player.x = canvasX - player.width / 2;
+    player.y = canvasY - player.height / 2;
+    clampPlayerPosition();
 }, { passive: false });
 
 canvas.addEventListener('touchmove', (e) => {
     e.preventDefault();
     if (!isTouching) return;
-    
     const touch = e.touches[0];
     const rect = canvas.getBoundingClientRect();
-    
     // Convert touch position to canvas coordinates
     const canvasX = (touch.clientX - rect.left) * (canvas.width / rect.width);
     const canvasY = (touch.clientY - rect.top) * (canvas.height / rect.height);
-    
     // Move player to touch position
-    player.x = Math.max(0, Math.min(canvas.width - player.width, canvasX - player.width / 2));
-    player.y = Math.max(0, Math.min(canvas.height - player.height, canvasY - player.height / 2));
+    player.x = canvasX - player.width / 2;
+    player.y = canvasY - player.height / 2;
+    clampPlayerPosition();
 }, { passive: false });
 
 canvas.addEventListener('touchend', (e) => {

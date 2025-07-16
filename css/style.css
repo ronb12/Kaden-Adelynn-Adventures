@@ -54,12 +54,19 @@ body {
 
 @media (max-width: 700px) {
   .hud {
-    left: 50% !important;
-    right: auto !important;
-    transform: translateX(-50%) !important;
-    top: 10px !important;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    z-index: 10;
+    flex-wrap: wrap;
     justify-content: center;
-    width: max-content !important;
+    width: max-content;
   }
 }
 
