@@ -124,6 +124,67 @@ function createBullet() {
                 }
                 break;
                 
+            case 'multishot':
+                // Multi-shot - 5 bullets in a spread pattern
+                const multishotAngles = [-20, -10, 0, 10, 20];
+                multishotAngles.forEach(angle => {
+                    const rad = angle * Math.PI / 180;
+                    bulletsToCreate.push({
+                        x: player.x + player.width / 2 - 2,
+                        y: player.y,
+                        width: 4,
+                        height: 8,
+                        speed: bulletSpeed,
+                        damage: 1,
+                        type: 'multishot',
+                        angle: rad,
+                        vx: Math.sin(rad) * bulletSpeed * 0.4
+                    });
+                });
+                break;
+                
+            case 'bomb':
+                // Bomb - explosive projectile
+                bulletsToCreate.push({
+                    x: player.x + player.width / 2 - 4,
+                    y: player.y,
+                    width: 8,
+                    height: 12,
+                    speed: bulletSpeed * 0.7,
+                    damage: 5,
+                    type: 'bomb',
+                    explosive: true
+                });
+                break;
+                
+            case 'plasma':
+                // Plasma - energy ball
+                bulletsToCreate.push({
+                    x: player.x + player.width / 2 - 3,
+                    y: player.y,
+                    width: 6,
+                    height: 6,
+                    speed: bulletSpeed * 1.3,
+                    damage: 4,
+                    type: 'plasma',
+                    energy: true
+                });
+                break;
+                
+            case 'freeze':
+                // Freeze - ice projectile
+                bulletsToCreate.push({
+                    x: player.x + player.width / 2 - 2,
+                    y: player.y,
+                    width: 4,
+                    height: 10,
+                    speed: bulletSpeed * 0.9,
+                    damage: 2,
+                    type: 'freeze',
+                    ice: true
+                });
+                break;
+                
             case 'spread':
                 // Spread shot - bullets in a fan pattern
                 const angles = [-15, 0, 15]; // degrees
@@ -213,7 +274,7 @@ function createEnemy() {
             animation: 0,
             engineGlow: Math.random() * Math.PI * 2,
             shootTimer: 0,
-            shootInterval: type === 'tank' ? 120 : type === 'fast' ? 60 : type === 'scout' ? 40 : type === 'destroyer' ? 90 : 80
+            shootInterval: type === 'tank' ? 90 : type === 'fast' ? 45 : type === 'scout' ? 30 : type === 'destroyer' ? 70 : 60
         };
         
         // Adjust enemy properties based on type
@@ -291,8 +352,15 @@ function createEnemyBullet(enemy) {
 
 // Create power-up
 function createPowerUp() {
-    if (Math.random() < 0.001) {
-        const powerUpTypes = ['health', 'weapon', 'speed', 'shield', 'rapidfire', 'spread', 'laser', 'missile', 'money', 'money', 'money']; // Money appears more often
+    if (Math.random() < 0.002) { // Increased spawn rate
+        const powerUpTypes = [
+            'health', 'weapon', 'speed', 'shield', 'rapidfire', 'spread', 'laser', 'missile', 
+            'money', 'money', 'money', 'money', // More money
+            'multishot', 'multishot', // Multiple shots
+            'bomb', 'bomb', // Bomb weapon
+            'plasma', 'plasma', // Plasma weapon
+            'freeze', 'freeze' // Freeze weapon
+        ];
         const type = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
         
         powerUps.push({
@@ -638,6 +706,30 @@ function applyPowerUp(type) {
                 if (player.weaponType === 'missile') player.weaponType = 'normal'; 
             }, 8000); // 8 seconds
             break;
+        case 'multishot':
+            player.weaponType = 'multishot';
+            setTimeout(() => { 
+                if (player.weaponType === 'multishot') player.weaponType = 'normal'; 
+            }, 10000); // 10 seconds
+            break;
+        case 'bomb':
+            player.weaponType = 'bomb';
+            setTimeout(() => { 
+                if (player.weaponType === 'bomb') player.weaponType = 'normal'; 
+            }, 6000); // 6 seconds
+            break;
+        case 'plasma':
+            player.weaponType = 'plasma';
+            setTimeout(() => { 
+                if (player.weaponType === 'plasma') player.weaponType = 'normal'; 
+            }, 8000); // 8 seconds
+            break;
+        case 'freeze':
+            player.weaponType = 'freeze';
+            setTimeout(() => { 
+                if (player.weaponType === 'freeze') player.weaponType = 'normal'; 
+            }, 7000); // 7 seconds
+            break;
         case 'money':
             window.gameState.money += 10 + Math.floor(Math.random() * 20); // 10-30 money
             window.gameState.score += 25;
@@ -898,6 +990,51 @@ function drawBullets() {
                 ctx.strokeStyle = '#ffffff';
                 ctx.lineWidth = 1;
                 ctx.strokeRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                break;
+                
+            case 'multishot':
+                // Multi-shot bullets - purple with trail
+                ctx.fillStyle = '#ff0088';
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                
+                // Trail effect
+                ctx.fillStyle = 'rgba(255, 0, 136, 0.6)';
+                ctx.fillRect(bullet.x, bullet.y + bullet.height, bullet.width, 4);
+                break;
+                
+            case 'bomb':
+                // Bomb - dark explosive projectile
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                
+                // Explosive glow
+                ctx.strokeStyle = '#ff6600';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(bullet.x - 1, bullet.y - 1, bullet.width + 2, bullet.height + 2);
+                break;
+                
+            case 'plasma':
+                // Plasma - bright energy ball
+                ctx.fillStyle = '#00ffff';
+                ctx.beginPath();
+                ctx.arc(bullet.x + bullet.width/2, bullet.y + bullet.height/2, bullet.width/2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Energy field
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                break;
+                
+            case 'freeze':
+                // Freeze - ice projectile
+                ctx.fillStyle = '#87ceeb';
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                
+                // Ice crystals
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(bullet.x + 1, bullet.y + 2, 2, 2);
+                ctx.fillRect(bullet.x + bullet.width - 3, bullet.y + bullet.height - 4, 2, 2);
                 break;
                 
             default:
@@ -1228,6 +1365,30 @@ function drawPowerUps() {
                 // Money power-up - coin emoji
                 ctx.fillStyle = '#ffd700';
                 ctx.fillText('💰', centerX, centerY);
+                break;
+                
+            case 'multishot':
+                // Multi-shot power-up - multiple arrows
+                ctx.fillStyle = '#ff0088';
+                ctx.fillText('🎯', centerX, centerY);
+                break;
+                
+            case 'bomb':
+                // Bomb power-up - bomb emoji
+                ctx.fillStyle = '#ff6600';
+                ctx.fillText('💣', centerX, centerY);
+                break;
+                
+            case 'plasma':
+                // Plasma power-up - energy emoji
+                ctx.fillStyle = '#00ffff';
+                ctx.fillText('⚡', centerX, centerY);
+                break;
+                
+            case 'freeze':
+                // Freeze power-up - ice emoji
+                ctx.fillStyle = '#87ceeb';
+                ctx.fillText('❄️', centerX, centerY);
                 break;
                 
             default:
