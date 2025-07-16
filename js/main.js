@@ -1031,9 +1031,9 @@ function drawStars() {
     });
 }
 
-// Preload the SVG player ship sprite
+// Preload the realistic PNG player ship sprite
 let playerShipImg = new window.Image();
-playerShipImg.src = 'assets/images/player_ship.svg';
+playerShipImg.src = 'assets/images/player_ship_realistic.png';
 let playerShipLoaded = false;
 playerShipImg.onload = () => { playerShipLoaded = true; };
 
