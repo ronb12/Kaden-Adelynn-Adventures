@@ -1040,61 +1040,81 @@ function drawStars() {
     });
 }
 
+// Cache the advanced Paper.js ship image
+let advancedPlayerShipImg = null;
+function ensureAdvancedPlayerShipImg() {
+    if (!advancedPlayerShipImg && typeof window.getAdvancedPlayerShipImage === 'function') {
+        advancedPlayerShipImg = window.getAdvancedPlayerShipImage();
+    }
+}
+
 function drawPlayer() {
     if (!player.isAlive) return;
-    const centerX = player.x + player.width / 2;
-    const baseY = player.y + player.height;
+    ensureAdvancedPlayerShipImg();
     ctx.save();
-    // Always draw advanced sci-fi fallback ship
-    // Main hull
-    ctx.fillStyle = '#2e3b4e';
-    ctx.beginPath();
-    ctx.moveTo(centerX, player.y); // Nose
-    ctx.lineTo(player.x + player.width * 0.18, baseY - player.height * 0.18); // Left front
-    ctx.lineTo(player.x + player.width * 0.18, baseY - player.height * 0.08); // Left mid
-    ctx.lineTo(player.x + player.width * 0.32, baseY); // Left engine
-    ctx.lineTo(player.x + player.width * 0.68, baseY); // Right engine
-    ctx.lineTo(player.x + player.width * 0.82, baseY - player.height * 0.08); // Right mid
-    ctx.lineTo(player.x + player.width * 0.82, baseY - player.height * 0.18); // Right front
-    ctx.closePath();
-    ctx.shadowColor = '#00eaff';
-    ctx.shadowBlur = 16;
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    // Cockpit
-    ctx.fillStyle = '#00eaff';
-    ctx.beginPath();
-    ctx.ellipse(centerX, player.y + player.height * 0.32, player.width * 0.18, player.height * 0.22, 0, 0, Math.PI * 2);
-    ctx.globalAlpha = 0.8;
-    ctx.fill();
-    ctx.globalAlpha = 1;
-    // Layered hull details
-    ctx.strokeStyle = '#b0c4de';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(centerX, player.y + player.height * 0.18);
-    ctx.lineTo(player.x + player.width * 0.22, baseY - player.height * 0.22);
-    ctx.lineTo(player.x + player.width * 0.78, baseY - player.height * 0.22);
-    ctx.closePath();
-    ctx.stroke();
-    // Engine glows
-    ctx.save();
-    ctx.globalAlpha = 0.7;
-    ctx.fillStyle = '#00fff7';
-    ctx.beginPath();
-    ctx.ellipse(player.x + player.width * 0.36, baseY, player.width * 0.08, player.height * 0.18, 0, 0, Math.PI * 2);
-    ctx.ellipse(player.x + player.width * 0.64, baseY, player.width * 0.08, player.height * 0.18, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-    // Fuselage lines
-    ctx.strokeStyle = '#00eaff';
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.moveTo(centerX, player.y + player.height * 0.18);
-    ctx.lineTo(centerX, baseY - player.height * 0.08);
-    ctx.stroke();
+    if (advancedPlayerShipImg && advancedPlayerShipImg.complete) {
+        ctx.drawImage(
+            advancedPlayerShipImg,
+            player.x,
+            player.y,
+            player.width,
+            player.height
+        );
+    } else {
+        // Fallback: simple advanced canvas ship (previous design)
+        const centerX = player.x + player.width / 2;
+        const baseY = player.y + player.height;
+        // Main hull
+        ctx.fillStyle = '#2e3b4e';
+        ctx.beginPath();
+        ctx.moveTo(centerX, player.y); // Nose
+        ctx.lineTo(player.x + player.width * 0.18, baseY - player.height * 0.18); // Left front
+        ctx.lineTo(player.x + player.width * 0.18, baseY - player.height * 0.08); // Left mid
+        ctx.lineTo(player.x + player.width * 0.32, baseY); // Left engine
+        ctx.lineTo(player.x + player.width * 0.68, baseY); // Right engine
+        ctx.lineTo(player.x + player.width * 0.82, baseY - player.height * 0.08); // Right mid
+        ctx.lineTo(player.x + player.width * 0.82, baseY - player.height * 0.18); // Right front
+        ctx.closePath();
+        ctx.shadowColor = '#00eaff';
+        ctx.shadowBlur = 16;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        // Cockpit
+        ctx.fillStyle = '#00eaff';
+        ctx.beginPath();
+        ctx.ellipse(centerX, player.y + player.height * 0.32, player.width * 0.18, player.height * 0.22, 0, 0, Math.PI * 2);
+        ctx.globalAlpha = 0.8;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        // Layered hull details
+        ctx.strokeStyle = '#b0c4de';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(centerX, player.y + player.height * 0.18);
+        ctx.lineTo(player.x + player.width * 0.22, baseY - player.height * 0.22);
+        ctx.lineTo(player.x + player.width * 0.78, baseY - player.height * 0.22);
+        ctx.closePath();
+        ctx.stroke();
+        // Engine glows
+        ctx.save();
+        ctx.globalAlpha = 0.7;
+        ctx.fillStyle = '#00fff7';
+        ctx.beginPath();
+        ctx.ellipse(player.x + player.width * 0.36, baseY, player.width * 0.08, player.height * 0.18, 0, 0, Math.PI * 2);
+        ctx.ellipse(player.x + player.width * 0.64, baseY, player.width * 0.08, player.height * 0.18, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        // Fuselage lines
+        ctx.strokeStyle = '#00eaff';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(centerX, player.y + player.height * 0.18);
+        ctx.lineTo(centerX, baseY - player.height * 0.08);
+        ctx.stroke();
+    }
     ctx.restore();
     // --- Visual feedbacks (shield, invincibility, magnet) ---
+    const centerX = player.x + player.width / 2;
     if (player.hasShield) {
         ctx.save();
         ctx.strokeStyle = '#00ffff';

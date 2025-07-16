@@ -35,19 +35,21 @@
             border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             width: 100vw;
             height: 100vh;
-            max-width: 100vw;
-            max-height: 100vh;
+            background: #000;
+            /* Remove width, height, max-width, max-height rules that force stretching */
         }
 
         #gameCanvas {
             display: block;
             background: #000;
-            width: 100vw;
-            height: 100vh;
-            max-width: 100vw;
-            max-height: 100vh;
+            margin: auto;
+            border: 2px solid #0f0;
+            /* Remove width, height, max-width, max-height rules that force stretching */
         }
 
         .hud {
@@ -756,6 +758,8 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.12.15/paper-full.min.js"></script>
+    <script src="js/advancedPlayerShip.js"></script>
     <script src="js/entities/Player.js"></script>
     <script src="js/entities/Enemy.js"></script>
     <script src="js/EnemyManager.js"></script>
