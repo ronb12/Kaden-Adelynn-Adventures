@@ -16,8 +16,17 @@ if (!ctx) {
 // Responsive canvas resize for mobile/iOS
 function resizeGameCanvas() {
     const dpr = window.devicePixelRatio || 1;
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+    // Maintain a fixed aspect ratio (4:3)
+    const aspectRatio = 4 / 3;
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    if (width / height > aspectRatio) {
+        // Window is too wide, pillarbox
+        width = height * aspectRatio;
+    } else {
+        // Window is too tall, letterbox
+        height = width / aspectRatio;
+    }
     canvas.width = width * dpr;
     canvas.height = height * dpr;
     canvas.style.width = width + 'px';
@@ -2088,6 +2097,7 @@ console.log('🎮 startGame function available:', typeof window.game.startGame);
 
 // Initialize when page loads
 window.addEventListener('load', () => {
+    resizeGameCanvas();
     console.log('✅ Enhanced game loaded and ready!');
     console.log('🎮 Click "Start Game" to begin!');
     console.log('🎮 Game object available:', window.game);
@@ -2117,3 +2127,7 @@ function playShootSound() {
         sfx.play();
     }
 }
+
+// Add event listeners to resize canvas on load and resize
+window.addEventListener('resize', resizeGameCanvas);
+window.addEventListener('orientationchange', resizeGameCanvas);
