@@ -49,12 +49,14 @@ let player = {
     isAlive: true,
     invulnerable: false,
     invulnerabilityTime: 0,
-    weaponType: 'normal', // normal, rapid, spread, laser, missile
+    weaponType: 'normal', // normal, rapid, spread, laser, missile, multishot, bomb, plasma, freeze, chain, vortex, nova, quantum, thunder
     hasSpeed: false,
     hasShield: false,
     rapidFireTimer: 0,
     weaponLevel: 1,
-    maxWeaponLevel: 3
+    maxWeaponLevel: 3,
+    weaponMultiplier: 1, // 1x to 4x multiplier
+    maxWeaponMultiplier: 4
 };
 
 let bullets = [];
@@ -107,6 +109,9 @@ function createBullet() {
     if (bullets.length < MAX_BULLETS) {
         const bulletSpeed = player.hasSpeed ? BULLET_SPEED * 1.2 : BULLET_SPEED;
         const bulletsToCreate = [];
+        
+        // Apply weapon multiplier
+        const multiplier = player.weaponMultiplier;
         
         switch(player.weaponType) {
             case 'rapid':
@@ -231,6 +236,76 @@ function createBullet() {
                 });
                 break;
                 
+            case 'chain':
+                // Chain lightning - electric projectile
+                bulletsToCreate.push({
+                    x: player.x + player.width / 2 - 2,
+                    y: player.y,
+                    width: 4,
+                    height: 12,
+                    speed: bulletSpeed * 1.2,
+                    damage: 3,
+                    type: 'chain',
+                    electric: true
+                });
+                break;
+                
+            case 'vortex':
+                // Vortex - spinning projectile
+                bulletsToCreate.push({
+                    x: player.x + player.width / 2 - 3,
+                    y: player.y,
+                    width: 6,
+                    height: 6,
+                    speed: bulletSpeed * 0.9,
+                    damage: 4,
+                    type: 'vortex',
+                    spinning: true
+                });
+                break;
+                
+            case 'nova':
+                // Nova - explosive burst
+                bulletsToCreate.push({
+                    x: player.x + player.width / 2 - 4,
+                    y: player.y,
+                    width: 8,
+                    height: 8,
+                    speed: bulletSpeed * 0.6,
+                    damage: 6,
+                    type: 'nova',
+                    explosive: true
+                });
+                break;
+                
+            case 'quantum':
+                // Quantum - teleporting projectile
+                bulletsToCreate.push({
+                    x: player.x + player.width / 2 - 2,
+                    y: player.y,
+                    width: 4,
+                    height: 10,
+                    speed: bulletSpeed * 1.4,
+                    damage: 5,
+                    type: 'quantum',
+                    teleport: true
+                });
+                break;
+                
+            case 'thunder':
+                // Thunder - lightning bolt
+                bulletsToCreate.push({
+                    x: player.x + player.width / 2 - 1,
+                    y: player.y,
+                    width: 2,
+                    height: 16,
+                    speed: bulletSpeed * 1.6,
+                    damage: 4,
+                    type: 'thunder',
+                    lightning: true
+                });
+                break;
+                
             default:
                 // Normal shot
                 bulletsToCreate.push({
@@ -245,12 +320,19 @@ function createBullet() {
                 break;
         }
         
-        // Add bullets to the game
-        bulletsToCreate.forEach(bullet => {
-            if (bullets.length < MAX_BULLETS) {
-                bullets.push(bullet);
-            }
-        });
+        // Apply weapon multiplier - create multiple bullets based on multiplier
+        for (let m = 0; m < multiplier; m++) {
+            bulletsToCreate.forEach(bullet => {
+                if (bullets.length < MAX_BULLETS) {
+                    // Create a copy of the bullet with slight position offset
+                    const newBullet = {...bullet};
+                    if (multiplier > 1) {
+                        newBullet.x += (m - (multiplier - 1) / 2) * 3; // Spread bullets horizontally
+                    }
+                    bullets.push(newBullet);
+                }
+            });
+        }
         
         window.gameState.shotsFired++;
     }
@@ -359,7 +441,13 @@ function createPowerUp() {
             'multishot', 'multishot', // Multiple shots
             'bomb', 'bomb', // Bomb weapon
             'plasma', 'plasma', // Plasma weapon
-            'freeze', 'freeze' // Freeze weapon
+            'freeze', 'freeze', // Freeze weapon
+            'chain', 'chain', // Chain lightning weapon
+            'vortex', 'vortex', // Vortex weapon
+            'nova', 'nova', // Nova explosion weapon
+            'quantum', 'quantum', // Quantum weapon
+            'thunder', 'thunder', // Thunder weapon
+            'multiplier', 'multiplier', 'multiplier' // Weapon multiplier (appears more often)
         ];
         const type = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
         
@@ -730,6 +818,46 @@ function applyPowerUp(type) {
                 if (player.weaponType === 'freeze') player.weaponType = 'normal'; 
             }, 7000); // 7 seconds
             break;
+        case 'chain':
+            player.weaponType = 'chain';
+            setTimeout(() => { 
+                if (player.weaponType === 'chain') player.weaponType = 'normal'; 
+            }, 8000); // 8 seconds
+            break;
+        case 'vortex':
+            player.weaponType = 'vortex';
+            setTimeout(() => { 
+                if (player.weaponType === 'vortex') player.weaponType = 'normal'; 
+            }, 7000); // 7 seconds
+            break;
+        case 'nova':
+            player.weaponType = 'nova';
+            setTimeout(() => { 
+                if (player.weaponType === 'nova') player.weaponType = 'normal'; 
+            }, 6000); // 6 seconds
+            break;
+        case 'quantum':
+            player.weaponType = 'quantum';
+            setTimeout(() => { 
+                if (player.weaponType === 'quantum') player.weaponType = 'normal'; 
+            }, 9000); // 9 seconds
+            break;
+        case 'thunder':
+            player.weaponType = 'thunder';
+            setTimeout(() => { 
+                if (player.weaponType === 'thunder') player.weaponType = 'normal'; 
+            }, 8000); // 8 seconds
+            break;
+        case 'multiplier':
+            // Increase weapon multiplier (up to 4x)
+            if (player.weaponMultiplier < player.maxWeaponMultiplier) {
+                player.weaponMultiplier++;
+                window.gameState.score += 100;
+            } else {
+                // If already at max, give bonus points
+                window.gameState.score += 200;
+            }
+            break;
         case 'money':
             window.gameState.money += 10 + Math.floor(Math.random() * 20); // 10-30 money
             window.gameState.score += 25;
@@ -796,6 +924,7 @@ function resetGame() {
     player.rapidFireTimer = 0;
     player.weaponType = 'normal';
     player.weaponLevel = 1;
+    player.weaponMultiplier = 1;
     
     // Hide game over screen
     document.getElementById('gameOverScreen').classList.add('hidden');
@@ -1035,6 +1164,65 @@ function drawBullets() {
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(bullet.x + 1, bullet.y + 2, 2, 2);
                 ctx.fillRect(bullet.x + bullet.width - 3, bullet.y + bullet.height - 4, 2, 2);
+                break;
+                
+            case 'chain':
+                // Chain lightning - electric projectile
+                ctx.fillStyle = '#ffff00';
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                
+                // Electric sparks
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(bullet.x + 1, bullet.y + 1, 2, 2);
+                ctx.fillRect(bullet.x + bullet.width - 3, bullet.y + bullet.height - 3, 2, 2);
+                break;
+                
+            case 'vortex':
+                // Vortex - spinning projectile
+                ctx.fillStyle = '#8b4513';
+                ctx.beginPath();
+                ctx.arc(bullet.x + bullet.width/2, bullet.y + bullet.height/2, bullet.width/2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Spinning effect
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                break;
+                
+            case 'nova':
+                // Nova - explosive burst
+                ctx.fillStyle = '#ff6600';
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                
+                // Explosive glow
+                ctx.strokeStyle = '#ffff00';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(bullet.x - 1, bullet.y - 1, bullet.width + 2, bullet.height + 2);
+                break;
+                
+            case 'quantum':
+                // Quantum - teleporting projectile
+                ctx.fillStyle = '#9932cc';
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                
+                // Quantum effect
+                ctx.globalAlpha = 0.7;
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(bullet.x - 1, bullet.y - 1, bullet.width + 2, bullet.height + 2);
+                ctx.globalAlpha = 1;
+                break;
+                
+            case 'thunder':
+                // Thunder - lightning bolt
+                ctx.fillStyle = '#ffd700';
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                
+                // Lightning effect
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(bullet.x - 1, bullet.y, bullet.width + 2, bullet.height);
                 break;
                 
             default:
@@ -1391,6 +1579,42 @@ function drawPowerUps() {
                 ctx.fillText('❄️', centerX, centerY);
                 break;
                 
+            case 'chain':
+                // Chain lightning power-up - lightning emoji
+                ctx.fillStyle = '#ffff00';
+                ctx.fillText('⚡', centerX, centerY);
+                break;
+                
+            case 'vortex':
+                // Vortex power-up - tornado emoji
+                ctx.fillStyle = '#8b4513';
+                ctx.fillText('🌪️', centerX, centerY);
+                break;
+                
+            case 'nova':
+                // Nova power-up - explosion emoji
+                ctx.fillStyle = '#ff6600';
+                ctx.fillText('💥', centerX, centerY);
+                break;
+                
+            case 'quantum':
+                // Quantum power-up - atom emoji
+                ctx.fillStyle = '#9932cc';
+                ctx.fillText('⚛️', centerX, centerY);
+                break;
+                
+            case 'thunder':
+                // Thunder power-up - thunder emoji
+                ctx.fillStyle = '#ffd700';
+                ctx.fillText('⚡', centerX, centerY);
+                break;
+                
+            case 'multiplier':
+                // Weapon multiplier power-up - star emoji
+                ctx.fillStyle = '#ff1493';
+                ctx.fillText('⭐', centerX, centerY);
+                break;
+                
             default:
                 // Default power-up - gem emoji
                 ctx.fillStyle = '#ff00ff';
@@ -1442,6 +1666,12 @@ function drawUI() {
     ctx.fillStyle = '#ffffff';
     ctx.font = '14px Arial';
     ctx.fillText(`Weapon: ${player.weaponType.toUpperCase()}`, canvas.width - 150, 30);
+    
+    // Draw weapon multiplier
+    if (player.weaponMultiplier > 1) {
+        ctx.fillStyle = '#ff1493';
+        ctx.fillText(`${player.weaponMultiplier}x MULTIPLIER!`, canvas.width - 150, 50);
+    }
     
     // Draw power-up status
     if (player.hasSpeed) {
