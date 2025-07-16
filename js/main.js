@@ -1316,47 +1316,97 @@ function drawEnemies() {
         // Different designs based on enemy type
         switch(enemy.type) {
             case 'tank':
-                // Tank enemy - heavily armored battleship
-                // Main body (hexagonal shape)
-                ctx.fillStyle = '#8B0000';
+                // Tank enemy - Advanced Dreadnought with energy shields
+                // Energy shield field
+                ctx.globalAlpha = 0.3;
+                ctx.fillStyle = '#00FFFF';
                 ctx.beginPath();
-                ctx.moveTo(enemy.x + 4, enemy.y);
-                ctx.lineTo(enemy.x + enemy.width - 4, enemy.y);
-                ctx.lineTo(enemy.x + enemy.width, enemy.y + 6);
-                ctx.lineTo(enemy.x + enemy.width, enemy.y + enemy.height - 6);
-                ctx.lineTo(enemy.x + enemy.width - 4, enemy.y + enemy.height);
-                ctx.lineTo(enemy.x + 4, enemy.y + enemy.height);
-                ctx.lineTo(enemy.x, enemy.y + enemy.height - 6);
-                ctx.lineTo(enemy.x, enemy.y + 6);
+                ctx.arc(centerX, centerY, enemy.width * 0.6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+                
+                // Main body (octagonal armored core)
+                ctx.fillStyle = '#1a1a2e';
+                ctx.beginPath();
+                ctx.moveTo(enemy.x + 6, enemy.y);
+                ctx.lineTo(enemy.x + enemy.width - 6, enemy.y);
+                ctx.lineTo(enemy.x + enemy.width, enemy.y + 4);
+                ctx.lineTo(enemy.x + enemy.width, enemy.y + enemy.height - 4);
+                ctx.lineTo(enemy.x + enemy.width - 6, enemy.y + enemy.height);
+                ctx.lineTo(enemy.x + 6, enemy.y + enemy.height);
+                ctx.lineTo(enemy.x, enemy.y + enemy.height - 4);
+                ctx.lineTo(enemy.x, enemy.y + 4);
                 ctx.closePath();
                 ctx.fill();
                 
-                // Armor plating
-                ctx.fillStyle = '#A52A2A';
-                ctx.fillRect(enemy.x + 2, enemy.y + 2, enemy.width - 4, 4);
-                ctx.fillRect(enemy.x + 2, enemy.y + enemy.height - 6, enemy.width - 4, 4);
-                ctx.fillRect(enemy.x + 6, enemy.y + 6, enemy.width - 12, 2);
-                ctx.fillRect(enemy.x + 6, enemy.y + enemy.height - 8, enemy.width - 12, 2);
+                // Reinforced armor plating with energy conduits
+                ctx.fillStyle = '#16213e';
+                ctx.fillRect(enemy.x + 3, enemy.y + 3, enemy.width - 6, 5);
+                ctx.fillRect(enemy.x + 3, enemy.y + enemy.height - 8, enemy.width - 6, 5);
+                ctx.fillRect(enemy.x + 3, enemy.y + 8, 5, enemy.height - 16);
+                ctx.fillRect(enemy.x + enemy.width - 8, enemy.y + 8, 5, enemy.height - 16);
                 
-                // Command bridge
+                // Energy conduits (pulsing)
+                const pulse1 = Math.sin(Date.now() * 0.008) * 0.4 + 0.6;
+                ctx.fillStyle = `rgba(0, 255, 255, ${pulse1})`;
+                ctx.fillRect(enemy.x + 8, enemy.y + 5, enemy.width - 16, 2);
+                ctx.fillRect(enemy.x + 8, enemy.y + enemy.height - 7, enemy.width - 16, 2);
+                ctx.fillRect(enemy.x + 5, enemy.y + 10, 2, enemy.height - 20);
+                ctx.fillRect(enemy.x + enemy.width - 7, enemy.y + 10, 2, enemy.height - 20);
+                
+                // Central command nexus
                 ctx.fillStyle = '#FFD700';
-                ctx.fillRect(enemy.x + 8, enemy.y + 8, 8, 6);
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 6, 0, Math.PI * 2);
+                ctx.fill();
                 
-                // Weapon turrets
+                // Holographic display ring
+                ctx.strokeStyle = '#00FFFF';
+                ctx.lineWidth = 2;
+                ctx.globalAlpha = 0.7;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 8, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+                
+                // Heavy weapon platforms (rotating)
+                const rotation = Date.now() * 0.005;
+                ctx.save();
+                ctx.translate(enemy.x + 8, enemy.y + 8);
+                ctx.rotate(rotation);
                 ctx.fillStyle = '#DC143C';
-                ctx.fillRect(enemy.x + 3, enemy.y + 3, 6, 6);
-                ctx.fillRect(enemy.x + enemy.width - 9, enemy.y + 3, 6, 6);
+                ctx.fillRect(-3, -3, 6, 6);
+                ctx.restore();
                 
-                // Engine exhausts with glow effect
+                ctx.save();
+                ctx.translate(enemy.x + enemy.width - 8, enemy.y + 8);
+                ctx.rotate(-rotation);
+                ctx.fillStyle = '#DC143C';
+                ctx.fillRect(-3, -3, 6, 6);
+                ctx.restore();
+                
+                // Quantum engine clusters
                 ctx.fillStyle = '#FF4500';
-                ctx.fillRect(enemy.x + 4, enemy.y + enemy.height, 6, 6);
-                ctx.fillRect(enemy.x + enemy.width - 10, enemy.y + enemy.height, 6, 6);
+                ctx.beginPath();
+                ctx.arc(enemy.x + 8, enemy.y + enemy.height, 4, 0, Math.PI * 2);
+                ctx.arc(enemy.x + enemy.width - 8, enemy.y + enemy.height, 4, 0, Math.PI * 2);
+                ctx.fill();
                 
-                // Glow effect
-                ctx.fillStyle = '#FF6347';
+                // Plasma exhaust trails
+                const pulse2 = Math.sin(Date.now() * 0.01) * 0.5 + 0.5;
+                ctx.fillStyle = `rgba(255, 69, 0, ${pulse2})`;
+                ctx.globalAlpha = 0.8;
+                ctx.fillRect(enemy.x + 4, enemy.y + enemy.height + 4, 8, 8);
+                ctx.fillRect(enemy.x + enemy.width - 12, enemy.y + enemy.height + 4, 8, 8);
+                ctx.globalAlpha = 1;
+                
+                // Shield matrix nodes
+                ctx.fillStyle = '#00FFFF';
                 ctx.globalAlpha = 0.6;
-                ctx.fillRect(enemy.x + 3, enemy.y + enemy.height + 6, 8, 3);
-                ctx.fillRect(enemy.x + enemy.width - 11, enemy.y + enemy.height + 6, 8, 3);
+                ctx.fillRect(enemy.x + 2, enemy.y + 2, 3, 3);
+                ctx.fillRect(enemy.x + enemy.width - 5, enemy.y + 2, 3, 3);
+                ctx.fillRect(enemy.x + 2, enemy.y + enemy.height - 5, 3, 3);
+                ctx.fillRect(enemy.x + enemy.width - 5, enemy.y + enemy.height - 5, 3, 3);
                 ctx.globalAlpha = 1;
                 break;
                 
@@ -1433,39 +1483,115 @@ function drawEnemies() {
                 break;
                 
             case 'destroyer':
-                // Destroyer enemy - medium armored cruiser
-                // Main body (rectangular with rounded corners)
-                ctx.fillStyle = '#2F4F4F';
-                ctx.fillRect(enemy.x + 2, enemy.y + 2, enemy.width - 4, enemy.height - 4);
+                // Destroyer enemy - Advanced Battlecruiser with stealth tech
+                // Cloaking field effect
+                const cloakPulse = Math.sin(Date.now() * 0.006) * 0.3 + 0.7;
+                ctx.globalAlpha = 0.2 * cloakPulse;
+                ctx.fillStyle = '#4B0082';
+                ctx.beginPath();
+                ctx.ellipse(centerX, centerY, enemy.width * 0.7, enemy.height * 0.5, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
                 
-                // Armor panels
-                ctx.fillStyle = '#696969';
-                ctx.fillRect(enemy.x + 4, enemy.y + 4, enemy.width - 8, 3);
-                ctx.fillRect(enemy.x + 4, enemy.y + enemy.height - 7, enemy.width - 8, 3);
-                ctx.fillRect(enemy.x + 4, enemy.y + 8, 3, enemy.height - 16);
-                ctx.fillRect(enemy.x + enemy.width - 7, enemy.y + 8, 3, enemy.height - 16);
+                // Main body (diamond-shaped stealth hull)
+                ctx.fillStyle = '#2F2F4F';
+                ctx.beginPath();
+                ctx.moveTo(centerX, enemy.y + 2); // Top point
+                ctx.lineTo(enemy.x + enemy.width - 3, centerY); // Right point
+                ctx.lineTo(centerX, enemy.y + enemy.height - 2); // Bottom point
+                ctx.lineTo(enemy.x + 3, centerY); // Left point
+                ctx.closePath();
+                ctx.fill();
                 
-                // Command center
+                // Stealth armor panels with energy patterns
+                ctx.fillStyle = '#1a1a3a';
+                ctx.fillRect(enemy.x + 6, enemy.y + 4, enemy.width - 12, 4);
+                ctx.fillRect(enemy.x + 6, enemy.y + enemy.height - 8, enemy.width - 12, 4);
+                ctx.fillRect(enemy.x + 4, enemy.y + 8, 4, enemy.height - 16);
+                ctx.fillRect(enemy.x + enemy.width - 8, enemy.y + 8, 4, enemy.height - 16);
+                
+                // Neural network nodes (pulsing)
+                const nodePulse = Math.sin(Date.now() * 0.01) * 0.5 + 0.5;
+                ctx.fillStyle = `rgba(138, 43, 226, ${nodePulse})`;
+                ctx.fillRect(enemy.x + 8, enemy.y + 6, 3, 3);
+                ctx.fillRect(enemy.x + enemy.width - 11, enemy.y + 6, 3, 3);
+                ctx.fillRect(enemy.x + 8, enemy.y + enemy.height - 9, 3, 3);
+                ctx.fillRect(enemy.x + enemy.width - 11, enemy.y + enemy.height - 9, 3, 3);
+                
+                // Central AI core
                 ctx.fillStyle = '#FFD700';
-                ctx.fillRect(enemy.x + 8, enemy.y + 8, 8, 6);
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 5, 0, Math.PI * 2);
+                ctx.fill();
                 
-                // Heavy weapon mounts
-                ctx.fillStyle = '#DC143C';
-                ctx.fillRect(enemy.x + 2, enemy.y + 2, 6, 6);
-                ctx.fillRect(enemy.x + enemy.width - 8, enemy.y + 2, 6, 6);
-                ctx.fillRect(enemy.x + 2, enemy.y + enemy.height - 8, 6, 6);
-                ctx.fillRect(enemy.x + enemy.width - 8, enemy.y + enemy.height - 8, 6, 6);
+                // AI processing rings
+                ctx.strokeStyle = '#9370DB';
+                ctx.lineWidth = 1;
+                ctx.globalAlpha = 0.8;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 7, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 9, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.globalAlpha = 1;
                 
-                // Engine banks
+                // Adaptive weapon arrays (shape-shifting)
+                const weaponPulse = Math.sin(Date.now() * 0.007) * 0.4 + 0.6;
+                ctx.fillStyle = `rgba(220, 20, 60, ${weaponPulse})`;
+                
+                // Top weapons
+                ctx.beginPath();
+                ctx.moveTo(enemy.x + 4, enemy.y + 2);
+                ctx.lineTo(enemy.x + 8, enemy.y + 6);
+                ctx.lineTo(enemy.x + 4, enemy.y + 10);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.moveTo(enemy.x + enemy.width - 4, enemy.y + 2);
+                ctx.lineTo(enemy.x + enemy.width - 8, enemy.y + 6);
+                ctx.lineTo(enemy.x + enemy.width - 4, enemy.y + 10);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Bottom weapons
+                ctx.beginPath();
+                ctx.moveTo(enemy.x + 4, enemy.y + enemy.height - 2);
+                ctx.lineTo(enemy.x + 8, enemy.y + enemy.height - 6);
+                ctx.lineTo(enemy.x + 4, enemy.y + enemy.height - 10);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.moveTo(enemy.x + enemy.width - 4, enemy.y + enemy.height - 2);
+                ctx.lineTo(enemy.x + enemy.width - 8, enemy.y + enemy.height - 6);
+                ctx.lineTo(enemy.x + enemy.width - 4, enemy.y + enemy.height - 10);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Quantum drive engines
                 ctx.fillStyle = '#FF4500';
-                ctx.fillRect(enemy.x + 6, enemy.y + enemy.height, 6, 8);
-                ctx.fillRect(enemy.x + enemy.width - 12, enemy.y + enemy.height, 6, 8);
+                ctx.beginPath();
+                ctx.arc(enemy.x + 6, enemy.y + enemy.height, 3, 0, Math.PI * 2);
+                ctx.arc(enemy.x + enemy.width - 6, enemy.y + enemy.height, 3, 0, Math.PI * 2);
+                ctx.fill();
                 
-                // Energy field
-                ctx.globalAlpha = 0.4;
-                ctx.strokeStyle = '#00FFFF';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(enemy.x, enemy.y, enemy.width, enemy.height);
+                // Temporal distortion trails
+                const timePulse = Math.sin(Date.now() * 0.012) * 0.6 + 0.4;
+                ctx.fillStyle = `rgba(255, 69, 0, ${timePulse})`;
+                ctx.globalAlpha = 0.7;
+                ctx.fillRect(enemy.x + 3, enemy.y + enemy.height + 3, 6, 6);
+                ctx.fillRect(enemy.x + enemy.width - 9, enemy.y + enemy.height + 3, 6, 6);
+                ctx.globalAlpha = 1;
+                
+                // Stealth field emitters
+                ctx.fillStyle = '#8A2BE2';
+                ctx.globalAlpha = 0.5;
+                ctx.fillRect(enemy.x + 2, enemy.y + 2, 2, 2);
+                ctx.fillRect(enemy.x + enemy.width - 4, enemy.y + 2, 2, 2);
+                ctx.fillRect(enemy.x + 2, enemy.y + enemy.height - 4, 2, 2);
+                ctx.fillRect(enemy.x + enemy.width - 4, enemy.y + enemy.height - 4, 2, 2);
                 ctx.globalAlpha = 1;
                 break;
                 
@@ -1720,39 +1846,39 @@ function drawUI() {
         document.getElementById('topScoreDisplay').textContent = topScore;
     }
     
-    // Draw weapon status on canvas
+    // Draw weapon status on canvas (moved to avoid HUD overlap)
     ctx.fillStyle = '#ffffff';
     ctx.font = '14px Arial';
-    ctx.fillText(`Weapon: ${player.weaponType.toUpperCase()}`, canvas.width - 150, 30);
+    ctx.fillText(`Weapon: ${player.weaponType.toUpperCase()}`, canvas.width - 200, 80);
     
-    // Draw weapon multiplier
+    // Draw weapon multiplier (moved to avoid HUD overlap)
     if (player.weaponMultiplier > 1) {
         ctx.fillStyle = '#ff1493';
-        ctx.fillText(`${player.weaponMultiplier}x MULTIPLIER!`, canvas.width - 150, 50);
+        ctx.fillText(`${player.weaponMultiplier}x MULTIPLIER!`, canvas.width - 200, 100);
     }
     
-    // Draw weapon info
+    // Draw weapon info (moved to avoid HUD overlap)
     ctx.fillStyle = '#00ff00';
     ctx.font = '12px Arial';
-    ctx.fillText('Collect weapons to switch!', canvas.width - 150, 70);
+    ctx.fillText('Collect weapons to switch!', canvas.width - 200, 120);
     
-    // Draw power-up status
+    // Draw power-up status (moved to avoid HUD overlap)
     if (player.hasSpeed) {
         ctx.fillStyle = '#00ffff';
-        ctx.fillText('SPEED BOOST', canvas.width - 150, 50);
+        ctx.fillText('SPEED BOOST', canvas.width - 200, 140);
     }
     if (player.hasShield) {
         ctx.fillStyle = '#ffff00';
-        ctx.fillText('SHIELD ACTIVE', canvas.width - 150, 70);
+        ctx.fillText('SHIELD ACTIVE', canvas.width - 200, 160);
     }
     
-    // Draw controls hint
+    // Draw controls hint (moved to avoid HUD overlap)
     ctx.fillStyle = '#888888';
     ctx.font = '12px Arial';
     ctx.fillText('1-5: Quick Weapon Switch', 10, canvas.height - 80);
     ctx.fillText('Hold SPACE: Rapid Fire', 10, canvas.height - 60);
     ctx.fillText('Press R: Fire Rocket', 10, canvas.height - 40);
-    ctx.fillText('Collect Power-ups to Switch!', 10, canvas.height - 20);
+    ctx.fillText('Touch/Drag: Mobile Controls', 10, canvas.height - 20);
 }
 
 // Main game loop
@@ -1810,6 +1936,74 @@ document.addEventListener('keyup', (e) => {
         keys[e.code] = false;
     }
 });
+
+// Touch controls for iOS devices
+let touchStartX = 0;
+let touchStartY = 0;
+let isTouching = false;
+let touchShootTimer = 0;
+
+// Touch event handlers
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    touchStartX = touch.clientX - rect.left;
+    touchStartY = touch.clientY - rect.top;
+    isTouching = true;
+    
+    // Start shooting on touch
+    keys.Space = true;
+    keys.SpacePressed = false;
+    
+    // Convert touch position to canvas coordinates
+    const canvasX = (touch.clientX - rect.left) * (canvas.width / rect.width);
+    const canvasY = (touch.clientY - rect.top) * (canvas.height / rect.height);
+    
+    // Move player to touch position
+    player.x = Math.max(0, Math.min(canvas.width - player.width, canvasX - player.width / 2));
+    player.y = Math.max(0, Math.min(canvas.height - player.height, canvasY - player.height / 2));
+}, { passive: false });
+
+canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (!isTouching) return;
+    
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    
+    // Convert touch position to canvas coordinates
+    const canvasX = (touch.clientX - rect.left) * (canvas.width / rect.width);
+    const canvasY = (touch.clientY - rect.top) * (canvas.height / rect.height);
+    
+    // Move player to touch position
+    player.x = Math.max(0, Math.min(canvas.width - player.width, canvasX - player.width / 2));
+    player.y = Math.max(0, Math.min(canvas.height - player.height, canvasY - player.height / 2));
+}, { passive: false });
+
+canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    isTouching = false;
+    keys.Space = false;
+    keys.SpacePressed = false;
+}, { passive: false });
+
+// Double tap to fire rocket
+let lastTapTime = 0;
+canvas.addEventListener('touchend', (e) => {
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTapTime;
+    
+    if (tapLength < 500 && tapLength > 0) {
+        // Double tap detected - fire rocket
+        const originalWeapon = player.weaponType;
+        player.weaponType = 'rocket';
+        createBullet();
+        player.weaponType = originalWeapon;
+    }
+    
+    lastTapTime = currentTime;
+}, { passive: false });
 
 // Start game function
 function startGame() {
