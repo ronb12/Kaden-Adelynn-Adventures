@@ -1453,22 +1453,26 @@ function ensureAdvancedCollectibleImg(type) {
 
 function drawPowerUps() {
     powerUps.forEach(powerUp => {
-        let type = powerUp.type;
-        if (type === 'health') type = 'health';
-        else if (type === 'weapon') type = 'weapon';
-        else if (type === 'rapidfire') type = 'rapidfire';
-        else if (type === 'shield') type = 'shield';
-        else if (type === 'money') type = 'money';
-        const img = ensureAdvancedCollectibleImg(type);
-        if (img && img.complete) {
-            ctx.drawImage(img, powerUp.x, powerUp.y, powerUp.width, powerUp.height);
-        } else {
-            // Fallback: simple shape
-            ctx.fillStyle = '#ff00ff';
-            ctx.beginPath();
-            ctx.arc(powerUp.x + powerUp.width/2, powerUp.y + powerUp.height/2, powerUp.width/2, 0, Math.PI * 2);
-            ctx.fill();
+        let emoji = '';
+        if (powerUp.type === 'health') {
+            emoji = '❤️';
+        } else if (powerUp.type === 'weapon') {
+            // You can expand this for different weapon types
+            emoji = '🔫';
+        } else if (powerUp.type === 'rapidfire') {
+            emoji = '⚡';
+        } else if (powerUp.type === 'shield') {
+            emoji = '🛡️';
+        } else if (powerUp.type === 'money') {
+            emoji = '💰';
         }
+        ctx.save();
+        ctx.font = `${Math.floor(powerUp.width * 0.9)}px serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.globalAlpha = 0.9;
+        ctx.fillText(emoji, powerUp.x + powerUp.width / 2, powerUp.y + powerUp.height / 2);
+        ctx.restore();
     });
 }
 
