@@ -1,7 +1,2 @@
-<html>
-<head><title>404 Not Found</title></head>
-<body>
-<center><h1>404 Not Found</h1></center>
-<hr><center>nginx/1.24.0 (Ubuntu)</center>
-</body>
-</html>
+<?xml version="1.0" encoding="UTF-8"?>
+<Error><Code>AccessDenied</Code><Message>Access Denied</Message><RequestId>DQ48MDMXCE22VQ45</RequestId><HostId>nl94VAxG9yQ8KKqnNInRK/Qa9ezGsHWhyJd/eJozLKPKtmnJq8PuXNpnF8sdRSkKTRCa++9DDsynq62gc7YBF25pD6nMaQkabzsZMxotHX8=</HostId></Error>
