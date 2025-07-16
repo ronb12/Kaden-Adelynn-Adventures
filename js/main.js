@@ -13,6 +13,23 @@ if (!ctx) {
     throw new Error('Could not get 2D context from canvas!');
 }
 
+// Responsive canvas resize for mobile/iOS
+function resizeGameCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
+    ctx.scale(dpr, dpr);
+}
+
+window.addEventListener('resize', resizeGameCanvas);
+window.addEventListener('orientationchange', resizeGameCanvas);
+resizeGameCanvas();
+
 // Enhanced game state
 window.gameState = {
     score: 0,
@@ -87,10 +104,10 @@ let keys = {
 
 // Game settings
 const BULLET_SPEED = 10;
-const ENEMY_SPEED = 2;
+const ENEMY_SPEED = 2; // Constant speed
 const POWERUP_SPEED = 1;
 const STAR_SPEED = 1;
-const MAX_ENEMIES = 20;
+let MAX_ENEMIES = 20;
 const MAX_BULLETS = 50;
 const MAX_PARTICLES = 100;
 
@@ -352,11 +369,14 @@ function createBullet() {
         }
         
         window.gameState.shotsFired++;
+        playShootSound();
     }
 }
 
 // Create enemy
 function createEnemy() {
+    // Increase max enemies as level increases
+    MAX_ENEMIES = 20 + Math.floor((window.gameState.level - 1) * 2);
     const spawnRate = 0.02 + (window.gameState.level - 1) * 0.005;
     if (Math.random() < spawnRate && enemies.length < MAX_ENEMIES) {
         const enemyTypes = ['basic', 'fast', 'tank', 'scout', 'destroyer'];
@@ -367,7 +387,7 @@ function createEnemy() {
             y: -30,
             width: 30,
             height: 30,
-            speed: ENEMY_SPEED + Math.random() * 2 + (window.gameState.level - 1) * 0.5,
+            speed: ENEMY_SPEED + Math.random() * 2, // No level scaling
             type: type,
             health: type === 'tank' ? 4 : type === 'destroyer' ? 3 : type === 'scout' ? 1 : 2,
             animation: 0,
@@ -451,7 +471,10 @@ function createEnemyBullet(enemy) {
 
 // Create power-up
 function createPowerUp() {
-    if (Math.random() < 0.002) { // Increased spawn rate
+    // Increase power-up spawn rate as level increases
+    const baseRate = 0.002;
+    const spawnRate = baseRate + (window.gameState.level - 1) * 0.0008;
+    if (Math.random() < spawnRate) {
         const powerUpTypes = [
             'health', 'weapon', 'speed', 'shield', 'rapidfire', 'spread', 'laser', 'missile', 
             'money', 'money', 'money', 'money', // More money
@@ -2032,27 +2055,4 @@ function restartGame() {
     startGame();
 }
 
-// Make game API available globally
-window.game = {
-    startGame,
-    restartGame
-};
-
-// Debug: Check if game object is created
-console.log('🎮 Game object created:', window.game);
-console.log('🎮 startGame function available:', typeof window.game.startGame);
-
-// Initialize when page loads
-window.addEventListener('load', () => {
-    console.log('✅ Enhanced game loaded and ready!');
-    console.log('🎮 Click "Start Game" to begin!');
-    console.log('🎮 Game object available:', window.game);
-    
-    // Load high score
-    if (typeof GameStorageManager !== 'undefined') {
-        const storage = new GameStorageManager();
-        const highScores = storage.getHighScores();
-        const topScore = highScores.length > 0 ? highScores[0].score : 0;
-        document.getElementById('topScoreDisplay').textContent = topScore;
-    }
-});
+// Mak
