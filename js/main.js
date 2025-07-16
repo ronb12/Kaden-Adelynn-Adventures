@@ -830,81 +830,55 @@ function applyPowerUp(type) {
             break;
         case 'spread':
             player.weaponType = 'spread';
-            setTimeout(() => { 
-                if (player.weaponType === 'spread') player.weaponType = 'normal'; 
-            }, 8000); // 8 seconds
+            window.gameState.score += 25;
             break;
         case 'laser':
             player.weaponType = 'laser';
-            setTimeout(() => { 
-                if (player.weaponType === 'laser') player.weaponType = 'normal'; 
-            }, 8000); // 8 seconds
+            window.gameState.score += 25;
             break;
         case 'missile':
             player.weaponType = 'missile';
-            setTimeout(() => { 
-                if (player.weaponType === 'missile') player.weaponType = 'normal'; 
-            }, 8000); // 8 seconds
+            window.gameState.score += 25;
             break;
         case 'multishot':
             player.weaponType = 'multishot';
-            setTimeout(() => { 
-                if (player.weaponType === 'multishot') player.weaponType = 'normal'; 
-            }, 10000); // 10 seconds
+            window.gameState.score += 25;
             break;
         case 'bomb':
             player.weaponType = 'bomb';
-            setTimeout(() => { 
-                if (player.weaponType === 'bomb') player.weaponType = 'normal'; 
-            }, 6000); // 6 seconds
+            window.gameState.score += 25;
             break;
         case 'plasma':
             player.weaponType = 'plasma';
-            setTimeout(() => { 
-                if (player.weaponType === 'plasma') player.weaponType = 'normal'; 
-            }, 8000); // 8 seconds
+            window.gameState.score += 25;
             break;
         case 'freeze':
             player.weaponType = 'freeze';
-            setTimeout(() => { 
-                if (player.weaponType === 'freeze') player.weaponType = 'normal'; 
-            }, 7000); // 7 seconds
+            window.gameState.score += 25;
             break;
         case 'chain':
             player.weaponType = 'chain';
-            setTimeout(() => { 
-                if (player.weaponType === 'chain') player.weaponType = 'normal'; 
-            }, 8000); // 8 seconds
+            window.gameState.score += 25;
             break;
         case 'vortex':
             player.weaponType = 'vortex';
-            setTimeout(() => { 
-                if (player.weaponType === 'vortex') player.weaponType = 'normal'; 
-            }, 7000); // 7 seconds
+            window.gameState.score += 25;
             break;
         case 'nova':
             player.weaponType = 'nova';
-            setTimeout(() => { 
-                if (player.weaponType === 'nova') player.weaponType = 'normal'; 
-            }, 6000); // 6 seconds
+            window.gameState.score += 25;
             break;
         case 'quantum':
             player.weaponType = 'quantum';
-            setTimeout(() => { 
-                if (player.weaponType === 'quantum') player.weaponType = 'normal'; 
-            }, 9000); // 9 seconds
+            window.gameState.score += 25;
             break;
         case 'thunder':
             player.weaponType = 'thunder';
-            setTimeout(() => { 
-                if (player.weaponType === 'thunder') player.weaponType = 'normal'; 
-            }, 8000); // 8 seconds
+            window.gameState.score += 25;
             break;
         case 'rocket':
             player.weaponType = 'rocket';
-            setTimeout(() => { 
-                if (player.weaponType === 'rocket') player.weaponType = 'normal'; 
-            }, 10000); // 10 seconds - rockets last longer
+            window.gameState.score += 25;
             break;
         case 'multiplier':
             // Increase weapon multiplier (up to 4x)
@@ -1757,6 +1731,11 @@ function drawUI() {
         ctx.fillText(`${player.weaponMultiplier}x MULTIPLIER!`, canvas.width - 150, 50);
     }
     
+    // Draw weapon info
+    ctx.fillStyle = '#00ff00';
+    ctx.font = '12px Arial';
+    ctx.fillText('Collect weapons to switch!', canvas.width - 150, 70);
+    
     // Draw power-up status
     if (player.hasSpeed) {
         ctx.fillStyle = '#00ffff';
@@ -1770,9 +1749,10 @@ function drawUI() {
     // Draw controls hint
     ctx.fillStyle = '#888888';
     ctx.font = '12px Arial';
-    ctx.fillText('1-5: Switch Weapons', 10, canvas.height - 60);
-    ctx.fillText('Hold SPACE: Rapid Fire', 10, canvas.height - 40);
-    ctx.fillText('Press R: Fire Rocket', 10, canvas.height - 20);
+    ctx.fillText('1-5: Quick Weapon Switch', 10, canvas.height - 80);
+    ctx.fillText('Hold SPACE: Rapid Fire', 10, canvas.height - 60);
+    ctx.fillText('Press R: Fire Rocket', 10, canvas.height - 40);
+    ctx.fillText('Collect Power-ups to Switch!', 10, canvas.height - 20);
 }
 
 // Main game loop
