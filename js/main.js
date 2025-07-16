@@ -1040,35 +1040,59 @@ function drawStars() {
     });
 }
 
-// Preload the sci-fi PNG player ship sprite
-let playerShipImg = new window.Image();
-playerShipImg.src = 'assets/images/player_ship_sci_fi.png';
-let playerShipLoaded = false;
-playerShipImg.onload = () => { playerShipLoaded = true; };
-
 function drawPlayer() {
     if (!player.isAlive) return;
     const centerX = player.x + player.width / 2;
     const baseY = player.y + player.height;
     ctx.save();
-    if (playerShipLoaded) {
-        ctx.drawImage(playerShipImg, player.x, player.y, player.width, player.height);
-    } else {
-        // Fallback: draw triangle
-        ctx.fillStyle = player.hasSpeed ? '#00ff00' : '#4a90e2';
-        ctx.beginPath();
-        ctx.moveTo(centerX, player.y); // Nose
-        ctx.lineTo(player.x + player.width * 0.15, baseY); // Left wing
-        ctx.lineTo(player.x + player.width * 0.85, baseY); // Right wing
-        ctx.closePath();
-        ctx.shadowColor = ctx.fillStyle;
-        ctx.shadowBlur = 12;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-    }
+    // Always draw advanced sci-fi fallback ship
+    // Main hull
+    ctx.fillStyle = '#2e3b4e';
+    ctx.beginPath();
+    ctx.moveTo(centerX, player.y); // Nose
+    ctx.lineTo(player.x + player.width * 0.18, baseY - player.height * 0.18); // Left front
+    ctx.lineTo(player.x + player.width * 0.18, baseY - player.height * 0.08); // Left mid
+    ctx.lineTo(player.x + player.width * 0.32, baseY); // Left engine
+    ctx.lineTo(player.x + player.width * 0.68, baseY); // Right engine
+    ctx.lineTo(player.x + player.width * 0.82, baseY - player.height * 0.08); // Right mid
+    ctx.lineTo(player.x + player.width * 0.82, baseY - player.height * 0.18); // Right front
+    ctx.closePath();
+    ctx.shadowColor = '#00eaff';
+    ctx.shadowBlur = 16;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    // Cockpit
+    ctx.fillStyle = '#00eaff';
+    ctx.beginPath();
+    ctx.ellipse(centerX, player.y + player.height * 0.32, player.width * 0.18, player.height * 0.22, 0, 0, Math.PI * 2);
+    ctx.globalAlpha = 0.8;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    // Layered hull details
+    ctx.strokeStyle = '#b0c4de';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(centerX, player.y + player.height * 0.18);
+    ctx.lineTo(player.x + player.width * 0.22, baseY - player.height * 0.22);
+    ctx.lineTo(player.x + player.width * 0.78, baseY - player.height * 0.22);
+    ctx.closePath();
+    ctx.stroke();
+    // Engine glows
+    ctx.save();
+    ctx.globalAlpha = 0.7;
+    ctx.fillStyle = '#00fff7';
+    ctx.beginPath();
+    ctx.ellipse(player.x + player.width * 0.36, baseY, player.width * 0.08, player.height * 0.18, 0, 0, Math.PI * 2);
+    ctx.ellipse(player.x + player.width * 0.64, baseY, player.width * 0.08, player.height * 0.18, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    // Fuselage lines
+    ctx.strokeStyle = '#00eaff';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(centerX, player.y + player.height * 0.18);
+    ctx.lineTo(centerX, baseY - player.height * 0.08);
+    ctx.stroke();
     ctx.restore();
     // --- Visual feedbacks (shield, invincibility, magnet) ---
     if (player.hasShield) {
@@ -1087,15 +1111,6 @@ function drawPlayer() {
         ctx.beginPath();
         ctx.arc(centerX, player.y + player.height / 2, player.width, 0, Math.PI * 2);
         ctx.fillStyle = '#ffff44';
-        ctx.fill();
-        ctx.restore();
-    }
-    if (player.hasMagnet) {
-        ctx.save();
-        ctx.globalAlpha = 0.2;
-        ctx.beginPath();
-        ctx.arc(centerX, player.y + player.height / 2, player.width * 1.3, 0, Math.PI * 2);
-        ctx.fillStyle = '#44ffff';
         ctx.fill();
         ctx.restore();
     }
