@@ -35,6 +35,18 @@ body { background: #111; color: #fff; font-family: Arial, sans-serif; }
     }
 }
 
+@media (min-width: 801px) {
+  /* If you have a HUD or scoreboard container, adjust its top margin here. */
+  /* Example for a .hud or .scoreboard class: */
+  .hud, .scoreboard, .game-hud, #hud, #scoreboard {
+    margin-top: 32px !important;
+  }
+  /* If HUD is canvas-drawn, add margin to the game container instead: */
+  .game-container {
+    padding-top: 32px !important;
+  }
+}
+
 .achievement-popup {
     position: fixed;
     top: 20%;
