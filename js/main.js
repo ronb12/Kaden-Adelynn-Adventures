@@ -1829,6 +1829,12 @@ function drawUI() {
     document.getElementById('level').textContent = window.gameState.level;
     document.getElementById('moneyAmount').textContent = window.gameState.money;
     
+    // Update weapon display
+    document.getElementById('weaponDisplay').textContent = player.weaponType.toUpperCase();
+    
+    // Update multiplier display
+    document.getElementById('multiplierDisplay').textContent = `${player.weaponMultiplier}x`;
+    
     // Update statistics
     document.getElementById('enemiesKilled').textContent = window.gameState.enemiesKilled;
     document.getElementById('bossesKilled').textContent = window.gameState.bossesKilled;
@@ -1846,30 +1852,19 @@ function drawUI() {
         document.getElementById('topScoreDisplay').textContent = topScore;
     }
     
-    // Draw weapon status on canvas (moved to avoid HUD overlap)
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '14px Arial';
-    ctx.fillText(`Weapon: ${player.weaponType.toUpperCase()}`, canvas.width - 200, 80);
-    
-    // Draw weapon multiplier (moved to avoid HUD overlap)
-    if (player.weaponMultiplier > 1) {
-        ctx.fillStyle = '#ff1493';
-        ctx.fillText(`${player.weaponMultiplier}x MULTIPLIER!`, canvas.width - 200, 100);
-    }
-    
     // Draw weapon info (moved to avoid HUD overlap)
     ctx.fillStyle = '#00ff00';
     ctx.font = '12px Arial';
-    ctx.fillText('Collect weapons to switch!', canvas.width - 200, 120);
+    ctx.fillText('Collect weapons to switch!', canvas.width - 200, 80);
     
     // Draw power-up status (moved to avoid HUD overlap)
     if (player.hasSpeed) {
         ctx.fillStyle = '#00ffff';
-        ctx.fillText('SPEED BOOST', canvas.width - 200, 140);
+        ctx.fillText('SPEED BOOST', canvas.width - 200, 100);
     }
     if (player.hasShield) {
         ctx.fillStyle = '#ffff00';
-        ctx.fillText('SHIELD ACTIVE', canvas.width - 200, 160);
+        ctx.fillText('SHIELD ACTIVE', canvas.width - 200, 120);
     }
     
     // Draw controls hint (moved to avoid HUD overlap)
