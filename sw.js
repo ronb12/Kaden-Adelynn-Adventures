@@ -6,7 +6,6 @@ const urlsToCache = [
   '/js/main.js',
   '/js/storage.js',
   '/assets/sounds/space_laser.ogg',
-  '/assets/images/player_ship.png',
   '/assets/images/favicon.ico',
   // Add more assets as needed
 ];
