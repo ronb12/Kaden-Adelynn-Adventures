@@ -597,8 +597,7 @@ function updatePlayer() {
     }
     
     // Clamp player position to keep on screen (especially after input)
-    player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
-    player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
+    clampPlayerPosition();
 }
 
 // Update bullets
@@ -1026,8 +1025,7 @@ function resetGame() {
     player.weaponLevel = 1;
     player.weaponMultiplier = 1;
     // Clamp position
-    player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
-    player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
+    clampPlayerPosition();
     // Hide game over screen
     document.getElementById('gameOverScreen').classList.add('hidden');
 }
@@ -1432,163 +1430,39 @@ function drawEnemies() {
     });
 }
 
+// Cache advanced collectible images
+const advancedCollectibleImgs = {
+    health: null,
+    weapon: null,
+    rapidfire: null,
+    shield: null,
+    money: null
+};
+function ensureAdvancedCollectibleImg(type) {
+    if (!advancedCollectibleImgs[type] && window.getAdvancedCollectibleImage && typeof window.getAdvancedCollectibleImage[type] === 'function') {
+        advancedCollectibleImgs[type] = window.getAdvancedCollectibleImage[type]();
+    }
+    return advancedCollectibleImgs[type];
+}
+
 function drawPowerUps() {
     powerUps.forEach(powerUp => {
-        // Update animation
-        powerUp.rotation += 0.1;
-        powerUp.pulse += 0.2;
-        
-        const centerX = powerUp.x + powerUp.width / 2;
-        const centerY = powerUp.y + powerUp.height / 2;
-        const pulse = Math.sin(powerUp.pulse) * 0.2 + 0.8;
-        
-        // Create circular background for emoji effect
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
-        
-        // Add glow effect
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.globalAlpha = pulse;
-        ctx.strokeRect(powerUp.x - 1, powerUp.y - 1, powerUp.width + 2, powerUp.height + 2);
-        ctx.globalAlpha = 1;
-        
-        // Draw emoji-style power-ups
-        ctx.font = '16px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        
-        switch(powerUp.type) {
-            case 'health':
-                // Health power-up - heart emoji
-                ctx.fillStyle = '#ff0000';
-                ctx.fillText('❤️', centerX, centerY);
-                break;
-                
-            case 'weapon':
-                // Weapon power-up - star emoji
-                ctx.fillStyle = '#ffff00';
-                ctx.fillText('⭐', centerX, centerY);
-                break;
-                
-            case 'speed':
-                // Speed power-up - lightning emoji
-                ctx.fillStyle = '#ffff00';
-                ctx.fillText('⚡', centerX, centerY);
-                break;
-                
-            case 'shield':
-                // Shield power-up - shield emoji
-                ctx.fillStyle = '#0000ff';
-                ctx.fillText('🛡️', centerX, centerY);
-                break;
-                
-            case 'rapidfire':
-                // Rapid fire power-up - fire emoji
-                ctx.fillStyle = '#ff6600';
-                ctx.fillText('🔥', centerX, centerY);
-                break;
-                
-            case 'spread':
-                // Spread power-up - explosion emoji
-                ctx.fillStyle = '#ff8800';
-                ctx.fillText('💥', centerX, centerY);
-                break;
-                
-            case 'laser':
-                // Laser power-up - zap emoji
-                ctx.fillStyle = '#00ffff';
-                ctx.fillText('⚡', centerX, centerY);
-                break;
-                
-            case 'missile':
-                // Missile power-up - rocket emoji
-                ctx.fillStyle = '#ff4444';
-                ctx.fillText('🚀', centerX, centerY);
-                break;
-                
-            case 'money':
-                // Money power-up - coin emoji
-                ctx.fillStyle = '#ffd700';
-                ctx.fillText('💰', centerX, centerY);
-                break;
-                
-            case 'multishot':
-                // Multi-shot power-up - multiple arrows
-                ctx.fillStyle = '#ff0088';
-                ctx.fillText('🎯', centerX, centerY);
-                break;
-                
-            case 'bomb':
-                // Bomb power-up - bomb emoji
-                ctx.fillStyle = '#ff6600';
-                ctx.fillText('💣', centerX, centerY);
-                break;
-                
-            case 'plasma':
-                // Plasma power-up - energy emoji
-                ctx.fillStyle = '#00ffff';
-                ctx.fillText('⚡', centerX, centerY);
-                break;
-                
-            case 'freeze':
-                // Freeze power-up - ice emoji
-                ctx.fillStyle = '#87ceeb';
-                ctx.fillText('❄️', centerX, centerY);
-                break;
-                
-            case 'chain':
-                // Chain lightning power-up - lightning emoji
-                ctx.fillStyle = '#ffff00';
-                ctx.fillText('⚡', centerX, centerY);
-                break;
-                
-            case 'vortex':
-                // Vortex power-up - tornado emoji
-                ctx.fillStyle = '#8b4513';
-                ctx.fillText('🌪️', centerX, centerY);
-                break;
-                
-            case 'nova':
-                // Nova power-up - explosion emoji
-                ctx.fillStyle = '#ff6600';
-                ctx.fillText('💥', centerX, centerY);
-                break;
-                
-            case 'quantum':
-                // Quantum power-up - atom emoji
-                ctx.fillStyle = '#9932cc';
-                ctx.fillText('⚛️', centerX, centerY);
-                break;
-                
-            case 'thunder':
-                // Thunder power-up - thunder emoji
-                ctx.fillStyle = '#ffd700';
-                ctx.fillText('⚡', centerX, centerY);
-                break;
-                
-            case 'rocket':
-                // Rocket power-up - rocket emoji
-                ctx.fillStyle = '#ff4444';
-                ctx.fillText('🚀', centerX, centerY);
-                break;
-                
-            case 'multiplier':
-                // Weapon multiplier power-up - star emoji
-                ctx.fillStyle = '#ff1493';
-                ctx.fillText('⭐', centerX, centerY);
-                break;
-                
-            default:
-                // Default power-up - gem emoji
-                ctx.fillStyle = '#ff00ff';
-                ctx.fillText('💎', centerX, centerY);
-                break;
+        let type = powerUp.type;
+        if (type === 'health') type = 'health';
+        else if (type === 'weapon') type = 'weapon';
+        else if (type === 'rapidfire') type = 'rapidfire';
+        else if (type === 'shield') type = 'shield';
+        else if (type === 'money') type = 'money';
+        const img = ensureAdvancedCollectibleImg(type);
+        if (img && img.complete) {
+            ctx.drawImage(img, powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+        } else {
+            // Fallback: simple shape
+            ctx.fillStyle = '#ff00ff';
+            ctx.beginPath();
+            ctx.arc(powerUp.x + powerUp.width/2, powerUp.y + powerUp.height/2, powerUp.width/2, 0, Math.PI * 2);
+            ctx.fill();
         }
-        
-        // Reset text alignment
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'alphabetic';
     });
 }
 

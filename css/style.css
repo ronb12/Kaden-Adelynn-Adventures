@@ -59,6 +59,7 @@ body {
     transform: translateX(-50%) !important;
     top: 10px !important;
     justify-content: center;
+    width: max-content !important;
   }
 }
 
