@@ -58,6 +58,7 @@ let player = {
 };
 
 let bullets = [];
+let enemyBullets = [];
 let enemies = [];
 let powerUps = [];
 let stars = [];
@@ -210,7 +211,9 @@ function createEnemy() {
             type: type,
             health: type === 'tank' ? 4 : type === 'destroyer' ? 3 : type === 'scout' ? 1 : 2,
             animation: 0,
-            engineGlow: Math.random() * Math.PI * 2
+            engineGlow: Math.random() * Math.PI * 2,
+            shootTimer: 0,
+            shootInterval: type === 'tank' ? 120 : type === 'fast' ? 60 : type === 'scout' ? 40 : type === 'destroyer' ? 90 : 80
         };
         
         // Adjust enemy properties based on type
@@ -233,6 +236,56 @@ function createEnemy() {
         }
         
         enemies.push(enemy);
+    }
+}
+
+// Create enemy bullet
+function createEnemyBullet(enemy) {
+    if (enemyBullets.length < MAX_BULLETS) {
+        const bulletSpeed = 3 + Math.random() * 2;
+        const bulletTypes = ['normal', 'laser', 'plasma'];
+        const bulletType = bulletTypes[Math.floor(Math.random() * bulletTypes.length)];
+        
+        let bullet = {
+            x: enemy.x + enemy.width / 2 - 2,
+            y: enemy.y + enemy.height,
+            width: 4,
+            height: 8,
+            speed: bulletSpeed,
+            damage: 1,
+            type: bulletType,
+            enemyType: enemy.type
+        };
+        
+        // Adjust bullet properties based on enemy type
+        switch(enemy.type) {
+            case 'tank':
+                bullet.width = 6;
+                bullet.height = 10;
+                bullet.damage = 2;
+                bullet.speed = bulletSpeed * 0.8;
+                break;
+            case 'fast':
+                bullet.width = 3;
+                bullet.height = 6;
+                bullet.damage = 1;
+                bullet.speed = bulletSpeed * 1.5;
+                break;
+            case 'scout':
+                bullet.width = 2;
+                bullet.height = 4;
+                bullet.damage = 1;
+                bullet.speed = bulletSpeed * 2;
+                break;
+            case 'destroyer':
+                bullet.width = 5;
+                bullet.height = 9;
+                bullet.damage = 2;
+                bullet.speed = bulletSpeed * 0.9;
+                break;
+        }
+        
+        enemyBullets.push(bullet);
     }
 }
 
@@ -381,8 +434,26 @@ function updateEnemies() {
         enemies[i].y += enemies[i].speed;
         enemies[i].animation += 0.1;
         enemies[i].engineGlow += 0.2;
+        
+        // Enemy shooting logic
+        enemies[i].shootTimer++;
+        if (enemies[i].shootTimer >= enemies[i].shootInterval && enemies[i].y > 50) {
+            createEnemyBullet(enemies[i]);
+            enemies[i].shootTimer = 0;
+        }
+        
         if (enemies[i].y > canvas.height) {
             enemies.splice(i, 1);
+        }
+    }
+}
+
+// Update enemy bullets
+function updateEnemyBullets() {
+    for (let i = enemyBullets.length - 1; i >= 0; i--) {
+        enemyBullets[i].y += enemyBullets[i].speed;
+        if (enemyBullets[i].y > canvas.height) {
+            enemyBullets.splice(i, 1);
         }
     }
 }
@@ -497,6 +568,35 @@ function checkCollisions() {
             window.gameState.powerUpsCollected++;
         }
     }
+    
+    // Enemy Bullets vs Player
+    if (!player.invulnerable && !player.hasShield) {
+        for (let i = enemyBullets.length - 1; i >= 0; i--) {
+            if (enemyBullets[i] &&
+                player.x < enemyBullets[i].x + enemyBullets[i].width &&
+                player.x + player.width > enemyBullets[i].x &&
+                player.y < enemyBullets[i].y + enemyBullets[i].height &&
+                player.y + player.height > enemyBullets[i].y) {
+                
+                // Create hit particles
+                createParticle(enemyBullets[i].x + enemyBullets[i].width/2, enemyBullets[i].y + enemyBullets[i].height/2, '#ff0000');
+                
+                // Remove enemy bullet
+                enemyBullets.splice(i, 1);
+                
+                // Damage player
+                window.gameState.lives--;
+                
+                // Make player invulnerable temporarily
+                player.invulnerable = true;
+                player.invulnerabilityTime = 120; // 2 seconds at 60fps
+                
+                if (window.gameState.lives <= 0) {
+                    gameOver();
+                }
+            }
+        }
+    }
 }
 
 // Apply power-up
@@ -589,6 +689,7 @@ function resetGame() {
     window.gameState.shotsHit = 0;
     
     bullets = [];
+    enemyBullets = [];
     enemies = [];
     powerUps = [];
     particles = [];
@@ -692,6 +793,64 @@ function drawPlayer() {
         ctx.fillRect(player.x + 3, player.y + player.height - 7, 4, 2);
         ctx.fillRect(player.x + player.width - 7, player.y + player.height - 7, 4, 2);
     }
+}
+
+function drawEnemyBullets() {
+    enemyBullets.forEach(bullet => {
+        // Different bullet designs based on enemy type
+        switch(bullet.enemyType) {
+            case 'tank':
+                // Heavy red bullets
+                ctx.fillStyle = '#ff0000';
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                
+                // Glow effect
+                ctx.strokeStyle = '#ff6666';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(bullet.x - 1, bullet.y - 1, bullet.width + 2, bullet.height + 2);
+                break;
+                
+            case 'fast':
+                // Fast orange bullets
+                ctx.fillStyle = '#ff8800';
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                
+                // Trail effect
+                ctx.fillStyle = 'rgba(255, 136, 0, 0.5)';
+                ctx.fillRect(bullet.x, bullet.y - 4, bullet.width, 4);
+                break;
+                
+            case 'scout':
+                // Small purple bullets
+                ctx.fillStyle = '#9932CC';
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                
+                // Stealth effect
+                ctx.globalAlpha = 0.7;
+                ctx.strokeStyle = '#C0C0C0';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                ctx.globalAlpha = 1;
+                break;
+                
+            case 'destroyer':
+                // Medium blue bullets
+                ctx.fillStyle = '#0088ff';
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                
+                // Energy field
+                ctx.strokeStyle = '#00ffff';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(bullet.x - 1, bullet.y - 1, bullet.width + 2, bullet.height + 2);
+                break;
+                
+            default:
+                // Basic red bullets
+                ctx.fillStyle = '#ff4444';
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                break;
+        }
+    });
 }
 
 function drawBullets() {
@@ -1151,6 +1310,7 @@ function gameLoop() {
     // Update game objects
     updatePlayer();
     updateBullets();
+    updateEnemyBullets();
     updateEnemies();
     updatePowerUps();
     updateParticles();
@@ -1171,6 +1331,7 @@ function gameLoop() {
     drawStars();
     drawPlayer();
     drawBullets();
+    drawEnemyBullets();
     drawEnemies();
     drawPowerUps();
     drawParticles();
