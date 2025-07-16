@@ -57,6 +57,9 @@ body {
     max-height: 80vh;
     width: auto;
     height: auto;
+    /* Lower z-index so HUD appears above */
+    z-index: 1;
+    position: relative;
 }
 
 /* HUD System */
@@ -70,20 +73,24 @@ body {
     font-size: 18px;
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-    z-index: 10;
+    z-index: 100;
     flex-wrap: wrap;
     justify-content: center;
     width: max-content;
+    /* Ensure HUD is above everything */
+    pointer-events: none;
 }
 
 .hud-item {
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.9);
     border: 2px solid #00ff00;
     border-radius: 8px;
     padding: 8px 12px;
     text-align: center;
     min-width: 80px;
     box-shadow: 0 2px 8px rgba(0, 255, 0, 0.3);
+    /* Allow pointer events on HUD items */
+    pointer-events: auto;
 }
 
 .hud-label {
@@ -109,12 +116,14 @@ body {
     position: absolute;
     bottom: 20px;
     right: 20px;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.9);
     border: 2px solid #00ff00;
     border-radius: 10px;
     padding: 15px;
     max-width: 250px;
-    z-index: 10;
+    z-index: 100;
+    /* Ensure stats display is above everything */
+    pointer-events: none;
 }
 
 .stats-display h4 {
@@ -282,10 +291,12 @@ button:hover {
     }
     
     .stats-display {
-        bottom: 15px;
-        right: 15px;
-        padding: 12px;
-        max-width: 200px;
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        max-width: 180px;
+        padding: 8px;
+        z-index: 100;
     }
     
     .stats-display h4 {
@@ -332,10 +343,12 @@ button:hover {
     }
     
     .stats-display {
-        position: static;
-        margin: 10px auto;
-        max-width: none;
-        width: 90%;
+        position: absolute;
+        bottom: 8px;
+        right: 8px;
+        max-width: 160px;
+        padding: 6px;
+        z-index: 100;
     }
     
     .start-screen h1, .game-over-screen h1 {
