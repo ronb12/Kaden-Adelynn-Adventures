@@ -1,12 +1,11 @@
 const CACHE_NAME = 'kaadventures-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/js/main.js',
-  '/js/storage.js',
-  '/assets/sounds/space_laser.ogg',
-  '/assets/images/favicon.ico',
+  'index.html',
+  'manifest.json',
+  'js/main.js',
+  'js/storage.js',
+  'assets/sounds/space_laser.ogg',
+  'assets/images/favicon.ico',
   // Add more assets as needed
 ];
 
