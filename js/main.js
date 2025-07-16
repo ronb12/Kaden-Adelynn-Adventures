@@ -1031,9 +1031,9 @@ function drawStars() {
     });
 }
 
-// Preload the realistic PNG player ship sprite
+// Preload the sci-fi PNG player ship sprite
 let playerShipImg = new window.Image();
-playerShipImg.src = 'assets/images/player_ship_realistic.png';
+playerShipImg.src = 'assets/images/player_ship_sci_fi.png';
 let playerShipLoaded = false;
 playerShipImg.onload = () => { playerShipLoaded = true; };
 
