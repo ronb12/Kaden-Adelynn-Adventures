@@ -15,10 +15,11 @@ class GameStorageManager {
         };
     }
     
-    saveHighScore(score) {
+    saveHighScore(score, name) {
         const highScores = JSON.parse(localStorage.getItem('highScores') || '[]');
         highScores.push({
             score: score,
+            name: name || 'Player',
             date: new Date().toISOString(),
             level: window.gameState ? window.gameState.level : 1
         });

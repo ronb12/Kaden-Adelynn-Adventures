@@ -930,12 +930,6 @@ function activatePowerUp() {
 function gameOver() {
     window.gameState.paused = true;
     
-    // Save high score
-    if (typeof GameStorageManager !== 'undefined') {
-        const storage = new GameStorageManager();
-        storage.saveHighScore(window.gameState.score);
-    }
-    
     // Show game over screen
     document.getElementById('gameOverScreen').classList.remove('hidden');
     document.getElementById('startScreen').classList.add('hidden');
@@ -944,10 +938,47 @@ function gameOver() {
     document.getElementById('finalScore').textContent = window.gameState.score;
     document.getElementById('finalMoney').textContent = window.gameState.money;
     
+    // Show leaderboard
+    updateLeaderboard();
+    
+    // Set up Save Score button
+    const saveBtn = document.getElementById('saveScoreBtn');
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save Score';
+    saveBtn.onclick = function() {
+        const name = document.getElementById('playerName').value.trim() || 'Player';
+        if (typeof GameStorageManager !== 'undefined') {
+            const storage = new GameStorageManager();
+            storage.saveHighScore(window.gameState.score, name);
+            updateLeaderboard();
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saved!';
+        }
+    };
+    
+    // Optionally, auto-focus the name input
+    setTimeout(() => {
+        document.getElementById('playerName').focus();
+    }, 300);
+    
     const accuracy = window.gameState.shotsFired > 0 ? 
         Math.round((window.gameState.shotsHit / window.gameState.shotsFired) * 100) : 0;
     
     console.log(`Game Over! Final Score: ${window.gameState.score}, Accuracy: ${accuracy}%`);
+}
+
+function updateLeaderboard() {
+    const list = document.getElementById('topScoresList');
+    list.innerHTML = '';
+    if (typeof GameStorageManager !== 'undefined') {
+        const storage = new GameStorageManager();
+        const highScores = storage.getHighScores();
+        highScores.slice(0, 5).forEach((entry, i) => {
+            const li = document.createElement('li');
+            li.textContent = `${entry.name || 'Player'} — ${entry.score}`;
+            list.appendChild(li);
+        });
+    }
 }
 
 // Reset game
@@ -2055,4 +2086,44 @@ function restartGame() {
     startGame();
 }
 
-// Mak
+// Make game API available globally
+window.game = {
+    startGame,
+    restartGame
+};
+
+// Debug: Check if game object is created
+console.log('🎮 Game object created:', window.game);
+console.log('🎮 startGame function available:', typeof window.game.startGame);
+
+// Initialize when page loads
+window.addEventListener('load', () => {
+    console.log('✅ Enhanced game loaded and ready!');
+    console.log('🎮 Click "Start Game" to begin!');
+    console.log('🎮 Game object available:', window.game);
+    
+    // Load high score
+    if (typeof GameStorageManager !== 'undefined') {
+        const storage = new GameStorageManager();
+        const highScores = storage.getHighScores();
+        const topScore = highScores.length > 0 ? highScores[0].score : 0;
+        document.getElementById('topScoreDisplay').textContent = topScore;
+    }
+});
+
+// Load sci-fi shooting sound
+defineShootingSound();
+
+function defineShootingSound() {
+    window.shootSound = new Audio('assets/sounds/space_laser.ogg');
+    window.shootSound.volume = 0.5;
+}
+
+function playShootSound() {
+    if (window.shootSound) {
+        // Clone to allow overlapping shots
+        const sfx = window.shootSound.cloneNode();
+        sfx.volume = window.shootSound.volume;
+        sfx.play();
+    }
+}

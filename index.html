@@ -729,7 +729,15 @@
             <div class="stats-section">
                 <div>Final Score: <span id="finalScore">0</span></div>
                 <div>Money Earned: <span id="finalMoney">0</span></div>
-                <div>Top Score: <span id="topScore">0</span></div>
+                <div style="margin: 10px 0;">
+                    <label for="playerName" style="color:#00ff00; font-weight:bold;">Your Name:</label>
+                    <input id="playerName" type="text" maxlength="16" placeholder="Enter name" style="font-size:18px; padding:4px 8px; border-radius:6px; border:1px solid #00ff00; margin-left:8px; width:120px;">
+                    <button id="saveScoreBtn" style="font-size:16px; padding:4px 12px; border-radius:6px; margin-left:8px;">Save Score</button>
+                </div>
+                <div id="topScoresBoard" style="margin-top:18px; text-align:left;">
+                    <h3 style="color:#00ff00; margin:0 0 6px 0;">🏆 Top Scores</h3>
+                    <ol id="topScoresList" style="padding-left:18px; color:#fff; font-size:16px;"></ol>
+                </div>
             </div>
             <button onclick="game.restartGame()">Play Again</button>
         </div>
