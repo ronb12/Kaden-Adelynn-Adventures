@@ -1026,81 +1026,103 @@ function drawStars() {
 }
 
 function drawPlayer() {
-    // Draw shield effect
+    if (!player.isAlive) return;
+    const centerX = player.x + player.width / 2;
+    const baseY = player.y + player.height;
+    ctx.save();
+
+    // --- Main body: advanced triangle ---
+    ctx.fillStyle = player.hasSpeed ? '#00ff00' : '#4a90e2';
+    ctx.beginPath();
+    ctx.moveTo(centerX, player.y); // Nose
+    ctx.lineTo(player.x + player.width * 0.15, baseY); // Left wing
+    ctx.lineTo(player.x + player.width * 0.85, baseY); // Right wing
+    ctx.closePath();
+    ctx.shadowColor = ctx.fillStyle;
+    ctx.shadowBlur = 12;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // --- Ship outline ---
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // --- Cockpit (glowing) ---
+    ctx.save();
+    ctx.globalAlpha = 0.85;
+    ctx.fillStyle = '#00eaff';
+    ctx.beginPath();
+    ctx.ellipse(centerX, player.y + player.height * 0.55, 9, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.restore();
+
+    // --- Engine glow/trails ---
+    ctx.save();
+    ctx.globalAlpha = 0.7;
+    ctx.fillStyle = '#00ffff';
+    ctx.beginPath();
+    ctx.ellipse(centerX, baseY + 10, 14, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.restore();
+    // Engine flames
+    ctx.save();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(centerX, baseY);
+    ctx.lineTo(centerX, baseY + 18);
+    ctx.stroke();
+    ctx.restore();
+
+    // --- Fuselage detail ---
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(centerX, player.y + 10);
+    ctx.lineTo(centerX, baseY - 8);
+    ctx.stroke();
+
+    // --- Wing highlights ---
+    ctx.fillStyle = '#3399ff';
+    ctx.fillRect(player.x + player.width * 0.18, baseY - 10, 8, 8);
+    ctx.fillRect(player.x + player.width * 0.74, baseY - 10, 8, 8);
+
+    // --- Visual feedbacks ---
+    // Shield
     if (player.hasShield) {
+        ctx.save();
         ctx.strokeStyle = '#00ffff';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 3;
+        ctx.globalAlpha = 0.5;
         ctx.beginPath();
-        ctx.arc(player.x + player.width/2, player.y + player.height/2, player.width/2 + 5, 0, Math.PI * 2);
+        ctx.arc(centerX, player.y + player.height / 2, player.width * 0.65, 0, Math.PI * 2);
         ctx.stroke();
+        ctx.restore();
     }
-    
-    // Draw player with invulnerability flash
-    if (!player.invulnerable || Math.floor(Date.now() / 100) % 2) {
-        const centerX = player.x + player.width / 2;
-        const centerY = player.y + player.height / 2;
-        
-        // Main ship body (triangular shape)
-        ctx.fillStyle = player.hasSpeed ? '#00ff00' : '#4a90e2';
+    // Invincibility
+    if (player.isInvincible) {
+        ctx.save();
+        ctx.globalAlpha = 0.3;
         ctx.beginPath();
-        ctx.moveTo(centerX, player.y); // Top point
-        ctx.lineTo(player.x, player.y + player.height); // Bottom left
-        ctx.lineTo(player.x + player.width, player.y + player.height); // Bottom right
-        ctx.closePath();
+        ctx.arc(centerX, player.y + player.height / 2, player.width, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffff44';
         ctx.fill();
-        
-        // Ship outline
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        
-        // Cockpit (circular)
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, 8, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Cockpit highlight
-        ctx.fillStyle = '#00ffff';
-        ctx.beginPath();
-        ctx.arc(centerX - 2, centerY - 2, 3, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Engine glow (more detailed)
-        if (player.hasSpeed) {
-            // Speed boost effect
-            ctx.fillStyle = '#00ff00';
-            ctx.fillRect(player.x + 8, player.y + player.height, 8, 8);
-            ctx.fillRect(player.x + 24, player.y + player.height, 8, 8);
-            
-            // Speed particles
-            for (let i = 0; i < 3; i++) {
-                ctx.fillStyle = `rgba(0, 255, 0, ${0.7 - i * 0.2})`;
-                ctx.fillRect(player.x + 8 + i * 2, player.y + player.height + 8 + i * 3, 8 - i * 2, 4);
-                ctx.fillRect(player.x + 24 + i * 2, player.y + player.height + 8 + i * 3, 8 - i * 2, 4);
-            }
-        } else {
-            // Normal engine glow
-            ctx.fillStyle = '#00ffff';
-            ctx.fillRect(player.x + 8, player.y + player.height, 8, 6);
-            ctx.fillRect(player.x + 24, player.y + player.height, 8, 6);
-            
-            // Engine particles
-            ctx.fillStyle = 'rgba(0, 255, 255, 0.5)';
-            ctx.fillRect(player.x + 8, player.y + player.height + 6, 8, 3);
-            ctx.fillRect(player.x + 24, player.y + player.height + 6, 8, 3);
-        }
-        
-        // Wing details
-        ctx.fillStyle = '#357abd';
-        ctx.fillRect(player.x + 2, player.y + player.height - 8, 6, 8);
-        ctx.fillRect(player.x + player.width - 8, player.y + player.height - 8, 6, 8);
-        
-        // Wing highlights
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(player.x + 3, player.y + player.height - 7, 4, 2);
-        ctx.fillRect(player.x + player.width - 7, player.y + player.height - 7, 4, 2);
+        ctx.restore();
     }
+    // Magnet
+    if (player.hasMagnet) {
+        ctx.save();
+        ctx.globalAlpha = 0.2;
+        ctx.beginPath();
+        ctx.arc(centerX, player.y + player.height / 2, player.width * 1.3, 0, Math.PI * 2);
+        ctx.fillStyle = '#44ffff';
+        ctx.fill();
+        ctx.restore();
+    }
+    ctx.restore();
 }
 
 function drawEnemyBullets() {
