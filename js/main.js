@@ -584,6 +584,10 @@ function updatePlayer() {
             player.invulnerable = false;
         }
     }
+    
+    // Clamp player position to keep on screen (especially after input)
+    player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+    player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
 }
 
 // Update bullets
