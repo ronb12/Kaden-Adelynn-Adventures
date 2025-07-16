@@ -1396,347 +1396,39 @@ function drawBullets() {
     });
 }
 
+// Cache advanced enemy ship images
+const advancedEnemyShipImgs = {
+    basic: null,
+    tank: null,
+    destroyer: null
+};
+function ensureAdvancedEnemyShipImg(type) {
+    if (!advancedEnemyShipImgs[type] && window.getAdvancedEnemyShipImage && typeof window.getAdvancedEnemyShipImage[type] === 'function') {
+        advancedEnemyShipImgs[type] = window.getAdvancedEnemyShipImage[type]();
+    }
+    return advancedEnemyShipImgs[type];
+}
+
 function drawEnemies() {
     enemies.forEach(enemy => {
         const centerX = enemy.x + enemy.width / 2;
         const centerY = enemy.y + enemy.height / 2;
-        
-        // Different designs based on enemy type
-        switch(enemy.type) {
-            case 'tank':
-                // Tank enemy - Advanced Dreadnought with energy shields
-                // Energy shield field
-                ctx.globalAlpha = 0.3;
-                ctx.fillStyle = '#00FFFF';
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, enemy.width * 0.6, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.globalAlpha = 1;
-                
-                // Main body (octagonal armored core)
-                ctx.fillStyle = '#1a1a2e';
-                ctx.beginPath();
-                ctx.moveTo(enemy.x + 6, enemy.y);
-                ctx.lineTo(enemy.x + enemy.width - 6, enemy.y);
-                ctx.lineTo(enemy.x + enemy.width, enemy.y + 4);
-                ctx.lineTo(enemy.x + enemy.width, enemy.y + enemy.height - 4);
-                ctx.lineTo(enemy.x + enemy.width - 6, enemy.y + enemy.height);
-                ctx.lineTo(enemy.x + 6, enemy.y + enemy.height);
-                ctx.lineTo(enemy.x, enemy.y + enemy.height - 4);
-                ctx.lineTo(enemy.x, enemy.y + 4);
-                ctx.closePath();
-                ctx.fill();
-                
-                // Reinforced armor plating with energy conduits
-                ctx.fillStyle = '#16213e';
-                ctx.fillRect(enemy.x + 3, enemy.y + 3, enemy.width - 6, 5);
-                ctx.fillRect(enemy.x + 3, enemy.y + enemy.height - 8, enemy.width - 6, 5);
-                ctx.fillRect(enemy.x + 3, enemy.y + 8, 5, enemy.height - 16);
-                ctx.fillRect(enemy.x + enemy.width - 8, enemy.y + 8, 5, enemy.height - 16);
-                
-                // Energy conduits (pulsing)
-                const pulse1 = Math.sin(Date.now() * 0.008) * 0.4 + 0.6;
-                ctx.fillStyle = `rgba(0, 255, 255, ${pulse1})`;
-                ctx.fillRect(enemy.x + 8, enemy.y + 5, enemy.width - 16, 2);
-                ctx.fillRect(enemy.x + 8, enemy.y + enemy.height - 7, enemy.width - 16, 2);
-                ctx.fillRect(enemy.x + 5, enemy.y + 10, 2, enemy.height - 20);
-                ctx.fillRect(enemy.x + enemy.width - 7, enemy.y + 10, 2, enemy.height - 20);
-                
-                // Central command nexus
-                ctx.fillStyle = '#FFD700';
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, 6, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Holographic display ring
-                ctx.strokeStyle = '#00FFFF';
-                ctx.lineWidth = 2;
-                ctx.globalAlpha = 0.7;
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, 8, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.globalAlpha = 1;
-                
-                // Heavy weapon platforms (rotating)
-                const rotation = Date.now() * 0.005;
-                ctx.save();
-                ctx.translate(enemy.x + 8, enemy.y + 8);
-                ctx.rotate(rotation);
-                ctx.fillStyle = '#DC143C';
-                ctx.fillRect(-3, -3, 6, 6);
-                ctx.restore();
-                
-                ctx.save();
-                ctx.translate(enemy.x + enemy.width - 8, enemy.y + 8);
-                ctx.rotate(-rotation);
-                ctx.fillStyle = '#DC143C';
-                ctx.fillRect(-3, -3, 6, 6);
-                ctx.restore();
-                
-                // Quantum engine clusters
-                ctx.fillStyle = '#FF4500';
-                ctx.beginPath();
-                ctx.arc(enemy.x + 8, enemy.y + enemy.height, 4, 0, Math.PI * 2);
-                ctx.arc(enemy.x + enemy.width - 8, enemy.y + enemy.height, 4, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Plasma exhaust trails
-                const pulse2 = Math.sin(Date.now() * 0.01) * 0.5 + 0.5;
-                ctx.fillStyle = `rgba(255, 69, 0, ${pulse2})`;
-                ctx.globalAlpha = 0.8;
-                ctx.fillRect(enemy.x + 4, enemy.y + enemy.height + 4, 8, 8);
-                ctx.fillRect(enemy.x + enemy.width - 12, enemy.y + enemy.height + 4, 8, 8);
-                ctx.globalAlpha = 1;
-                
-                // Shield matrix nodes
-                ctx.fillStyle = '#00FFFF';
-                ctx.globalAlpha = 0.6;
-                ctx.fillRect(enemy.x + 2, enemy.y + 2, 3, 3);
-                ctx.fillRect(enemy.x + enemy.width - 5, enemy.y + 2, 3, 3);
-                ctx.fillRect(enemy.x + 2, enemy.y + enemy.height - 5, 3, 3);
-                ctx.fillRect(enemy.x + enemy.width - 5, enemy.y + enemy.height - 5, 3, 3);
-                ctx.globalAlpha = 1;
-                break;
-                
-            case 'fast':
-                // Fast enemy - sleek interceptor
-                // Main body (arrow shape)
-                ctx.fillStyle = '#FF8C00';
-                ctx.beginPath();
-                ctx.moveTo(centerX, enemy.y); // Nose
-                ctx.lineTo(enemy.x + enemy.width - 2, enemy.y + 4); // Right wing
-                ctx.lineTo(enemy.x + enemy.width - 4, enemy.y + enemy.height - 4); // Right body
-                ctx.lineTo(centerX, enemy.y + enemy.height); // Tail
-                ctx.lineTo(enemy.x + 4, enemy.y + enemy.height - 4); // Left body
-                ctx.lineTo(enemy.x + 2, enemy.y + 4); // Left wing
-                ctx.closePath();
-                ctx.fill();
-                
-                // Wing details
-                ctx.fillStyle = '#FFA500';
-                ctx.fillRect(enemy.x + 2, enemy.y + 4, 4, 8);
-                ctx.fillRect(enemy.x + enemy.width - 6, enemy.y + 4, 4, 8);
-                
-                // Cockpit with glass effect
-                ctx.fillStyle = '#87CEEB';
-                ctx.fillRect(enemy.x + 6, enemy.y + 6, 6, 4);
-                ctx.fillStyle = '#FFFFFF';
-                ctx.fillRect(enemy.x + 7, enemy.y + 7, 4, 2);
-                
-                // Engine trails with particle effect
-                ctx.fillStyle = '#FFD700';
-                ctx.fillRect(enemy.x + 3, enemy.y + enemy.height, 4, 8);
-                ctx.fillRect(enemy.x + enemy.width - 7, enemy.y + enemy.height, 4, 8);
-                
-                // Glow effect
-                ctx.fillStyle = '#FFA500';
-                ctx.globalAlpha = 0.7;
-                ctx.fillRect(enemy.x + 2, enemy.y + enemy.height + 8, 6, 4);
-                ctx.fillRect(enemy.x + enemy.width - 8, enemy.y + enemy.height + 8, 6, 4);
-                ctx.globalAlpha = 1;
-                break;
-                
-            case 'scout':
-                // Scout enemy - tiny, ultra-fast stealth fighter
-                // Main body (small diamond shape)
-                ctx.fillStyle = '#9932CC';
-                ctx.beginPath();
-                ctx.moveTo(centerX, enemy.y); // Top
-                ctx.lineTo(enemy.x + enemy.width - 2, centerY); // Right
-                ctx.lineTo(centerX, enemy.y + enemy.height); // Bottom
-                ctx.lineTo(enemy.x + 2, centerY); // Left
-                ctx.closePath();
-                ctx.fill();
-                
-                // Stealth coating
-                ctx.fillStyle = '#8A2BE2';
-                ctx.fillRect(enemy.x + 3, enemy.y + 3, enemy.width - 6, 2);
-                ctx.fillRect(enemy.x + 3, enemy.y + enemy.height - 5, enemy.width - 6, 2);
-                
-                // Mini cockpit
-                ctx.fillStyle = '#00FFFF';
-                ctx.fillRect(enemy.x + 6, enemy.y + 6, 4, 3);
-                
-                // Stealth engine trails
-                ctx.fillStyle = '#9370DB';
-                ctx.fillRect(enemy.x + 2, enemy.y + enemy.height, 3, 6);
-                ctx.fillRect(enemy.x + enemy.width - 5, enemy.y + enemy.height, 3, 6);
-                
-                // Cloaking effect
-                ctx.globalAlpha = 0.7;
-                ctx.strokeStyle = '#C0C0C0';
-                ctx.lineWidth = 1;
-                ctx.strokeRect(enemy.x - 1, enemy.y - 1, enemy.width + 2, enemy.height + 2);
-                ctx.globalAlpha = 1;
-                break;
-                
-            case 'destroyer':
-                // Destroyer enemy - Advanced Battlecruiser with stealth tech
-                // Cloaking field effect
-                const cloakPulse = Math.sin(Date.now() * 0.006) * 0.3 + 0.7;
-                ctx.globalAlpha = 0.2 * cloakPulse;
-                ctx.fillStyle = '#4B0082';
-                ctx.beginPath();
-                ctx.ellipse(centerX, centerY, enemy.width * 0.7, enemy.height * 0.5, 0, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.globalAlpha = 1;
-                
-                // Main body (diamond-shaped stealth hull)
-                ctx.fillStyle = '#2F2F4F';
-                ctx.beginPath();
-                ctx.moveTo(centerX, enemy.y + 2); // Top point
-                ctx.lineTo(enemy.x + enemy.width - 3, centerY); // Right point
-                ctx.lineTo(centerX, enemy.y + enemy.height - 2); // Bottom point
-                ctx.lineTo(enemy.x + 3, centerY); // Left point
-                ctx.closePath();
-                ctx.fill();
-                
-                // Stealth armor panels with energy patterns
-                ctx.fillStyle = '#1a1a3a';
-                ctx.fillRect(enemy.x + 6, enemy.y + 4, enemy.width - 12, 4);
-                ctx.fillRect(enemy.x + 6, enemy.y + enemy.height - 8, enemy.width - 12, 4);
-                ctx.fillRect(enemy.x + 4, enemy.y + 8, 4, enemy.height - 16);
-                ctx.fillRect(enemy.x + enemy.width - 8, enemy.y + 8, 4, enemy.height - 16);
-                
-                // Neural network nodes (pulsing)
-                const nodePulse = Math.sin(Date.now() * 0.01) * 0.5 + 0.5;
-                ctx.fillStyle = `rgba(138, 43, 226, ${nodePulse})`;
-                ctx.fillRect(enemy.x + 8, enemy.y + 6, 3, 3);
-                ctx.fillRect(enemy.x + enemy.width - 11, enemy.y + 6, 3, 3);
-                ctx.fillRect(enemy.x + 8, enemy.y + enemy.height - 9, 3, 3);
-                ctx.fillRect(enemy.x + enemy.width - 11, enemy.y + enemy.height - 9, 3, 3);
-                
-                // Central AI core
-                ctx.fillStyle = '#FFD700';
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, 5, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // AI processing rings
-                ctx.strokeStyle = '#9370DB';
-                ctx.lineWidth = 1;
-                ctx.globalAlpha = 0.8;
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, 7, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, 9, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.globalAlpha = 1;
-                
-                // Adaptive weapon arrays (shape-shifting)
-                const weaponPulse = Math.sin(Date.now() * 0.007) * 0.4 + 0.6;
-                ctx.fillStyle = `rgba(220, 20, 60, ${weaponPulse})`;
-                
-                // Top weapons
-                ctx.beginPath();
-                ctx.moveTo(enemy.x + 4, enemy.y + 2);
-                ctx.lineTo(enemy.x + 8, enemy.y + 6);
-                ctx.lineTo(enemy.x + 4, enemy.y + 10);
-                ctx.closePath();
-                ctx.fill();
-                
-                ctx.beginPath();
-                ctx.moveTo(enemy.x + enemy.width - 4, enemy.y + 2);
-                ctx.lineTo(enemy.x + enemy.width - 8, enemy.y + 6);
-                ctx.lineTo(enemy.x + enemy.width - 4, enemy.y + 10);
-                ctx.closePath();
-                ctx.fill();
-                
-                // Bottom weapons
-                ctx.beginPath();
-                ctx.moveTo(enemy.x + 4, enemy.y + enemy.height - 2);
-                ctx.lineTo(enemy.x + 8, enemy.y + enemy.height - 6);
-                ctx.lineTo(enemy.x + 4, enemy.y + enemy.height - 10);
-                ctx.closePath();
-                ctx.fill();
-                
-                ctx.beginPath();
-                ctx.moveTo(enemy.x + enemy.width - 4, enemy.y + enemy.height - 2);
-                ctx.lineTo(enemy.x + enemy.width - 8, enemy.y + enemy.height - 6);
-                ctx.lineTo(enemy.x + enemy.width - 4, enemy.y + enemy.height - 10);
-                ctx.closePath();
-                ctx.fill();
-                
-                // Quantum drive engines
-                ctx.fillStyle = '#FF4500';
-                ctx.beginPath();
-                ctx.arc(enemy.x + 6, enemy.y + enemy.height, 3, 0, Math.PI * 2);
-                ctx.arc(enemy.x + enemy.width - 6, enemy.y + enemy.height, 3, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Temporal distortion trails
-                const timePulse = Math.sin(Date.now() * 0.012) * 0.6 + 0.4;
-                ctx.fillStyle = `rgba(255, 69, 0, ${timePulse})`;
-                ctx.globalAlpha = 0.7;
-                ctx.fillRect(enemy.x + 3, enemy.y + enemy.height + 3, 6, 6);
-                ctx.fillRect(enemy.x + enemy.width - 9, enemy.y + enemy.height + 3, 6, 6);
-                ctx.globalAlpha = 1;
-                
-                // Stealth field emitters
-                ctx.fillStyle = '#8A2BE2';
-                ctx.globalAlpha = 0.5;
-                ctx.fillRect(enemy.x + 2, enemy.y + 2, 2, 2);
-                ctx.fillRect(enemy.x + enemy.width - 4, enemy.y + 2, 2, 2);
-                ctx.fillRect(enemy.x + 2, enemy.y + enemy.height - 4, 2, 2);
-                ctx.fillRect(enemy.x + enemy.width - 4, enemy.y + enemy.height - 4, 2, 2);
-                ctx.globalAlpha = 1;
-                break;
-                
-            default:
-                // Basic enemy - classic fighter
-                // Main body (improved triangular shape)
-                ctx.fillStyle = '#DC143C';
-                ctx.beginPath();
-                ctx.moveTo(centerX, enemy.y + enemy.height); // Bottom point
-                ctx.lineTo(enemy.x + 2, enemy.y + 2); // Top left
-                ctx.lineTo(enemy.x + enemy.width - 2, enemy.y + 2); // Top right
-                ctx.closePath();
-                ctx.fill();
-                
-                // Body details
-                ctx.fillStyle = '#B22222';
-                ctx.fillRect(enemy.x + 4, enemy.y + 4, enemy.width - 8, 6);
-                ctx.fillRect(enemy.x + 6, enemy.y + 10, enemy.width - 12, 4);
-                
-                // Cockpit with metallic look
-                ctx.fillStyle = '#C0C0C0';
-                ctx.fillRect(enemy.x + 8, enemy.y + 6, 6, 4);
-                ctx.fillStyle = '#FFFFFF';
-                ctx.fillRect(enemy.x + 9, enemy.y + 7, 4, 2);
-                
-                // Weapon ports
-                ctx.fillStyle = '#8B0000';
-                ctx.fillRect(enemy.x + 3, enemy.y + 3, 4, 4);
-                ctx.fillRect(enemy.x + enemy.width - 7, enemy.y + 3, 4, 4);
-                
-                // Engine glow with pulsing effect
-                const pulse = Math.sin(Date.now() * 0.01) * 0.3 + 0.7;
-                ctx.fillStyle = `rgba(255, 100, 100, ${pulse})`;
-                ctx.fillRect(enemy.x + 5, enemy.y + enemy.height, 4, 5);
-                ctx.fillRect(enemy.x + enemy.width - 9, enemy.y + enemy.height, 4, 5);
-                
-                // Glow trails
-                ctx.fillStyle = '#FF6B6B';
-                ctx.globalAlpha = 0.5;
-                ctx.fillRect(enemy.x + 4, enemy.y + enemy.height + 5, 6, 3);
-                ctx.fillRect(enemy.x + enemy.width - 10, enemy.y + enemy.height + 5, 6, 3);
-                ctx.globalAlpha = 1;
-                break;
+        let type = 'basic';
+        if (enemy.type === 'tank') type = 'tank';
+        else if (enemy.type === 'destroyer') type = 'destroyer';
+        const img = ensureAdvancedEnemyShipImg(type);
+        if (img && img.complete) {
+            ctx.drawImage(img, enemy.x, enemy.y, enemy.width, enemy.height);
+        } else {
+            // Fallback: simple canvas shape
+            ctx.fillStyle = '#DC143C';
+            ctx.beginPath();
+            ctx.moveTo(centerX, enemy.y); // Nose
+            ctx.lineTo(enemy.x + 2, enemy.y + enemy.height); // Left
+            ctx.lineTo(enemy.x + enemy.width - 2, enemy.y + enemy.height); // Right
+            ctx.closePath();
+            ctx.fill();
         }
-        
-        // Add subtle outline for all enemies
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 1;
-        ctx.globalAlpha = 0.3;
-        ctx.stroke();
-        ctx.globalAlpha = 1;
-        
-        // Add engine glow animation
-        const glowIntensity = Math.sin(enemy.engineGlow) * 0.3 + 0.7;
-        ctx.fillStyle = `rgba(255, 100, 100, ${glowIntensity * 0.5})`;
-        ctx.fillRect(enemy.x + 4, enemy.y + enemy.height + 2, 6, 4);
-        ctx.fillRect(enemy.x + enemy.width - 10, enemy.y + enemy.height + 2, 6, 4);
     });
 }
 
