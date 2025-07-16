@@ -90,7 +90,7 @@ let player = {
 // Clamp player position to keep fully on screen
 function clampPlayerPosition() {
     player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
-    player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
+    player.y = Math.max(0, player.y); // Only clamp top, not bottom
 }
 
 let bullets = [];
