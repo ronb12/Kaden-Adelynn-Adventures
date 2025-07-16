@@ -32,10 +32,6 @@ function resizeGameCanvas() {
     }
 }
 
-window.addEventListener('resize', resizeGameCanvas);
-window.addEventListener('orientationchange', resizeGameCanvas);
-resizeGameCanvas();
-
 // Enhanced game state
 window.gameState = {
     score: 0,
