@@ -2112,11 +2112,21 @@ window.addEventListener('load', () => {
 });
 
 // Load sci-fi shooting sound
-defineShootingSound();
-
 function defineShootingSound() {
-    window.shootSound = new Audio('assets/sounds/space_laser.ogg');
-    window.shootSound.volume = 0.5;
+    // Feature detection for audio format support
+    let audio = document.createElement('audio');
+    let canPlayOgg = !!audio.canPlayType && audio.canPlayType('audio/ogg; codecs="vorbis"') !== '';
+    let canPlayMp3 = !!audio.canPlayType && audio.canPlayType('audio/mpeg; codecs="mp3"') !== '';
+    if (canPlayOgg) {
+        window.shootSound = new Audio('assets/sounds/space_laser.ogg');
+    } else if (canPlayMp3) {
+        window.shootSound = new Audio('assets/sounds/space_laser.mp3');
+    } else {
+        // Fallback: use a generic beep if neither format is supported
+        window.shootSound = null;
+        console.warn('No supported audio format for shooting sound.');
+    }
+    if (window.shootSound) window.shootSound.volume = 0.5;
 }
 
 function playShootSound() {
