@@ -930,7 +930,7 @@ function gameOver() {
 // Reset game
 function resetGame() {
     window.gameState.score = 0;
-    window.gameState.lives = 5;
+    window.gameState.lives = 10;
     window.gameState.level = 1;
     window.gameState.money = 0;
     window.gameState.paused = false;
