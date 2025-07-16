@@ -1457,8 +1457,7 @@ function drawPowerUps() {
         if (powerUp.type === 'health') {
             emoji = '❤️';
         } else if (powerUp.type === 'weapon') {
-            // You can expand this for different weapon types
-            emoji = '🔫';
+            emoji = '🚀';
         } else if (powerUp.type === 'rapidfire') {
             emoji = '⚡';
         } else if (powerUp.type === 'shield') {
