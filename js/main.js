@@ -76,6 +76,8 @@ let keys = {
     SpacePressed: false,
     KeyS: false,
     KeyP: false,
+    KeyR: false,
+    KeyRPressed: false,
     Digit1: false,
     Digit2: false,
     Digit3: false,
@@ -306,6 +308,21 @@ function createBullet() {
                 });
                 break;
                 
+            case 'rocket':
+                // Rocket - powerful explosive projectile
+                bulletsToCreate.push({
+                    x: player.x + player.width / 2 - 4,
+                    y: player.y,
+                    width: 8,
+                    height: 16,
+                    speed: bulletSpeed * 0.6,
+                    damage: 8,
+                    type: 'rocket',
+                    explosive: true,
+                    rocket: true
+                });
+                break;
+                
             default:
                 // Normal shot
                 bulletsToCreate.push({
@@ -447,6 +464,7 @@ function createPowerUp() {
             'nova', 'nova', // Nova explosion weapon
             'quantum', 'quantum', // Quantum weapon
             'thunder', 'thunder', // Thunder weapon
+            'rocket', 'rocket', 'rocket', // Rocket weapon (appears more often)
             'multiplier', 'multiplier', 'multiplier' // Weapon multiplier (appears more often)
         ];
         const type = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
@@ -515,6 +533,18 @@ function updatePlayer() {
         keys.KeySPressed = true;
     } else if (!keys.KeyS) {
         keys.KeySPressed = false;
+    }
+    
+    // Rocket firing
+    if (keys.KeyR && !keys.KeyRPressed && !window.gameState.paused) {
+        // Fire rocket
+        const originalWeapon = player.weaponType;
+        player.weaponType = 'rocket';
+        createBullet();
+        player.weaponType = originalWeapon;
+        keys.KeyRPressed = true;
+    } else if (!keys.KeyR) {
+        keys.KeyRPressed = false;
     }
     
     // Weapon switching (number keys 1-5)
@@ -664,6 +694,28 @@ function checkCollisions() {
                 
                 // Create explosion particles
                 createParticle(enemies[j].x + enemies[j].width/2, enemies[j].y + enemies[j].height/2, '#ff4444');
+                
+                // Special rocket explosion effect
+                if (bullets[i].type === 'rocket') {
+                    // Create multiple explosion particles for rockets
+                    for (let p = 0; p < 8; p++) {
+                        createParticle(enemies[j].x + enemies[j].width/2, enemies[j].y + enemies[j].height/2, '#ff6600');
+                    }
+                    
+                    // Rocket explosion damages nearby enemies
+                    enemies.forEach((enemy, k) => {
+                        if (k !== j) {
+                            const distance = Math.sqrt(
+                                Math.pow(enemies[j].x - enemy.x, 2) + 
+                                Math.pow(enemies[j].y - enemy.y, 2)
+                            );
+                            if (distance < 60) { // Explosion radius
+                                enemy.health -= 3; // Splash damage
+                                createParticle(enemy.x + enemy.width/2, enemy.y + enemy.height/2, '#ff8800');
+                            }
+                        }
+                    });
+                }
                 
                 // Remove bullet
                 bullets.splice(i, 1);
@@ -847,6 +899,12 @@ function applyPowerUp(type) {
             setTimeout(() => { 
                 if (player.weaponType === 'thunder') player.weaponType = 'normal'; 
             }, 8000); // 8 seconds
+            break;
+        case 'rocket':
+            player.weaponType = 'rocket';
+            setTimeout(() => { 
+                if (player.weaponType === 'rocket') player.weaponType = 'normal'; 
+            }, 10000); // 10 seconds - rockets last longer
             break;
         case 'multiplier':
             // Increase weapon multiplier (up to 4x)
@@ -1223,6 +1281,26 @@ function drawBullets() {
                 ctx.strokeStyle = '#ffffff';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(bullet.x - 1, bullet.y, bullet.width + 2, bullet.height);
+                break;
+                
+            case 'rocket':
+                // Rocket - powerful explosive projectile
+                ctx.fillStyle = '#ff4444';
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                
+                // Rocket body details
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(bullet.x + 2, bullet.y + 2, 4, 4);
+                ctx.fillRect(bullet.x + 2, bullet.y + bullet.height - 6, 4, 4);
+                
+                // Rocket trail
+                ctx.fillStyle = 'rgba(255, 100, 0, 0.8)';
+                ctx.fillRect(bullet.x + 1, bullet.y + bullet.height, bullet.width - 2, 8);
+                
+                // Explosive glow
+                ctx.strokeStyle = '#ff6600';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(bullet.x - 1, bullet.y - 1, bullet.width + 2, bullet.height + 2);
                 break;
                 
             default:
@@ -1609,6 +1687,12 @@ function drawPowerUps() {
                 ctx.fillText('⚡', centerX, centerY);
                 break;
                 
+            case 'rocket':
+                // Rocket power-up - rocket emoji
+                ctx.fillStyle = '#ff4444';
+                ctx.fillText('🚀', centerX, centerY);
+                break;
+                
             case 'multiplier':
                 // Weapon multiplier power-up - star emoji
                 ctx.fillStyle = '#ff1493';
@@ -1686,8 +1770,9 @@ function drawUI() {
     // Draw controls hint
     ctx.fillStyle = '#888888';
     ctx.font = '12px Arial';
-    ctx.fillText('1-5: Switch Weapons', 10, canvas.height - 40);
-    ctx.fillText('Hold SPACE: Rapid Fire', 10, canvas.height - 20);
+    ctx.fillText('1-5: Switch Weapons', 10, canvas.height - 60);
+    ctx.fillText('Hold SPACE: Rapid Fire', 10, canvas.height - 40);
+    ctx.fillText('Press R: Fire Rocket', 10, canvas.height - 20);
 }
 
 // Main game loop
