@@ -1036,42 +1036,46 @@ function drawPlayer() {
     const centerX = player.x + player.width / 2;
     const baseY = player.y + player.height;
     ctx.save();
-    // --- Main body: advanced triangle ---
-    ctx.fillStyle = player.hasSpeed ? '#00ff00' : '#4a90e2';
+    // --- Main body: advanced triangle with gradient ---
+    const grad = ctx.createLinearGradient(centerX, player.y, centerX, baseY);
+    grad.addColorStop(0, player.hasSpeed ? '#00ff99' : '#4a90e2');
+    grad.addColorStop(0.5, '#222e50');
+    grad.addColorStop(1, '#0a1a2f');
+    ctx.fillStyle = grad;
     ctx.beginPath();
     ctx.moveTo(centerX, player.y); // Nose
     ctx.lineTo(player.x + player.width * 0.15, baseY); // Left wing
     ctx.lineTo(player.x + player.width * 0.85, baseY); // Right wing
     ctx.closePath();
-    ctx.shadowColor = ctx.fillStyle;
-    ctx.shadowBlur = 12;
+    ctx.shadowColor = player.hasSpeed ? '#00ff99' : '#4a90e2';
+    ctx.shadowBlur = 16;
     ctx.fill();
     ctx.shadowBlur = 0;
     // --- Ship outline ---
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 2;
     ctx.stroke();
-    // --- Debug outline ---
+    // --- Cockpit (glowing, glassy) ---
     ctx.save();
-    ctx.strokeStyle = '#ff00ff';
-    ctx.lineWidth = 2;
-    ctx.setLineDash([4, 2]);
-    ctx.strokeRect(player.x, player.y, player.width, player.height);
-    ctx.restore();
-    // --- Cockpit (glowing) ---
-    ctx.save();
-    ctx.globalAlpha = 0.85;
-    ctx.fillStyle = '#00eaff';
+    ctx.globalAlpha = 0.92;
+    const cockpitGrad = ctx.createRadialGradient(centerX, player.y + player.height * 0.55, 2, centerX, player.y + player.height * 0.55, 10);
+    cockpitGrad.addColorStop(0, '#b3f6ff');
+    cockpitGrad.addColorStop(0.7, '#00eaff');
+    cockpitGrad.addColorStop(1, 'rgba(0,234,255,0.1)');
+    ctx.fillStyle = cockpitGrad;
     ctx.beginPath();
     ctx.ellipse(centerX, player.y + player.height * 0.55, 9, 7, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.globalAlpha = 1;
     ctx.restore();
-
     // --- Engine glow/trails ---
     ctx.save();
     ctx.globalAlpha = 0.7;
-    ctx.fillStyle = '#00ffff';
+    const engineGrad = ctx.createRadialGradient(centerX, baseY + 10, 2, centerX, baseY + 10, 14);
+    engineGrad.addColorStop(0, '#fff');
+    engineGrad.addColorStop(0.3, '#00ffff');
+    engineGrad.addColorStop(1, 'rgba(0,255,255,0)');
+    ctx.fillStyle = engineGrad;
     ctx.beginPath();
     ctx.ellipse(centerX, baseY + 10, 14, 6, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -1086,22 +1090,35 @@ function drawPlayer() {
     ctx.lineTo(centerX, baseY + 18);
     ctx.stroke();
     ctx.restore();
-
-    // --- Fuselage detail ---
-    ctx.strokeStyle = '#fff';
+    // --- Metallic highlights ---
+    ctx.save();
+    ctx.globalAlpha = 0.18;
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.moveTo(centerX, player.y + 6);
+    ctx.lineTo(centerX + 7, player.y + player.height * 0.7);
+    ctx.lineTo(centerX - 7, player.y + player.height * 0.7);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+    // --- Hull panel lines ---
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(centerX, player.y + 10);
     ctx.lineTo(centerX, baseY - 8);
+    ctx.moveTo(centerX - 8, player.y + 18);
+    ctx.lineTo(centerX + 8, player.y + 18);
+    ctx.moveTo(centerX - 8, player.y + 28);
+    ctx.lineTo(centerX + 8, player.y + 28);
     ctx.stroke();
-
+    ctx.restore();
     // --- Wing highlights ---
     ctx.fillStyle = '#3399ff';
     ctx.fillRect(player.x + player.width * 0.18, baseY - 10, 8, 8);
     ctx.fillRect(player.x + player.width * 0.74, baseY - 10, 8, 8);
-
     // --- Visual feedbacks ---
-    // Shield
     if (player.hasShield) {
         ctx.save();
         ctx.strokeStyle = '#00ffff';
@@ -1112,7 +1129,6 @@ function drawPlayer() {
         ctx.stroke();
         ctx.restore();
     }
-    // Invincibility
     if (player.isInvincible) {
         ctx.save();
         ctx.globalAlpha = 0.3;
@@ -1122,7 +1138,6 @@ function drawPlayer() {
         ctx.fill();
         ctx.restore();
     }
-    // Magnet
     if (player.hasMagnet) {
         ctx.save();
         ctx.globalAlpha = 0.2;
