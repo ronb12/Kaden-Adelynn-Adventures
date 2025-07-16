@@ -87,6 +87,12 @@ let player = {
     maxWeaponMultiplier: 4
 };
 
+// Clamp player position to keep fully on screen
+function clampPlayerPosition() {
+    player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+    player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
+}
+
 let bullets = [];
 let enemyBullets = [];
 let enemies = [];
