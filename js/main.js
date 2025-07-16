@@ -937,6 +937,7 @@ function gameOver() {
     // Update final stats
     document.getElementById('finalScore').textContent = window.gameState.score;
     document.getElementById('finalMoney').textContent = window.gameState.money;
+    document.getElementById('finalEnemiesKilled').textContent = window.gameState.enemiesKilled;
     
     // Show leaderboard
     updateLeaderboard();
@@ -964,7 +965,7 @@ function gameOver() {
     const accuracy = window.gameState.shotsFired > 0 ? 
         Math.round((window.gameState.shotsHit / window.gameState.shotsFired) * 100) : 0;
     
-    console.log(`Game Over! Final Score: ${window.gameState.score}, Accuracy: ${accuracy}%`);
+    console.log(`Game Over! Final Score: ${window.gameState.score}, Accuracy: ${accuracy}%, Enemies Killed: ${window.gameState.enemiesKilled}`);
 }
 
 function updateLeaderboard() {
