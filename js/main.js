@@ -24,6 +24,12 @@ function resizeGameCanvas() {
     canvas.style.height = height + 'px';
     ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
     ctx.scale(dpr, dpr);
+    // Clamp player position after resize
+    if (typeof player !== 'undefined') {
+        player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+        player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
+        player.isAlive = true;
+    }
 }
 
 window.addEventListener('resize', resizeGameCanvas);
@@ -998,13 +1004,11 @@ function resetGame() {
     window.gameState.powerUpsCollected = 0;
     window.gameState.shotsFired = 0;
     window.gameState.shotsHit = 0;
-    
     bullets = [];
     enemyBullets = [];
     enemies = [];
     powerUps = [];
     particles = [];
-    
     player.x = canvas.width / 2;
     player.y = canvas.height - 80;
     player.health = 100;
@@ -1016,7 +1020,9 @@ function resetGame() {
     player.weaponType = 'normal';
     player.weaponLevel = 1;
     player.weaponMultiplier = 1;
-    
+    // Clamp position
+    player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+    player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
     // Hide game over screen
     document.getElementById('gameOverScreen').classList.add('hidden');
 }
@@ -1034,7 +1040,6 @@ function drawPlayer() {
     const centerX = player.x + player.width / 2;
     const baseY = player.y + player.height;
     ctx.save();
-
     // --- Main body: advanced triangle ---
     ctx.fillStyle = player.hasSpeed ? '#00ff00' : '#4a90e2';
     ctx.beginPath();
@@ -1046,12 +1051,17 @@ function drawPlayer() {
     ctx.shadowBlur = 12;
     ctx.fill();
     ctx.shadowBlur = 0;
-
     // --- Ship outline ---
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 2;
     ctx.stroke();
-
+    // --- Debug outline ---
+    ctx.save();
+    ctx.strokeStyle = '#ff00ff';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 2]);
+    ctx.strokeRect(player.x, player.y, player.width, player.height);
+    ctx.restore();
     // --- Cockpit (glowing) ---
     ctx.save();
     ctx.globalAlpha = 0.85;
