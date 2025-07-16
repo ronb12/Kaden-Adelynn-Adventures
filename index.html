@@ -84,18 +84,18 @@
         }
 
         .start-screen, .game-over-screen {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.92);
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
+            justify-content: center;
             align-items: center;
             text-align: center;
-            z-index: 100;
+            z-index: 1000;
             overflow-y: auto;
             padding: 20px;
             box-sizing: border-box;
@@ -213,19 +213,20 @@
             background: linear-gradient(45deg, #00ff00, #00cc00);
             color: #000;
             border: none;
-            padding: 12px 24px;
-            font-size: 16px;
+            padding: 18px 36px;
+            font-size: 22px;
             font-weight: bold;
-            border-radius: 25px;
+            border-radius: 30px;
             cursor: pointer;
-            margin: 10px;
+            margin: 20px;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0, 255, 0, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 255, 0, 0.3);
+            outline: none;
         }
 
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 255, 0, 0.4);
+        button:hover, button:focus {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 16px rgba(0, 255, 0, 0.4);
         }
 
         button:active {
@@ -633,6 +634,17 @@
                 font-size: 11px;
             }
         }
+        @media (max-width: 600px), (max-height: 500px) {
+            .start-screen, .game-over-screen {
+                padding: 5vw 2vw;
+            }
+            button {
+                font-size: 18px;
+                padding: 14px 20px;
+                border-radius: 22px;
+                margin: 10px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -709,4 +721,35 @@
                     <li><strong>Sci-fi Enemies:</strong> Redesigned enemies with energy shields and AI cores</li>
                 </ul>
             </div>
-   
+            <button onclick="game.startGame()">Start Game</button>
+        </div>
+
+        <div id="gameOverScreen" class="game-over-screen hidden">
+            <h1>Game Over</h1>
+            <div class="stats-section">
+                <div>Final Score: <span id="finalScore">0</span></div>
+                <div>Money Earned: <span id="finalMoney">0</span></div>
+                <div>Top Score: <span id="topScore">0</span></div>
+            </div>
+            <button onclick="game.restartGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script src="js/entities/Player.js"></script>
+    <script src="js/entities/Enemy.js"></script>
+    <script src="js/EnemyManager.js"></script>
+    <script src="js/LevelManager.js"></script>
+    <script src="js/powerup.js"></script>
+    <script src="js/UIManager.js"></script>
+    <script src="js/AudioManager.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/main.js?v=1752541746"></script>
+    <script>
+        // Game is already initialized in main.js
+        // Just ensure the global game object is available
+        if (typeof game === 'undefined') {
+            console.error('Game not initialized properly');
+        }
+    </script>
+</body>
+</html> 
