@@ -336,6 +336,25 @@ button:hover {
     letter-spacing: 1px;
 }
 
+/* --- Start Screen Game Name --- */
+.start-screen h1 {
+    position: absolute;
+    top: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100vw;
+    text-align: center;
+    font-size: 3.2em;
+    color: #00ffff;
+    text-shadow: 0 0 30px #00ffff, 0 0 60px #00ffff, 0 0 10px #fff;
+    font-weight: bold;
+    letter-spacing: 2px;
+    z-index: 1100;
+    margin: 0 auto 40px auto;
+    padding: 0 16px;
+    pointer-events: none;
+}
+
 /* Responsive Design */
 @media (max-width: 1200px) {
     .game-container {
@@ -446,6 +465,12 @@ button:hover {
         font-size: 16px;
         padding: 12px 24px;
     }
+
+    .start-screen h1 {
+        font-size: 2em;
+        top: 18px;
+        padding: 0 4px;
+    }
 }
 
 @media (max-width: 500px) {
@@ -455,7 +480,7 @@ button:hover {
     }
     
     .hud {
-        top: 5px;
+        top: 4px;
         gap: 4px;
         font-size: 10px;
     }
