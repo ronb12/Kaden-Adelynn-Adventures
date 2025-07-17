@@ -1,141 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>Kaden & Adelynn Adventures - Enhanced Space Shooter</title>
-    <link rel="icon" type="image/svg+xml" href="assets/images/player_ship_icon.svg">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#00ff00">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
-    <link rel="apple-touch-icon" sizes="192x192" href="assets/images/player_ship_icon.svg">
-    <link rel="apple-touch-icon" sizes="512x512" href="assets/images/player_ship_icon.svg">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap">
-    <link rel="stylesheet" href="css/style.css?v=1752547001">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kaden & Adelynn Adventures - Gradius Clone</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="game-container">
-        <canvas id="gameCanvas" width="800" height="600" aria-label="Game Canvas" tabindex="0"></canvas>
-        
-        <div class="hud" role="region" aria-label="Game HUD">
-            <div class="hud-item"><span class="hud-label">Score</span><span id="score" class="hud-value">0</span></div>
-            <div class="hud-item"><span class="hud-label">Lives</span><span id="lives" class="hud-value">10</span></div>
-            <div class="hud-item"><span class="hud-label">Level</span><span id="level" class="hud-value">1</span></div>
-            <div class="hud-item"><span class="hud-label">💰</span><span id="moneyAmount" class="hud-value">0</span></div>
-            <div class="hud-item"><span class="hud-label">Top Score</span><span id="topScoreDisplay" class="hud-value">0</span></div>
-            <div class="hud-item"><span class="hud-label">Weapon</span><span id="weaponDisplay" class="hud-value">NORMAL</span></div>
-            <div class="hud-item"><span class="hud-label">Multiplier</span><span id="multiplierDisplay" class="hud-value">1x</span></div>
-        </div>
-
-        <div class="power-up-indicator" id="powerUpIndicator"></div>
-        
-        <div class="stats-display" id="statsDisplay" role="region" aria-label="Game Statistics">
-            <h4>Statistics</h4>
-            <div>Enemies Killed: <span id="enemiesKilled">0</span></div>
-            <div>Bosses Killed: <span id="bossesKilled">0</span></div>
-            <div>Power-ups: <span id="powerUpsCollected">0</span></div>
-            <div>Accuracy: <span id="accuracy">0%</span></div>
-        </div>
-
-        <div id="startScreen" class="start-screen" role="dialog" aria-modal="true" aria-labelledby="gameTitle">
-            <h1 id="gameTitle">🚀 Kaden & Adelynn Adventures 🚀</h1>
-            <div class="stats-section">
-                <h3>🏆 Top Score: <span id="topScoreDisplay">0</span></h3>
-                <div id="multiplayerText" style="color: #ff0000; font-weight: bold; margin: 10px 0;">Multiplayer: OFF</div>
-            </div>
-            <div class="instructions" tabindex="0">
-                <h3>🎮 How to Play</h3>
-                <ul>
-                    <li><strong>Player 1:</strong> Arrow keys to move, Spacebar to shoot</li>
-                    <li><strong>Player 2 (Multiplayer):</strong> WASD to move, Enter to shoot</li>
-                    <li><strong>Shop:</strong> Press P to open shop, number keys to buy items</li>
-                    <li><strong>Special Weapons:</strong> Press S (P1) or F (P2) to activate</li>
-                    <li><strong>Multiplayer Toggle:</strong> Press M on main menu</li>
-                    <li><strong>iOS Touch Controls:</strong> Touch and drag to move, auto-shoot while touching</li>
-                    <li><strong>iOS Rocket:</strong> Double tap to fire rocket</li>
-                    <li><strong>Weapon Switching:</strong> Collect power-ups or press 1-5 keys</li>
-                </ul>
-                <h3>📱 iOS Device Support</h3>
-                <ul>
-                    <li><strong>Touch to Move:</strong> Touch anywhere on screen to move player</li>
-                    <li><strong>Auto-Shoot:</strong> Automatically shoots while touching screen</li>
-                    <li><strong>Double Tap:</strong> Double tap to fire rocket weapon</li>
-                    <li><strong>Drag Control:</strong> Drag finger to move player smoothly</li>
-                    <li><strong>Responsive:</strong> Works on iPhone, iPad, and other iOS devices</li>
-                </ul>
-                <h3>🎯 Multiplayer Mode</h3>
-                <ul>
-                    <li><strong>Toggle:</strong> Press M on main menu to enable/disable</li>
-                    <li><strong>Shared Score:</strong> Both players contribute to the same score</li>
-                    <li><strong>Individual Lives:</strong> Each player has their own lives</li>
-                    <li><strong>Power-ups:</strong> Each player can collect their own power-ups</li>
-                    <li><strong>Game Over:</strong> Game ends when both players lose all lives</li>
-                </ul>
-                <h3>🌟 New Features</h3>
-                <ul>
-                    <li><strong>Boss Battles:</strong> Epic boss fights every 500 points</li>
-                    <li><strong>Power-ups:</strong> Temporary abilities (invincibility, speed boost, etc.)</li>
-                    <li><strong>Achievements:</strong> Unlock goals as you play</li>
-                    <li><strong>Asteroids:</strong> Environmental obstacles to avoid</li>
-                    <li><strong>Enhanced Visuals:</strong> Screen shake, particle effects, animations</li>
-                    <li><strong>Advanced Weapons:</strong> Multiple weapon types with multipliers</li>
-                    <li><strong>Sci-fi Enemies:</strong> Redesigned enemies with energy shields and AI cores</li>
-                </ul>
-            </div>
-            <button onclick="game.startGame()" aria-label="Start Game">Start Game</button>
-        </div>
-
-        <div id="gameOverScreen" class="game-over-screen hidden" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle">
-            <h1 id="gameOverTitle">Game Over</h1>
-            <div class="stats-section">
-                <div>Final Score: <span id="finalScore">0</span></div>
-                <div>Money Earned: <span id="finalMoney">0</span></div>
-                <div>Enemies Killed: <span id="finalEnemiesKilled">0</span></div>
-                <div style="margin: 10px 0;">
-                    <label for="playerName" style="color:#00ff00; font-weight:bold;">Your Name:</label>
-                    <input id="playerName" type="text" maxlength="16" placeholder="Enter name" style="font-size:18px; padding:4px 8px; border-radius:6px; border:1px solid #00ff00; margin-left:8px; width:120px;">
-                    <button id="saveScoreBtn" style="font-size:16px; padding:4px 12px; border-radius:6px; margin-left:8px;">Save Score</button>
-                </div>
-                <div id="topScoresBoard" style="margin-top:18px; text-align:left;">
-                    <h3 style="color:#00ff00; margin:0 0 6px 0;">🏆 Top Scores</h3>
-                    <ol id="topScoresList" style="padding-left:18px; color:#fff; font-size:16px;"></ol>
-                </div>
-            </div>
-            <button onclick="game.restartGame()" aria-label="Play Again">Play Again</button>
-        </div>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.12.15/paper-full.min.js"></script>
-    <script src="js/advancedPlayerShip.js"></script>
-    <script src="js/advancedEnemyShips.js"></script>
-    <script src="js/advancedCollectibles.js"></script>
-    <script src="js/entities/Player.js"></script>
-    <script src="js/entities/Enemy.js"></script>
-    <script src="js/EnemyManager.js"></script>
-    <script src="js/LevelManager.js"></script>
-    <script src="js/powerup.js"></script>
-    <script src="js/UIManager.js"></script>
-    <script src="js/AudioManager.js"></script>
-    <script src="js/storage.js"></script>
-    <script src="js/main.js?v=1752547001"></script>
-    <script>
-        if (typeof game === 'undefined') {
-            console.error('Game not initialized properly');
-        }
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('sw.js').then(function(registration) {
-                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                }, function(err) {
-                    console.log('ServiceWorker registration failed: ', err);
-                });
-            });
-        }
-    </script>
+  <div id="main-menu" class="overlay">
+    <h1>Kaden & Adelynn Adventures</h1>
+    <button id="start-btn">Start Game</button>
+    <p class="credit">A simple Gradius-style clone</p>
+  </div>
+  <canvas id="gameCanvas" width="480" height="640" tabindex="0" aria-label="Game Canvas"></canvas>
+  <div id="hud">
+    <span id="score">Score: 0</span>
+    <span id="lives">Lives: 3</span>
+  </div>
+  <div id="game-over" class="overlay hidden">
+    <h2>Game Over</h2>
+    <p id="final-score"></p>
+    <button id="restart-btn">Restart</button>
+  </div>
+  <script src="game.js"></script>
 </body>
 </html> 
