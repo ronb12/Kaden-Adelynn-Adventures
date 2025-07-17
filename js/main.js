@@ -17,9 +17,23 @@ if (!ctx) {
 function resizeGameCanvas() {
     const dpr = window.devicePixelRatio || 1;
     
-    // Use a fixed game resolution that works well with the CSS
-    const gameWidth = 800;
-    const gameHeight = 600;
+    // Calculate responsive canvas size based on device
+    const maxWidth = Math.min(window.innerWidth * 0.85, 1200); // Max 85% of screen width, cap at 1200
+    const maxHeight = Math.min(window.innerHeight * 0.75, 800); // Max 75% of screen height, cap at 800
+    
+    // Maintain 4:3 ratio
+    const aspectRatio = 4 / 3;
+    let gameWidth, gameHeight;
+    
+    if (maxWidth / maxHeight > aspectRatio) {
+        // Screen is wider than 4:3, height is limiting factor
+        gameHeight = maxHeight;
+        gameWidth = gameHeight * aspectRatio;
+    } else {
+        // Screen is taller than 4:3, width is limiting factor
+        gameWidth = maxWidth;
+        gameHeight = gameWidth / aspectRatio;
+    }
     
     // Set the canvas internal resolution
     canvas.width = gameWidth * dpr;
@@ -72,8 +86,8 @@ window.gameState = {
 let player = {
     x: 400, // Fixed position instead of canvas.width / 2
     y: 520, // Fixed position instead of canvas.height - 80
-    width: 40,
-    height: 40,
+    width: 35,
+    height: 35,
     speed: 5,
     health: 100,
     isAlive: true,

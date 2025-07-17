@@ -52,9 +52,7 @@ body {
         inset 0 0 20px rgba(0, 255, 0, 0.1),
         0 5px 15px rgba(0, 0, 0, 0.8);
     box-sizing: border-box;
-    /* Ensure canvas fits properly */
-    max-width: 90vw;
-    max-height: 80vh;
+    /* Let JavaScript handle responsive sizing */
     width: auto;
     height: auto;
     /* Lower z-index so HUD appears above */
@@ -243,11 +241,6 @@ button:hover {
         border-width: 6px;
     }
     
-    #gameCanvas {
-        max-width: 85vw;
-        max-height: 75vh;
-    }
-    
     .hud {
         gap: 12px;
         font-size: 16px;
@@ -263,12 +256,6 @@ button:hover {
     .game-container {
         border-width: 4px;
         border-radius: 15px;
-    }
-    
-    #gameCanvas {
-        max-width: 90vw;
-        max-height: 70vh;
-        border-width: 4px;
     }
     
     .hud {
@@ -312,12 +299,6 @@ button:hover {
     .game-container {
         border-width: 3px;
         border-radius: 10px;
-    }
-    
-    #gameCanvas {
-        max-width: 95vw;
-        max-height: 65vh;
-        border-width: 3px;
     }
     
     .hud {
@@ -370,12 +351,6 @@ button:hover {
     .game-container {
         border-width: 2px;
         border-radius: 8px;
-    }
-    
-    #gameCanvas {
-        max-width: 98vw;
-        max-height: 60vh;
-        border-width: 2px;
     }
     
     .hud {
