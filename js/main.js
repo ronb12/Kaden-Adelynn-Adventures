@@ -17,31 +17,17 @@ if (!ctx) {
 function resizeGameCanvas() {
     const dpr = window.devicePixelRatio || 1;
     
-    // Calculate responsive canvas size based on device - make it slightly bigger
-    const maxWidth = Math.min(window.innerWidth * 0.75, 900); // Increased from 65% to 75%, cap at 900
-    const maxHeight = Math.min(window.innerHeight * 0.65, 700); // Increased from 55% to 65%, cap at 700
-    
-    // Maintain 4:3 ratio
-    const aspectRatio = 4 / 3;
-    let gameWidth, gameHeight;
-    
-    if (maxWidth / maxHeight > aspectRatio) {
-        // Screen is wider than 4:3, height is limiting factor
-        gameHeight = maxHeight;
-        gameWidth = gameHeight * aspectRatio;
-    } else {
-        // Screen is taller than 4:3, width is limiting factor
-        gameWidth = maxWidth;
-        gameHeight = gameWidth / aspectRatio;
-    }
+    // Full screen canvas - use entire viewport
+    const gameWidth = window.innerWidth;
+    const gameHeight = window.innerHeight;
     
     // Set the canvas internal resolution
     canvas.width = gameWidth * dpr;
     canvas.height = gameHeight * dpr;
     
-    // Let CSS handle the display size
-    canvas.style.width = gameWidth + 'px';
-    canvas.style.height = gameHeight + 'px';
+    // Let CSS handle the display size - full screen
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
     
     // Reset transform and scale for high DPI
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -58,7 +44,7 @@ function resizeGameCanvas() {
         player.isAlive = true;
     }
     
-    console.log('Canvas resized to:', gameWidth, 'x', gameHeight, 'dpr:', dpr);
+    console.log('Canvas resized to full screen:', gameWidth, 'x', gameHeight, 'dpr:', dpr);
 }
 
 // Enhanced game state
