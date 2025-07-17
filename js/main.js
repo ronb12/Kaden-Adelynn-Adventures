@@ -17,9 +17,9 @@ if (!ctx) {
 function resizeGameCanvas() {
     const dpr = window.devicePixelRatio || 1;
     
-    // Calculate responsive canvas size based on device - make it smaller
-    const maxWidth = Math.min(window.innerWidth * 0.65, 800); // 65% of screen width, cap at 800
-    const maxHeight = Math.min(window.innerHeight * 0.55, 600); // 55% of screen height, cap at 600
+    // Calculate responsive canvas size based on device - make it slightly bigger
+    const maxWidth = Math.min(window.innerWidth * 0.75, 900); // Increased from 65% to 75%, cap at 900
+    const maxHeight = Math.min(window.innerHeight * 0.65, 700); // Increased from 55% to 65%, cap at 700
     
     // Maintain 4:3 ratio
     const aspectRatio = 4 / 3;

@@ -62,8 +62,8 @@ body {
 
 /* HUD System */
 .hud {
-    position: fixed;
-    top: calc(20px + env(safe-area-inset-top, 0px));
+    position: absolute;
+    top: 20px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -259,7 +259,7 @@ button:hover {
     }
     
     .hud {
-        top: calc(15px + env(safe-area-inset-top, 0px));
+        top: 15px;
         gap: 8px;
         font-size: 14px;
     }
@@ -302,7 +302,7 @@ button:hover {
     }
     
     .hud {
-        top: calc(10px + env(safe-area-inset-top, 0px));
+        top: 10px;
         gap: 6px;
         font-size: 12px;
         flex-wrap: wrap;
@@ -354,7 +354,7 @@ button:hover {
     }
     
     .hud {
-        top: calc(5px + env(safe-area-inset-top, 0px));
+        top: 5px;
         gap: 4px;
         font-size: 10px;
     }
