@@ -576,3 +576,29 @@ button:hover {
     opacity: 1 !important;
     display: block !important;
 }
+
+.start-screen h1 {
+    top: 80px !important;
+}
+
+.start-screen {
+    padding-top: 260px !important;
+}
+
+@media (max-width: 700px) {
+    .start-screen {
+        padding-top: 180px !important;
+    }
+    .start-screen h1 {
+        top: 50px !important;
+    }
+}
+
+@media (max-width: 500px) {
+    .start-screen {
+        padding-top: 120px !important;
+    }
+    .start-screen h1 {
+        top: 30px !important;
+    }
+}
