@@ -223,6 +223,48 @@ body::before {
     backdrop-filter: blur(10px);
 }
 
+/* Adjust start screen content to account for absolutely positioned title */
+.start-screen {
+    padding-top: 120px; /* Add top padding to account for the absolutely positioned title */
+}
+
+/* --- Start Screen Game Name --- */
+.start-screen h1 {
+    position: absolute;
+    top: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100vw;
+    text-align: center;
+    font-size: 3.2em;
+    color: #00ffff;
+    text-shadow: 0 0 30px #00ffff, 0 0 60px #00ffff, 0 0 10px #fff;
+    font-weight: bold;
+    letter-spacing: 2px;
+    z-index: 1100;
+    margin: 0 auto 40px auto;
+    padding: 0 16px;
+    pointer-events: none;
+}
+
+/* Stats section styling */
+.stats-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(0, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    width: 100%;
+    max-width: 600px;
+}
+
+.stats-section h3 {
+    color: #00ffff;
+    margin: 0 0 10px 0;
+    text-shadow: 0 0 8px rgba(0, 255, 255, 0.8);
+    font-size: 18px;
+}
+
 .hidden {
     display: none !important;
 }
@@ -336,25 +378,6 @@ button:hover {
     letter-spacing: 1px;
 }
 
-/* --- Start Screen Game Name --- */
-.start-screen h1 {
-    position: absolute;
-    top: 32px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100vw;
-    text-align: center;
-    font-size: 3.2em;
-    color: #00ffff;
-    text-shadow: 0 0 30px #00ffff, 0 0 60px #00ffff, 0 0 10px #fff;
-    font-weight: bold;
-    letter-spacing: 2px;
-    z-index: 1100;
-    margin: 0 auto 40px auto;
-    padding: 0 16px;
-    pointer-events: none;
-}
-
 /* Responsive Design */
 @media (max-width: 1200px) {
     .game-container {
@@ -452,8 +475,14 @@ button:hover {
         z-index: 100;
     }
     
-    .start-screen h1, .game-over-screen h1 {
+    .start-screen {
+        padding-top: 100px; /* Reduce top padding for smaller screens */
+    }
+    
+    .start-screen h1 {
         font-size: 2em;
+        top: 18px;
+        padding: 0 4px;
     }
     
     .instructions {
@@ -464,12 +493,6 @@ button:hover {
     button {
         font-size: 16px;
         padding: 12px 24px;
-    }
-
-    .start-screen h1 {
-        font-size: 2em;
-        top: 18px;
-        padding: 0 4px;
     }
 }
 
@@ -498,8 +521,14 @@ button:hover {
         font-size: 10px;
     }
     
-    .start-screen h1, .game-over-screen h1 {
+    .start-screen {
+        padding-top: 80px; /* Further reduce top padding for very small screens */
+    }
+    
+    .start-screen h1 {
         font-size: 1.8em;
+        top: 12px;
+        padding: 0 2px;
     }
     
     .instructions {
