@@ -225,7 +225,7 @@ body::before {
 
 /* Adjust start screen content to account for absolutely positioned title */
 .start-screen {
-    padding-top: 120px; /* Add top padding to account for the absolutely positioned title */
+    padding-top: 200px !important;
 }
 
 /* --- Start Screen Game Name --- */
@@ -480,7 +480,7 @@ button:hover {
     }
     
     .start-screen {
-        padding-top: 100px; /* Reduce top padding for smaller screens */
+        padding-top: 140px !important;
     }
     
     .start-screen h1 {
@@ -526,7 +526,7 @@ button:hover {
     }
     
     .start-screen {
-        padding-top: 80px; /* Further reduce top padding for very small screens */
+        padding-top: 100px !important;
     }
     
     .start-screen h1 {
