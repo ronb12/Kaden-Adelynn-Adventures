@@ -17,9 +17,9 @@ if (!ctx) {
 function resizeGameCanvas() {
     const dpr = window.devicePixelRatio || 1;
     
-    // Calculate responsive canvas size based on device
-    const maxWidth = Math.min(window.innerWidth * 0.85, 1200); // Max 85% of screen width, cap at 1200
-    const maxHeight = Math.min(window.innerHeight * 0.75, 800); // Max 75% of screen height, cap at 800
+    // Calculate responsive canvas size based on device - make it smaller
+    const maxWidth = Math.min(window.innerWidth * 0.65, 800); // 65% of screen width, cap at 800
+    const maxHeight = Math.min(window.innerHeight * 0.55, 600); // 55% of screen height, cap at 600
     
     // Maintain 4:3 ratio
     const aspectRatio = 4 / 3;
@@ -46,6 +46,10 @@ function resizeGameCanvas() {
     // Reset transform and scale for high DPI
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.scale(dpr, dpr);
+    
+    // Update global game dimensions for other functions
+    window.gameWidth = gameWidth;
+    window.gameHeight = gameHeight;
     
     // Clamp player position after resize
     if (typeof player !== 'undefined') {
@@ -84,8 +88,8 @@ window.gameState = {
 
 // Game objects
 let player = {
-    x: 400, // Fixed position instead of canvas.width / 2
-    y: 520, // Fixed position instead of canvas.height - 80
+    x: 0, // Will be set dynamically
+    y: 0, // Will be set dynamically
     width: 35,
     height: 35,
     speed: 5,
@@ -105,8 +109,8 @@ let player = {
 
 // Clamp player position to keep fully on screen
 function clampPlayerPosition() {
-    const gameWidth = 800;
-    const gameHeight = 600;
+    const gameWidth = window.gameWidth || 800;
+    const gameHeight = window.gameHeight || 600;
     player.x = Math.max(0, Math.min(gameWidth - player.width, player.x));
     player.y = Math.max(0, Math.min(gameHeight - player.height, player.y));
 }
@@ -148,8 +152,8 @@ const MAX_PARTICLES = 100;
 
 // Initialize stars for background
 function initStars() {
-    const gameWidth = 800;
-    const gameHeight = 600;
+    const gameWidth = window.gameWidth || 800;
+    const gameHeight = window.gameHeight || 600;
     for (let i = 0; i < 100; i++) {
         stars.push({
             x: Math.random() * gameWidth,
@@ -1039,8 +1043,8 @@ function resetGame() {
     enemies = [];
     powerUps = [];
     particles = [];
-    player.x = 400; // Fixed position instead of canvas.width / 2
-    player.y = 520; // Fixed position instead of canvas.height - 80
+    // Position player dynamically
+    positionPlayerAtStart();
     player.health = 100;
     player.isAlive = true;
     player.invulnerable = false;
@@ -1050,8 +1054,6 @@ function resetGame() {
     player.weaponType = 'normal';
     player.weaponLevel = 1;
     player.weaponMultiplier = 1;
-    // Clamp position
-    clampPlayerPosition();
     // Hide game over screen
     document.getElementById('gameOverScreen').classList.add('hidden');
 }
@@ -1767,3 +1769,12 @@ function playShootSound() {
 // Add event listeners to resize canvas on load and resize
 window.addEventListener('resize', resizeGameCanvas);
 window.addEventListener('orientationchange', resizeGameCanvas);
+
+// Position player at start of game
+function positionPlayerAtStart() {
+    const gameWidth = window.gameWidth || 800;
+    const gameHeight = window.gameHeight || 600;
+    player.x = gameWidth / 2 - player.width / 2;
+    player.y = gameHeight - player.height - 80;
+    clampPlayerPosition();
+}
