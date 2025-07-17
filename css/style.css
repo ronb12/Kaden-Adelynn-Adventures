@@ -578,11 +578,12 @@ button:hover {
 }
 
 .start-screen h1 {
-    top: 80px !important;
+    top: 140px !important;
+    font-size: 2.2em !important;
 }
 
 .start-screen {
-    padding-top: 260px !important;
+    padding-top: 320px !important;
 }
 
 @media (max-width: 700px) {
@@ -590,15 +591,17 @@ button:hover {
         padding-top: 180px !important;
     }
     .start-screen h1 {
-        top: 50px !important;
+        top: 90px !important;
+        font-size: 1.5em !important;
     }
 }
 
 @media (max-width: 500px) {
     .start-screen {
-        padding-top: 120px !important;
+        padding-top: 100px !important;
     }
     .start-screen h1 {
-        top: 30px !important;
+        top: 50px !important;
+        font-size: 1.1em !important;
     }
 }
