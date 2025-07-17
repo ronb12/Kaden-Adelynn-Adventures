@@ -578,30 +578,30 @@ button:hover {
 }
 
 .start-screen h1 {
-    top: 140px !important;
-    font-size: 2.2em !important;
+    left: 45% !important;
+    transform: translateX(-48%) !important;
 }
 
 .start-screen {
-    padding-top: 320px !important;
+    margin-left: -2vw !important;
 }
 
 @media (max-width: 700px) {
-    .start-screen {
-        padding-top: 180px !important;
-    }
     .start-screen h1 {
-        top: 90px !important;
-        font-size: 1.5em !important;
+        left: 44% !important;
+        transform: translateX(-47%) !important;
+    }
+    .start-screen {
+        margin-left: -3vw !important;
     }
 }
 
 @media (max-width: 500px) {
-    .start-screen {
-        padding-top: 100px !important;
-    }
     .start-screen h1 {
-        top: 50px !important;
-        font-size: 1.1em !important;
+        left: 42% !important;
+        transform: translateX(-45%) !important;
+    }
+    .start-screen {
+        margin-left: -4vw !important;
     }
 }
