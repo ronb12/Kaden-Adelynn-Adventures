@@ -38,6 +38,20 @@
         #gameUI {
             display: none;
             margin: 10px 0;
+            width: 100%;
+        }
+        
+        #scoreBoard {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #4a90e2;
+            border-radius: 10px;
+            padding: 10px 20px;
+            z-index: 100;
+            display: none;
         }
         
         #controls {
@@ -161,9 +175,12 @@
         
         <canvas id="gameCanvas" width="800" height="600"></canvas>
         
-        <div id="gameUI">
+        <div id="scoreBoard">
             <div id="score">Score: 0 | Lives: 3 | Power: Basic</div>
-            <div id="powerupInfo">Power-ups: ⚡ Speed | 🚀 Double Shot | 🛡️ Shield</div>
+            <div id="powerupInfo">Power-ups: ⚡ Speed | 🚀 Double Shot | 🛡️ Shield | 💎 Extra Life | ⭐ Star Power | 🔥 Fire Rate</div>
+        </div>
+        
+        <div id="gameUI">
             <div id="controls">
                 <p>Move: Arrow Keys | Shoot: Spacebar | Power-up: P</p>
                 <button id="menuBtn">Back to Menu</button>
@@ -179,6 +196,7 @@
         const menuBtn = document.getElementById('menuBtn');
         const mainMenu = document.getElementById('mainMenu');
         const gameUI = document.getElementById('gameUI');
+        const scoreBoard = document.getElementById('scoreBoard');
         const scoreDisplay = document.getElementById('score');
         const powerupInfo = document.getElementById('powerupInfo');
 
@@ -196,6 +214,10 @@
         let doubleShot = false;
         let shieldActive = false;
         let shieldTimer = 0;
+        let starPowerActive = false;
+        let starPowerTimer = 0;
+        let fireRateBoost = false;
+        let fireRateTimer = 0;
         let lastShot = 0;
         let shotCooldown = 200;
         let gameStarted = false;
@@ -237,12 +259,17 @@
             doubleShot = false;
             shieldActive = false;
             shieldTimer = 0;
+            starPowerActive = false;
+            starPowerTimer = 0;
+            fireRateBoost = false;
+            fireRateTimer = 0;
             player = { x: 375, y: 500, width: 40, height: 30 };
             
             // Hide menu, show game
             mainMenu.style.display = 'none';
             canvas.style.display = 'block';
             gameUI.style.display = 'block';
+            scoreBoard.style.display = 'block';
             
             console.log('Game started, calling gameLoop');
             gameLoop();
@@ -256,6 +283,7 @@
             mainMenu.style.display = 'block';
             canvas.style.display = 'none';
             gameUI.style.display = 'none';
+            scoreBoard.style.display = 'none';
             
             // Clear canvas
             ctx.fillStyle = '#000033';
@@ -299,6 +327,24 @@
                 ctx.beginPath();
                 ctx.arc(0, 0, 25, 0, Math.PI * 2);
                 ctx.stroke();
+            }
+            
+            // Star power effect
+            if (starPowerActive) {
+                ctx.strokeStyle = '#ffff00';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(0, 0, 30, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                // Add star particles
+                ctx.fillStyle = '#ffff00';
+                for (let i = 0; i < 8; i++) {
+                    const angle = (i * Math.PI * 2) / 8;
+                    const x = Math.cos(angle) * 35;
+                    const y = Math.sin(angle) * 35;
+                    ctx.fillRect(x - 1, y - 1, 2, 2);
+                }
             }
             
             ctx.restore();
@@ -350,6 +396,9 @@
                 case 'speed': emoji = '⚡'; break;
                 case 'double': emoji = '🚀'; break;
                 case 'shield': emoji = '🛡️'; break;
+                case 'extraLife': emoji = '💎'; break;
+                case 'starPower': emoji = '⭐'; break;
+                case 'fireRate': emoji = '🔥'; break;
             }
             
             // Draw emoji
@@ -393,6 +442,14 @@
                     shieldActive = false;
                 }
             }
+            
+            // Update star power timer
+            if (starPowerActive) {
+                starPowerTimer--;
+                if (starPowerTimer <= 0) {
+                    starPowerActive = false;
+                }
+            }
         }
 
         function updateBullets() {
@@ -418,7 +475,7 @@
 
         function spawnPowerup() {
             if (Math.random() < 0.008) {
-                const types = ['speed', 'double', 'shield'];
+                const types = ['speed', 'double', 'shield', 'extraLife', 'starPower', 'fireRate'];
                 const type = types[Math.floor(Math.random() * types.length)];
                 powerups.push({
                     x: Math.random() * (canvas.width - 20),
@@ -517,6 +574,21 @@
                     shieldActive = true;
                     shieldTimer = 300;
                     break;
+                case 'extraLife':
+                    lives++;
+                    break;
+                case 'starPower':
+                    starPowerActive = true;
+                    starPowerTimer = 400;
+                    break;
+                case 'fireRate':
+                    fireRateBoost = true;
+                    shotCooldown = 100;
+                    setTimeout(() => {
+                        fireRateBoost = false;
+                        shotCooldown = 200;
+                    }, 12000);
+                    break;
             }
         }
 
@@ -566,6 +638,8 @@
             if (playerPower === 'speed') powerText = 'Speed Boost';
             if (doubleShot) powerText += ' + Double Shot';
             if (shieldActive) powerText += ' + Shield';
+            if (starPowerActive) powerText += ' + Star Power';
+            if (fireRateBoost) powerText += ' + Fire Rate';
             
             scoreDisplay.textContent = `Score: ${score} | Lives: ${lives} | Power: ${powerText}`;
         }
