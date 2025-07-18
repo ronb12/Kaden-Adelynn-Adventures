@@ -1,4 +1,4 @@
-// Kaden & Adelynn Adventures - Clean Version
+// Kaden & Adelynn Adventures - Arcade Version
 console.log('🚀 game.js loading...');
 
 // Game state variables
@@ -10,15 +10,8 @@ let lives = 3;
 let gameTime = 0;
 let enemyTimer = 60;
 let difficulty = 1;
-let stageProgress = 0;
-let stageGoal = 20;
-let missionCompleted = false;
-let bossSpawned = false;
-let bossHealth = 100;
 let fireHeld = false;
 let fireCooldown = 0;
-let currentMission = 1;
-let totalMissions = 50;
 let playerLevel = 1;
 let playerXP = 0;
 let skillPoints = 0;
@@ -32,7 +25,6 @@ let touchX = 0;
 let touchY = 0;
 let stage = 1;
 let upgrades = [];
-let missionObjectives = [];
 let xpToNextLevel = 100;
 let DEBUG_MODE = true;
 let autoSaveInterval;
@@ -64,15 +56,6 @@ let keys = {};
 let mainMenu;
 let hud;
 let pauseMenu;
-
-// Mission data
-const missionData = [
-  { id: 1, name: 'Mission 1', description: 'Clear the sector of enemy forces', enemyTypes: ['scout'], enemyCount: 12, bossType: null },
-  { id: 2, name: 'Mission 2', description: 'First contact with enemy forces', enemyTypes: ['scout', 'interceptor'], enemyCount: 15, bossType: null },
-  { id: 3, name: 'Mission 3', description: 'Navigate through asteroid field', enemyTypes: ['scout', 'interceptor', 'bomber'], enemyCount: 18, bossType: null },
-  { id: 4, name: 'Mission 4', description: 'Enter enemy territory', enemyTypes: ['scout', 'interceptor', 'bomber', 'fighter'], enemyCount: 20, bossType: null },
-  { id: 5, name: 'Mission 5', description: 'Face the challenge', enemyTypes: ['scout', 'interceptor', 'bomber', 'fighter', 'destroyer'], enemyCount: 25, bossType: 'basic' }
-];
 
 // Enemy types
 const ENEMY_TYPES = {
@@ -133,17 +116,13 @@ function initGame() {
 function setupButtonListeners() {
   debugLog('🎮 Setting up button listeners...');
   
-  // Start button
+  // Start button - now starts the game directly
   const startBtn = document.getElementById('start-btn');
   if (startBtn) {
+    startBtn.textContent = 'Start Game';
     startBtn.onclick = () => {
       debugLog('🎮 Start button clicked');
-      const missionDropdown = document.getElementById('mission-dropdown');
-      if (missionDropdown) {
-        const selectedMission = parseInt(missionDropdown.value);
-        debugLog('🎮 Starting mission:', selectedMission);
-        startMission(selectedMission);
-      }
+      startGame();
     };
   }
   
@@ -185,24 +164,6 @@ function setupButtonListeners() {
   if (mainMenuBtn) {
     mainMenuBtn.onclick = () => {
       resetGame();
-    };
-  }
-  
-  const nextMissionBtn = document.getElementById('next-mission');
-  if (nextMissionBtn) {
-    nextMissionBtn.onclick = () => {
-      currentMission++;
-      if (currentMission <= totalMissions) {
-        startMission(currentMission);
-      }
-    };
-  }
-  
-  const missionSelectBtn = document.getElementById('mission-select-btn');
-  if (missionSelectBtn) {
-    missionSelectBtn.onclick = () => {
-      document.getElementById('mission-complete').classList.add('hidden');
-      mainMenu.classList.remove('hidden');
     };
   }
   
@@ -253,19 +214,9 @@ function setupKeyboardInput() {
   });
 }
 
-// Start mission
-function startMission(missionId) {
-  debugLog(`Starting mission ${missionId}`);
-  
-  currentMission = missionId;
-  const mission = missionData[missionId - 1];
-  
-  if (!mission) {
-    console.error(`❌ Mission ${missionId} not found`);
-    return;
-  }
-  
-  debugLog(`Mission data:`, mission);
+// Start game (simplified - no missions)
+function startGame() {
+  debugLog('Starting arcade game');
   
   // Initialize player
   player = {
@@ -298,19 +249,7 @@ function startMission(missionId) {
   lives = 3;
   gamePaused = false;
   enemyTimer = 60;
-  stageProgress = 0;
-  stageGoal = mission.enemyCount;
-  missionCompleted = false;
-  bossSpawned = false;
-  boss = null;
-  
-  // Set mission objectives
-  missionObjectives = [
-    `Destroy ${mission.enemyCount} enemies`,
-    `Survive the mission`
-  ];
-  
-  debugLog(`Mission objectives:`, missionObjectives);
+  difficulty = 1;
   
   gameState = 'playing';
   debugLog(`Game state set to: ${gameState}`);
@@ -318,10 +257,7 @@ function startMission(missionId) {
   // Show game UI
   showGameUI();
   
-  // Update mission UI
-  updateMissionUI();
-  
-  debugLog(`Mission ${missionId} started successfully`);
+  debugLog('Arcade game started successfully');
 }
 
 // Show game UI
@@ -342,10 +278,10 @@ function showGameUI() {
     hud.classList.remove('hidden');
   }
   
-  // Show mission UI
+  // Hide mission UI (not needed for arcade mode)
   const missionUI = document.getElementById('mission-ui');
   if (missionUI) {
-    missionUI.classList.remove('hidden');
+    missionUI.classList.add('hidden');
   }
   
   // Show progression UI
@@ -393,35 +329,41 @@ function hideGameUI() {
   }
 }
 
-// Update mission UI
-function updateMissionUI() {
-  const missionName = document.getElementById('mission-name');
-  const missionDesc = document.getElementById('mission-description');
-  const missionProgress = document.getElementById('mission-progress');
-  const missionProgressText = document.getElementById('mission-progress-text');
-  const missionObjectivesList = document.getElementById('mission-objectives');
+// Calculate difficulty based on score
+function calculateDifficulty() {
+  // Increase difficulty every 1000 points
+  difficulty = Math.floor(score / 1000) + 1;
   
-  if (missionName) missionName.textContent = `Mission ${currentMission}`;
-  if (missionDesc) missionDesc.textContent = missionData[currentMission - 1]?.description || '';
-  if (missionProgress) missionProgress.style.width = `${(stageProgress / stageGoal) * 100}%`;
-  if (missionProgressText) missionProgressText.textContent = `${stageProgress}/${stageGoal}`;
+  // Cap difficulty at 10
+  difficulty = Math.min(difficulty, 10);
   
-  if (missionObjectivesList) {
-    missionObjectivesList.innerHTML = '';
-    missionObjectives.forEach(objective => {
-      const li = document.createElement('li');
-      li.textContent = objective;
-      missionObjectivesList.appendChild(li);
-    });
-  }
+  // Update stage based on difficulty
+  stage = difficulty;
+  
+  return difficulty;
+}
+
+// Get available enemy types based on difficulty
+function getAvailableEnemyTypes() {
+  const types = ['scout'];
+  
+  if (difficulty >= 2) types.push('interceptor');
+  if (difficulty >= 3) types.push('bomber');
+  if (difficulty >= 4) types.push('fighter');
+  if (difficulty >= 5) types.push('destroyer');
+  
+  return types;
 }
 
 // Spawn enemy
 function spawnEnemy() {
-  const mission = missionData[currentMission - 1];
-  const availableTypes = mission.enemyTypes;
+  const availableTypes = getAvailableEnemyTypes();
   const enemyType = availableTypes[Math.floor(Math.random() * availableTypes.length)];
   const enemyData = ENEMY_TYPES[enemyType];
+  
+  // Scale enemy stats with difficulty
+  const healthMultiplier = 1 + (difficulty - 1) * 0.2;
+  const speedMultiplier = 1 + (difficulty - 1) * 0.1;
   
   const enemy = {
     x: Math.random() * (canvas.width - enemyData.width),
@@ -430,12 +372,12 @@ function spawnEnemy() {
     height: enemyData.height,
     w: enemyData.width,
     h: enemyData.height,
-    speed: enemyData.speed,
-    health: enemyData.health,
-    maxHealth: enemyData.health,
-    fireRate: enemyData.fireRate,
+    speed: enemyData.speed * speedMultiplier,
+    health: Math.ceil(enemyData.health * healthMultiplier),
+    maxHealth: Math.ceil(enemyData.health * healthMultiplier),
+    fireRate: Math.max(10, enemyData.fireRate - (difficulty - 1) * 5),
     fireTimer: 0,
-    points: enemyData.points,
+    points: enemyData.points + (difficulty - 1) * 5,
     type: enemyType
   };
   
@@ -457,7 +399,7 @@ function updateEnemies() {
           y: enemy.y + enemy.height,
           width: 4,
           height: 8,
-          speed: 3
+          speed: 3 + (difficulty - 1) * 0.5
         });
         enemy.fireTimer = 0;
       }
@@ -551,12 +493,7 @@ function checkCollisions() {
         
         if (enemy.health <= 0) {
           score += enemy.points;
-          stageProgress++;
           enemies.splice(j, 1);
-          
-          if (stageProgress >= stageGoal) {
-            completeMission();
-          }
         }
         break;
       }
@@ -598,22 +535,12 @@ function rectsCollide(rect1, rect2) {
          rect1.y + rect1.height > rect2.y;
 }
 
-// Complete mission
-function completeMission() {
-  missionCompleted = true;
-  gameState = 'mission-complete';
-  
-  const missionComplete = document.getElementById('mission-complete');
-  if (missionComplete) {
-    missionComplete.classList.remove('hidden');
-  }
-  
-  debugLog('Mission completed!');
-}
-
 // Game over
 function gameOver() {
   gameState = 'game-over';
+  
+  // Save high score
+  saveHighScore();
   
   const gameOverScreen = document.getElementById('game-over');
   if (gameOverScreen) {
@@ -659,7 +586,7 @@ function resumeGame() {
 // Save game
 function saveGame() {
   const saveData = {
-    score, lives, currentMission, playerLevel, playerXP, credits
+    score, lives, playerLevel, playerXP, credits
   };
   localStorage.setItem('gameSave', JSON.stringify(saveData));
 }
@@ -671,12 +598,11 @@ function loadGame() {
     const saveData = JSON.parse(saved);
     score = saveData.score || 0;
     lives = saveData.lives || 3;
-    currentMission = saveData.currentMission || 1;
     playerLevel = saveData.playerLevel || 1;
     playerXP = saveData.playerXP || 0;
     credits = saveData.credits || 0;
     
-    startMission(currentMission);
+    startGame();
   }
 }
 
@@ -708,6 +634,15 @@ function updateHighScoreDisplay() {
     const topScore = highScores.length > 0 ? Math.max(...highScores) : 0;
     highScoreDisplay.textContent = `High Score: ${topScore.toLocaleString()}`;
   }
+}
+
+// Save high score
+function saveHighScore() {
+  highScores.push(score);
+  highScores.sort((a, b) => b - a); // Sort descending
+  highScores = highScores.slice(0, 10); // Keep top 10
+  localStorage.setItem('highScores', JSON.stringify(highScores));
+  updateHighScoreDisplay();
 }
 
 // Initialize saved game
@@ -801,12 +736,14 @@ function updateHUD() {
   const weaponElement = document.getElementById('weapon-level');
   const difficultyElement = document.getElementById('difficulty');
   const timeElement = document.getElementById('time');
+  const stageElement = document.getElementById('stage-indicator');
   
   if (scoreElement) scoreElement.textContent = `Score: ${score.toLocaleString()}`;
   if (livesElement) livesElement.textContent = `Lives: ${lives}`;
   if (weaponElement) weaponElement.textContent = `Weapon: Level ${weaponLevel}`;
   if (difficultyElement) difficultyElement.textContent = `Difficulty: ${difficulty}`;
   if (timeElement) timeElement.textContent = `Time: ${Math.floor(gameTime / 60)}:${(gameTime % 60).toString().padStart(2, '0')}`;
+  if (stageElement) stageElement.textContent = `Stage ${stage}`;
 }
 
 // Update function
@@ -815,10 +752,13 @@ function update() {
   
   gameTime++;
   
-  // Spawn enemies
-  if (gameTime % enemyTimer === 0) {
+  // Calculate difficulty based on score
+  calculateDifficulty();
+  
+  // Spawn enemies (faster spawning as difficulty increases)
+  const spawnRate = Math.max(20, 60 - difficulty * 5);
+  if (gameTime % spawnRate === 0) {
     spawnEnemy();
-    enemyTimer = Math.max(20, 60 - difficulty * 10);
   }
   
   // Update game objects
