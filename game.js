@@ -27,6 +27,19 @@ let playerXP = 0;
 let xpToNextLevel = 100;
 let skillPoints = 0;
 
+// --- Debug Mode ---
+const DEBUG_MODE = true;
+
+function debugLog(message, data = null) {
+  if (DEBUG_MODE) {
+    if (data) {
+      console.log(`🔍 DEBUG: ${message}`, data);
+    } else {
+      console.log(`🔍 DEBUG: ${message}`);
+    }
+  }
+}
+
 // --- Enemy Types ---
 const ENEMY_TYPES = {
   scout: {
@@ -119,8 +132,18 @@ function generateMissions() {
 
 // --- Mission Management ---
 function startMission(missionId) {
+  debugLog(`Starting mission ${missionId}`);
+  
   currentMission = missionId;
   const mission = missionData[missionId - 1];
+  
+  if (!mission) {
+    console.error(`❌ Mission ${missionId} not found in missionData`);
+    return;
+  }
+  
+  debugLog(`Mission data:`, mission);
+  
   stageProgress = 0;
   stageGoal = mission.enemyCount;
   missionCompleted = false;
@@ -134,8 +157,18 @@ function startMission(missionId) {
     mission.bossType ? 'Defeat the boss' : null
   ].filter(Boolean);
   
+  debugLog(`Mission objectives:`, missionObjectives);
+  
   gameState = 'playing';
+  debugLog(`Game state set to: ${gameState}`);
+  
+  // Show game UI
+  showGameUI();
+  
+  // Update mission UI
   updateMissionUI();
+  
+  debugLog(`Mission ${missionId} started successfully`);
 }
 
 function updateMissionUI() {
@@ -1042,66 +1075,70 @@ function drawEnemyBullets() {
 }
 
 function resetGame() {
-  player = { x: canvas.width/2 - 24, y: canvas.height - 80, width: 48, height: 36, speed: 4, weaponLevel: 1, shield: 0 };
-  bullets = [];
-  enemies = [];
-  enemyBullets = [];
+  debugLog('Resetting game');
+  
+  // Reset game state
+  gameState = 'menu';
+  gameTime = 0;
   score = 0;
   lives = 3;
-  gameTime = 0;
-  difficulty = 1;
+  stageProgress = 0;
+  missionCompleted = false;
   bossSpawned = false;
   boss = null;
   gamePaused = false;
-  enemyTimer = 60;
-  powerUpMenu = false;
-  selectedPowerUp = 0;
-  options = [];
+  
+  // Reset arrays
+  bullets = [];
+  enemies = [];
+  enemyBullets = [];
   particles = [];
   soundEffects = [];
-  powerUps = [];
   collectibles = [];
   powerCapsules = [];
+  powerUps = [];
+  options = [];
   
-  // Reset mission system
-  currentMission = 1;
-  stageProgress = 0;
-  stageGoal = 20;
-  missionCompleted = false;
+  // Initialize player
+  player = {
+    x: canvas.width / 2 - 25,
+    y: canvas.height - 100,
+    width: 50,
+    height: 50,
+    speed: 5,
+    weaponLevel: 1,
+    weaponMultiplier: 1,
+    shield: 0
+  };
   
-  // Reset player progression
-  playerLevel = 1;
-  playerXP = 0;
-  xpToNextLevel = 100;
-  skillPoints = 0;
-  credits = 0;
+  debugLog('Player initialized:', player);
   
-  // Initialize mission data if not already done
-  if (missionData.length === 0) {
-    generateMissions();
+  // Reset enemy timer
+  enemyTimer = 60;
+  
+  // Hide game UI
+  hideGameUI();
+  
+  // Show main menu
+  if (mainMenu) {
+    mainMenu.classList.remove('hidden');
+    debugLog('Main menu shown');
+  } else {
+    console.error('❌ Main menu element not found');
   }
   
-  // Start first mission
-  startMission(1);
-  
-  // Show game UI
-  showGameUI();
-  
-  // Update displays
-  scoreDisplay.textContent = 'Score: ' + score;
-  livesDisplay.textContent = 'Lives: ' + lives;
-  weaponLevelDisplay.textContent = 'Weapon: Level ' + player.weaponLevel;
-  difficultyDisplay.textContent = 'Difficulty: ' + difficulty;
-  timeDisplay.textContent = 'Time: ' + Math.floor(gameTime/60) + ':' + (gameTime%60).toString().padStart(2, '0');
-  
-  // Start auto-save
-  startAutoSave();
+  debugLog('Game reset completed');
 }
 
 function update() {
   if (gamePaused) return;
   
   gameTime++;
+  
+  // Debug: Log game state every 60 frames (1 second at 60fps)
+  if (gameTime % 60 === 0) {
+    debugLog(`Game running - State: ${gameState}, Time: ${gameTime}, Enemies: ${enemies.length}, Player: ${player ? 'exists' : 'missing'}`);
+  }
   
   // Update player
   if (keys['ArrowUp'] && player.y > 0) player.y -= player.speed;
@@ -1417,19 +1454,59 @@ function draw() {
 }
 
 function gameLoop() {
-  if (gameState === 'playing') {
+  debugLog(`Game loop running - State: ${gameState}, Paused: ${gamePaused}`);
+  
+  if (gameState === 'playing' && !gamePaused) {
     update();
     draw();
+  } else if (gameState === 'menu') {
+    // Draw menu background
+    drawStars();
   }
+  
   requestAnimationFrame(gameLoop);
 }
 
 // --- UI Management ---
 function showGameUI() {
-  document.getElementById('mission-ui').classList.remove('hidden');
-  document.getElementById('progression-ui').classList.remove('hidden');
-  hud.classList.remove('hidden');
-  document.getElementById('top-bar').classList.remove('hidden');
+  debugLog('Showing game UI');
+  
+  // Show HUD
+  if (hud) {
+    hud.classList.remove('hidden');
+    debugLog('HUD shown');
+  } else {
+    console.error('❌ HUD element not found');
+  }
+  
+  // Show mission UI
+  const missionUI = document.getElementById('mission-ui');
+  if (missionUI) {
+    missionUI.classList.remove('hidden');
+    debugLog('Mission UI shown');
+  } else {
+    console.error('❌ Mission UI element not found');
+  }
+  
+  // Show progression UI
+  const progressionUI = document.getElementById('progression-ui');
+  if (progressionUI) {
+    progressionUI.classList.remove('hidden');
+    debugLog('Progression UI shown');
+  } else {
+    console.error('❌ Progression UI element not found');
+  }
+  
+  // Show top bar
+  const topBar = document.getElementById('top-bar');
+  if (topBar) {
+    topBar.classList.remove('hidden');
+    debugLog('Top bar shown');
+  } else {
+    console.error('❌ Top bar element not found');
+  }
+  
+  debugLog('Game UI shown successfully');
 }
 
 function hideGameUI() {
