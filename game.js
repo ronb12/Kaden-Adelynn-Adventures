@@ -179,6 +179,7 @@ function startMission(missionId) {
   
   if (!mission) {
     console.error(`❌ Mission ${missionId} not found in missionData`);
+    debugLog('Mission data array:', missionData);
     return;
   }
   
@@ -192,6 +193,7 @@ function startMission(missionId) {
   
   // Initialize player if not already initialized
   if (!player) {
+    debugLog('Initializing player...');
     player = {
       x: canvas.width / 2 - 25,
       y: canvas.height - 100,
@@ -205,9 +207,12 @@ function startMission(missionId) {
       shield: 0
     };
     debugLog('Player initialized for mission:', player);
+  } else {
+    debugLog('Player already exists:', player);
   }
   
   // Reset game arrays
+  debugLog('Resetting game arrays...');
   bullets = [];
   enemies = [];
   enemyBullets = [];
@@ -219,6 +224,7 @@ function startMission(missionId) {
   options = [];
   
   // Reset game state
+  debugLog('Resetting game state...');
   gameTime = 0;
   score = 0;
   lives = 3;
@@ -238,12 +244,15 @@ function startMission(missionId) {
   debugLog(`Game state set to: ${gameState}`);
   
   // Show game UI
+  debugLog('Calling showGameUI...');
   showGameUI();
   
   // Update mission UI
+  debugLog('Calling updateMissionUI...');
   updateMissionUI();
   
   debugLog(`Mission ${missionId} started successfully`);
+  debugLog('Final check - Game state:', gameState, 'Player:', player ? 'exists' : 'missing', 'Canvas:', canvas ? 'exists' : 'missing');
 }
 
 function updateMissionUI() {
@@ -1547,6 +1556,9 @@ function showGameUI() {
   if (mainMenu) {
     mainMenu.classList.add('hidden');
     debugLog('Main menu hidden');
+  } else {
+    console.error('❌ Main menu element not found');
+    debugLog('Main menu element is null');
   }
   
   // Show HUD
@@ -1555,6 +1567,7 @@ function showGameUI() {
     debugLog('HUD shown');
   } else {
     console.error('❌ HUD element not found');
+    debugLog('HUD element is null');
   }
   
   // Show mission UI
@@ -1564,6 +1577,7 @@ function showGameUI() {
     debugLog('Mission UI shown');
   } else {
     console.error('❌ Mission UI element not found');
+    debugLog('Mission UI element is null');
   }
   
   // Show progression UI
@@ -1573,6 +1587,7 @@ function showGameUI() {
     debugLog('Progression UI shown');
   } else {
     console.error('❌ Progression UI element not found');
+    debugLog('Progression UI element is null');
   }
   
   // Show top bar
@@ -1582,6 +1597,7 @@ function showGameUI() {
     debugLog('Top bar shown');
   } else {
     console.error('❌ Top bar element not found');
+    debugLog('Top bar element is null');
   }
   
   // Make sure canvas is visible and on top
@@ -1594,8 +1610,10 @@ function showGameUI() {
     debugLog('Canvas display style:', canvas.style.display);
     debugLog('Canvas z-index:', canvas.style.zIndex);
     debugLog('Canvas position:', canvas.style.position);
+    debugLog('Canvas dimensions:', canvas.width, 'x', canvas.height);
   } else {
     console.error('❌ Canvas element not found');
+    debugLog('Canvas element is null');
   }
   
   debugLog('Game UI shown successfully');
