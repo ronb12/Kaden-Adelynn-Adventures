@@ -2100,3 +2100,8 @@ function handleTouchEnd(e) {
   e.preventDefault();
   isTouching = false;
 } 
+
+// --- Rapid Fire System ---
+let fireHeld = false;
+let fireCooldown = 0;
+const FIRE_RATE = 5; // Lower is faster (frames between shots) 
