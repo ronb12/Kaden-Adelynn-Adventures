@@ -994,7 +994,7 @@ function spawnEnemy() {
   
   enemies.push(enemy);
 }
-let enemyBullets = [];
+
 function updateEnemies() {
   // Cap max enemies
   if (enemies.length > MAX_ENEMIES) return;
@@ -1070,6 +1070,7 @@ function updateEnemies() {
     e.y > -e.height * 2 && e.y < canvas.height + e.height * 2
   );
 }
+
 function updateEnemyBullets() {
   enemyBullets.forEach(bullet => {
     bullet.x += bullet.dx || 0;
@@ -1077,6 +1078,7 @@ function updateEnemyBullets() {
   });
   enemyBullets = enemyBullets.filter(bullet => bullet.y < canvas.height + 20 && bullet.x > -20 && bullet.x < canvas.width + 20);
 }
+
 function drawEnemyBullets() {
   enemyBullets.forEach(bullet => {
     ctx.save();
@@ -2459,7 +2461,6 @@ function handleTouchEnd(e) {
 } 
 
 // --- Rapid Fire System ---
-let fireHeld = false;
 let fireCooldown = 0;
 const FIRE_RATE = 5; // Lower is faster (frames between shots) 
 
@@ -2470,8 +2471,6 @@ const ENEMY_BULLET_SPEED = 3; // Slower enemy bullets
 const ENEMY_BULLET_FREQ = 80; // Higher = less frequent
 const PLAYER_BULLET_DAMAGE = 2; // Player bullets do more damage
 const PLAYER_INVINCIBILITY_FRAMES = 60; // 1 second of invincibility
-const POWERUP_DROP_RATE = 0.35; // 35% chance
-const COLLECTIBLE_DROP_RATE = 0.2; // 20% chance
 const PLAYER_COLLISION_SHRINK = 0.7; // 70% of sprite size
 const ENEMY_BULLET_COLLISION_SHRINK = 0.6;
 
