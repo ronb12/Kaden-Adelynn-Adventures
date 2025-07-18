@@ -24,6 +24,7 @@ let credits = 0;
 let playerSkills = {};
 let highScores = [];
 let highScoreDisplay;
+let pauseMenu;
 
 // Arrays
 let bullets = [];
@@ -2554,6 +2555,8 @@ function initGame() {
   ctx = canvas.getContext('2d');
   mainMenu = document.getElementById('main-menu');
   hud = document.getElementById('hud');
+  highScoreDisplay = document.getElementById('high-score');
+  pauseMenu = document.getElementById('pause-menu');
   
   if (!canvas || !ctx) {
     console.error('❌ Canvas or context not found');
