@@ -21,11 +21,22 @@
             text-align: center;
         }
         
+        #mainMenu {
+            text-align: center;
+            z-index: 10;
+        }
+        
         #gameCanvas {
             border: 3px solid #4a90e2;
             background: linear-gradient(to bottom, #000033 0%, #000066 100%);
             margin: 20px 0;
             box-shadow: 0 0 20px rgba(74, 144, 226, 0.5);
+            display: none;
+        }
+        
+        #gameUI {
+            display: none;
+            margin: 10px 0;
         }
         
         #controls {
@@ -65,17 +76,59 @@
             color: #ffd700;
             margin: 5px 0;
         }
+        
+        .menu-title {
+            font-size: 48px;
+            color: #4a90e2;
+            text-shadow: 0 0 20px rgba(74, 144, 226, 0.7);
+            margin-bottom: 30px;
+        }
+        
+        .menu-subtitle {
+            font-size: 18px;
+            color: #87ceeb;
+            margin-bottom: 40px;
+        }
+        
+        .menu-instructions {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #4a90e2;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            max-width: 600px;
+        }
     </style>
 </head>
 <body>
     <div id="gameContainer">
-        <h1 style="color: #4a90e2; text-shadow: 0 0 20px rgba(74, 144, 226, 0.7);">Kaden & Adelynn Adventures</h1>
-        <div id="score">Score: 0 | Lives: 3 | Power: Basic</div>
-        <div id="powerupInfo">Power-ups: Red = Speed, Blue = Double Shot, Green = Shield</div>
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
-        <div id="controls">
-            <p>Move: Arrow Keys | Shoot: Spacebar | Power-up: P</p>
+        <div id="mainMenu">
+            <h1 class="menu-title">Kaden & Adelynn Adventures</h1>
+            <p class="menu-subtitle">Space Shooter Adventure</p>
             <button id="startBtn">Start Game</button>
+            <div class="menu-instructions">
+                <h3>How to Play:</h3>
+                <p><strong>Movement:</strong> Arrow Keys</p>
+                <p><strong>Shoot:</strong> Spacebar</p>
+                <p><strong>Power-ups:</strong></p>
+                <ul style="text-align: left; display: inline-block;">
+                    <li>🔴 Red = Speed Boost</li>
+                    <li>🔵 Blue = Double Shot</li>
+                    <li>🟢 Green = Shield Protection</li>
+                </ul>
+                <p><strong>Objective:</strong> Destroy enemy ships and survive as long as possible!</p>
+            </div>
+        </div>
+        
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <div id="gameUI">
+            <div id="score">Score: 0 | Lives: 3 | Power: Basic</div>
+            <div id="powerupInfo">Power-ups: Red = Speed, Blue = Double Shot, Green = Shield</div>
+            <div id="controls">
+                <p>Move: Arrow Keys | Shoot: Spacebar | Power-up: P</p>
+                <button id="menuBtn">Back to Menu</button>
+            </div>
         </div>
     </div>
 
@@ -84,6 +137,9 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const startBtn = document.getElementById('startBtn');
+        const menuBtn = document.getElementById('menuBtn');
+        const mainMenu = document.getElementById('mainMenu');
+        const gameUI = document.getElementById('gameUI');
         const scoreDisplay = document.getElementById('score');
         const powerupInfo = document.getElementById('powerupInfo');
 
@@ -103,6 +159,7 @@
         let shieldTimer = 0;
         let lastShot = 0;
         let shotCooldown = 200;
+        let gameStarted = false;
 
         // Initialize stars
         for (let i = 0; i < 100; i++) {
@@ -115,20 +172,23 @@
 
         // Event listeners
         startBtn.addEventListener('click', startGame);
-        console.log('Start button event listener added');
+        menuBtn.addEventListener('click', backToMenu);
         
         document.addEventListener('keydown', (e) => {
+            if (!gameRunning) return;
             keys[e.code] = true;
             if (e.code === 'Space') e.preventDefault();
             if (e.code === 'KeyP') activatePowerup();
         });
         document.addEventListener('keyup', (e) => {
+            if (!gameRunning) return;
             keys[e.code] = false;
         });
 
         function startGame() {
-            console.log('Start game function called');
+            console.log('Starting game...');
             gameRunning = true;
+            gameStarted = true;
             score = 0;
             lives = 3;
             bullets = [];
@@ -139,9 +199,28 @@
             shieldActive = false;
             shieldTimer = 0;
             player = { x: 375, y: 500, width: 40, height: 30 };
-            startBtn.textContent = 'Restart Game';
+            
+            // Hide menu, show game
+            mainMenu.style.display = 'none';
+            canvas.style.display = 'block';
+            gameUI.style.display = 'block';
+            
             console.log('Game started, calling gameLoop');
             gameLoop();
+        }
+
+        function backToMenu() {
+            gameRunning = false;
+            gameStarted = false;
+            
+            // Show menu, hide game
+            mainMenu.style.display = 'block';
+            canvas.style.display = 'none';
+            gameUI.style.display = 'none';
+            
+            // Clear canvas
+            ctx.fillStyle = '#000033';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
         function drawPlayerShip() {
@@ -285,7 +364,7 @@
         }
 
         function spawnEnemy() {
-            if (Math.random() < 0.015) {
+            if (Math.random() < 0.02) {
                 const type = Math.random() < 0.3 ? 'fast' : 'basic';
                 enemies.push({
                     x: Math.random() * (canvas.width - 30),
@@ -299,7 +378,7 @@
         }
 
         function spawnPowerup() {
-            if (Math.random() < 0.005) {
+            if (Math.random() < 0.008) {
                 const types = ['speed', 'double', 'shield'];
                 const type = types[Math.floor(Math.random() * types.length)];
                 powerups.push({
@@ -410,7 +489,7 @@
         function gameOver() {
             gameRunning = false;
             alert(`Game Over! Final Score: ${score}`);
-            startBtn.textContent = 'Start Game';
+            backToMenu();
         }
 
         function draw() {
@@ -471,10 +550,9 @@
             requestAnimationFrame(gameLoop);
         }
 
-        // Initial draw
-        console.log('Initial draw called');
-        draw();
+        // Initialize the game
         console.log('Game initialization complete');
+        // Don't start the game loop automatically - wait for start button
     </script>
 </body>
 </html> 
