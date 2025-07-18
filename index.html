@@ -21,22 +21,21 @@
     <h1>Kaden & Adelynn Adventures</h1>
     <button id="start-btn">Start New Game</button>
     <button id="continue-btn" class="hidden">Continue Game</button>
-    <p class="credit">A simple Gradius-style clone</p>
-  </div>
-  <canvas id="gameCanvas" width="480" height="640" tabindex="0" aria-label="Game Canvas"></canvas>
-  
-  <!-- Touch Controls -->
-  <div id="touch-controls" class="hidden">
-    <div class="joystick-area">
-      <div id="joystick" class="joystick">
-        <div id="joystick-thumb" class="joystick-thumb"></div>
+    <div id="high-scores-section">
+      <h3>Top Scores</h3>
+      <div id="high-scores-list">
+        <div class="score-entry">1. <span class="score-value">0</span></div>
+        <div class="score-entry">2. <span class="score-value">0</span></div>
+        <div class="score-entry">3. <span class="score-value">0</span></div>
+        <div class="score-entry">4. <span class="score-value">0</span></div>
+        <div class="score-entry">5. <span class="score-value">0</span></div>
       </div>
     </div>
-    <div class="action-buttons">
-      <button id="fire-btn" class="action-btn">FIRE</button>
-      <button id="pause-btn" class="action-btn pause-btn">⏸️</button>
-    </div>
+    <p class="credit">A simple Gradius-style clone</p>
   </div>
+  <canvas id="gameCanvas" width="800" height="900" tabindex="0" aria-label="Game Canvas"></canvas>
+  
+
   
   <div id="hud">
     <div class="hud-row">
