@@ -115,6 +115,8 @@
 
         // Event listeners
         startBtn.addEventListener('click', startGame);
+        console.log('Start button event listener added');
+        
         document.addEventListener('keydown', (e) => {
             keys[e.code] = true;
             if (e.code === 'Space') e.preventDefault();
@@ -125,6 +127,7 @@
         });
 
         function startGame() {
+            console.log('Start game function called');
             gameRunning = true;
             score = 0;
             lives = 3;
@@ -137,6 +140,7 @@
             shieldTimer = 0;
             player = { x: 375, y: 500, width: 40, height: 30 };
             startBtn.textContent = 'Restart Game';
+            console.log('Game started, calling gameLoop');
             gameLoop();
         }
 
@@ -449,7 +453,10 @@
         }
 
         function gameLoop() {
-            if (!gameRunning) return;
+            if (!gameRunning) {
+                console.log('Game not running, exiting gameLoop');
+                return;
+            }
 
             updateStars();
             updatePlayer();
@@ -465,7 +472,9 @@
         }
 
         // Initial draw
+        console.log('Initial draw called');
         draw();
+        console.log('Game initialization complete');
     </script>
 </body>
 </html> 
