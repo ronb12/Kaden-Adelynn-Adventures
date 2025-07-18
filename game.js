@@ -161,13 +161,13 @@ function resetGame() {
 
 function update() {
   updateStars();
-  // Player movement
+  // Player movement - only vertical movement allowed
   if (keys['ArrowUp']) player.y -= player.speed;
   if (keys['ArrowDown']) player.y += player.speed;
-  if (keys['ArrowLeft']) player.x -= player.speed;
-  if (keys['ArrowRight']) player.x += player.speed;
+  // Remove left/right movement - player stays at fixed horizontal position
   player.y = Math.max(0, Math.min(canvas.height - player.h, player.y));
-  player.x = Math.max(0, Math.min(canvas.width - player.w, player.x));
+  // Keep player at fixed horizontal position (40 pixels from left edge)
+  player.x = 40;
 
   // Bullets
   bullets.forEach(b => b.x += b.speed);
