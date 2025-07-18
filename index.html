@@ -36,9 +36,13 @@
         }
         
         #gameUI {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-family: 'Courier New', monospace;
+            z-index: 10;
             display: none;
-            margin: 10px 0;
-            width: 100%;
         }
         
         #scoreBoard {
@@ -52,37 +56,6 @@
             padding: 10px 20px;
             z-index: 100;
             display: none;
-        }
-        
-        #touchControls {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: none;
-            z-index: 100;
-        }
-        
-        .touchBtn {
-            background: rgba(74, 144, 226, 0.8);
-            color: white;
-            border: 2px solid #4a90e2;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            font-size: 24px;
-            margin: 0 10px;
-            cursor: pointer;
-            display: inline-block;
-            text-align: center;
-            line-height: 60px;
-            user-select: none;
-            touch-action: manipulation;
-        }
-        
-        .touchBtn:active {
-            background: rgba(74, 144, 226, 1);
-            transform: scale(0.95);
         }
         
         #controls {
@@ -213,14 +186,9 @@
         
         <div id="gameUI">
             <div id="controls">
-                <p>Move: Arrow Keys | Shoot: Spacebar | Power-up: P</p>
+                <p>Desktop: Arrow Keys + Spacebar | Mobile: Touch to move & shoot</p>
                 <button id="menuBtn">Back to Menu</button>
             </div>
-        </div>
-        
-        <div id="touchControls">
-            <div class="touchBtn" id="shootBtn">🎯</div>
-            <div class="touchBtn" id="powerBtn">⚡</div>
         </div>
     </div>
 
@@ -321,17 +289,80 @@
             if (e.code === 'KeyP') activatePowerup();
         });
         document.addEventListener('keyup', (e) => {
-            if (!gameRunning) return;
             keys[e.code] = false;
         });
 
-        // Touch controls
-        const shootBtn = document.getElementById('shootBtn');
-        const powerBtn = document.getElementById('powerBtn');
+        // Touch controls for mobile
+        let touchActive = false;
+        let lastTouchTime = 0;
+        let touchCooldown = 200; // Milliseconds between shots
         
-        // Touch buttons
-        shootBtn.addEventListener('touchstart', handleShoot);
-        powerBtn.addEventListener('touchstart', handlePowerup);
+        // Canvas touch events for mobile
+        canvas.addEventListener('touchstart', handleTouchStart);
+        canvas.addEventListener('touchmove', handleTouchMove);
+        canvas.addEventListener('touchend', handleTouchEnd);
+        
+        function handleTouchStart(e) {
+            e.preventDefault();
+            if (!gameRunning) return;
+            
+            touchActive = true;
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            
+            // Move player to touch position
+            player.x = Math.max(0, Math.min(x - player.width / 2, canvas.width - player.width));
+            player.y = Math.max(0, Math.min(y - player.height / 2, canvas.height - player.height));
+            
+            // Shoot on touch
+            const now = Date.now();
+            if (now - lastTouchTime > touchCooldown) {
+                if (doubleShot) {
+                    bullets.push({ x: player.x + 5, y: player.y, width: 4, height: 8, speed: 8 });
+                    bullets.push({ x: player.x + 31, y: player.y, width: 4, height: 8, speed: 8 });
+                    playMissileSound();
+                } else {
+                    bullets.push({ x: player.x + 18, y: player.y, width: 4, height: 8, speed: 8 });
+                    playMissileSound();
+                }
+                lastTouchTime = now;
+            }
+        }
+        
+        function handleTouchMove(e) {
+            e.preventDefault();
+            if (!gameRunning || !touchActive) return;
+            
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            
+            // Move player to touch position
+            player.x = Math.max(0, Math.min(x - player.width / 2, canvas.width - player.width));
+            player.y = Math.max(0, Math.min(y - player.height / 2, canvas.height - player.height));
+            
+            // Shoot while moving (with cooldown)
+            const now = Date.now();
+            if (now - lastTouchTime > touchCooldown) {
+                if (doubleShot) {
+                    bullets.push({ x: player.x + 5, y: player.y, width: 4, height: 8, speed: 8 });
+                    bullets.push({ x: player.x + 31, y: player.y, width: 4, height: 8, speed: 8 });
+                    playMissileSound();
+                } else {
+                    bullets.push({ x: player.x + 18, y: player.y, width: 4, height: 8, speed: 8 });
+                    playMissileSound();
+                }
+                lastTouchTime = now;
+            }
+        }
+        
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            touchActive = false;
+        }
 
         function handleShoot(e) {
             e.preventDefault();
@@ -399,7 +430,8 @@
             
             // Show touch controls on mobile
             if (detectMobile()) {
-                document.getElementById('touchControls').style.display = 'block';
+                // Touch controls are handled directly on canvas
+                console.log('Mobile device detected - touch controls enabled');
             }
             
             console.log('Game started, calling gameLoop');
@@ -415,7 +447,6 @@
             canvas.style.display = 'none';
             gameUI.style.display = 'none';
             scoreBoard.style.display = 'none';
-            document.getElementById('touchControls').style.display = 'none';
             
             // Clear canvas
             ctx.fillStyle = '#000033';
