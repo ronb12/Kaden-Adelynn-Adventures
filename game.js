@@ -480,6 +480,8 @@ function spawnEnemy() {
 }
 let enemyBullets = [];
 function updateEnemies() {
+  // Cap max enemies
+  if (enemies.length > MAX_ENEMIES) return;
   // Enemies move downward with slight horizontal movement
   for (let e of enemies) {
     // Initialize enemy properties
@@ -512,7 +514,7 @@ function updateEnemies() {
     // Shooter enemies fire at regular intervals
     if (e.type === 'shooter') {
       e.shootTimer = (e.shootTimer || 0) + 1;
-      if (e.shootTimer > 60) { // Shoot every 1 second (more frequent)
+      if (e.shootTimer > ENEMY_BULLET_FREQ) { // Shoot every 1 second (more frequent)
         // Calculate direction toward player for shooting
         const shootDx = player.x - e.x;
         const shootDy = player.y - e.y;
@@ -552,36 +554,11 @@ function updateEnemies() {
   );
 }
 function updateEnemyBullets() {
-  // Enemy bullets move in their calculated direction
-  for (let i = enemyBullets.length-1; i >= 0; i--) {
-    const b = enemyBullets[i];
-    
-    // Move bullet in its direction
-    b.x += b.dx;
-    b.y += b.dy;
-    
-    // Remove bullets that go off screen
-    if (b.x < -20 || b.x > canvas.width + 20 || b.y < -20 || b.y > canvas.height + 20) {
-      enemyBullets.splice(i, 1);
-      continue;
-    }
-    
-    // Check collision with player
-    if (rectsCollide(player, b)) {
-      if (player.shield > 0) {
-        player.shield = 0;
-      } else {
-        lives--;
-        if (lives <= 0) {
-          endGame();
-          return;
-        }
-      }
-      enemyBullets.splice(i, 1);
-      createParticle(b.x, b.y, '#ff0000', 3, 20);
-      playSoundEffect('hit', b.x, b.y);
-    }
-  }
+  enemyBullets.forEach(b => {
+    b.x += b.dx || 0;
+    b.y += (b.dy || ENEMY_BULLET_SPEED);
+  });
+  enemyBullets = enemyBullets.filter(b => b.y < canvas.height + 20 && b.x > -20 && b.x < canvas.width + 20);
 }
 function drawEnemyBullets() {
   enemyBullets.forEach(b => {
@@ -604,7 +581,7 @@ function drawEnemyBullets() {
 }
 
 function resetGame() {
-  player = { x: canvas.width/2-24, y: canvas.height/2-18, w: 48, h: 36, speed: 5, weaponLevel: 1, shield: 0, weaponMultiplier: 4 };
+  player = { x: canvas.width/2-24, y: canvas.height/2-18, w: 48, h: 36, speed: 5, weaponLevel: 1, shield: 0, weaponMultiplier: 4, invincible: 0 };
   bullets = [];
   enemies = [];
   enemyBullets = [];
@@ -714,9 +691,9 @@ function update() {
     for (let j = bullets.length-1; j >= 0; j--) {
       if (rectsCollide(enemies[i], bullets[j])) {
         // 20% chance to drop power capsule, 10% chance to drop collectible
-        if (Math.random() < 0.2) {
+        if (Math.random() < POWERUP_DROP_RATE) {
           spawnPowerCapsule(enemies[i].x, enemies[i].y);
-        } else if (Math.random() < 0.1) {
+        } else if (Math.random() < COLLECTIBLE_DROP_RATE) {
           spawnCollectible(enemies[i].x, enemies[i].y);
         }
         enemies.splice(i,1);
@@ -745,7 +722,7 @@ function update() {
 
   // Enemy spawn
   enemyTimer++;
-  if (enemyTimer > 50) {
+  if (enemyTimer > ENEMY_SPAWN_RATE) {
     spawnEnemy();
     enemyTimer = 0;
   }
