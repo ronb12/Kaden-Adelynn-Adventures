@@ -58,6 +58,53 @@
     <div id="credits">Credits: 0</div>
   </div>
 
+  <!-- Mission System UI -->
+  <div id="mission-ui" class="hidden">
+    <div id="mission-info">
+      <h3 id="mission-name">Mission 1</h3>
+      <p id="mission-description">Clear the sector of enemy forces</p>
+      <div id="mission-progress-container">
+        <div id="mission-progress"></div>
+        <span id="mission-progress-text">0/20</span>
+      </div>
+    </div>
+    <div id="mission-objectives-container">
+      <h4>Objectives:</h4>
+      <ul id="mission-objectives"></ul>
+    </div>
+  </div>
+
+  <!-- Player Progression UI -->
+  <div id="progression-ui" class="hidden">
+    <div id="player-stats">
+      <div id="player-level">Level 1</div>
+      <div id="skill-points">0 SP</div>
+    </div>
+    <div id="xp-container">
+      <div id="xp-bar"></div>
+      <span id="player-xp">0/100 XP</span>
+    </div>
+  </div>
+
+  <!-- Mission Selection Screen -->
+  <div id="mission-select" class="overlay hidden">
+    <h2>Mission Selection</h2>
+    <div id="mission-grid"></div>
+    <button id="back-to-menu">Back to Menu</button>
+  </div>
+
+  <!-- Mission Complete Screen -->
+  <div id="mission-complete" class="overlay hidden">
+    <h2>Mission Complete!</h2>
+    <h3 id="mission-complete-name">Mission 1</h3>
+    <div id="mission-rewards">
+      <div id="mission-complete-credits">+10 Credits</div>
+      <div id="mission-complete-xp">+5 XP</div>
+    </div>
+    <button id="next-mission">Next Mission</button>
+    <button id="mission-select-btn">Mission Select</button>
+  </div>
+
   <!-- Pause Menu -->
   <div id="pause-menu" class="overlay hidden">
     <h2>Game Paused</h2>

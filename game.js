@@ -33,6 +33,202 @@ let stageGoal = 20; // Enemies to defeat per stage
 let credits = 0;
 let upgrades = [];
 
+// --- Mission System ---
+let currentMission = 1;
+let totalMissions = 50;
+let missionData = [];
+let missionObjectives = [];
+let missionCompleted = false;
+
+// --- Level Progression ---
+let playerLevel = 1;
+let playerXP = 0;
+let xpToNextLevel = 100;
+let skillPoints = 0;
+
+// --- Enemy Types ---
+const ENEMY_TYPES = {
+  scout: {
+    name: 'Scout Fighter',
+    health: 1,
+    speed: 2,
+    points: 10,
+    color: '#ff4444',
+    size: 20,
+    fireRate: 0,
+    behavior: 'straight'
+  },
+  interceptor: {
+    name: 'Interceptor',
+    health: 2,
+    speed: 3,
+    points: 25,
+    color: '#ff8844',
+    size: 25,
+    fireRate: 0.02,
+    behavior: 'straight'
+  },
+  bomber: {
+    name: 'Bomber',
+    health: 4,
+    speed: 1,
+    points: 50,
+    color: '#ff4444',
+    size: 35,
+    fireRate: 0.01,
+    behavior: 'straight'
+  },
+  fighter: {
+    name: 'Fighter',
+    health: 3,
+    speed: 2.5,
+    points: 35,
+    color: '#8844ff',
+    size: 30,
+    fireRate: 0.03,
+    behavior: 'straight'
+  },
+  destroyer: {
+    name: 'Destroyer',
+    health: 8,
+    speed: 1.5,
+    points: 100,
+    color: '#ff4488',
+    size: 45,
+    fireRate: 0.02,
+    behavior: 'straight'
+  }
+};
+
+// --- Mission Definitions ---
+function generateMissions() {
+  missionData = [];
+  for (let i = 1; i <= totalMissions; i++) {
+    const mission = {
+      id: i,
+      name: `Mission ${i}`,
+      description: `Clear the sector of enemy forces`,
+      enemyTypes: [],
+      enemyCount: Math.min(10 + i * 2, 50),
+      bossType: i % 10 === 0 ? 'boss' : null,
+      background: i % 5 === 0 ? 'nebula' : 'stars',
+      difficulty: Math.min(1 + i * 0.1, 5),
+      reward: {
+        credits: i * 10,
+        xp: i * 5
+      }
+    };
+    
+    // Add enemy types based on mission level
+    if (i <= 5) {
+      mission.enemyTypes = ['scout'];
+    } else if (i <= 10) {
+      mission.enemyTypes = ['scout', 'interceptor'];
+    } else if (i <= 20) {
+      mission.enemyTypes = ['scout', 'interceptor', 'bomber'];
+    } else if (i <= 30) {
+      mission.enemyTypes = ['scout', 'interceptor', 'bomber', 'fighter'];
+    } else {
+      mission.enemyTypes = ['scout', 'interceptor', 'bomber', 'fighter', 'destroyer'];
+    }
+    
+    missionData.push(mission);
+  }
+}
+
+// --- Mission Management ---
+function startMission(missionId) {
+  currentMission = missionId;
+  const mission = missionData[missionId - 1];
+  stageProgress = 0;
+  stageGoal = mission.enemyCount;
+  missionCompleted = false;
+  
+  // Set mission objectives
+  missionObjectives = [
+    `Destroy ${mission.enemyCount} enemies`,
+    `Survive the mission`,
+    mission.bossType ? 'Defeat the boss' : null
+  ].filter(Boolean);
+  
+  gameState = 'playing';
+  updateMissionUI();
+}
+
+function updateMissionUI() {
+  const mission = missionData[currentMission - 1];
+  document.getElementById('mission-name').textContent = mission.name;
+  document.getElementById('mission-description').textContent = mission.description;
+  
+  const objectivesList = document.getElementById('mission-objectives');
+  objectivesList.innerHTML = '';
+  missionObjectives.forEach(obj => {
+    const li = document.createElement('li');
+    li.textContent = obj;
+    objectivesList.appendChild(li);
+  });
+  
+  const progress = Math.min(100, Math.floor((stageProgress / stageGoal) * 100));
+  document.getElementById('mission-progress').style.width = progress + '%';
+  document.getElementById('mission-progress-text').textContent = `${stageProgress}/${stageGoal}`;
+}
+
+function completeMission() {
+  const mission = missionData[currentMission - 1];
+  missionCompleted = true;
+  
+  // Award rewards
+  credits += mission.reward.credits;
+  addXP(mission.reward.xp);
+  
+  // Show mission complete screen
+  showMissionComplete(mission);
+}
+
+function showMissionComplete(mission) {
+  const screen = document.getElementById('mission-complete');
+  document.getElementById('mission-complete-name').textContent = mission.name;
+  document.getElementById('mission-complete-credits').textContent = `+${mission.reward.credits} Credits`;
+  document.getElementById('mission-complete-xp').textContent = `+${mission.reward.xp} XP`;
+  
+  screen.classList.remove('hidden');
+  gameState = 'mission-complete';
+}
+
+// --- Player Progression ---
+function addXP(amount) {
+  playerXP += amount;
+  while (playerXP >= xpToNextLevel) {
+    playerXP -= xpToNextLevel;
+    playerLevel++;
+    skillPoints++;
+    xpToNextLevel = Math.floor(xpToNextLevel * 1.2);
+    
+    // Show level up effect
+    showLevelUpEffect();
+  }
+  updateProgressionUI();
+}
+
+function showLevelUpEffect() {
+  // Create level up particles
+  for (let i = 0; i < 20; i++) {
+    createParticle(player.x + player.width/2, player.y + player.height/2, '#ffff00', 3, 60);
+  }
+  
+  // Show level up text
+  playSoundEffect('levelup', player.x + player.width/2, player.y + player.height/2);
+}
+
+function updateProgressionUI() {
+  document.getElementById('player-level').textContent = `Level ${playerLevel}`;
+  document.getElementById('player-xp').textContent = `${playerXP}/${xpToNextLevel} XP`;
+  document.getElementById('skill-points').textContent = `${skillPoints} SP`;
+  
+  const xpPercent = (playerXP / xpToNextLevel) * 100;
+  document.getElementById('xp-bar').style.width = xpPercent + '%';
+}
+
 // --- Upgrade Pool ---
 const UPGRADE_POOL = [
   { name: 'Weapon Power +1', effect: 'weapon', icon: '🔫' },
@@ -565,26 +761,40 @@ function drawPowerUps() {
 
 // --- Enemy Types ---
 function spawnEnemy() {
-  // Enemies only spawn from the top
-  const x = Math.random() * (canvas.width - 48) + 8;
-  const y = -48;
+  const mission = missionData[currentMission - 1];
+  const availableTypes = mission.enemyTypes;
+  const enemyType = availableTypes[Math.floor(Math.random() * availableTypes.length)];
+  const enemyData = ENEMY_TYPES[enemyType];
   
-  const type = Math.random() < 0.6 ? 'basic' : 'shooter';
-  if (type === 'basic') {
-    enemies.push({ x, y, w: 48, h: 36, type, lifeTimer: 0 });
-  } else {
-    enemies.push({ x, y, w: 48, h: 36, type, shootTimer: 0, lifeTimer: 0 });
-  }
+  const enemy = {
+    x: Math.random() * (canvas.width - 40) + 20,
+    y: -50,
+    width: enemyData.size,
+    height: enemyData.size,
+    speed: enemyData.speed,
+    health: enemyData.health,
+    maxHealth: enemyData.health,
+    points: enemyData.points,
+    type: enemyType,
+    fireRate: enemyData.fireRate,
+    lastShot: 0,
+    behavior: enemyData.behavior,
+    angle: 0,
+    color: enemyData.color
+  };
+  
+  enemies.push(enemy);
 }
 let enemyBullets = [];
 function updateEnemies() {
   // Cap max enemies
   if (enemies.length > MAX_ENEMIES) return;
+  
   // Enemies move downward with slight horizontal movement
   for (let e of enemies) {
-    // Initialize enemy properties
+    // Initialize enemy properties if not set
     if (!e.movementSpeed) {
-      e.movementSpeed = 1 + Math.random() * 2;
+      e.movementSpeed = e.speed || 1 + Math.random() * 2;
     }
     
     // Move downward
@@ -598,8 +808,8 @@ function updateEnemies() {
     e.x += e.horizontalSpeed;
     
     // Keep enemies within screen bounds horizontally
-    if (e.x < -e.w) {
-      e.x = -e.w;
+    if (e.x < -e.width) {
+      e.x = -e.width;
       e.horizontalSpeed = Math.abs(e.horizontalSpeed); // Bounce right
     } else if (e.x > canvas.width) {
       e.x = canvas.width;
@@ -609,14 +819,10 @@ function updateEnemies() {
     // Update life timer
     e.lifeTimer = (e.lifeTimer || 0) + 1;
     
-    // Shooter enemies fire at regular intervals
-    if (
-      e.type === 'shooter' &&
-      e.x + e.w > 0 && e.x < canvas.width &&
-      e.y + e.h > 0 && e.y < canvas.height
-    ) {
-      e.shootTimer = (e.shootTimer || 0) + 1;
-      if (e.shootTimer > ENEMY_BULLET_FREQ) { // Shoot every 1 second (more frequent)
+    // Enemy shooting based on fire rate
+    if (e.fireRate && e.fireRate > 0) {
+      e.lastShot = (e.lastShot || 0) + 1;
+      if (e.lastShot > (1 / e.fireRate) * 60) { // Convert fire rate to frames
         // Calculate direction toward player for shooting
         const shootDx = player.x - e.x;
         const shootDy = player.y - e.y;
@@ -634,8 +840,8 @@ function updateEnemies() {
             const spreadDy = bulletDy - spread * bulletDx;
             
             enemyBullets.push({ 
-              x: e.x + e.w/2 - 4, 
-              y: e.y + e.h/2 - 4, 
+              x: e.x + e.width/2 - 4, 
+              y: e.y + e.height/2 - 4, 
               w: 8, 
               h: 8, 
               speed: bulletSpeed,
@@ -644,15 +850,15 @@ function updateEnemies() {
             });
           }
         }
-        e.shootTimer = 0;
+        e.lastShot = 0;
       }
     }
   }
   
   // Remove enemies that go too far off screen
   enemies = enemies.filter(e => 
-    e.x > -e.w * 2 && e.x < canvas.width + e.w * 2 && 
-    e.y > -e.h * 2 && e.y < canvas.height + e.h * 2
+    e.x > -e.width * 2 && e.x < canvas.width + e.width * 2 && 
+    e.y > -e.height * 2 && e.y < canvas.height + e.height * 2
   );
 }
 function updateEnemyBullets() {
@@ -683,283 +889,417 @@ function drawEnemyBullets() {
 }
 
 function resetGame() {
-  player = { x: canvas.width/2-24, y: canvas.height/2-18, w: 48, h: 36, speed: 5, weaponLevel: 1, shield: 0, weaponMultiplier: 4, invincible: 0 };
+  player = { x: canvas.width/2 - 24, y: canvas.height - 80, width: 48, height: 36, speed: 4, weaponLevel: 1, shield: 0 };
   bullets = [];
   enemies = [];
   enemyBullets = [];
-  powerUps = [];
-  collectibles = [];
-  powerCapsules = [];
-  particles = [];
-  soundEffects = [];
-  options = [];
   score = 0;
   lives = 3;
-  keys = {};
-  enemyTimer = 0;
-  powerUpMenu = false;
-  selectedPowerUp = 0;
-  playerPowerUps = {
-    speed: 0,
-    missile: 0,
-    double: 0,
-    laser: 0,
-    option: 0,
-    forcefield: 0
-  };
-  initStars();
   gameTime = 0;
   difficulty = 1;
   bossSpawned = false;
   boss = null;
+  gamePaused = false;
+  enemyTimer = 60;
+  powerUpMenu = false;
+  selectedPowerUp = 0;
+  options = [];
+  particles = [];
+  soundEffects = [];
+  powerUps = [];
+  collectibles = [];
+  powerCapsules = [];
   
-  // Reset final score styling
-  finalScore.style.color = '';
-  finalScore.style.textShadow = '';
+  // Reset mission system
+  currentMission = 1;
+  stageProgress = 0;
+  stageGoal = 20;
+  missionCompleted = false;
   
-  // Update high score display
-  updateHighScoresDisplay();
+  // Reset player progression
+  playerLevel = 1;
+  playerXP = 0;
+  xpToNextLevel = 100;
+  skillPoints = 0;
+  credits = 0;
+  
+  // Initialize mission data if not already done
+  if (missionData.length === 0) {
+    generateMissions();
+  }
+  
+  // Start first mission
+  startMission(1);
+  
+  // Show game UI
+  showGameUI();
+  
+  // Update displays
+  scoreDisplay.textContent = 'Score: ' + score;
+  livesDisplay.textContent = 'Lives: ' + lives;
+  weaponLevelDisplay.textContent = 'Weapon: Level ' + player.weaponLevel;
+  difficultyDisplay.textContent = 'Difficulty: ' + difficulty;
+  timeDisplay.textContent = 'Time: ' + Math.floor(gameTime/60) + ':' + (gameTime%60).toString().padStart(2, '0');
+  
+  // Start auto-save
+  startAutoSave();
 }
 
 function update() {
-  updateStars();
-  updateParticles();
-  updateSoundEffects();
-  updateBoss();
+  if (gamePaused) return;
+  
+  gameTime++;
+  
+  // Update player
+  if (keys['ArrowUp'] && player.y > 0) player.y -= player.speed;
+  if (keys['ArrowDown'] && player.y < canvas.height - player.height) player.y += player.speed;
+  if (keys['ArrowLeft'] && player.x > 0) player.x -= player.speed;
+  if (keys['ArrowRight'] && player.x < canvas.width - player.width) player.x += player.speed;
+  
+  // Touch controls for iOS
+  if (isTouchDevice && isTouching) {
+    const targetX = touchX - player.width / 2;
+    const targetY = touchY - player.height / 2;
+    player.x = Math.max(0, Math.min(canvas.width - player.width, targetX));
+    player.y = Math.max(0, Math.min(canvas.height - player.height, targetY));
+  }
+  
+  // Auto-shoot for touch devices
+  if (isTouchDevice && isTouching) {
+    if (gameTime % 10 === 0) shoot();
+  }
+  
+  // Rapid fire
+  if (keys[' '] || fireHeld) {
+    if (gameTime % 5 === 0) shoot();
+  }
+  
+  // Update bullets
+  bullets.forEach(bullet => {
+    bullet.y -= bullet.speed;
+  });
+  bullets = bullets.filter(bullet => bullet.y > -10);
+  
+  // Bullet collision detection
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    const bullet = bullets[i];
+    for (let j = enemies.length - 1; j >= 0; j--) {
+      const enemy = enemies[j];
+      if (rectsCollide(bullet, enemy)) {
+        // Enemy hit
+        enemy.health = (enemy.health || 1) - 1;
+        
+        // Create explosion particles
+        for (let k = 0; k < 5; k++) {
+          createParticle(enemy.x + enemy.width/2, enemy.y + enemy.height/2, '#ff4444', 2, 20);
+        }
+        
+        // Remove bullet
+        bullets.splice(i, 1);
+        
+        // Check if enemy is destroyed
+        if (enemy.health <= 0) {
+          // Award points
+          score += enemy.points || 10;
+          
+          // Update mission progress
+          stageProgress++;
+          
+          // Create more explosion particles
+          for (let k = 0; k < 10; k++) {
+            createParticle(enemy.x + enemy.width/2, enemy.y + enemy.height/2, '#ff0000', 3, 30);
+          }
+          
+          // Remove enemy
+          enemies.splice(j, 1);
+          
+          // Play explosion sound effect
+          playSoundEffect('hit', enemy.x + enemy.width/2, enemy.y + enemy.height/2);
+          
+          // Chance to drop collectible
+          if (Math.random() < COLLECTIBLE_DROP_RATE) {
+            spawnCollectible(enemy.x + enemy.width/2, enemy.y + enemy.height/2);
+          }
+          
+          // Chance to drop power capsule
+          if (Math.random() < POWERUP_DROP_RATE) {
+            spawnPowerCapsule(enemy.x + enemy.width/2, enemy.y + enemy.height/2);
+          }
+        }
+        
+        break; // Bullet can only hit one enemy
+      }
+    }
+  }
+  
+  // Player collision with enemies
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    const enemy = enemies[i];
+    if (rectsCollide(player, enemy)) {
+      // Player hit by enemy
+      lives--;
+      
+      // Create explosion particles
+      for (let k = 0; k < 8; k++) {
+        createParticle(player.x + player.width/2, player.y + player.height/2, '#ff0000', 2, 25);
+      }
+      
+      // Remove enemy
+      enemies.splice(i, 1);
+      
+      // Play hit sound effect
+      playSoundEffect('hit', player.x + player.width/2, player.y + player.height/2);
+      
+      // Check game over
+      if (lives <= 0) {
+        endGame();
+        return;
+      }
+    }
+  }
+  
+  // Player collision with enemy bullets
+  for (let i = enemyBullets.length - 1; i >= 0; i--) {
+    const bullet = enemyBullets[i];
+    if (rectsCollide(player, bullet)) {
+      // Player hit by enemy bullet
+      lives--;
+      
+      // Create explosion particles
+      for (let k = 0; k < 5; k++) {
+        createParticle(player.x + player.width/2, player.y + player.height/2, '#ff0000', 2, 20);
+      }
+      
+      // Remove bullet
+      enemyBullets.splice(i, 1);
+      
+      // Play hit sound effect
+      playSoundEffect('hit', player.x + player.width/2, player.y + player.height/2);
+      
+      // Check game over
+      if (lives <= 0) {
+        endGame();
+        return;
+      }
+    }
+  }
+  
+  // Update enemy bullets
+  updateEnemyBullets();
+  
+  // Update enemies
+  updateEnemies();
+  
+  // Update collectibles
+  updateCollectibles();
+  updatePowerCapsules();
+  updatePowerUps();
   
   // Update drones
   updateDrones();
   
-  // Player movement - keyboard only
-  if (keys['ArrowLeft']) player.x -= player.speed;
-  if (keys['ArrowRight']) player.x += player.speed;
-  if (keys['ArrowUp']) player.y -= player.speed;
-  if (keys['ArrowDown']) player.y += player.speed;
-  // Keep player within screen bounds
-  player.x = Math.max(0, Math.min(canvas.width - player.w, player.x));
-  player.y = Math.max(0, Math.min(canvas.height - player.h, player.y));
-
-  // Bullets
-  bullets.forEach(b => {
-    if (b.tracking && enemies.length > 0) {
-      // Find nearest enemy for missile tracking
-      let nearestEnemy = null;
-      let nearestDistance = Infinity;
-      
-      enemies.forEach(enemy => {
-        const distance = Math.sqrt((enemy.x - b.x) ** 2 + (enemy.y - b.y) ** 2);
-        if (distance < nearestDistance) {
-          nearestDistance = distance;
-          nearestEnemy = enemy;
-        }
-      });
-      
-      if (nearestEnemy) {
-        // Move towards nearest enemy
-        const dx = nearestEnemy.x - b.x;
-        const dy = nearestEnemy.y - b.y;
-        const distance = Math.sqrt(dx ** 2 + dy ** 2);
-        
-        if (distance > 0) {
-          b.x += (dx / distance) * b.speed * 0.5;
-          b.y += (dy / distance) * b.speed * 0.5;
-        }
-      } else {
-        b.y -= b.speed;
-      }
-    } else {
-      b.y -= b.speed;
-    }
-  });
-  bullets = bullets.filter(b => b.y > -20 && b.x > -20 && b.x < canvas.width + 20);
-
-  // Enemies
-  updateEnemies();
-
-  // Enemy bullets
-  updateEnemyBullets();
-
-  // Power-ups
-  updatePowerUps();
-
-  // Collectibles
-  updateCollectibles();
-
-  // Power capsules
-  updatePowerCapsules();
-
-  // Collisions: bullets vs enemies
-  for (let i = enemies.length-1; i >= 0; i--) {
-    for (let j = bullets.length-1; j >= 0; j--) {
-      if (rectsCollide(enemies[i], bullets[j])) {
-        // 20% chance to drop power capsule, 10% chance to drop collectible
-        if (Math.random() < POWERUP_DROP_RATE) {
-          spawnPowerCapsule(enemies[i].x, enemies[i].y);
-        } else if (Math.random() < COLLECTIBLE_DROP_RATE) {
-          spawnCollectible(enemies[i].x, enemies[i].y);
-        }
-        enemies.splice(i,1);
-        bullets.splice(j,1);
-        score += 100;
-        stageProgress++;
-        credits += 5;
-        if (stageProgress >= stageGoal) endStage();
-        if (stage % 3 === 0 && stageProgress >= stageGoal) startBoss();
-        break;
-      }
-    }
-  }
+  // Update particles
+  updateParticles();
   
-  // Collisions: player vs enemies
-  for (let i = enemies.length-1; i >= 0; i--) {
-    if (rectsCollide(player, enemies[i])) {
-      if (player.shield > 0) {
-        player.shield = 0;
-      } else {
-        enemies.splice(i,1);
-        lives--;
-        if (lives <= 0) {
-          endGame();
-          return;
-        }
-      }
-    }
-  }
-
-  // Enemy spawn
-  enemyTimer++;
-  if (enemyTimer > ENEMY_SPAWN_RATE) {
+  // Update sound effects
+  updateSoundEffects();
+  
+  // Update stars
+  updateStars();
+  
+  // Spawn enemies
+  if (gameTime % enemyTimer === 0) {
     spawnEnemy();
-    enemyTimer = 0;
+    enemyTimer = Math.max(20, 60 - difficulty * 10);
   }
   
-  // Shield timer
-  if (player.shield > 0) player.shield--;
-  
-  // Rapid fire logic
-  if (fireHeld && !gamePaused && gameState === 'playing') {
-    if (fireCooldown <= 0) {
-      shoot();
-      fireCooldown = FIRE_RATE;
-    }
-  }
-  if (fireCooldown > 0) fireCooldown--;
-
-  // Auto-shoot on touch devices
-  if (isTouchDevice && isTouching && gameState === 'playing' && !gamePaused) {
-    if (fireCooldown <= 0) {
-      shoot();
-      fireCooldown = FIRE_RATE;
-    }
+  // Spawn collectibles
+  if (gameTime % 300 === 0) {
+    spawnCollectible(Math.random() * (canvas.width - 20) + 10, -20);
   }
   
-  gameTime++;
+  // Spawn power capsules
+  if (gameTime % 600 === 0) {
+    spawnPowerCapsule(Math.random() * (canvas.width - 20) + 10, -20);
+  }
+  
+  // Check mission completion
+  if (stageProgress >= stageGoal && !missionCompleted) {
+    completeMission();
+  }
+  
+  // Update UI
+  updateMissionUI();
+  updateProgressionUI();
+  
+  // Update difficulty
+  difficulty = 1 + Math.floor(gameTime / 1000);
+  
+  // Check for boss spawn
+  if (gameTime > 3000 && !bossSpawned) {
+    spawnBoss();
+  }
+  
+  // Update boss
+  if (boss) {
+    updateBoss();
+  }
 }
 
 function draw() {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  drawStars();
-  drawParticles();
-  drawSoundEffects();
-  drawBoss();
+  // Clear canvas
+  ctx.fillStyle = '#0a0a23';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
   
-  // Draw player ship
+  // Draw stars
+  drawStars();
+  
+  // Draw player
   drawPlayerShip();
+  
+  // Draw enemies
+  drawEnemies();
+  
+  // Draw bullets
+  drawBullets();
+  drawEnemyBullets();
+  
+  // Draw collectibles
+  drawCollectibles();
+  drawPowerCapsules();
+  drawPowerUps();
   
   // Draw drones
   drawDrones();
   
-  // Bullets
-  drawBullets();
+  // Draw particles
+  drawParticles();
   
-  // Enemy bullets
-  drawEnemyBullets();
+  // Draw sound effects
+  drawSoundEffects();
   
-  // Enemies
-  drawEnemies();
+  // Draw boss
+  if (boss) {
+    drawBoss();
+  }
   
-  // Power-ups
-  drawPowerUps();
-
-  // Collectibles
-  drawCollectibles();
-
-  // Power capsules
-  drawPowerCapsules();
-  
-  // Power-up menu
+  // Draw power-up menu
   if (powerUpMenu) {
     drawPowerUpMenu();
   }
 }
 
-function drawPowerUpMenu() {
-  // Semi-transparent background
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
-  // Menu background
-  const menuWidth = 400;
-  const menuHeight = 300;
-  const menuX = (canvas.width - menuWidth) / 2;
-  const menuY = (canvas.height - menuHeight) / 2;
-  
-  // Menu border
-  ctx.strokeStyle = '#00ffff';
-  ctx.lineWidth = 3;
-  ctx.shadowColor = '#00ffff';
-  ctx.shadowBlur = 10;
-  ctx.strokeRect(menuX, menuY, menuWidth, menuHeight);
-  ctx.shadowBlur = 0;
-  
-  // Menu background
-  ctx.fillStyle = 'rgba(10, 10, 35, 0.95)';
-  ctx.fillRect(menuX, menuY, menuWidth, menuHeight);
-  
-  // Title
-  ctx.fillStyle = '#00ffff';
-  ctx.font = 'bold 24px Arial';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'top';
-  ctx.fillText('POWER-UP SELECTION', canvas.width / 2, menuY + 20);
-  
-  // Instructions
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '16px Arial';
-  ctx.fillText('Use Arrow Keys to Select, Spacebar to Confirm', canvas.width / 2, menuY + 50);
-  
-  // Power-up options
-  const optionHeight = 35;
-  const startY = menuY + 100;
-  
-  POWER_UP_OPTIONS.forEach((option, index) => {
-    const y = startY + index * optionHeight;
-    const isSelected = index === selectedPowerUp;
+function gameLoop() {
+  if (gameState === 'playing') {
+    update();
+    draw();
+  }
+  requestAnimationFrame(gameLoop);
+}
+
+// --- UI Management ---
+function showGameUI() {
+  document.getElementById('mission-ui').classList.remove('hidden');
+  document.getElementById('progression-ui').classList.remove('hidden');
+  hud.classList.remove('hidden');
+  document.getElementById('top-bar').classList.remove('hidden');
+}
+
+function hideGameUI() {
+  document.getElementById('mission-ui').classList.add('hidden');
+  document.getElementById('progression-ui').classList.add('hidden');
+  hud.classList.add('hidden');
+  document.getElementById('top-bar').classList.add('hidden');
+}
+
+function drawBullets() {
+  bullets.forEach(b => {
+    ctx.save();
+    ctx.translate(b.x + b.w/2, b.y + b.h/2);
     
-    // Selection indicator
-    if (isSelected) {
-      ctx.fillStyle = '#00ffff';
-      ctx.fillRect(menuX + 10, y - 5, menuWidth - 20, optionHeight);
+    const bulletType = b.type || 'normal';
+    
+    if (bulletType === 'laser') {
+      // Laser beam effect
+      const laserGradient = ctx.createLinearGradient(0, -b.h/2, 0, b.h/2);
+      laserGradient.addColorStop(0, '#ff0000');
+      laserGradient.addColorStop(0.5, '#ffffff');
+      laserGradient.addColorStop(1, '#ff0000');
+      
+      ctx.fillStyle = laserGradient;
+      ctx.shadowColor = '#ff0000';
+      ctx.shadowBlur = 8;
+      ctx.fillRect(-b.w/2, -b.h/2, b.w, b.h);
+      ctx.shadowBlur = 0;
+      
+      // Laser trail
+      ctx.strokeStyle = '#ff0000';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, b.h/2 + 8);
+      ctx.lineTo(0, b.h/2);
+      ctx.stroke();
+      
+    } else if (bulletType === 'missile') {
+      // Missile with tracking effect
+      const missileGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, b.w/2);
+      missileGradient.addColorStop(0, '#ffff00');
+      missileGradient.addColorStop(0.5, '#ff8800');
+      missileGradient.addColorStop(1, '#ff0000');
+      
+      ctx.fillStyle = missileGradient;
+      ctx.shadowColor = '#ff8800';
+      ctx.shadowBlur = 6;
+      ctx.beginPath();
+      ctx.arc(0, 0, b.w/2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      
+      // Missile trail
+      ctx.strokeStyle = '#ff8800';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, b.h/2 + 6);
+      ctx.lineTo(0, b.h/2);
+      ctx.stroke();
+      
+    } else if (bulletType === 'drone') {
+      // Drone bullet
+      const droneGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, b.w/2);
+      droneGradient.addColorStop(0, '#00ffff');
+      droneGradient.addColorStop(0.5, '#0088ff');
+      droneGradient.addColorStop(1, '#0044ff');
+      
+      ctx.fillStyle = droneGradient;
+      ctx.shadowColor = '#00ffff';
+      ctx.shadowBlur = 4;
+      ctx.beginPath();
+      ctx.arc(0, 0, b.w/2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      
+    } else {
+      // Normal bullet
+      const bulletGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, b.w/2);
+      bulletGradient.addColorStop(0, '#ffffff');
+      bulletGradient.addColorStop(0.5, '#00ffff');
+      bulletGradient.addColorStop(1, 'transparent');
+      
+      ctx.fillStyle = bulletGradient;
+      ctx.beginPath();
+      ctx.arc(0, 0, b.w/2, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Bullet trail
+      ctx.strokeStyle = '#00ffff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, b.h/2 + 4);
+      ctx.lineTo(0, b.h/2);
+      ctx.stroke();
     }
     
-    // Option background
-    ctx.fillStyle = isSelected ? '#003333' : 'rgba(255, 255, 255, 0.1)';
-    ctx.fillRect(menuX + 15, y, menuWidth - 30, optionHeight - 10);
-    
-    // Option text
-    ctx.fillStyle = isSelected ? '#ffffff' : '#cccccc';
-    ctx.font = 'bold 18px Arial';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(`${option.icon} ${option.name}`, menuX + 30, y + (optionHeight - 10) / 2);
-    
-    // Current level
-    const currentLevel = playerPowerUps[option.effect] || 0;
-    const maxLevel = option.maxLevel;
-    ctx.fillStyle = '#ffff00';
-    ctx.font = '14px Arial';
-    ctx.textAlign = 'right';
-    ctx.fillText(`Level ${currentLevel}/${maxLevel}`, menuX + menuWidth - 30, y + (optionHeight - 10) / 2);
+    ctx.restore();
   });
 }
 
@@ -1151,16 +1491,194 @@ function drawPlayerShip() {
 function drawEnemies() {
   for (let e of enemies) {
     ctx.save();
-    ctx.translate(e.x + e.w/2, e.y + e.h/2);
+    ctx.translate(e.x + e.width/2, e.y + e.height/2);
     
-    if (e.type === 'basic') {
-      drawBasicEnemy(e);
-    } else {
-      drawShooterEnemy(e);
+    // Draw based on enemy type
+    switch (e.type) {
+      case 'scout':
+        drawScoutEnemy(e);
+        break;
+      case 'interceptor':
+        drawInterceptorEnemy(e);
+        break;
+      case 'bomber':
+        drawBomberEnemy(e);
+        break;
+      case 'fighter':
+        drawFighterEnemy(e);
+        break;
+      case 'destroyer':
+        drawDestroyerEnemy(e);
+        break;
+      default:
+        drawBasicEnemy(e);
+        break;
     }
     
     ctx.restore();
   }
+}
+
+// --- Enemy Drawing Functions ---
+function drawScoutEnemy(e) {
+  const w = e.width, h = e.height;
+  
+  // Main hull - small and fast
+  const hullGrad = ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
+  hullGrad.addColorStop(0, '#2a2a2a');
+  hullGrad.addColorStop(0.3, '#b22222');
+  hullGrad.addColorStop(0.7, '#ff4444');
+  hullGrad.addColorStop(1, '#2a2a2a');
+  ctx.fillStyle = hullGrad;
+  ctx.beginPath();
+  ctx.moveTo(0, -h/2);
+  ctx.lineTo(w/2.2, 0);
+  ctx.lineTo(w/3, h/4);
+  ctx.lineTo(0, h/2);
+  ctx.lineTo(-w/3, h/4);
+  ctx.lineTo(-w/2.2, 0);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Engine glow
+  const pulse = 0.7 + 0.3*Math.sin(Date.now()*0.1);
+  ctx.fillStyle = `rgba(255,68,68,${0.5 * pulse})`;
+  ctx.beginPath();
+  ctx.arc(0, h/2 + 2, w/6, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawInterceptorEnemy(e) {
+  const w = e.width, h = e.height;
+  
+  // Main hull - medium size
+  const hullGrad = ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
+  hullGrad.addColorStop(0, '#2a2a2a');
+  hullGrad.addColorStop(0.3, '#ff8844');
+  hullGrad.addColorStop(0.7, '#ffaa44');
+  hullGrad.addColorStop(1, '#2a2a2a');
+  ctx.fillStyle = hullGrad;
+  ctx.beginPath();
+  ctx.moveTo(0, -h/2);
+  ctx.lineTo(w/2.5, -h/4);
+  ctx.lineTo(w/2, h/8);
+  ctx.lineTo(w/2.5, h/4);
+  ctx.lineTo(0, h/2);
+  ctx.lineTo(-w/2.5, h/4);
+  ctx.lineTo(-w/2, h/8);
+  ctx.lineTo(-w/2.5, -h/4);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Weapon ports
+  ctx.fillStyle = '#ff0000';
+  ctx.beginPath();
+  ctx.arc(-w/4, 0, w/12, 0, Math.PI * 2);
+  ctx.arc(w/4, 0, w/12, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawBomberEnemy(e) {
+  const w = e.width, h = e.height;
+  
+  // Main hull - large and slow
+  const hullGrad = ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
+  hullGrad.addColorStop(0, '#1a1a1a');
+  hullGrad.addColorStop(0.3, '#8b0000');
+  hullGrad.addColorStop(0.7, '#ff0000');
+  hullGrad.addColorStop(1, '#1a1a1a');
+  ctx.fillStyle = hullGrad;
+  ctx.beginPath();
+  ctx.moveTo(0, -h/2);
+  ctx.lineTo(w/2, -h/3);
+  ctx.lineTo(w/2, h/3);
+  ctx.lineTo(0, h/2);
+  ctx.lineTo(-w/2, h/3);
+  ctx.lineTo(-w/2, -h/3);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Bomb bay
+  ctx.fillStyle = '#000000';
+  ctx.beginPath();
+  ctx.rect(-w/4, -h/6, w/2, h/3);
+  ctx.fill();
+  
+  // Engine glow
+  const pulse = 0.6 + 0.4*Math.sin(Date.now()*0.08);
+  ctx.fillStyle = `rgba(255,0,0,${0.7 * pulse})`;
+  ctx.beginPath();
+  ctx.arc(-w/3, h/2 + 3, w/8, 0, Math.PI * 2);
+  ctx.arc(w/3, h/2 + 3, w/8, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawFighterEnemy(e) {
+  const w = e.width, h = e.height;
+  
+  // Main hull - sleek design
+  const hullGrad = ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
+  hullGrad.addColorStop(0, '#222');
+  hullGrad.addColorStop(0.3, '#8844ff');
+  hullGrad.addColorStop(0.7, '#aa66ff');
+  hullGrad.addColorStop(1, '#222');
+  ctx.fillStyle = hullGrad;
+  ctx.beginPath();
+  ctx.moveTo(0, -h/2);
+  ctx.lineTo(w/2.2, -h/6);
+  ctx.lineTo(w/2, h/6);
+  ctx.lineTo(w/2.2, h/3);
+  ctx.lineTo(0, h/2);
+  ctx.lineTo(-w/2.2, h/3);
+  ctx.lineTo(-w/2, h/6);
+  ctx.lineTo(-w/2.2, -h/6);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Energy core
+  const pulse = 0.8 + 0.2*Math.sin(Date.now()*0.12);
+  ctx.fillStyle = `rgba(255,255,255,${0.8 * pulse})`;
+  ctx.beginPath();
+  ctx.arc(0, 0, w/8, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawDestroyerEnemy(e) {
+  const w = e.width, h = e.height;
+  
+  // Main hull - massive and intimidating
+  const hullGrad = ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
+  hullGrad.addColorStop(0, '#000');
+  hullGrad.addColorStop(0.3, '#8b0000');
+  hullGrad.addColorStop(0.7, '#ff4488');
+  hullGrad.addColorStop(1, '#000');
+  ctx.fillStyle = hullGrad;
+  ctx.beginPath();
+  ctx.moveTo(0, -h/2);
+  ctx.lineTo(w/2, -h/4);
+  ctx.lineTo(w/2, h/4);
+  ctx.lineTo(w/3, h/2);
+  ctx.lineTo(0, h/2);
+  ctx.lineTo(-w/3, h/2);
+  ctx.lineTo(-w/2, h/4);
+  ctx.lineTo(-w/2, -h/4);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Heavy weapon systems
+  ctx.fillStyle = '#ff0000';
+  ctx.beginPath();
+  ctx.arc(-w/3, -h/6, w/10, 0, Math.PI * 2);
+  ctx.arc(w/3, -h/6, w/10, 0, Math.PI * 2);
+  ctx.arc(-w/3, h/6, w/10, 0, Math.PI * 2);
+  ctx.arc(w/3, h/6, w/10, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Central cannon
+  ctx.fillStyle = '#000000';
+  ctx.beginPath();
+  ctx.rect(-w/8, -h/4, w/4, h/2);
+  ctx.fill();
 }
 
 // --- Safe arc helper ---
@@ -1169,9 +1687,7 @@ function safeArc(ctx, x, y, r, a1, a2) {
 }
 
 function drawBasicEnemy(e) {
-  ctx.save();
-  ctx.translate(e.x + e.w/2, e.y + e.h/2);
-  const w = e.w, h = e.h;
+  const w = e.width || e.w, h = e.height || e.h;
 
   // --- Main hull ---
   const hullGrad = ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
@@ -1270,8 +1786,6 @@ function drawBasicEnemy(e) {
     safeArc(ctx, i*w/3, h/6, scanRadius, 0, Math.PI*2);
     ctx.fill();
   }
-  ctx.restore();
-
   ctx.restore();
 }
 
@@ -1491,617 +2005,77 @@ function drawBullets() {
 }
 
 function gameLoop() {
-  if (gameState === 'playing' || gameState === 'boss') {
-    if (!gamePaused) {
-      update();
-    }
-    draw();
-    updateTopBar();
-    requestAnimationFrame(gameLoop);
-  } else if (gameState === 'upgrade') {
-    draw(); // Still draw background/ships for effect
-    updateTopBar();
-    requestAnimationFrame(gameLoop);
-  } else if (gameState === 'menu' || gameState === 'gameover') {
-    // Only draw menu/overlays
-    draw();
-    requestAnimationFrame(gameLoop);
-  }
-}
-
-function rectsCollide(a, b) {
-  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-}
-
-// Show menu on load
-mainMenu.classList.remove('hidden');
-gameOverScreen.classList.add('hidden');
-canvas.tabIndex = 0;
-
-// Load high scores and check for saved game
-loadHighScores();
-updateHighScoresDisplay();
-checkForSavedGame();
-
-// Initialize touch support for iOS
-initTouchSupport();
-
-
-
-// Register service worker for PWA
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(registration => {
-        console.log('SW registered: ', registration);
-      })
-      .catch(registrationError => {
-        console.log('SW registration failed: ', registrationError);
-      });
-  });
-}
-
-// --- Starfield Background ---
-function initStars() {
-  stars = [];
-  for (let i = 0; i < 100; i++) {
-    stars.push({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      size: Math.random() * 2 + 1,
-      speed: Math.random() * 2 + 1
-    });
-  }
-}
-
-function updateStars() {
-  stars.forEach(star => {
-    star.y += star.speed;
-    if (star.y > canvas.height + 5) {
-      star.y = -5;
-      star.x = Math.random() * canvas.width;
-    }
-  });
-}
-
-function drawStars() {
-  stars.forEach(star => {
-    ctx.fillStyle = `rgba(255, 255, 255, ${star.size / 3})`;
-    ctx.fillRect(star.x, star.y, star.size, star.size);
-  });
-} 
-
-// --- Save/Load System ---
-function saveGame() {
-  const gameData = {
-    player: player,
-    score: score,
-    lives: lives,
-    gameTime: gameTime,
-    difficulty: difficulty,
-    weaponLevel: player.weaponLevel,
-    weaponMultiplier: player.weaponMultiplier,
-    playerPowerUps: playerPowerUps,
-    options: options,
-    timestamp: Date.now()
-  };
-  
-  try {
-    localStorage.setItem('kadenAdelynnSave', JSON.stringify(gameData));
-    console.log('Game saved successfully');
-    return true;
-  } catch (error) {
-    console.error('Failed to save game:', error);
-    return false;
-  }
-}
-
-function loadGame() {
-  try {
-    const savedData = localStorage.getItem('kadenAdelynnSave');
-    if (!savedData) return false;
-    
-    const gameData = JSON.parse(savedData);
-    
-    // Check if save is not too old (24 hours)
-    const saveAge = Date.now() - gameData.timestamp;
-    if (saveAge > 24 * 60 * 60 * 1000) {
-      localStorage.removeItem('kadenAdelynnSave');
-      return false;
-    }
-    
-    player = gameData.player;
-    score = gameData.score;
-    lives = gameData.lives;
-    gameTime = gameData.gameTime;
-    difficulty = gameData.difficulty;
-    player.weaponLevel = gameData.weaponLevel || 1;
-    player.weaponMultiplier = gameData.weaponMultiplier || 4;
-    playerPowerUps = gameData.playerPowerUps || {
-      speed: 0,
-      missile: 0,
-      double: 0,
-      laser: 0,
-      option: 0,
-      forcefield: 0
-    };
-    options = gameData.options || [];
-    
-    // Reset other game elements
-    bullets = [];
-    enemies = [];
-    enemyBullets = [];
-    powerUps = [];
-    collectibles = [];
-    powerCapsules = [];
-    particles = [];
-    soundEffects = [];
-    boss = null;
-    bossSpawned = false;
-    
-    console.log('Game loaded successfully');
-    return true;
-  } catch (error) {
-    console.error('Failed to load game:', error);
-    return false;
-  }
-}
-
-function startAutoSave() {
-  // Auto-save every 30 seconds
-  autoSaveInterval = setInterval(() => {
-    if (gameState === 'playing' && !gamePaused) {
-      saveGame();
-    }
-  }, 30000);
-}
-
-function stopAutoSave() {
-  if (autoSaveInterval) {
-    clearInterval(autoSaveInterval);
-    autoSaveInterval = null;
-  }
-}
-
-function clearSave() {
-  localStorage.removeItem('kadenAdelynnSave');
-  console.log('Save data cleared');
-}
-
-// --- High Scores System ---
-function loadHighScores() {
-  try {
-    const savedScores = localStorage.getItem('kadenAdelynnHighScores');
-    if (savedScores) {
-      highScores = JSON.parse(savedScores);
-    } else {
-      highScores = [];
-    }
-  } catch (error) {
-    console.error('Failed to load high scores:', error);
-    highScores = [];
-  }
-}
-
-function saveHighScores() {
-  try {
-    localStorage.setItem('kadenAdelynnHighScores', JSON.stringify(highScores));
-    return true;
-  } catch (error) {
-    console.error('Failed to save high scores:', error);
-    return false;
-  }
-}
-
-function addHighScore(newScore) {
-  // Add new score to the list
-  highScores.push(newScore);
-  
-  // Sort scores in descending order
-  highScores.sort((a, b) => b.score - a.score);
-  
-  // Keep only top 5 scores
-  highScores = highScores.slice(0, 5);
-  
-  // Save to localStorage
-  saveHighScores();
-  
-  // Update display
-  updateHighScoresDisplay();
-}
-
-function updateHighScoresDisplay() {
-  const scoreElements = document.querySelectorAll('#high-scores-list .score-value');
-  
-  // Fill in the scores
-  for (let i = 0; i < 5; i++) {
-    if (highScores[i]) {
-      scoreElements[i].textContent = highScores[i].score.toLocaleString();
-    } else {
-      scoreElements[i].textContent = '0';
-    }
-  }
-  
-  // Update the HUD high score display
-  if (highScores.length > 0) {
-    highScoreDisplay.textContent = 'High Score: ' + highScores[0].score.toLocaleString();
-  }
-}
-
-function checkForNewHighScore() {
-  if (highScores.length === 0 || score > highScores[highScores.length - 1].score) {
-    // This is a new high score
-    const newHighScore = {
-      score: score,
-      date: new Date().toLocaleDateString(),
-      time: new Date().toLocaleTimeString()
-    };
-    addHighScore(newHighScore);
-    return true;
-  }
-  return false;
-}
-
-// --- Pause System ---
-function pauseGame() {
   if (gameState === 'playing') {
-    gamePaused = true;
-    pauseMenu.classList.remove('hidden');
-    stopAutoSave();
+    update();
+    draw();
+  }
+  requestAnimationFrame(gameLoop);
+}
+
+// --- UI Management ---
+function showGameUI() {
+  document.getElementById('mission-ui').classList.remove('hidden');
+  document.getElementById('progression-ui').classList.remove('hidden');
+  hud.classList.remove('hidden');
+  document.getElementById('top-bar').classList.remove('hidden');
+}
+
+function hideGameUI() {
+  document.getElementById('mission-ui').classList.add('hidden');
+  document.getElementById('progression-ui').classList.add('hidden');
+  hud.classList.add('hidden');
+  document.getElementById('top-bar').classList.add('hidden');
+}
+
+function draw() {
+  // Clear canvas
+  ctx.fillStyle = '#0a0a23';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Draw stars
+  drawStars();
+  
+  // Draw player
+  drawPlayerShip();
+  
+  // Draw enemies
+  drawEnemies();
+  
+  // Draw bullets
+  drawBullets();
+  drawEnemyBullets();
+  
+  // Draw collectibles
+  drawCollectibles();
+  drawPowerCapsules();
+  drawPowerUps();
+  
+  // Draw drones
+  drawDrones();
+  
+  // Draw particles
+  drawParticles();
+  
+  // Draw sound effects
+  drawSoundEffects();
+  
+  // Draw boss
+  if (boss) {
+    drawBoss();
+  }
+  
+  // Draw power-up menu
+  if (powerUpMenu) {
+    drawPowerUpMenu();
   }
 }
 
-function resumeGame() {
-  gamePaused = false;
-  pauseMenu.classList.add('hidden');
-  startAutoSave();
-  canvas.focus();
-}
-
-function exitGame(save = true) {
-  if (save) {
-    saveGame();
-  }
-  gamePaused = false;
-  pauseMenu.classList.add('hidden');
-  gameOverScreen.classList.add('hidden');
-  mainMenu.classList.remove('hidden');
-  gameState = 'menu';
-  stopAutoSave();
-  resetGame();
-}
-
-// Event Listeners
-document.addEventListener('keydown', e => {
+function gameLoop() {
   if (gameState === 'playing') {
-    if (powerUpMenu) {
-      // Power-up menu navigation
-      switch(e.key) {
-        case 'ArrowUp':
-          e.preventDefault();
-          selectedPowerUp = Math.max(0, selectedPowerUp - 1);
-          break;
-        case 'ArrowDown':
-          e.preventDefault();
-          selectedPowerUp = Math.min(POWER_UP_OPTIONS.length - 1, selectedPowerUp + 1);
-          break;
-        case ' ':
-        case 'Spacebar':
-          e.preventDefault();
-          applyPowerUp();
-          powerUpMenu = false;
-          break;
-      }
-      return;
-    }
-    
-    if (e.key === 'Escape') {
-      if (gamePaused) {
-        resumeGame();
-      } else {
-        pauseGame();
-      }
-      return;
-    }
-    
-    keys[e.key] = true;
-    if (e.key === ' ' || e.key === 'Spacebar') {
-      fireHeld = true;
-    }
+    update();
+    draw();
   }
-});
-
-
-
-document.addEventListener('keyup', e => {
-  if (gameState === 'playing') keys[e.key] = false;
-  if (e.key === ' ' || e.key === 'Spacebar') {
-    fireHeld = false;
-  }
-});
-
-// Shooting function
-function shoot() {
-  if (gameState !== 'playing' || gamePaused) return;
-  
-  // Shoot with weapon multiplier
-  let level = player.weaponLevel || 1;
-  let multiplier = player.weaponMultiplier || 4;
-  let hasMissiles = playerPowerUps.missile > 0;
-  let hasLaser = playerPowerUps.laser > 0;
-  
-  // Add shooting particles
-  for (let i = 0; i < multiplier * 2; i++) {
-    createParticle(player.x + player.w/2, player.y, '#00ffff', 3, 15);
-  }
-  
-  // Main weapon shots
-  if (level === 1) {
-    // Single shot with multiplier
-    for (let i = 0; i < multiplier; i++) {
-      bullets.push({ 
-        x: player.x+player.w/2-4, 
-        y: player.y, 
-        w: 8, 
-        h: 16, 
-        speed: 10,
-        type: hasLaser ? 'laser' : 'normal'
-      });
-    }
-  } else if (level === 2) {
-    // Double shot with multiplier
-    for (let i = 0; i < multiplier; i++) {
-      bullets.push({ 
-        x: player.x+player.w/2-16, 
-        y: player.y, 
-        w: 8, 
-        h: 16, 
-        speed: 10,
-        type: hasLaser ? 'laser' : 'normal'
-      });
-      bullets.push({ 
-        x: player.x+player.w/2+8, 
-        y: player.y, 
-        w: 8, 
-        h: 16, 
-        speed: 10,
-        type: hasLaser ? 'laser' : 'normal'
-      });
-    }
-  } else if (level >= 3) {
-    // Triple shot with multiplier
-    for (let i = 0; i < multiplier; i++) {
-      bullets.push({ 
-        x: player.x+player.w/2-20, 
-        y: player.y, 
-        w: 8, 
-        h: 16, 
-        speed: 10,
-        type: hasLaser ? 'laser' : 'normal'
-      });
-      bullets.push({ 
-        x: player.x+player.w/2-4, 
-        y: player.y, 
-        w: 8, 
-        h: 16, 
-        speed: 10,
-        type: hasLaser ? 'laser' : 'normal'
-      });
-      bullets.push({ 
-        x: player.x+player.w/2+12, 
-        y: player.y, 
-        w: 8, 
-        h: 16, 
-        speed: 10,
-        type: hasLaser ? 'laser' : 'normal'
-      });
-    }
-  }
-  
-  // Missiles (if available)
-  if (hasMissiles) {
-    for (let i = 0; i < playerPowerUps.missile; i++) {
-      bullets.push({ 
-        x: player.x+player.w/2-6, 
-        y: player.y, 
-        w: 12, 
-        h: 20, 
-        speed: 8,
-        type: 'missile',
-        tracking: true
-      });
-    }
-  }
-  
-  // Drone shots
-  options.forEach(drone => {
-    bullets.push({ 
-      x: drone.x+drone.w/2-2, 
-      y: drone.y, 
-      w: 4, 
-      h: 12, 
-      speed: 12,
-      type: 'drone'
-    });
-  });
-}
-
-function applyPowerUp() {
-  const selectedOption = POWER_UP_OPTIONS[selectedPowerUp];
-  const currentLevel = playerPowerUps[selectedOption.effect] || 0;
-  
-  if (currentLevel < selectedOption.maxLevel) {
-    playerPowerUps[selectedOption.effect] = currentLevel + 1;
-    
-    // Apply the power-up effect
-    switch(selectedOption.effect) {
-      case 'speed':
-        player.speed = Math.min(player.speed + 1, 8);
-        break;
-      case 'missile':
-        // Missiles will be implemented in shooting
-        break;
-      case 'double':
-        player.weaponLevel = Math.min(player.weaponLevel + 1, 5);
-        break;
-      case 'laser':
-        // Laser will be implemented in shooting
-        break;
-      case 'option':
-        // Add a drone
-        if (options.length < 2) {
-          options.push({
-            x: player.x - 30,
-            y: player.y,
-            w: 20,
-            h: 20,
-            offsetX: -30 - (options.length * 20),
-            offsetY: 0
-          });
-        }
-        break;
-      case 'forcefield':
-        player.shield = 300; // Longer shield duration
-        break;
-    }
-    
-    playSoundEffect('collect', player.x, player.y);
-  }
-}
-
-// --- Drone (Options) System ---
-function updateDrones() {
-  options.forEach(drone => {
-    // Calculate target position relative to player
-    const targetX = player.x + drone.offsetX;
-    const targetY = player.y + drone.offsetY;
-    
-    // Smooth movement towards target position
-    const dx = targetX - drone.x;
-    const dy = targetY - drone.y;
-    drone.x += dx * 0.1;
-    drone.y += dy * 0.1;
-    
-    // Keep drones within screen bounds
-    drone.x = Math.max(0, Math.min(canvas.width - drone.w, drone.x));
-    drone.y = Math.max(0, Math.min(canvas.height - drone.h, drone.y));
-  });
-}
-
-function drawDrones() {
-  options.forEach(drone => {
-    ctx.save();
-    ctx.translate(drone.x + drone.w/2, drone.y + drone.h/2);
-    
-    // Drone glow effect
-    const glowGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 15);
-    glowGradient.addColorStop(0, '#00ffff80');
-    glowGradient.addColorStop(0.5, '#00ffff40');
-    glowGradient.addColorStop(1, 'transparent');
-    
-    ctx.fillStyle = glowGradient;
-    ctx.beginPath();
-    ctx.arc(0, 0, 15, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Drone body
-    const droneGradient = ctx.createLinearGradient(-drone.w/2, -drone.h/2, drone.w/2, drone.h/2);
-    droneGradient.addColorStop(0, '#00ffff');
-    droneGradient.addColorStop(0.5, '#ffffff');
-    droneGradient.addColorStop(1, '#00ffff');
-    
-    ctx.fillStyle = droneGradient;
-    ctx.beginPath();
-    ctx.arc(0, 0, drone.w/2, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Drone outline
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2;
-    ctx.shadowColor = '#00ffff';
-    ctx.shadowBlur = 6;
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-    
-    // Drone weapon
-    ctx.fillStyle = '#ff4444';
-    ctx.fillRect(-2, -drone.h/2 - 2, 4, 4);
-    
-    ctx.restore();
-  });
-}
-
-// Button Event Handlers
-startBtn.onclick = () => {
-  mainMenu.classList.add('hidden');
-  gameOverScreen.classList.add('hidden');
-  canvas.focus();
-  resetGame();
-  gameState = 'playing';
-  startAutoSave();
-  gameLoop();
-};
-
-continueBtn.onclick = () => {
-  if (loadGame()) {
-    mainMenu.classList.add('hidden');
-    gameOverScreen.classList.add('hidden');
-    canvas.focus();
-    gameState = 'playing';
-    startAutoSave();
-    gameLoop();
-  } else {
-    // If load fails, hide continue button
-    continueBtn.classList.add('hidden');
-  }
-};
-
-restartBtn.onclick = () => {
-  gameOverScreen.classList.add('hidden');
-  mainMenu.classList.add('hidden');
-  canvas.focus();
-  resetGame();
-  gameState = 'playing';
-  startAutoSave();
-  gameLoop();
-};
-
-mainMenuBtn.onclick = () => {
-  exitGame(false);
-};
-
-resumeBtn.onclick = () => {
-  resumeGame();
-};
-
-saveExitBtn.onclick = () => {
-  exitGame(true);
-};
-
-exitNoSaveBtn.onclick = () => {
-  exitGame(false);
-}; 
-
-// Check for saved game on load
-function checkForSavedGame() {
-  const savedData = localStorage.getItem('kadenAdelynnSave');
-  if (savedData) {
-    try {
-      const gameData = JSON.parse(savedData);
-      const saveAge = Date.now() - gameData.timestamp;
-      if (saveAge <= 24 * 60 * 60 * 1000) {
-        continueBtn.classList.remove('hidden');
-        return true;
-      } else {
-        // Clear old save
-        localStorage.removeItem('kadenAdelynnSave');
-      }
-    } catch (error) {
-      console.error('Error checking saved game:', error);
-    }
-  }
-  continueBtn.classList.add('hidden');
-  return false;
+  requestAnimationFrame(gameLoop);
 }
 
 // --- Touch Support for iOS ---
@@ -2240,3 +2214,85 @@ function applyRandomPowerUp() {
   }
   playSoundEffect('collect', player.x, player.y);
 }
+
+// --- Game Initialization ---
+function initGame() {
+  generateMissions();
+  loadHighScores();
+  checkForSavedGame();
+  initStars();
+  initTouchSupport();
+  
+  // Update main menu buttons
+  startBtn.textContent = 'Mission Select';
+  startBtn.onclick = showMissionSelect;
+  
+  // Add event listeners for new UI
+  document.getElementById('back-to-menu').onclick = () => {
+    document.getElementById('mission-select').classList.add('hidden');
+    mainMenu.classList.remove('hidden');
+  };
+  
+  document.getElementById('next-mission').onclick = () => {
+    document.getElementById('mission-complete').classList.add('hidden');
+    if (currentMission < totalMissions) {
+      startMission(currentMission + 1);
+    } else {
+      // Game completed!
+      showGameComplete();
+    }
+  };
+  
+  document.getElementById('mission-select-btn').onclick = () => {
+    document.getElementById('mission-complete').classList.add('hidden');
+    showMissionSelect();
+  };
+}
+
+function showMissionSelect() {
+  mainMenu.classList.add('hidden');
+  const missionSelect = document.getElementById('mission-select');
+  const missionGrid = document.getElementById('mission-grid');
+  
+  missionGrid.innerHTML = '';
+  
+  missionData.forEach((mission, index) => {
+    const card = document.createElement('div');
+    card.className = 'mission-card';
+    if (index + 1 > currentMission) {
+      card.classList.add('locked');
+    } else if (index + 1 < currentMission) {
+      card.classList.add('completed');
+    }
+    
+    card.innerHTML = `
+      <h3>${mission.name}</h3>
+      <p>${mission.description}</p>
+      <div class="difficulty">Difficulty: ${mission.difficulty.toFixed(1)}</div>
+      <div class="reward">Reward: ${mission.reward.credits} Credits, ${mission.reward.xp} XP</div>
+    `;
+    
+    if (index + 1 <= currentMission) {
+      card.onclick = () => {
+        missionSelect.classList.add('hidden');
+        startMission(index + 1);
+      };
+    }
+    
+    missionGrid.appendChild(card);
+  });
+  
+  missionSelect.classList.remove('hidden');
+}
+
+function showGameComplete() {
+  // TODO: Implement game completion screen
+  alert('Congratulations! You have completed all missions!');
+  mainMenu.classList.remove('hidden');
+}
+
+// Initialize the game when the page loads
+window.addEventListener('load', () => {
+  initGame();
+  gameLoop();
+});

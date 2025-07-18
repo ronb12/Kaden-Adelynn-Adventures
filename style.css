@@ -168,6 +168,269 @@ body {
   color: #00ffff;
 }
 
+/* Mission System UI */
+#mission-ui {
+  position: fixed;
+  top: 120px;
+  left: 20px;
+  background: rgba(10,10,35,0.9);
+  padding: 16px;
+  border-radius: 12px;
+  border: 2px solid #00fff7;
+  box-shadow: 0 4px 20px #00fff755;
+  z-index: 3;
+  max-width: 300px;
+  pointer-events: none;
+}
+
+#mission-ui.hidden {
+  display: none;
+}
+
+#mission-name {
+  color: #00fff7;
+  font-size: 1.2rem;
+  margin: 0 0 8px 0;
+  text-shadow: 0 0 8px #00fff7;
+}
+
+#mission-description {
+  color: #ccc;
+  font-size: 0.9rem;
+  margin: 0 0 12px 0;
+}
+
+#mission-progress-container {
+  position: relative;
+  height: 20px;
+  background: #222;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #00fff7;
+  margin-bottom: 12px;
+}
+
+#mission-progress {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #00fff7 0%, #ff00cc 100%);
+  transition: width 0.3s;
+}
+
+#mission-progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.8rem;
+  color: #fff;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px #000;
+}
+
+#mission-objectives-container h4 {
+  color: #ff00cc;
+  font-size: 1rem;
+  margin: 0 0 8px 0;
+  text-shadow: 0 0 8px #ff00cc;
+}
+
+#mission-objectives {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#mission-objectives li {
+  color: #ccc;
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+  padding-left: 16px;
+  position: relative;
+}
+
+#mission-objectives li:before {
+  content: "▶";
+  position: absolute;
+  left: 0;
+  color: #00fff7;
+  font-size: 0.7rem;
+}
+
+/* Player Progression UI */
+#progression-ui {
+  position: fixed;
+  top: 120px;
+  right: 20px;
+  background: rgba(10,10,35,0.9);
+  padding: 16px;
+  border-radius: 12px;
+  border: 2px solid #ff00cc;
+  box-shadow: 0 4px 20px #ff00cc55;
+  z-index: 3;
+  pointer-events: none;
+}
+
+#progression-ui.hidden {
+  display: none;
+}
+
+#player-stats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+#player-level {
+  color: #ff00cc;
+  font-weight: bold;
+  text-shadow: 0 0 8px #ff00cc;
+}
+
+#skill-points {
+  color: #ffff00;
+  font-weight: bold;
+  text-shadow: 0 0 8px #ffff00;
+}
+
+#xp-container {
+  position: relative;
+  height: 16px;
+  background: #222;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #ff00cc;
+}
+
+#xp-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #ffff00 0%, #ff00cc 100%);
+  transition: width 0.3s;
+}
+
+#player-xp {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.7rem;
+  color: #fff;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px #000;
+}
+
+/* Mission Selection Screen */
+#mission-select {
+  background: rgba(10,10,35,0.95);
+}
+
+#mission-select h2 {
+  color: #00fff7;
+  font-size: 2rem;
+  margin-bottom: 32px;
+  text-shadow: 0 0 16px #00fff7;
+}
+
+#mission-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  max-width: 800px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 20px;
+  margin-bottom: 32px;
+}
+
+.mission-card {
+  background: rgba(0,255,247,0.1);
+  border: 2px solid #00fff7;
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: center;
+}
+
+.mission-card:hover {
+  background: rgba(0,255,247,0.2);
+  box-shadow: 0 0 20px #00fff7;
+  transform: translateY(-2px);
+}
+
+.mission-card.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: #666;
+}
+
+.mission-card.completed {
+  border-color: #00ff00;
+  background: rgba(0,255,0,0.1);
+}
+
+.mission-card h3 {
+  color: #00fff7;
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+}
+
+.mission-card p {
+  color: #ccc;
+  font-size: 0.9rem;
+  margin: 0 0 8px 0;
+}
+
+.mission-card .difficulty {
+  color: #ff00cc;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.mission-card .reward {
+  color: #ffff00;
+  font-size: 0.8rem;
+  margin-top: 8px;
+}
+
+/* Mission Complete Screen */
+#mission-complete {
+  background: rgba(10,10,35,0.95);
+}
+
+#mission-complete h2 {
+  color: #00ff00;
+  font-size: 2rem;
+  margin-bottom: 16px;
+  text-shadow: 0 0 16px #00ff00;
+}
+
+#mission-complete h3 {
+  color: #00fff7;
+  font-size: 1.5rem;
+  margin-bottom: 24px;
+  text-shadow: 0 0 12px #00fff7;
+}
+
+#mission-rewards {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 32px;
+}
+
+#mission-complete-credits,
+#mission-complete-xp {
+  color: #ffff00;
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-shadow: 0 0 8px #ffff00;
+  padding: 12px 20px;
+  background: rgba(255,255,0,0.1);
+  border: 2px solid #ffff00;
+  border-radius: 8px;
+}
+
 
 
 .overlay {
