@@ -23,13 +23,50 @@ body {
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 32px;
-  font-size: 1.2rem;
-  background: rgba(10,10,35,0.7);
-  padding: 8px 24px;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 1.1rem;
+  background: rgba(10,10,35,0.85);
+  padding: 12px 20px;
   border-radius: 12px;
-  box-shadow: 0 2px 12px #00fff733;
+  box-shadow: 0 4px 20px #00fff755;
   z-index: 2;
+  border: 2px solid #00fff7;
+}
+
+.hud-row {
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+}
+
+.hud-row span {
+  font-weight: bold;
+  text-shadow: 0 0 8px #00fff7;
+}
+
+#score {
+  color: #00ff00;
+}
+
+#high-score {
+  color: #ffff00;
+}
+
+#lives {
+  color: #ff4444;
+}
+
+#weapon-level {
+  color: #ff8800;
+}
+
+#difficulty {
+  color: #ff00ff;
+}
+
+#time {
+  color: #00ffff;
 }
 .overlay {
   position: absolute;

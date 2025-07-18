@@ -8,46 +8,170 @@ const restartBtn = document.getElementById('restart-btn');
 const scoreDisplay = document.getElementById('score');
 const livesDisplay = document.getElementById('lives');
 const finalScore = document.getElementById('final-score');
+const highScoreDisplay = document.getElementById('high-score');
+const weaponLevelDisplay = document.getElementById('weapon-level');
+const difficultyDisplay = document.getElementById('difficulty');
+const timeDisplay = document.getElementById('time');
 
 let gameState = 'menu';
 let player, bullets, enemies, score, lives, keys, enemyTimer;
+let gameTime = 0;
+let difficulty = 1;
+let bossSpawned = false;
+let boss = null;
 
-// --- Starfield ---
-const STAR_COUNT = 60;
-let stars = [];
-function initStars() {
-  stars = [];
-  for (let i = 0; i < STAR_COUNT; i++) {
-    stars.push({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      speed: 0.5 + Math.random() * 1.5,
-      size: Math.random() * 1.5 + 0.5
-    });
-  }
+// --- Particle System ---
+let particles = [];
+function createParticle(x, y, color, speed = 2, life = 30) {
+  particles.push({
+    x, y,
+    vx: (Math.random() - 0.5) * speed,
+    vy: (Math.random() - 0.5) * speed,
+    life, maxLife: life,
+    color, size: Math.random() * 3 + 1
+  });
 }
-function updateStars() {
-  // Stars scroll from right to left for horizontal movement effect
-  for (let s of stars) {
-    s.x -= s.speed;
-    if (s.x < 0) {
-      s.x = canvas.width;
-      s.y = Math.random() * canvas.height;
-      s.speed = 0.5 + Math.random() * 1.5;
-      s.size = Math.random() * 1.5 + 0.5;
-    }
-  }
+
+function updateParticles() {
+  particles.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life--;
+  });
+  particles = particles.filter(p => p.life > 0);
 }
-function drawStars() {
-  ctx.save();
-  ctx.fillStyle = '#fff';
-  for (let s of stars) {
-    ctx.globalAlpha = 0.5 + 0.5 * (s.size / 2);
+
+function drawParticles() {
+  particles.forEach(p => {
+    ctx.save();
+    ctx.globalAlpha = p.life / p.maxLife;
+    ctx.fillStyle = p.color;
     ctx.beginPath();
-    ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
     ctx.fill();
+    ctx.restore();
+  });
+}
+
+// --- Sound Effects (Visual) ---
+let soundEffects = [];
+function playSoundEffect(type, x, y) {
+  soundEffects.push({
+    type, x, y, timer: 0, maxTimer: 20,
+    text: type === 'collect' ? '+100' : type === 'hit' ? 'HIT!' : 'BOOM!',
+    color: type === 'collect' ? '#00ff00' : type === 'hit' ? '#ff0000' : '#ffaa00'
+  });
+}
+
+function updateSoundEffects() {
+  soundEffects.forEach(s => {
+    s.timer++;
+    s.y -= 1;
+  });
+  soundEffects = soundEffects.filter(s => s.timer < s.maxTimer);
+}
+
+function drawSoundEffects() {
+  soundEffects.forEach(s => {
+    ctx.save();
+    ctx.globalAlpha = 1 - (s.timer / s.maxTimer);
+    ctx.fillStyle = s.color;
+    ctx.font = '16px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(s.text, s.x, s.y);
+    ctx.restore();
+  });
+}
+
+// --- Boss System ---
+function spawnBoss() {
+  if (!bossSpawned && gameTime > 3000) { // Spawn boss after 50 seconds
+    boss = {
+      x: canvas.width + 50,
+      y: canvas.height / 2 - 40,
+      w: 80, h: 60,
+      health: 20,
+      maxHealth: 20,
+      speed: 1,
+      shootTimer: 0,
+      phase: 0,
+      movePattern: 'approach'
+    };
+    bossSpawned = true;
   }
-  ctx.globalAlpha = 1;
+}
+
+function updateBoss() {
+  if (!boss) return;
+  
+  // Boss movement patterns
+  switch(boss.movePattern) {
+    case 'approach':
+      boss.x -= boss.speed;
+      if (boss.x < canvas.width - 100) {
+        boss.movePattern = 'attack';
+      }
+      break;
+    case 'attack':
+      boss.y += Math.sin(gameTime * 0.01) * 2;
+      boss.shootTimer++;
+      if (boss.shootTimer > 30) {
+        // Multi-directional shots
+        for (let i = 0; i < 8; i++) {
+          const angle = (i / 8) * Math.PI * 2;
+          enemyBullets.push({
+            x: boss.x + boss.w/2,
+            y: boss.y + boss.h/2,
+            w: 12, h: 12,
+            speed: 4,
+            dx: Math.cos(angle) * 4,
+            dy: Math.sin(angle) * 4
+          });
+        }
+        boss.shootTimer = 0;
+      }
+      break;
+  }
+  
+  // Boss health check
+  if (boss.health <= 0) {
+    // Boss defeated
+    for (let i = 0; i < 20; i++) {
+      createParticle(boss.x + boss.w/2, boss.y + boss.h/2, '#ff0000', 5, 60);
+    }
+    score += 1000;
+    boss = null;
+    bossSpawned = false;
+  }
+}
+
+function drawBoss() {
+  if (!boss) return;
+  
+  ctx.save();
+  ctx.translate(boss.x + boss.w/2, boss.y + boss.h/2);
+  
+  // Boss body
+  const bossGradient = ctx.createLinearGradient(-boss.w/2, -boss.h/2, boss.w/2, boss.h/2);
+  bossGradient.addColorStop(0, '#8b0000');
+  bossGradient.addColorStop(0.5, '#ff0000');
+  bossGradient.addColorStop(1, '#8b0000');
+  
+  ctx.fillStyle = bossGradient;
+  ctx.fillRect(-boss.w/2, -boss.h/2, boss.w, boss.h);
+  
+  // Boss details
+  ctx.strokeStyle = '#ffff00';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(-boss.w/2, -boss.h/2, boss.w, boss.h);
+  
+  // Health bar
+  const healthPercent = boss.health / boss.maxHealth;
+  ctx.fillStyle = '#ff0000';
+  ctx.fillRect(-boss.w/2, -boss.h/2 - 10, boss.w, 5);
+  ctx.fillStyle = '#00ff00';
+  ctx.fillRect(-boss.w/2, -boss.h/2 - 10, boss.w * healthPercent, 5);
+  
   ctx.restore();
 }
 
@@ -55,7 +179,7 @@ function drawStars() {
 let collectibles = [];
 const COLLECTIBLE_TYPES = [
   { type: 'money', emoji: '💰', value: 50, color: '#ffd700' },
-  { type: 'weapon', emoji: '🔫', value: 100, color: '#ff4444' },
+  { type: 'weapon', emoji: '🚀', value: 100, color: '#ff4444' },
   { type: 'health', emoji: '❤️', value: 75, color: '#ff6b6b' },
   { type: 'shield', emoji: '🛡️', value: 80, color: '#00ffff' },
   { type: 'speed', emoji: '⚡', value: 60, color: '#ffff00' },
@@ -99,34 +223,42 @@ function updateCollectibles() {
       switch(c.type) {
         case 'money':
           score += c.value;
+          playSoundEffect('collect', c.x, c.y);
           break;
         case 'weapon':
           player.weaponLevel = Math.min((player.weaponLevel || 1) + 1, 5);
           score += c.value;
+          playSoundEffect('collect', c.x, c.y);
           break;
         case 'health':
           lives = Math.min(lives + 1, 5);
           score += c.value;
+          playSoundEffect('collect', c.x, c.y);
           break;
         case 'shield':
           player.shield = 180;
           score += c.value;
+          playSoundEffect('collect', c.x, c.y);
           break;
         case 'speed':
           player.speed = Math.min(player.speed + 1, 8);
           score += c.value;
+          playSoundEffect('collect', c.x, c.y);
           break;
         case 'bomb':
           // Clear all enemies on screen
           enemies.forEach(e => score += 50);
           enemies = [];
           score += c.value;
+          playSoundEffect('collect', c.x, c.y);
           break;
         case 'star':
           score += c.value;
+          playSoundEffect('collect', c.x, c.y);
           break;
         case 'gem':
           score += c.value;
+          playSoundEffect('collect', c.x, c.y);
           break;
       }
       
@@ -308,6 +440,7 @@ function updateEnemyBullets() {
         }
       }
       enemyBullets.splice(i, 1);
+      playSoundEffect('hit', b.x, b.y);
     }
   }
 }
@@ -346,15 +479,28 @@ function resetGame() {
   enemyBullets = [];
   powerUps = [];
   collectibles = [];
+  particles = [];
+  soundEffects = [];
   score = 0;
   lives = 3;
   keys = {};
   enemyTimer = 0;
   initStars();
+  gameTime = 0;
+  difficulty = 1;
+  bossSpawned = false;
+  boss = null;
+  
+  // Initialize high score display
+  const highScore = localStorage.getItem('highScore') || 0;
+  highScoreDisplay.textContent = 'High Score: ' + highScore;
 }
 
 function update() {
   updateStars();
+  updateParticles();
+  updateSoundEffects();
+  updateBoss();
   // Player movement - only vertical movement allowed
   if (keys['ArrowUp']) player.y -= player.speed;
   if (keys['ArrowDown']) player.y += player.speed;
@@ -416,11 +562,15 @@ function update() {
   }
   // Shield timer
   if (player.shield > 0) player.shield--;
+  gameTime++;
 }
 
 function draw() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
   drawStars();
+  drawParticles();
+  drawSoundEffects();
+  drawBoss();
   
   // Draw player ship
   drawPlayerShip();
@@ -445,86 +595,116 @@ function drawPlayerShip() {
   ctx.save();
   ctx.translate(player.x + player.w/2, player.y + player.h/2);
   
-  // Stealth fighter design - flat, angular, dark
+  // Blue and silver triangle design with multiple weapons
   const bodyGradient = ctx.createLinearGradient(-player.w/2, -player.h/2, player.w/2, player.h/2);
-  bodyGradient.addColorStop(0, '#1a1a1a');
-  bodyGradient.addColorStop(0.3, '#2d2d2d');
-  bodyGradient.addColorStop(0.7, '#404040');
-  bodyGradient.addColorStop(1, '#333333');
+  bodyGradient.addColorStop(0, '#0066cc');
+  bodyGradient.addColorStop(0.3, '#0099ff');
+  bodyGradient.addColorStop(0.7, '#c0c0c0');
+  bodyGradient.addColorStop(1, '#e6e6e6');
   
-  // Main body (flat diamond shape)
+  // Main body (triangle shape)
   ctx.fillStyle = bodyGradient;
   ctx.beginPath();
-  ctx.moveTo(-player.w/2, 0);
-  ctx.lineTo(0, -player.h/2);
+  ctx.moveTo(-player.w/2, -player.h/2);
   ctx.lineTo(player.w/2, 0);
-  ctx.lineTo(0, player.h/2);
+  ctx.lineTo(-player.w/2, player.h/2);
   ctx.closePath();
   ctx.fill();
   
-  // Cockpit (stealth blue)
-  const cockpitGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 6);
-  cockpitGradient.addColorStop(0, '#0066cc');
-  cockpitGradient.addColorStop(0.5, '#004499');
+  // Silver metallic outline
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  
+  // Cockpit (bright blue)
+  const cockpitGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 8);
+  cockpitGradient.addColorStop(0, '#00ffff');
+  cockpitGradient.addColorStop(0.5, '#0099ff');
   cockpitGradient.addColorStop(1, 'transparent');
   
   ctx.fillStyle = cockpitGradient;
   ctx.beginPath();
-  ctx.arc(0, 0, 6, 0, Math.PI * 2);
+  ctx.arc(-2, 0, 8, 0, Math.PI * 2);
   ctx.fill();
   
-  // Stealth coating (subtle metallic effect)
-  ctx.strokeStyle = '#555555';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(-player.w/2 + 2, 0);
-  ctx.lineTo(player.w/2 - 2, 0);
-  ctx.moveTo(0, -player.h/2 + 2);
-  ctx.lineTo(0, player.h/2 - 2);
-  ctx.stroke();
+  // Multiple weapon systems
+  const weaponLevel = player.weaponLevel || 1;
   
-  // Engine exhaust (minimal, stealthy)
-  const engineGradient = ctx.createLinearGradient(-player.w/2, -player.h/2, -player.w/2 - 6, 0);
-  engineGradient.addColorStop(0, '#333333');
-  engineGradient.addColorStop(0.5, '#666666');
+  // Primary gun (center)
+  ctx.fillStyle = '#ff4444';
+  ctx.fillRect(player.w/2 - 2, -3, 6, 6);
+  
+  // Secondary guns (if weapon level 2+)
+  if (weaponLevel >= 2) {
+    ctx.fillStyle = '#ff8800';
+    ctx.fillRect(player.w/2 - 3, -player.h/2 + 4, 4, 4);
+    ctx.fillRect(player.w/2 - 3, player.h/2 - 8, 4, 4);
+  }
+  
+  // Tertiary guns (if weapon level 3+)
+  if (weaponLevel >= 3) {
+    ctx.fillStyle = '#ffff00';
+    ctx.fillRect(player.w/2 - 4, -player.h/2 + 8, 3, 3);
+    ctx.fillRect(player.w/2 - 4, player.h/2 - 11, 3, 3);
+  }
+  
+  // Missile launchers (if weapon level 4+)
+  if (weaponLevel >= 4) {
+    ctx.fillStyle = '#ff00ff';
+    ctx.fillRect(player.w/2 - 5, -player.h/2 + 12, 2, 2);
+    ctx.fillRect(player.w/2 - 5, player.h/2 - 14, 2, 2);
+  }
+  
+  // Heavy weapons (if weapon level 5)
+  if (weaponLevel >= 5) {
+    ctx.fillStyle = '#00ff00';
+    ctx.fillRect(player.w/2 - 6, -player.h/2 + 16, 1, 1);
+    ctx.fillRect(player.w/2 - 6, player.h/2 - 17, 1, 1);
+  }
+  
+  // Engine exhaust (blue flame)
+  const engineGradient = ctx.createLinearGradient(-player.w/2, -player.h/2, -player.w/2 - 12, 0);
+  engineGradient.addColorStop(0, '#00ffff');
+  engineGradient.addColorStop(0.3, '#0099ff');
+  engineGradient.addColorStop(0.7, '#0066cc');
   engineGradient.addColorStop(1, 'transparent');
   
   ctx.fillStyle = engineGradient;
   ctx.beginPath();
-  ctx.moveTo(-player.w/2, -player.h/2 + 3);
-  ctx.lineTo(-player.w/2 - 6, -player.h/2 + 1);
-  ctx.lineTo(-player.w/2 - 6, player.h/2 - 1);
-  ctx.lineTo(-player.w/2, player.h/2 - 3);
+  ctx.moveTo(-player.w/2, -player.h/2 + 4);
+  ctx.lineTo(-player.w/2 - 12, -player.h/2 + 2);
+  ctx.lineTo(-player.w/2 - 12, player.h/2 - 2);
+  ctx.lineTo(-player.w/2, player.h/2 - 4);
   ctx.closePath();
   ctx.fill();
   
-  // Stealth panels (angular details)
-  ctx.strokeStyle = '#444444';
-  ctx.lineWidth = 1;
+  // Wing details (silver)
+  ctx.strokeStyle = '#c0c0c0';
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(-player.w/2 + 4, -player.h/2 + 2);
-  ctx.lineTo(-player.w/2 + 8, -player.h/2);
-  ctx.moveTo(-player.w/2 + 4, player.h/2 - 2);
-  ctx.lineTo(-player.w/2 + 8, player.h/2);
+  ctx.moveTo(-player.w/2 + 4, -player.h/2);
+  ctx.lineTo(-player.w/2 + 12, -player.h/2 - 4);
+  ctx.moveTo(-player.w/2 + 4, player.h/2);
+  ctx.lineTo(-player.w/2 + 12, player.h/2 + 4);
   ctx.stroke();
   
-  // Shield effect (stealth blue)
+  // Shield effect (blue)
   if (player.shield > 0) {
-    const shieldGradient = ctx.createRadialGradient(0, 0, 15, 0, 0, 25);
-    shieldGradient.addColorStop(0, 'rgba(0, 102, 204, 0.2)');
-    shieldGradient.addColorStop(0.7, 'rgba(0, 102, 204, 0.1)');
+    const shieldGradient = ctx.createRadialGradient(0, 0, 15, 0, 0, 30);
+    shieldGradient.addColorStop(0, 'rgba(0, 255, 255, 0.3)');
+    shieldGradient.addColorStop(0.7, 'rgba(0, 153, 255, 0.1)');
     shieldGradient.addColorStop(1, 'transparent');
     
     ctx.fillStyle = shieldGradient;
     ctx.beginPath();
-    ctx.arc(0, 0, 25, 0, Math.PI * 2);
+    ctx.arc(0, 0, 30, 0, Math.PI * 2);
     ctx.fill();
     
-    ctx.strokeStyle = '#0066cc';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([3, 3]);
+    ctx.strokeStyle = '#00ffff';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
     ctx.beginPath();
-    ctx.arc(0, 0, 22, 0, Math.PI * 2);
+    ctx.arc(0, 0, 27, 0, Math.PI * 2);
     ctx.stroke();
     ctx.setLineDash([]);
   }
@@ -683,8 +863,27 @@ function gameLoop() {
   if (gameState === 'playing') {
     update();
     draw();
+    
+    // Update HUD
     scoreDisplay.textContent = 'Score: ' + score;
     livesDisplay.textContent = 'Lives: ' + lives;
+    weaponLevelDisplay.textContent = 'Weapon: Level ' + (player.weaponLevel || 1);
+    difficultyDisplay.textContent = 'Difficulty: ' + difficulty;
+    
+    // Format time (MM:SS)
+    const minutes = Math.floor(gameTime / 3600);
+    const seconds = Math.floor((gameTime % 3600) / 60);
+    timeDisplay.textContent = 'Time: ' + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+    
+    // Update high score
+    const highScore = localStorage.getItem('highScore') || 0;
+    if (score > highScore) {
+      localStorage.setItem('highScore', score);
+      highScoreDisplay.textContent = 'High Score: ' + score;
+    } else {
+      highScoreDisplay.textContent = 'High Score: ' + highScore;
+    }
+    
     requestAnimationFrame(gameLoop);
   }
 }
