@@ -14,7 +14,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            overflow: hidden;
+            overflow-y: auto;
+            min-height: 100vh;
         }
         
         #gameContainer {
@@ -106,6 +107,7 @@
             <h1 class="menu-title">Kaden & Adelynn Adventures</h1>
             <p class="menu-subtitle">Space Shooter Adventure</p>
             <button id="startBtn">Start Game</button>
+            
             <div class="menu-instructions">
                 <h3>How to Play:</h3>
                 <p><strong>Movement:</strong> Arrow Keys</p>
@@ -113,10 +115,47 @@
                 <p><strong>Power-ups:</strong></p>
                 <ul style="text-align: left; display: inline-block;">
                     <li>⚡ Lightning = Speed Boost</li>
-                    <li>🔫 Gun = Double Shot</li>
+                    <li>🚀 Missile = Double Shot</li>
                     <li>🛡️ Shield = Shield Protection</li>
                 </ul>
                 <p><strong>Objective:</strong> Destroy enemy ships and survive as long as possible!</p>
+            </div>
+            
+            <div class="menu-instructions">
+                <h3>🎮 Game Features:</h3>
+                <ul style="text-align: left; display: inline-block;">
+                    <li>🚀 Gradius-style power-up system</li>
+                    <li>⭐ Beautiful star field background</li>
+                    <li>🎯 Multiple enemy types</li>
+                    <li>🏆 Score tracking system</li>
+                    <li>💫 Smooth 60 FPS gameplay</li>
+                    <li>🎨 Detailed ship designs</li>
+                </ul>
+            </div>
+            
+            <div class="menu-instructions">
+                <h3>📖 The Story:</h3>
+                <p>Join Kaden & Adelynn on their epic space adventure! As brave space pilots, you must navigate through dangerous asteroid fields and battle waves of enemy ships. Collect power-ups to enhance your ship's capabilities and achieve the highest score possible!</p>
+                <p>Can you survive the longest and become the ultimate space warrior?</p>
+            </div>
+            
+            <div class="menu-instructions">
+                <h3>🎯 Tips for Success:</h3>
+                <ul style="text-align: left; display: inline-block;">
+                    <li>Keep moving to avoid enemy fire</li>
+                    <li>Collect power-ups whenever possible</li>
+                    <li>Prioritize fast enemies (orange) for more points</li>
+                    <li>Use the shield power-up strategically</li>
+                    <li>Practice your shooting accuracy</li>
+                </ul>
+            </div>
+            
+            <div class="menu-instructions">
+                <h3>🌟 Credits:</h3>
+                <p><strong>Game:</strong> Kaden & Adelynn Adventures</p>
+                <p><strong>Style:</strong> Gradius-inspired Space Shooter</p>
+                <p><strong>Technology:</strong> HTML5 Canvas & JavaScript</p>
+                <p><strong>Features:</strong> Power-ups, Score System, Beautiful Graphics</p>
             </div>
         </div>
         
@@ -124,7 +163,7 @@
         
         <div id="gameUI">
             <div id="score">Score: 0 | Lives: 3 | Power: Basic</div>
-            <div id="powerupInfo">Power-ups: ⚡ Speed | 🔫 Double Shot | 🛡️ Shield</div>
+            <div id="powerupInfo">Power-ups: ⚡ Speed | 🚀 Double Shot | 🛡️ Shield</div>
             <div id="controls">
                 <p>Move: Arrow Keys | Shoot: Spacebar | Power-up: P</p>
                 <button id="menuBtn">Back to Menu</button>
@@ -309,7 +348,7 @@
             let emoji;
             switch(type) {
                 case 'speed': emoji = '⚡'; break;
-                case 'double': emoji = '🔫'; break;
+                case 'double': emoji = '🚀'; break;
                 case 'shield': emoji = '🛡️'; break;
             }
             
