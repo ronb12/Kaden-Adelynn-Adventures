@@ -1145,7 +1145,8 @@ function drawBasicEnemy(e) {
   const coreRadius = Math.max(minRadius, unclampedCore);
   const gradRadius = coreRadius;
   const shieldRadius = Math.max(minRadius, w/5);
-  const coreGrad = ctx.createRadialGradient(0, 0, minRadius, 0, 0, gradRadius);
+  // Always use 0 as the start radius for radial gradients
+  const coreGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, gradRadius);
   coreGrad.addColorStop(0, '#fff');
   coreGrad.addColorStop(0.5, '#ff4444');
   coreGrad.addColorStop(1, 'rgba(255,68,68,0)');
