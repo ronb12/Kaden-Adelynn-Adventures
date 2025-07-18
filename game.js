@@ -2479,7 +2479,7 @@ function initGame() {
   // Initialize game systems
   generateMissions();
   initHighScores();
-  checkForSavedGame();
+  initSavedGame();
   initStars();
   initTouchSupport();
   
@@ -2725,6 +2725,62 @@ function showNewHighScoreCelebration() {
     document.body.removeChild(notification);
     document.head.removeChild(style);
   }, 2000);
+}
+
+// Saved Game Functions
+function initSavedGame() {
+  const saved = localStorage.getItem('gameData');
+  if (saved) {
+    try {
+      const data = JSON.parse(saved);
+      // Load saved game data
+      playerLevel = data.playerLevel || 1;
+      skillPoints = data.skillPoints || 0;
+      credits = data.credits || 0;
+      currentMission = data.currentMission || 1;
+      playerSkills = data.playerSkills || {};
+      difficulty = data.difficulty || 1;
+      
+      // Update UI
+      updateProgressionUI();
+      console.log('🎮 Loaded saved game data');
+    } catch (e) {
+      console.log('🎮 No valid saved game found, starting fresh');
+    }
+  }
+}
+
+// Star Background Functions
+function initStars() {
+  stars = [];
+  for (let i = 0; i < 100; i++) {
+    stars.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      speed: 0.5 + Math.random() * 1.5,
+      size: 1 + Math.random() * 2,
+      brightness: 0.3 + Math.random() * 0.7
+    });
+  }
+}
+
+function updateStars() {
+  stars.forEach(star => {
+    star.y += star.speed;
+    if (star.y > canvas.height) {
+      star.y = -10;
+      star.x = Math.random() * canvas.width;
+    }
+  });
+}
+
+function drawStars() {
+  ctx.fillStyle = '#ffffff';
+  stars.forEach(star => {
+    ctx.globalAlpha = star.brightness;
+    ctx.fillRect(star.x, star.y, star.size, star.size);
+  });
+  ctx.globalAlpha = 1;
 }
 
 // Initialize the game when the page loads
