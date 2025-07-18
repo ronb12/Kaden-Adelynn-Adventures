@@ -1,3 +1,42 @@
+// Immediate debugging to check if script loads
+console.log('🚀 game.js script loading...');
+
+// Debug mode flag
+const DEBUG_MODE = true;
+
+function debugLog(message, data = null) {
+  if (DEBUG_MODE) {
+    if (data) {
+      console.log(`🔍 DEBUG: ${message}`, data);
+    } else {
+      console.log(`🔍 DEBUG: ${message}`);
+    }
+  }
+}
+
+// Test if we can access DOM elements immediately
+window.addEventListener('DOMContentLoaded', () => {
+  debugLog('DOM Content Loaded');
+  const startBtn = document.getElementById('start-btn');
+  debugLog('Start button found:', startBtn ? 'YES' : 'NO');
+  if (startBtn) {
+    debugLog('Start button text:', startBtn.textContent);
+    
+    // Add a simple test click handler
+    startBtn.addEventListener('click', () => {
+      console.log('🎯 SIMPLE CLICK TEST - Button was clicked!');
+      alert('Button click detected!');
+    });
+  }
+});
+
+// Test if window load event fires
+window.addEventListener('load', () => {
+  debugLog('Window load event fired');
+  const startBtn = document.getElementById('start-btn');
+  debugLog('Start button found on load:', startBtn ? 'YES' : 'NO');
+});
+
 // --- Game Variables ---
 let canvas, ctx, mainMenu, hud;
 let gameState = 'menu';
