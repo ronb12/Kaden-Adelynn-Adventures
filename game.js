@@ -5,6 +5,7 @@ const mainMenu = document.getElementById('main-menu');
 const startBtn = document.getElementById('start-btn');
 const gameOverScreen = document.getElementById('game-over');
 const restartBtn = document.getElementById('restart-btn');
+const mainMenuBtn = document.getElementById('main-menu-btn');
 const scoreDisplay = document.getElementById('score');
 const livesDisplay = document.getElementById('lives');
 const finalScore = document.getElementById('final-score');
@@ -18,6 +19,16 @@ const touchControls = document.getElementById('touch-controls');
 const joystick = document.getElementById('joystick');
 const joystickThumb = document.getElementById('joystick-thumb');
 const fireBtn = document.getElementById('fire-btn');
+const pauseBtn = document.getElementById('pause-btn');
+
+// Pause Menu
+const pauseMenu = document.getElementById('pause-menu');
+const resumeBtn = document.getElementById('resume-btn');
+const saveExitBtn = document.getElementById('save-exit-btn');
+const exitNoSaveBtn = document.getElementById('exit-no-save-btn');
+
+// Continue button
+const continueBtn = document.getElementById('continue-btn');
 
 let gameState = 'menu';
 let player, bullets, enemies, score, lives, keys, enemyTimer;
@@ -25,6 +36,8 @@ let gameTime = 0;
 let difficulty = 1;
 let bossSpawned = false;
 let boss = null;
+let gamePaused = false;
+let autoSaveInterval = null;
 
 // Starfield background
 let stars = [];
@@ -922,7 +935,9 @@ function drawBullets() {
 
 function gameLoop() {
   if (gameState === 'playing') {
-    update();
+    if (!gamePaused) {
+      update();
+    }
     draw();
     
     // Update HUD
@@ -953,82 +968,22 @@ function rectsCollide(a, b) {
   return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 }
 
-document.addEventListener('keydown', e => {
-  if (gameState === 'playing') {
-    keys[e.key] = true;
-    if (e.key === ' ' || e.key === 'Spacebar') {
-      shoot();
-    }
-  }
-});
-
-document.addEventListener('keyup', e => {
-  if (gameState === 'playing') keys[e.key] = false;
-});
-
-// Shooting function
-function shoot() {
-  if (gameState !== 'playing') return;
-  
-  // Shoot with weapon multiplier
-  let level = player.weaponLevel || 1;
-  let multiplier = player.weaponMultiplier || 4;
-  
-  // Add shooting particles
-  for (let i = 0; i < multiplier * 2; i++) {
-    createParticle(player.x + player.w/2, player.y, '#00ffff', 3, 15);
-  }
-  
-  if (level === 1) {
-    // Single shot with multiplier
-    for (let i = 0; i < multiplier; i++) {
-      bullets.push({ x: player.x+player.w/2-3, y: player.y, w: 6, h: 12, speed: 8 });
-    }
-  } else if (level === 2) {
-    // Double shot with multiplier
-    for (let i = 0; i < multiplier; i++) {
-      bullets.push({ x: player.x+player.w/2-10, y: player.y, w: 6, h: 12, speed: 8 });
-      bullets.push({ x: player.x+player.w/2+4, y: player.y, w: 6, h: 12, speed: 8 });
-    }
-  } else if (level >= 3) {
-    // Triple shot with multiplier
-    for (let i = 0; i < multiplier; i++) {
-      bullets.push({ x: player.x+player.w/2-12, y: player.y, w: 6, h: 12, speed: 8 });
-      bullets.push({ x: player.x+player.w/2-3, y: player.y, w: 6, h: 12, speed: 8 });
-      bullets.push({ x: player.x+player.w/2+8, y: player.y, w: 6, h: 12, speed: 8 });
-    }
-  }
-}
-
-startBtn.onclick = () => {
-  mainMenu.classList.add('hidden');
-  gameOverScreen.classList.add('hidden');
-  canvas.focus();
-  resetGame();
-  gameState = 'playing';
-  gameLoop();
-};
-
-restartBtn.onclick = () => {
-  gameOverScreen.classList.add('hidden');
-  mainMenu.classList.add('hidden');
-  canvas.focus();
-  resetGame();
-  gameState = 'playing';
-  gameLoop();
-};
-
 function endGame() {
   gameState = 'gameover';
   finalScore.textContent = 'Final Score: ' + score;
   gameOverScreen.classList.remove('hidden');
   mainMenu.classList.add('hidden');
+  stopAutoSave();
+  saveGame(); // Auto-save on game over
 }
 
 // Show menu on load
 mainMenu.classList.remove('hidden');
 gameOverScreen.classList.add('hidden');
 canvas.tabIndex = 0;
+
+// Check for saved game
+checkForSavedGame();
 
 // Initialize touch controls
 function initTouchControls() {
@@ -1054,11 +1009,16 @@ function initTouchControls() {
     // Fire button touch events
     fireBtn.addEventListener('touchstart', handleFireStart);
     fireBtn.addEventListener('touchend', handleFireEnd);
+
+    // Pause button touch events
+    pauseBtn.addEventListener('touchstart', handlePauseStart);
+    pauseBtn.addEventListener('touchend', handlePauseEnd);
     
     // Prevent default touch behaviors
     joystick.addEventListener('touchstart', e => e.preventDefault());
     joystick.addEventListener('touchmove', e => e.preventDefault());
     fireBtn.addEventListener('touchstart', e => e.preventDefault());
+    pauseBtn.addEventListener('touchstart', e => e.preventDefault());
   }
 }
 
@@ -1107,6 +1067,16 @@ function handleFireEnd(e) {
   fireButtonPressed = false;
 }
 
+function handlePauseStart(e) {
+  e.preventDefault();
+  pauseGame();
+}
+
+function handlePauseEnd(e) {
+  e.preventDefault();
+  // No action needed here, pauseGame handles visibility
+}
+
 // Initialize touch controls on load
 document.addEventListener('DOMContentLoaded', initTouchControls);
 
@@ -1151,4 +1121,246 @@ function drawStars() {
     ctx.fillStyle = `rgba(255, 255, 255, ${star.size / 3})`;
     ctx.fillRect(star.x, star.y, star.size, star.size);
   });
+} 
+
+// --- Save/Load System ---
+function saveGame() {
+  const gameData = {
+    player: player,
+    score: score,
+    lives: lives,
+    gameTime: gameTime,
+    difficulty: difficulty,
+    weaponLevel: player.weaponLevel,
+    weaponMultiplier: player.weaponMultiplier,
+    timestamp: Date.now()
+  };
+  
+  try {
+    localStorage.setItem('kadenAdelynnSave', JSON.stringify(gameData));
+    console.log('Game saved successfully');
+    return true;
+  } catch (error) {
+    console.error('Failed to save game:', error);
+    return false;
+  }
+}
+
+function loadGame() {
+  try {
+    const savedData = localStorage.getItem('kadenAdelynnSave');
+    if (!savedData) return false;
+    
+    const gameData = JSON.parse(savedData);
+    
+    // Check if save is not too old (24 hours)
+    const saveAge = Date.now() - gameData.timestamp;
+    if (saveAge > 24 * 60 * 60 * 1000) {
+      localStorage.removeItem('kadenAdelynnSave');
+      return false;
+    }
+    
+    player = gameData.player;
+    score = gameData.score;
+    lives = gameData.lives;
+    gameTime = gameData.gameTime;
+    difficulty = gameData.difficulty;
+    
+    // Reset other game elements
+    bullets = [];
+    enemies = [];
+    enemyBullets = [];
+    powerUps = [];
+    collectibles = [];
+    particles = [];
+    soundEffects = [];
+    boss = null;
+    bossSpawned = false;
+    
+    console.log('Game loaded successfully');
+    return true;
+  } catch (error) {
+    console.error('Failed to load game:', error);
+    return false;
+  }
+}
+
+function startAutoSave() {
+  // Auto-save every 30 seconds
+  autoSaveInterval = setInterval(() => {
+    if (gameState === 'playing' && !gamePaused) {
+      saveGame();
+    }
+  }, 30000);
+}
+
+function stopAutoSave() {
+  if (autoSaveInterval) {
+    clearInterval(autoSaveInterval);
+    autoSaveInterval = null;
+  }
+}
+
+function clearSave() {
+  localStorage.removeItem('kadenAdelynnSave');
+  console.log('Save data cleared');
+}
+
+// --- Pause System ---
+function pauseGame() {
+  if (gameState === 'playing') {
+    gamePaused = true;
+    pauseMenu.classList.remove('hidden');
+    stopAutoSave();
+  }
+}
+
+function resumeGame() {
+  gamePaused = false;
+  pauseMenu.classList.add('hidden');
+  startAutoSave();
+  canvas.focus();
+}
+
+function exitGame(save = true) {
+  if (save) {
+    saveGame();
+  }
+  gamePaused = false;
+  pauseMenu.classList.add('hidden');
+  gameOverScreen.classList.add('hidden');
+  mainMenu.classList.remove('hidden');
+  gameState = 'menu';
+  stopAutoSave();
+  resetGame();
+}
+
+// Event Listeners
+document.addEventListener('keydown', e => {
+  if (gameState === 'playing') {
+    if (e.key === 'Escape') {
+      if (gamePaused) {
+        resumeGame();
+      } else {
+        pauseGame();
+      }
+      return;
+    }
+    
+    keys[e.key] = true;
+    if (e.key === ' ' || e.key === 'Spacebar') {
+      shoot();
+    }
+  }
+});
+
+document.addEventListener('keyup', e => {
+  if (gameState === 'playing') keys[e.key] = false;
+});
+
+// Shooting function
+function shoot() {
+  if (gameState !== 'playing' || gamePaused) return;
+  
+  // Shoot with weapon multiplier
+  let level = player.weaponLevel || 1;
+  let multiplier = player.weaponMultiplier || 4;
+  
+  // Add shooting particles
+  for (let i = 0; i < multiplier * 2; i++) {
+    createParticle(player.x + player.w/2, player.y, '#00ffff', 3, 15);
+  }
+  
+  if (level === 1) {
+    // Single shot with multiplier
+    for (let i = 0; i < multiplier; i++) {
+      bullets.push({ x: player.x+player.w/2-3, y: player.y, w: 6, h: 12, speed: 8 });
+    }
+  } else if (level === 2) {
+    // Double shot with multiplier
+    for (let i = 0; i < multiplier; i++) {
+      bullets.push({ x: player.x+player.w/2-10, y: player.y, w: 6, h: 12, speed: 8 });
+      bullets.push({ x: player.x+player.w/2+4, y: player.y, w: 6, h: 12, speed: 8 });
+    }
+  } else if (level >= 3) {
+    // Triple shot with multiplier
+    for (let i = 0; i < multiplier; i++) {
+      bullets.push({ x: player.x+player.w/2-12, y: player.y, w: 6, h: 12, speed: 8 });
+      bullets.push({ x: player.x+player.w/2-3, y: player.y, w: 6, h: 12, speed: 8 });
+      bullets.push({ x: player.x+player.w/2+8, y: player.y, w: 6, h: 12, speed: 8 });
+    }
+  }
+}
+
+// Button Event Handlers
+startBtn.onclick = () => {
+  mainMenu.classList.add('hidden');
+  gameOverScreen.classList.add('hidden');
+  canvas.focus();
+  resetGame();
+  gameState = 'playing';
+  startAutoSave();
+  gameLoop();
+};
+
+continueBtn.onclick = () => {
+  if (loadGame()) {
+    mainMenu.classList.add('hidden');
+    gameOverScreen.classList.add('hidden');
+    canvas.focus();
+    gameState = 'playing';
+    startAutoSave();
+    gameLoop();
+  } else {
+    // If load fails, hide continue button
+    continueBtn.classList.add('hidden');
+  }
+};
+
+restartBtn.onclick = () => {
+  gameOverScreen.classList.add('hidden');
+  mainMenu.classList.add('hidden');
+  canvas.focus();
+  resetGame();
+  gameState = 'playing';
+  startAutoSave();
+  gameLoop();
+};
+
+mainMenuBtn.onclick = () => {
+  exitGame(false);
+};
+
+resumeBtn.onclick = () => {
+  resumeGame();
+};
+
+saveExitBtn.onclick = () => {
+  exitGame(true);
+};
+
+exitNoSaveBtn.onclick = () => {
+  exitGame(false);
+}; 
+
+// Check for saved game on load
+function checkForSavedGame() {
+  const savedData = localStorage.getItem('kadenAdelynnSave');
+  if (savedData) {
+    try {
+      const gameData = JSON.parse(savedData);
+      const saveAge = Date.now() - gameData.timestamp;
+      if (saveAge <= 24 * 60 * 60 * 1000) {
+        continueBtn.classList.remove('hidden');
+        return true;
+      } else {
+        // Clear old save
+        localStorage.removeItem('kadenAdelynnSave');
+      }
+    } catch (error) {
+      console.error('Error checking saved game:', error);
+    }
+  }
+  continueBtn.classList.add('hidden');
+  return false;
 } 

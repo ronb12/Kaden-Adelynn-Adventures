@@ -19,7 +19,8 @@
 <body>
   <div id="main-menu" class="overlay">
     <h1>Kaden & Adelynn Adventures</h1>
-    <button id="start-btn">Start Game</button>
+    <button id="start-btn">Start New Game</button>
+    <button id="continue-btn" class="hidden">Continue Game</button>
     <p class="credit">A simple Gradius-style clone</p>
   </div>
   <canvas id="gameCanvas" width="480" height="640" tabindex="0" aria-label="Game Canvas"></canvas>
@@ -33,6 +34,7 @@
     </div>
     <div class="action-buttons">
       <button id="fire-btn" class="action-btn">FIRE</button>
+      <button id="pause-btn" class="action-btn pause-btn">⏸️</button>
     </div>
   </div>
   
@@ -50,10 +52,20 @@
       <span id="time">Time: 0:00</span>
     </div>
   </div>
+  
+  <!-- Pause Menu -->
+  <div id="pause-menu" class="overlay hidden">
+    <h2>Game Paused</h2>
+    <button id="resume-btn">Resume Game</button>
+    <button id="save-exit-btn">Save & Exit</button>
+    <button id="exit-no-save-btn">Exit Without Saving</button>
+  </div>
+  
   <div id="game-over" class="overlay hidden">
     <h2>Game Over</h2>
     <p id="final-score"></p>
     <button id="restart-btn">Restart</button>
+    <button id="main-menu-btn">Main Menu</button>
   </div>
   <script src="game.js"></script>
   <script src="sw.js"></script>
