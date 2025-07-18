@@ -232,7 +232,7 @@
         <canvas id="gameCanvas" width="800" height="600"></canvas>
         
         <div id="scoreBoard">
-            <div id="score">Score: 0 | Lives: 3 | Power: Basic</div>
+            <div id="score">Score: 0 | Lives: 25 | Power: Basic</div>
             <div id="powerupInfo">Power-ups: ⚡ Speed | 🚀 Double Shot | 🛡️ Shield | 💎 Extra Life | ⭐ Star Power | 🔥 Fire Rate</div>
         </div>
         
@@ -268,7 +268,7 @@
         // Game variables
         let gameRunning = false;
         let score = 0;
-        let lives = 3;
+        let lives = 25;
         let player = { x: 375, y: 500, width: 40, height: 30 };
         let bullets = [];
         let enemyBullets = [];
@@ -291,6 +291,7 @@
         let joystickActive = false;
         let joystickCenter = { x: 0, y: 0 };
         let joystickKnob = { x: 0, y: 0 };
+        let audioContext = null;
 
         // Initialize stars
         for (let i = 0; i < 100; i++) {
@@ -303,22 +304,36 @@
 
         // Sound effects
         function playMissileSound() {
-            // Create a simple missile sound using Web Audio API
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-            oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1);
-            
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.1);
+            try {
+                // Create a simple missile sound using Web Audio API
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                // Resume audio context if suspended
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1);
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.1);
+                
+                console.log('Missile sound played');
+            } catch (error) {
+                console.log('Sound error:', error);
+            }
         }
 
         // Detect mobile device
@@ -423,6 +438,12 @@
             }
         }
 
+        // Test sound function
+        function testSound() {
+            console.log('Testing sound...');
+            playMissileSound();
+        }
+
         function handlePowerup(e) {
             e.preventDefault();
             if (gameRunning) {
@@ -432,10 +453,17 @@
 
         function startGame() {
             console.log('Starting game...');
+            
+            // Initialize audio context on user interaction
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                console.log('Audio context initialized');
+            }
+            
             gameRunning = true;
             gameStarted = true;
             score = 0;
-            lives = 3;
+            lives = 25;
             bullets = [];
             enemyBullets = [];
             enemies = [];
@@ -656,16 +684,18 @@
         function spawnEnemy() {
             if (Math.random() < 0.02) {
                 const type = Math.random() < 0.3 ? 'fast' : 'basic';
-                enemies.push({
+                const enemy = {
                     x: Math.random() * (canvas.width - 30),
                     y: -30,
                     width: 30,
                     height: 30,
                     speed: type === 'fast' ? 4 + Math.random() * 2 : 2 + Math.random() * 2,
                     type: type,
-                    lastShot: 0,
+                    lastShot: Date.now(),
                     shotCooldown: type === 'fast' ? 1500 : 2000
-                });
+                };
+                enemies.push(enemy);
+                console.log('Enemy spawned:', enemy);
             }
         }
 
@@ -673,17 +703,21 @@
             for (let i = enemies.length - 1; i >= 0; i--) {
                 enemies[i].y += enemies[i].speed;
                 
-                // Enemy shooting
-                const now = Date.now();
-                if (now - enemies[i].lastShot > enemies[i].shotCooldown) {
-                    enemyBullets.push({
-                        x: enemies[i].x + 15,
-                        y: enemies[i].y + 30,
-                        width: 3,
-                        height: 6,
-                        speed: 4
-                    });
-                    enemies[i].lastShot = now;
+                // Enemy shooting - only if enemy is on screen
+                if (enemies[i].y > 0 && enemies[i].y < canvas.height) {
+                    const now = Date.now();
+                    if (now - enemies[i].lastShot > enemies[i].shotCooldown) {
+                        const enemyBullet = {
+                            x: enemies[i].x + 15,
+                            y: enemies[i].y + 30,
+                            width: 3,
+                            height: 6,
+                            speed: 4
+                        };
+                        enemyBullets.push(enemyBullet);
+                        enemies[i].lastShot = now;
+                        console.log('Enemy shot fired:', enemyBullet);
+                    }
                 }
                 
                 if (enemies[i].y > canvas.height) {
