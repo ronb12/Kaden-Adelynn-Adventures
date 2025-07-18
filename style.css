@@ -118,63 +118,6 @@ body {
 }
 .overlay.hidden { display: none; }
 
-#upgrade-menu {
-  background: rgba(20, 0, 40, 0.98);
-  border: 3px solid #00fff7;
-  border-radius: 18px;
-  box-shadow: 0 0 32px #ff00cc99;
-  padding: 32px 48px;
-  color: #fff;
-  text-align: center;
-}
-#upgrade-menu h2 {
-  color: #00fff7;
-  font-size: 2rem;
-  margin-bottom: 24px;
-  text-shadow: 0 0 12px #00fff7;
-}
-#upgrade-options {
-  display: flex;
-  gap: 32px;
-  margin-bottom: 24px;
-  justify-content: center;
-}
-#upgrade-options .upgrade-option {
-  background: linear-gradient(135deg, #00fff7 0%, #ff00cc 100%);
-  border-radius: 12px;
-  padding: 18px 24px;
-  color: #fff;
-  font-size: 1.1rem;
-  font-weight: bold;
-  box-shadow: 0 0 16px #00fff7;
-  cursor: pointer;
-  border: 2px solid #fff;
-  transition: transform 0.15s, box-shadow 0.15s;
-}
-#upgrade-options .upgrade-option.selected {
-  border: 3px solid #ff00cc;
-  box-shadow: 0 0 24px #ff00cc;
-  transform: scale(1.08);
-}
-#upgrade-confirm {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #fff;
-  background: linear-gradient(90deg, #00fff7 0%, #ff00cc 100%);
-  border: none;
-  border-radius: 12px;
-  padding: 14px 36px;
-  margin: 12px 0 0 0;
-  cursor: pointer;
-  box-shadow: 0 2px 12px #00fff744;
-  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
-}
-#upgrade-confirm:hover, #upgrade-confirm:focus {
-  background: linear-gradient(90deg, #ff00cc 0%, #00fff7 100%);
-  box-shadow: 0 4px 24px #ff00ccaa;
-  transform: translateY(-2px) scale(1.04);
-}
-
 .force-block {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;

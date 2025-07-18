@@ -429,9 +429,7 @@ function updatePowerCapsules() {
   for (let i = powerCapsules.length-1; i >= 0; i--) {
     if (rectsCollide(player, powerCapsules[i]) && !powerCapsules[i].collected) {
       powerCapsules[i].collected = true;
-      powerUpMenu = true;
-      selectedPowerUp = 0;
-      playSoundEffect('collect', powerCapsules[i].x, powerCapsules[i].y);
+      applyRandomPowerUp();
       powerCapsules.splice(i, 1);
       break; // Only collect one at a time
     }
@@ -2187,3 +2185,58 @@ const ENEMY_BULLET_COLLISION_SHRINK = 0.6;
 window.addEventListener('scroll', () => { window.scrollTo(0, 0); });
 document.body.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
 document.body.addEventListener('wheel', e => e.preventDefault(), { passive: false });
+
+// --- Power-Up Pool ---
+const POWERUP_POOL = [
+  { name: 'Weapon Power +1', effect: 'weapon', icon: '🔫' },
+  { name: 'Drone +1', effect: 'drone', icon: '🛸' },
+  { name: 'Shield +1', effect: 'shield', icon: '🛡️' },
+  { name: 'Speed +1', effect: 'speed', icon: '⚡' },
+  { name: 'Missile', effect: 'missile', icon: '🚀' },
+  { name: 'Triple Shot', effect: 'triple', icon: '🔱' },
+  { name: 'Heal', effect: 'heal', icon: '❤️' },
+  { name: 'Bomb', effect: 'bomb', icon: '💣' }
+];
+
+// --- When a power-up capsule is collected ---
+function applyRandomPowerUp() {
+  const upg = POWERUP_POOL[Math.floor(Math.random() * POWERUP_POOL.length)];
+  // Apply upgrade effect (implement as needed)
+  switch (upg.effect) {
+    case 'weapon':
+      player.weaponLevel = Math.min((player.weaponLevel || 1) + 1, 5);
+      break;
+    case 'drone':
+      if (options.length < 2) {
+        options.push({
+          x: player.x - 30,
+          y: player.y,
+          w: 20,
+          h: 20,
+          offsetX: -30 - (options.length * 20),
+          offsetY: 0
+        });
+      }
+      break;
+    case 'shield':
+      player.shield = 300;
+      break;
+    case 'speed':
+      player.speed = Math.min(player.speed + 1, 8);
+      break;
+    case 'missile':
+      playerPowerUps.missile = (playerPowerUps.missile || 0) + 1;
+      break;
+    case 'triple':
+      player.weaponMultiplier = 6;
+      break;
+    case 'heal':
+      lives = Math.min(lives + 1, 5);
+      break;
+    case 'bomb':
+      enemies.forEach(e => score += 50);
+      enemies = [];
+      break;
+  }
+  playSoundEffect('collect', player.x, player.y);
+}
