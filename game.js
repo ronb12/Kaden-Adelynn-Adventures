@@ -1080,6 +1080,11 @@ function drawEnemies() {
   }
 }
 
+// --- Safe arc helper ---
+function safeArc(ctx, x, y, r, a1, a2) {
+  if (r > 0) ctx.arc(x, y, r, a1, a2);
+}
+
 function drawBasicEnemy(e) {
   ctx.save();
   ctx.translate(e.x + e.w/2, e.y + e.h/2);
@@ -1154,14 +1159,14 @@ function drawBasicEnemy(e) {
   ctx.globalAlpha = 0.8;
   ctx.fillStyle = coreGrad;
   ctx.beginPath();
-  ctx.arc(0, 0, coreRadius, 0, Math.PI*2);
+  safeArc(ctx, 0, 0, coreRadius, 0, Math.PI*2);
   ctx.fill();
   // Shield ring
   ctx.globalAlpha = 0.18;
   ctx.strokeStyle = '#ff4444';
   ctx.lineWidth = 4;
   ctx.beginPath();
-  ctx.arc(0, 0, shieldRadius, 0, Math.PI*2);
+  safeArc(ctx, 0, 0, shieldRadius, 0, Math.PI*2);
   ctx.stroke();
   ctx.restore();
 
