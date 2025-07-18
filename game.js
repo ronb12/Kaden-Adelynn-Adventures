@@ -3,6 +3,9 @@ let canvas, ctx, hud, mainMenu, startBtn, gameOverScreen, restartBtn, mainMenuBt
 let scoreDisplay, livesDisplay, finalScore, highScoreDisplay, weaponLevelDisplay, difficultyDisplay, timeDisplay;
 let pauseMenu, resumeBtn, saveExitBtn, exitNoSaveBtn, continueBtn;
 
+// --- Input System ---
+// Keyboard event listeners will be added in initGame()
+
 // --- Game States ---
 let gameState = 'menu'; // 'menu', 'playing', 'upgrade', 'boss', 'gameover'
 let stage = 1;
@@ -2551,6 +2554,27 @@ function initGame() {
     };
   }
   
+  // Initialize keyboard input system
+  keys = {};
+  
+  // Keyboard event listeners
+  document.addEventListener('keydown', (e) => {
+    keys[e.key] = true;
+    
+    // Pause/resume with Escape or P
+    if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
+      if (gameState === 'playing') {
+        pauseGame();
+      } else if (gameState === 'paused') {
+        resumeGame();
+      }
+    }
+  });
+  
+  document.addEventListener('keyup', (e) => {
+    keys[e.key] = false;
+  });
+  
   console.log('✅ Game initialization complete');
 }
 
@@ -2802,16 +2826,7 @@ function resumeGame() {
   }
 }
 
-// Add keyboard event listeners for pause
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
-    if (gameState === 'playing') {
-      pauseGame();
-    } else if (gameState === 'paused') {
-      resumeGame();
-    }
-  }
-});
+
 
 // Initialize the game when the page loads
 window.addEventListener('load', () => {
