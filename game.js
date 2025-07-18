@@ -2489,7 +2489,10 @@ function initGame() {
   initTouchSupport();
   
   // Update main menu buttons
+  console.log('🎮 Updating main menu buttons...');
+  console.log('🎮 Start button before:', startBtn.textContent);
   startBtn.textContent = 'Mission Select';
+  console.log('🎮 Start button after:', startBtn.textContent);
   startBtn.onclick = showMissionSelect;
   
   // Add event listeners for new UI

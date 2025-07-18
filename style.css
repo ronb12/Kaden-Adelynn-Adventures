@@ -461,6 +461,15 @@ body {
   text-align: center;
 }
 
+#main-menu .version {
+  color: #00ff00;
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 24px;
+  text-shadow: 0 0 8px #00ff00;
+}
+
 #high-scores-section {
   background: rgba(0, 0, 0, 0.8);
   border: 2px solid #00ffff;
