@@ -51,7 +51,120 @@ function drawStars() {
   ctx.restore();
 }
 
-// --- Power-Ups ---
+// --- Collectibles ---
+let collectibles = [];
+const COLLECTIBLE_TYPES = [
+  { type: 'money', emoji: '💰', value: 50, color: '#ffd700' },
+  { type: 'weapon', emoji: '🔫', value: 100, color: '#ff4444' },
+  { type: 'health', emoji: '❤️', value: 75, color: '#ff6b6b' },
+  { type: 'shield', emoji: '🛡️', value: 80, color: '#00ffff' },
+  { type: 'speed', emoji: '⚡', value: 60, color: '#ffff00' },
+  { type: 'bomb', emoji: '💣', value: 200, color: '#ff8800' },
+  { type: 'star', emoji: '⭐', value: 150, color: '#ffaa00' },
+  { type: 'gem', emoji: '💎', value: 300, color: '#00aaff' }
+];
+
+function spawnCollectible(x, y) {
+  const collectible = COLLECTIBLE_TYPES[Math.floor(Math.random() * COLLECTIBLE_TYPES.length)];
+  collectibles.push({ 
+    x, 
+    y, 
+    w: 24, 
+    h: 24, 
+    type: collectible.type,
+    emoji: collectible.emoji,
+    value: collectible.value,
+    color: collectible.color,
+    floatOffset: Math.random() * Math.PI * 2,
+    floatSpeed: 0.05 + Math.random() * 0.05
+  });
+}
+
+function updateCollectibles() {
+  // Collectibles move from right to left
+  collectibles.forEach(c => {
+    c.x -= 1; // Slow movement
+    c.floatOffset += c.floatSpeed;
+  });
+  
+  // Remove collectibles that go off screen
+  collectibles = collectibles.filter(c => c.x > -30);
+  
+  // Player collects collectibles
+  for (let i = collectibles.length-1; i >= 0; i--) {
+    if (rectsCollide(player, collectibles[i])) {
+      const c = collectibles[i];
+      
+      // Apply effects based on type
+      switch(c.type) {
+        case 'money':
+          score += c.value;
+          break;
+        case 'weapon':
+          player.weaponLevel = Math.min((player.weaponLevel || 1) + 1, 5);
+          score += c.value;
+          break;
+        case 'health':
+          lives = Math.min(lives + 1, 5);
+          score += c.value;
+          break;
+        case 'shield':
+          player.shield = 180;
+          score += c.value;
+          break;
+        case 'speed':
+          player.speed = Math.min(player.speed + 1, 8);
+          score += c.value;
+          break;
+        case 'bomb':
+          // Clear all enemies on screen
+          enemies.forEach(e => score += 50);
+          enemies = [];
+          score += c.value;
+          break;
+        case 'star':
+          score += c.value;
+          break;
+        case 'gem':
+          score += c.value;
+          break;
+      }
+      
+      collectibles.splice(i, 1);
+    }
+  }
+}
+
+function drawCollectibles() {
+  collectibles.forEach(c => {
+    ctx.save();
+    ctx.translate(c.x + c.w/2, c.y + c.h/2);
+    
+    // Floating animation
+    const floatY = Math.sin(c.floatOffset) * 3;
+    ctx.translate(0, floatY);
+    
+    // Glow effect
+    const glowGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 20);
+    glowGradient.addColorStop(0, c.color + '40');
+    glowGradient.addColorStop(1, 'transparent');
+    
+    ctx.fillStyle = glowGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, 20, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Emoji
+    ctx.font = '20px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(c.emoji, 0, 0);
+    
+    ctx.restore();
+  });
+}
+
+// --- Power-Ups (Legacy) ---
 let powerUps = [];
 const POWERUP_TYPES = ['weapon', 'shield'];
 function spawnPowerUp(x, y) {
@@ -232,6 +345,7 @@ function resetGame() {
   enemies = [];
   enemyBullets = [];
   powerUps = [];
+  collectibles = [];
   score = 0;
   lives = 3;
   keys = {};
@@ -262,12 +376,15 @@ function update() {
   // Power-ups
   updatePowerUps();
 
+  // Collectibles
+  updateCollectibles();
+
   // Collisions: bullets vs enemies
   for (let i = enemies.length-1; i >= 0; i--) {
     for (let j = bullets.length-1; j >= 0; j--) {
       if (rectsCollide(enemies[i], bullets[j])) {
-        // 20% chance to drop power-up
-        if (Math.random() < 0.2) spawnPowerUp(enemies[i].x, enemies[i].y);
+        // 30% chance to drop collectible
+        if (Math.random() < 0.3) spawnCollectible(enemies[i].x, enemies[i].y);
         enemies.splice(i,1);
         bullets.splice(j,1);
         score += 100;
@@ -319,71 +436,83 @@ function draw() {
   
   // Power-ups
   drawPowerUps();
+
+  // Collectibles
+  drawCollectibles();
 }
 
 function drawPlayerShip() {
   ctx.save();
   ctx.translate(player.x + player.w/2, player.y + player.h/2);
   
-  // Main body gradient
+  // Stealth fighter design - flat, angular, dark
   const bodyGradient = ctx.createLinearGradient(-player.w/2, -player.h/2, player.w/2, player.h/2);
-  bodyGradient.addColorStop(0, '#1a1a2e');
-  bodyGradient.addColorStop(0.3, '#16213e');
-  bodyGradient.addColorStop(0.7, '#0f3460');
-  bodyGradient.addColorStop(1, '#e94560');
+  bodyGradient.addColorStop(0, '#1a1a1a');
+  bodyGradient.addColorStop(0.3, '#2d2d2d');
+  bodyGradient.addColorStop(0.7, '#404040');
+  bodyGradient.addColorStop(1, '#333333');
   
-  // Draw main body
+  // Main body (flat diamond shape)
   ctx.fillStyle = bodyGradient;
   ctx.beginPath();
-  ctx.moveTo(-player.w/2, -player.h/2);
-  ctx.lineTo(player.w/2 - 4, -player.h/2 + 2);
+  ctx.moveTo(-player.w/2, 0);
+  ctx.lineTo(0, -player.h/2);
   ctx.lineTo(player.w/2, 0);
-  ctx.lineTo(player.w/2 - 4, player.h/2 - 2);
-  ctx.lineTo(-player.w/2, player.h/2);
+  ctx.lineTo(0, player.h/2);
   ctx.closePath();
   ctx.fill();
   
-  // Cockpit
-  const cockpitGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 8);
-  cockpitGradient.addColorStop(0, '#00ffff');
-  cockpitGradient.addColorStop(0.5, '#0088ff');
+  // Cockpit (stealth blue)
+  const cockpitGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 6);
+  cockpitGradient.addColorStop(0, '#0066cc');
+  cockpitGradient.addColorStop(0.5, '#004499');
   cockpitGradient.addColorStop(1, 'transparent');
   
   ctx.fillStyle = cockpitGradient;
   ctx.beginPath();
-  ctx.arc(-2, 0, 6, 0, Math.PI * 2);
+  ctx.arc(0, 0, 6, 0, Math.PI * 2);
   ctx.fill();
   
-  // Engine glow
-  const engineGradient = ctx.createLinearGradient(-player.w/2, -player.h/2, -player.w/2 - 10, 0);
-  engineGradient.addColorStop(0, '#ff4444');
-  engineGradient.addColorStop(0.5, '#ff8800');
+  // Stealth coating (subtle metallic effect)
+  ctx.strokeStyle = '#555555';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(-player.w/2 + 2, 0);
+  ctx.lineTo(player.w/2 - 2, 0);
+  ctx.moveTo(0, -player.h/2 + 2);
+  ctx.lineTo(0, player.h/2 - 2);
+  ctx.stroke();
+  
+  // Engine exhaust (minimal, stealthy)
+  const engineGradient = ctx.createLinearGradient(-player.w/2, -player.h/2, -player.w/2 - 6, 0);
+  engineGradient.addColorStop(0, '#333333');
+  engineGradient.addColorStop(0.5, '#666666');
   engineGradient.addColorStop(1, 'transparent');
   
   ctx.fillStyle = engineGradient;
   ctx.beginPath();
-  ctx.moveTo(-player.w/2, -player.h/2 + 4);
-  ctx.lineTo(-player.w/2 - 8, -player.h/2 + 2);
-  ctx.lineTo(-player.w/2 - 8, player.h/2 - 2);
-  ctx.lineTo(-player.w/2, player.h/2 - 4);
+  ctx.moveTo(-player.w/2, -player.h/2 + 3);
+  ctx.lineTo(-player.w/2 - 6, -player.h/2 + 1);
+  ctx.lineTo(-player.w/2 - 6, player.h/2 - 1);
+  ctx.lineTo(-player.w/2, player.h/2 - 3);
   ctx.closePath();
   ctx.fill();
   
-  // Wing details
-  ctx.strokeStyle = '#e94560';
-  ctx.lineWidth = 2;
+  // Stealth panels (angular details)
+  ctx.strokeStyle = '#444444';
+  ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(-player.w/2 + 4, -player.h/2);
-  ctx.lineTo(-player.w/2 + 8, -player.h/2 - 2);
-  ctx.moveTo(-player.w/2 + 4, player.h/2);
-  ctx.lineTo(-player.w/2 + 8, player.h/2 + 2);
+  ctx.moveTo(-player.w/2 + 4, -player.h/2 + 2);
+  ctx.lineTo(-player.w/2 + 8, -player.h/2);
+  ctx.moveTo(-player.w/2 + 4, player.h/2 - 2);
+  ctx.lineTo(-player.w/2 + 8, player.h/2);
   ctx.stroke();
   
-  // Shield effect
+  // Shield effect (stealth blue)
   if (player.shield > 0) {
     const shieldGradient = ctx.createRadialGradient(0, 0, 15, 0, 0, 25);
-    shieldGradient.addColorStop(0, 'rgba(0, 255, 255, 0.3)');
-    shieldGradient.addColorStop(0.7, 'rgba(0, 255, 255, 0.1)');
+    shieldGradient.addColorStop(0, 'rgba(0, 102, 204, 0.2)');
+    shieldGradient.addColorStop(0.7, 'rgba(0, 102, 204, 0.1)');
     shieldGradient.addColorStop(1, 'transparent');
     
     ctx.fillStyle = shieldGradient;
@@ -391,9 +520,9 @@ function drawPlayerShip() {
     ctx.arc(0, 0, 25, 0, Math.PI * 2);
     ctx.fill();
     
-    ctx.strokeStyle = '#00ffff';
-    ctx.lineWidth = 2;
-    ctx.setLineDash([5, 5]);
+    ctx.strokeStyle = '#0066cc';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
     ctx.beginPath();
     ctx.arc(0, 0, 22, 0, Math.PI * 2);
     ctx.stroke();
