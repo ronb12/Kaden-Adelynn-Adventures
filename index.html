@@ -3,20 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simple Space Shooter</title>
+  <title>Kaden & Adelynn Adventures - Simple Space Shooter</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div id="main-menu">
-    <h1>Simple Space Shooter</h1>
+    <h1>Kaden & Adelynn Adventures</h1>
+    <p class="subtitle">Simple Space Shooter</p>
     <button id="start-btn">Start Game</button>
+    <div class="instructions">
+      <p><strong>Controls:</strong></p>
+      <p>Move: Arrow Keys or WASD</p>
+      <p>Shoot: Spacebar</p>
+    </div>
   </div>
   
   <canvas id="gameCanvas" width="800" height="600"></canvas>
   
   <div id="hud" style="display: none;">
-    <div>Score: <span id="score">0</span></div>
-    <div>Lives: <span id="lives">3</span></div>
+    <div class="hud-item">Score: <span id="score">0</span></div>
+    <div class="hud-item">Lives: <span id="lives">3</span></div>
   </div>
   
   <div id="game-over" style="display: none;">

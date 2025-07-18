@@ -1,5 +1,5 @@
-// Extremely Simple Space Shooter
-console.log('🚀 Simple game loading...');
+// Kaden & Adelynn Adventures - Simple Space Shooter
+console.log('🚀 Kaden & Adelynn Adventures loading...');
 
 // Game variables
 let canvas, ctx;
@@ -10,10 +10,11 @@ let player = null;
 let bullets = [];
 let enemies = [];
 let keys = {};
+let gameTime = 0;
 
 // Initialize game
 function initGame() {
-  console.log('🎮 Initializing simple game...');
+  console.log('🎮 Initializing Kaden & Adelynn Adventures...');
   
   // Get canvas
   canvas = document.getElementById('gameCanvas');
@@ -22,7 +23,6 @@ function initGame() {
   // Set up button
   const startBtn = document.getElementById('start-btn');
   if (startBtn) {
-    startBtn.textContent = 'Start Game';
     startBtn.onclick = startGame;
   }
   
@@ -44,7 +44,7 @@ function initGame() {
 
 // Start game
 function startGame() {
-  console.log('🎮 Starting game...');
+  console.log('🎮 Starting Kaden & Adelynn Adventures...');
   
   // Create player
   player = {
@@ -60,6 +60,7 @@ function startGame() {
   lives = 3;
   bullets = [];
   enemies = [];
+  gameTime = 0;
   gameState = 'playing';
   
   // Hide menu
@@ -110,7 +111,7 @@ function spawnEnemy() {
     y: -30,
     width: 30,
     height: 30,
-    speed: 2
+    speed: 2 + Math.random() * 2
   });
 }
 
@@ -180,7 +181,11 @@ function checkCollisions() {
 // Game over
 function gameOver() {
   gameState = 'game-over';
-  console.log('Game Over! Score:', score);
+  console.log('Game Over! Final Score:', score);
+  
+  // Update final score
+  const finalScore = document.getElementById('final-score');
+  if (finalScore) finalScore.textContent = score;
   
   // Show game over screen
   const gameOver = document.getElementById('game-over');
@@ -193,8 +198,15 @@ function gameOver() {
 function drawPlayer() {
   if (!player) return;
   
+  // Draw player ship
   ctx.fillStyle = '#00ff00';
   ctx.fillRect(player.x, player.y, player.width, player.height);
+  
+  // Draw ship details
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(player.x + 5, player.y + 5, player.width - 10, 5);
+  ctx.fillRect(player.x + 10, player.y + 15, player.width - 20, 5);
+  ctx.fillRect(player.x + 15, player.y + 25, player.width - 30, 5);
 }
 
 // Draw enemies
@@ -202,6 +214,11 @@ function drawEnemies() {
   ctx.fillStyle = '#ff0000';
   enemies.forEach(enemy => {
     ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+    
+    // Draw enemy details
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(enemy.x + 5, enemy.y + 5, enemy.width - 10, 3);
+    ctx.fillStyle = '#ff0000';
   });
 }
 
@@ -213,20 +230,32 @@ function drawBullets() {
   });
 }
 
+// Draw stars background
+function drawStars() {
+  ctx.fillStyle = '#ffffff';
+  for (let i = 0; i < 50; i++) {
+    const x = (i * 17) % canvas.width;
+    const y = (i * 23 + gameTime * 0.5) % canvas.height;
+    ctx.fillRect(x, y, 1, 1);
+  }
+}
+
 // Update HUD
 function updateHUD() {
   const scoreElement = document.getElementById('score');
   const livesElement = document.getElementById('lives');
   
-  if (scoreElement) scoreElement.textContent = `Score: ${score}`;
-  if (livesElement) livesElement.textContent = `Lives: ${lives}`;
+  if (scoreElement) scoreElement.textContent = score;
+  if (livesElement) livesElement.textContent = lives;
 }
 
 // Update function
 function update() {
   if (gameState !== 'playing') return;
   
-  // Spawn enemies every 60 frames
+  gameTime++;
+  
+  // Spawn enemies
   if (Math.random() < 0.02) {
     spawnEnemy();
   }
@@ -243,6 +272,9 @@ function draw() {
   // Clear canvas
   ctx.fillStyle = '#000000';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Draw stars
+  drawStars();
   
   if (gameState === 'playing') {
     drawPlayer();

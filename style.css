@@ -1,31 +1,70 @@
 body {
   margin: 0;
   padding: 20px;
-  background: #000;
+  background: linear-gradient(135deg, #0a0a23 0%, #1a0a3a 100%);
   color: white;
-  font-family: Arial, sans-serif;
+  font-family: 'Arial', sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-height: 100vh;
 }
 
 #main-menu {
   text-align: center;
   margin-bottom: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 30px;
+  border-radius: 15px;
+  border: 2px solid #00fff7;
+  box-shadow: 0 0 20px rgba(0, 255, 247, 0.3);
+}
+
+#main-menu h1 {
+  color: #00fff7;
+  text-shadow: 0 0 10px #00fff7;
+  margin-bottom: 10px;
+  font-size: 2.5em;
+}
+
+.subtitle {
+  color: #ff00cc;
+  margin-bottom: 20px;
+  font-size: 1.2em;
+}
+
+.instructions {
+  margin-top: 20px;
+  text-align: left;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #00fff7;
+}
+
+.instructions p {
+  margin: 5px 0;
 }
 
 #gameCanvas {
-  border: 2px solid #fff;
+  border: 3px solid #00fff7;
   background: #000;
+  box-shadow: 0 0 30px rgba(0, 255, 247, 0.5);
+  border-radius: 10px;
 }
 
 #hud {
-  margin-top: 10px;
+  margin-top: 15px;
   font-size: 18px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1px solid #00fff7;
 }
 
-#hud div {
+.hud-item {
   margin: 5px 0;
+  color: #00fff7;
 }
 
 #game-over {
@@ -33,22 +72,33 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: #333;
-  padding: 20px;
-  border: 2px solid #fff;
+  background: rgba(0, 0, 0, 0.9);
+  padding: 30px;
+  border: 2px solid #ff00cc;
+  border-radius: 15px;
   text-align: center;
+  box-shadow: 0 0 30px rgba(255, 0, 204, 0.5);
+}
+
+#game-over h2 {
+  color: #ff00cc;
+  margin-bottom: 20px;
 }
 
 button {
-  background: #fff;
+  background: linear-gradient(45deg, #00fff7, #ff00cc);
   color: #000;
   border: none;
-  padding: 10px 20px;
+  padding: 12px 25px;
   font-size: 16px;
+  font-weight: bold;
   cursor: pointer;
   margin: 10px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
 }
 
 button:hover {
-  background: #ccc;
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(0, 255, 247, 0.7);
 } 
