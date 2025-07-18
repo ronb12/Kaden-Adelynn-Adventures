@@ -79,6 +79,135 @@
             box-shadow: 0 3px 6px rgba(0,0,0,0.4);
         }
         
+        #storeBtn {
+            background: linear-gradient(45deg, #ffd700, #ffb347);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 0 0 0 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+        
+        #storeBtn:hover {
+            background: linear-gradient(45deg, #ffb347, #ffd700);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+        }
+        
+        #store {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(20, 20, 60, 0.95) 100%);
+            border: 3px solid #ffd700;
+            border-radius: 15px;
+            padding: 20px;
+            z-index: 200;
+            display: none;
+            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.3);
+            backdrop-filter: blur(10px);
+            min-width: 400px;
+            max-width: 500px;
+        }
+        
+        #store h2 {
+            color: #ffd700;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+        
+        .store-item {
+            background: rgba(74, 144, 226, 0.1);
+            border: 1px solid #4a90e2;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .store-item:hover {
+            background: rgba(74, 144, 226, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .store-item-info {
+            flex: 1;
+        }
+        
+        .store-item-name {
+            color: #4a90e2;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+        
+        .store-item-description {
+            color: #87ceeb;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        
+        .store-item-cost {
+            color: #ffd700;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .store-item-button {
+            background: linear-gradient(45deg, #4a90e2, #357abd);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-left: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .store-item-button:hover {
+            background: linear-gradient(45deg, #357abd, #4a90e2);
+            transform: scale(1.05);
+        }
+        
+        .store-item-button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .store-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #ffd700;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .store-close:hover {
+            color: #fff;
+            transform: scale(1.1);
+        }
+        
         #scoreBoard {
             position: fixed;
             top: 5px;
@@ -255,6 +384,76 @@
         <div id="gameUI">
             <div id="controls">
                 <button id="menuBtn">Back to Menu</button>
+                <button id="storeBtn">💎 Store</button>
+            </div>
+        </div>
+        
+        <div id="store">
+            <button class="store-close" onclick="closeStore()">×</button>
+            <h2>💎 Space Store</h2>
+            <div class="store-item">
+                <div class="store-item-info">
+                    <div class="store-item-name">Extra Life</div>
+                    <div class="store-item-description">Gain 1 additional life</div>
+                    <div class="store-item-cost">Cost: 50 💵</div>
+                </div>
+                <button class="store-item-button" onclick="buyExtraLife()">Buy</button>
+            </div>
+            <div class="store-item">
+                <div class="store-item-info">
+                    <div class="store-item-name">Score Multiplier</div>
+                    <div class="store-item-description">2x score for 30 seconds</div>
+                    <div class="store-item-cost">Cost: 30 💵</div>
+                </div>
+                <button class="store-item-button" onclick="buyScoreMultiplier()">Buy</button>
+            </div>
+            <div class="store-item">
+                <div class="store-item-info">
+                    <div class="store-item-name">Shield Recharge</div>
+                    <div class="store-item-description">Restore shield if lost</div>
+                    <div class="store-item-cost">Cost: 25 💵</div>
+                </div>
+                <button class="store-item-button" onclick="buyShieldRecharge()">Buy</button>
+            </div>
+            <div class="store-item">
+                <div class="store-item-info">
+                    <div class="store-item-name">Emergency Boost</div>
+                    <div class="store-item-description">Speed + fire rate boost</div>
+                    <div class="store-item-cost">Cost: 20 💵</div>
+                </div>
+                <button class="store-item-button" onclick="buyEmergencyBoost()">Buy</button>
+            </div>
+            <div class="store-item">
+                <div class="store-item-info">
+                    <div class="store-item-name">Bullet Damage +1</div>
+                    <div class="store-item-description">Permanent damage upgrade</div>
+                    <div class="store-item-cost">Cost: 5 💎</div>
+                </div>
+                <button class="store-item-button" onclick="buyBulletDamage()">Buy</button>
+            </div>
+            <div class="store-item">
+                <div class="store-item-info">
+                    <div class="store-item-name">Boss Weakness</div>
+                    <div class="store-item-description">2x damage to bosses for 1 minute</div>
+                    <div class="store-item-cost">Cost: 3 💎</div>
+                </div>
+                <button class="store-item-button" onclick="buyBossWeakness()">Buy</button>
+            </div>
+            <div class="store-item">
+                <div class="store-item-info">
+                    <div class="store-item-name">Diamond Shield</div>
+                    <div class="store-item-description">Blocks 3 hits (permanent)</div>
+                    <div class="store-item-cost">Cost: 8 💎</div>
+                </div>
+                <button class="store-item-button" onclick="buyDiamondShield()">Buy</button>
+            </div>
+            <div class="store-item">
+                <div class="store-item-info">
+                    <div class="store-item-name">Diamond Storm</div>
+                    <div class="store-item-description">Rapid-fire all weapons for 10 seconds</div>
+                    <div class="store-item-cost">Cost: 15 💎</div>
+                </div>
+                <button class="store-item-button" onclick="buyDiamondStorm()">Buy</button>
             </div>
         </div>
     </div>
@@ -325,6 +524,19 @@
         let startTime = 0;
         let challengeCompleteMessage = '';
         let challengeCompleteTimer = 0;
+        
+        // Store and enhanced collectible system
+        let money = 0;
+        let diamonds = 0;
+        let bulletDamage = 1;
+        let diamondShield = 0;
+        let diamondStormActive = false;
+        let diamondStormTimer = 0;
+        let bossDamageMultiplier = 1;
+        let bossDamageTimer = 0;
+        let scoreMultiplier = 1;
+        let scoreMultiplierTimer = 0;
+        let storeOpen = false;
 
         // Initialize stars
         for (let i = 0; i < 100; i++) {
@@ -378,6 +590,7 @@
         // Event listeners
         startBtn.addEventListener('click', startGame);
         menuBtn.addEventListener('click', backToMenu);
+        document.getElementById('storeBtn').addEventListener('click', openStore);
         
         document.addEventListener('keydown', (e) => {
             if (!gameRunning) return;
@@ -544,6 +757,19 @@
             maxConsecutiveHits = 0;
             survivalTime = 0;
             startTime = Date.now();
+            
+            // Reset store system
+            money = 0;
+            diamonds = 0;
+            bulletDamage = 1;
+            diamondShield = 0;
+            diamondStormActive = false;
+            diamondStormTimer = 0;
+            bossDamageMultiplier = 1;
+            bossDamageTimer = 0;
+            scoreMultiplier = 1;
+            scoreMultiplierTimer = 0;
+            storeOpen = false;
             
             // Initialize challenges
             initializeChallenges();
@@ -857,19 +1083,20 @@
                         
                         if (enemies[j].type === 'boss') {
                             // Boss takes damage but doesn't die immediately
-                            enemies[j].health -= 1;
+                            const damage = bulletDamage * (bossDamageMultiplier > 1 ? bossDamageMultiplier : 1);
+                            enemies[j].health -= damage;
                             bullets.splice(i, 1);
                             
                             if (enemies[j].health <= 0) {
                                 score += 100; // Boss gives more points
                                 enemies.splice(j, 1);
                                 bossActive = false;
-                                updateChallengeProgress('boss', 1);
                                 console.log('Boss defeated!');
                             }
                         } else {
                             // Regular enemies die immediately
-                            score += enemies[j].type === 'fast' ? 20 : 10;
+                            const baseScore = enemies[j].type === 'fast' ? 20 : 10;
+                            score += baseScore * scoreMultiplier;
                             bullets.splice(i, 1);
                             enemies.splice(j, 1);
                             totalEnemiesDestroyed++;
@@ -899,7 +1126,7 @@
             }
 
             // Player vs enemies
-            if (!shieldActive) {
+            if (!shieldActive && diamondShield <= 0) {
                 for (let i = enemies.length - 1; i >= 0; i--) {
                     if (player.x < enemies[i].x + enemies[i].width &&
                         player.x + player.width > enemies[i].x &&
@@ -926,6 +1153,31 @@
                         if (lives <= 0) {
                             gameOver();
                         }
+                    }
+                }
+            } else if (diamondShield > 0) {
+                // Diamond shield blocks hits
+                for (let i = enemies.length - 1; i >= 0; i--) {
+                    if (player.x < enemies[i].x + enemies[i].width &&
+                        player.x + player.width > enemies[i].x &&
+                        player.y < enemies[i].y + enemies[i].height &&
+                        player.y + player.height > enemies[i].y) {
+                        diamondShield--;
+                        enemies.splice(i, 1);
+                        consecutiveHits = 0;
+                        console.log(`Diamond shield blocked hit! ${diamondShield} remaining`);
+                    }
+                }
+                
+                for (let i = enemyBullets.length - 1; i >= 0; i--) {
+                    if (player.x < enemyBullets[i].x + enemyBullets[i].width &&
+                        player.x + player.width > enemyBullets[i].x &&
+                        player.y < enemyBullets[i].y + enemyBullets[i].height &&
+                        player.y + player.height > enemyBullets[i].y) {
+                        diamondShield--;
+                        enemyBullets.splice(i, 1);
+                        consecutiveHits = 0;
+                        console.log(`Diamond shield blocked bullet! ${diamondShield} remaining`);
                     }
                 }
             }
@@ -974,12 +1226,12 @@
                     }, 12000);
                     break;
                 case 'money':
-                    score += 10;
+                    money += 1;
                     totalMoneyCollected++;
                     updateChallengeProgress('collect_money', 1);
                     break;
                 case 'diamond':
-                    score += 20;
+                    diamonds += 1;
                     totalDiamondsCollected++;
                     updateChallengeProgress('collect_diamonds', 1);
                     break;
@@ -1049,7 +1301,7 @@
             scoreDisplay.textContent = `Score: ${score} | Lives: ${lives} | Kills: ${totalEnemiesDestroyed}`;
             
             // Update stats display
-            statsDisplay.textContent = `Power: ${powerText} | Consecutive: ${consecutiveHits} | Survival: ${survivalTime}s | 💵: ${totalMoneyCollected} | 💎: ${totalDiamondsCollected}`;
+            statsDisplay.textContent = `Power: ${powerText} | Consecutive: ${consecutiveHits} | Survival: ${survivalTime}s | 💵: ${money} | 💎: ${diamonds}`;
             
             // Draw current challenge
             if (challengeActive && currentChallenge && challengeTimer > 0) {
@@ -1095,6 +1347,28 @@
             
             // Update time-based challenges
             updateChallengeProgress('time', survivalTime);
+            
+            // Update store system timers
+            if (scoreMultiplierTimer > 0) {
+                scoreMultiplierTimer -= 16; // 60fps
+                if (scoreMultiplierTimer <= 0) {
+                    scoreMultiplier = 1;
+                }
+            }
+            
+            if (bossDamageTimer > 0) {
+                bossDamageTimer -= 16;
+                if (bossDamageTimer <= 0) {
+                    bossDamageMultiplier = 1;
+                }
+            }
+            
+            if (diamondStormTimer > 0) {
+                diamondStormTimer -= 16;
+                if (diamondStormTimer <= 0) {
+                    diamondStormActive = false;
+                }
+            }
 
             updateStars();
             updatePlayer();
@@ -1289,6 +1563,152 @@
         function showChallengeComplete(challengeName, reward) {
             challengeCompleteMessage = `${challengeName} Complete! +${reward} points`;
             challengeCompleteTimer = 180; // 3 seconds
+        }
+
+        // Store functions
+        function openStore() {
+            storeOpen = true;
+            document.getElementById('store').style.display = 'block';
+            gameUI.style.display = 'none'; // Hide game UI when store is open
+        }
+
+        function closeStore() {
+            storeOpen = false;
+            document.getElementById('store').style.display = 'none';
+            gameUI.style.display = 'block'; // Show game UI when store is closed
+        }
+
+        function buyExtraLife() {
+            if (money >= 50) {
+                lives++;
+                money -= 50;
+                updateChallengeProgress('collect_money', -1); // Deduct money for purchase
+                updateChallengeProgress('extraLife', 1); // Track powerup collection
+                console.log('Extra life purchased!');
+                updateStatsDisplay();
+            } else {
+                alert('Not enough money!');
+            }
+        }
+
+        function buyScoreMultiplier() {
+            if (money >= 30) {
+                scoreMultiplier = 2;
+                scoreMultiplierTimer = 30000; // 30 seconds
+                money -= 30;
+                updateChallengeProgress('collect_money', -1);
+                updateChallengeProgress('scoreMultiplier', 1);
+                console.log('Score multiplier purchased!');
+                updateStatsDisplay();
+            } else {
+                alert('Not enough money!');
+            }
+        }
+
+        function buyShieldRecharge() {
+            if (money >= 25) {
+                shieldActive = true;
+                shieldTimer = 300;
+                money -= 25;
+                updateChallengeProgress('collect_money', -1);
+                updateChallengeProgress('shieldRecharge', 1);
+                console.log('Shield recharge purchased!');
+                updateStatsDisplay();
+            } else {
+                alert('Not enough money!');
+            }
+        }
+
+        function buyEmergencyBoost() {
+            if (money >= 20) {
+                playerPower = 'speed';
+                doubleShot = true;
+                fireRateBoost = true;
+                shotCooldown = 100;
+                setTimeout(() => {
+                    playerPower = 'basic';
+                    doubleShot = false;
+                    fireRateBoost = false;
+                    shotCooldown = 200;
+                }, 12000);
+                money -= 20;
+                updateChallengeProgress('collect_money', -1);
+                updateChallengeProgress('emergencyBoost', 1);
+                console.log('Emergency boost purchased!');
+                updateStatsDisplay();
+            } else {
+                alert('Not enough money!');
+            }
+        }
+
+        function buyBulletDamage() {
+            if (diamonds >= 5) {
+                bulletDamage++;
+                diamonds -= 5;
+                updateChallengeProgress('collect_diamonds', -1);
+                updateChallengeProgress('bulletDamage', 1);
+                console.log('Bullet damage upgrade purchased!');
+                updateStatsDisplay();
+            } else {
+                alert('Not enough diamonds!');
+            }
+        }
+
+        function buyBossWeakness() {
+            if (diamonds >= 3) {
+                bossDamageMultiplier = 2;
+                bossDamageTimer = 60000; // 1 minute
+                diamonds -= 3;
+                updateChallengeProgress('collect_diamonds', -1);
+                updateChallengeProgress('bossWeakness', 1);
+                console.log('Boss weakness purchased!');
+                updateStatsDisplay();
+            } else {
+                alert('Not enough diamonds!');
+            }
+        }
+
+        function buyDiamondShield() {
+            if (diamonds >= 8) {
+                diamondShield = 3; // Blocks 3 hits
+                diamonds -= 8;
+                updateChallengeProgress('collect_diamonds', -1);
+                updateChallengeProgress('diamondShield', 1);
+                console.log('Diamond shield purchased!');
+                updateStatsDisplay();
+            } else {
+                alert('Not enough diamonds!');
+            }
+        }
+
+        function buyDiamondStorm() {
+            if (diamonds >= 15) {
+                diamondStormActive = true;
+                diamondStormTimer = 10000; // 10 seconds
+                diamonds -= 15;
+                updateChallengeProgress('collect_diamonds', -1);
+                updateChallengeProgress('diamondStorm', 1);
+                console.log('Diamond storm purchased!');
+                updateStatsDisplay();
+            } else {
+                alert('Not enough diamonds!');
+            }
+        }
+
+        function updateStatsDisplay() {
+            let powerText = 'Basic';
+            if (playerPower === 'speed') powerText = 'Speed Boost';
+            if (doubleShot) powerText += ' + Double Shot';
+            if (shieldActive) powerText += ' + Shield';
+            if (starPowerActive) powerText += ' + Star Power';
+            if (fireRateBoost) powerText += ' + Fire Rate';
+            if (scoreMultiplier > 1) powerText += ` + ${scoreMultiplier}x Score`;
+            if (bulletDamage > 1) powerText += ` + Bullet Damage ${bulletDamage}`;
+            if (diamondShield > 0) powerText += ` + Diamond Shield (${diamondShield} hits)`;
+            if (diamondStormActive) powerText += ' + Diamond Storm';
+            if (bossDamageMultiplier > 1) powerText += ` + Boss Weakness (${bossDamageMultiplier}x)`;
+
+            statsDisplay.textContent = `Power: ${powerText} | Consecutive: ${consecutiveHits} | Survival: ${survivalTime}s | 💵: ${money} | 💎: ${diamonds}`;
         }
 
         // Initialize the game
