@@ -2617,7 +2617,14 @@ function initGame() {
   credits = 0;
   
   // Initialize achievements
-  achievements = [];
+  achievements = {
+    firstBlood: { name: 'First Blood', description: 'Destroy your first enemy', unlocked: false },
+    sharpshooter: { name: 'Sharpshooter', description: 'Destroy 100 enemies', unlocked: false, progress: 0, target: 100 },
+    bossSlayer: { name: 'Boss Slayer', description: 'Defeat your first boss', unlocked: false },
+    missionMaster: { name: 'Mission Master', description: 'Complete 10 missions', unlocked: false, progress: 0, target: 10 },
+    skillMaster: { name: 'Skill Master', description: 'Unlock 5 skills', unlocked: false, progress: 0, target: 5 },
+    ultimateChampion: { name: 'Ultimate Champion', description: 'Complete all 50 missions', unlocked: false }
+  };
   
   // Initialize keyboard input
   keys = {};
@@ -3280,28 +3287,8 @@ function loadGame() {
 }
 
 // --- Achievement System ---
-let achievements = {
-  firstBlood: { name: 'First Blood', description: 'Destroy your first enemy', unlocked: false },
-  sharpshooter: { name: 'Sharpshooter', description: 'Destroy 100 enemies', unlocked: false, progress: 0, target: 100 },
-  bossSlayer: { name: 'Boss Slayer', description: 'Defeat your first boss', unlocked: false },
-  missionMaster: { name: 'Mission Master', description: 'Complete 10 missions', unlocked: false, progress: 0, target: 10 },
-  skillMaster: { name: 'Skill Master', description: 'Unlock 5 skills', unlocked: false, progress: 0, target: 5 },
-  ultimateChampion: { name: 'Ultimate Champion', description: 'Complete all 50 missions', unlocked: false }
-};
 
 function checkAchievements() {
-  // Ensure achievements object exists
-  if (!achievements) {
-    achievements = {
-      firstBlood: { name: 'First Blood', description: 'Destroy your first enemy', unlocked: false },
-      sharpshooter: { name: 'Sharpshooter', description: 'Destroy 100 enemies', unlocked: false, progress: 0, target: 100 },
-      bossSlayer: { name: 'Boss Slayer', description: 'Defeat your first boss', unlocked: false },
-      missionMaster: { name: 'Mission Master', description: 'Complete 10 missions', unlocked: false, progress: 0, target: 10 },
-      skillMaster: { name: 'Skill Master', description: 'Unlock 5 skills', unlocked: false, progress: 0, target: 5 },
-      ultimateChampion: { name: 'Ultimate Champion', description: 'Complete all 50 missions', unlocked: false }
-    };
-  }
-  
   // Ensure playerSkills exists
   if (!playerSkills) {
     playerSkills = {};
