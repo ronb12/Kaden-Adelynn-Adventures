@@ -477,7 +477,7 @@ function drawEnemyBullets() {
 }
 
 function resetGame() {
-  player = { x: canvas.width/2-16, y: canvas.height-60, w: 32, h: 24, speed: 4, weaponLevel: 1, shield: 0 };
+  player = { x: canvas.width/2-16, y: canvas.height-60, w: 32, h: 24, speed: 4, weaponLevel: 1, shield: 0, weaponMultiplier: 4 };
   bullets = [];
   enemies = [];
   enemyBullets = [];
@@ -871,7 +871,7 @@ function gameLoop() {
     // Update HUD
     scoreDisplay.textContent = 'Score: ' + score;
     livesDisplay.textContent = 'Lives: ' + lives;
-    weaponLevelDisplay.textContent = 'Weapon: Level ' + (player.weaponLevel || 1);
+    weaponLevelDisplay.textContent = 'Weapon: Level ' + (player.weaponLevel || 1) + ' (x' + (player.weaponMultiplier || 4) + ')';
     difficultyDisplay.textContent = 'Difficulty: ' + difficulty;
     
     // Format time (MM:SS)
@@ -900,17 +900,33 @@ document.addEventListener('keydown', e => {
   if (gameState === 'playing') {
     keys[e.key] = true;
     if (e.key === ' ' || e.key === 'Spacebar') {
-      // Shoot
+      // Shoot with weapon multiplier
       let level = player.weaponLevel || 1;
+      let multiplier = player.weaponMultiplier || 4;
+      
+      // Add shooting particles
+      for (let i = 0; i < multiplier * 2; i++) {
+        createParticle(player.x + player.w/2, player.y, '#00ffff', 3, 15);
+      }
+      
       if (level === 1) {
-        bullets.push({ x: player.x+player.w/2-3, y: player.y, w: 6, h: 12, speed: 8 });
+        // Single shot with multiplier
+        for (let i = 0; i < multiplier; i++) {
+          bullets.push({ x: player.x+player.w/2-3, y: player.y, w: 6, h: 12, speed: 8 });
+        }
       } else if (level === 2) {
-        bullets.push({ x: player.x+player.w/2-10, y: player.y, w: 6, h: 12, speed: 8 });
-        bullets.push({ x: player.x+player.w/2+4, y: player.y, w: 6, h: 12, speed: 8 });
+        // Double shot with multiplier
+        for (let i = 0; i < multiplier; i++) {
+          bullets.push({ x: player.x+player.w/2-10, y: player.y, w: 6, h: 12, speed: 8 });
+          bullets.push({ x: player.x+player.w/2+4, y: player.y, w: 6, h: 12, speed: 8 });
+        }
       } else if (level >= 3) {
-        bullets.push({ x: player.x+player.w/2-12, y: player.y, w: 6, h: 12, speed: 8 });
-        bullets.push({ x: player.x+player.w/2-3, y: player.y, w: 6, h: 12, speed: 8 });
-        bullets.push({ x: player.x+player.w/2+8, y: player.y, w: 6, h: 12, speed: 8 });
+        // Triple shot with multiplier
+        for (let i = 0; i < multiplier; i++) {
+          bullets.push({ x: player.x+player.w/2-12, y: player.y, w: 6, h: 12, speed: 8 });
+          bullets.push({ x: player.x+player.w/2-3, y: player.y, w: 6, h: 12, speed: 8 });
+          bullets.push({ x: player.x+player.w/2+8, y: player.y, w: 6, h: 12, speed: 8 });
+        }
       }
     }
   }
