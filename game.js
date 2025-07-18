@@ -403,9 +403,7 @@ function showUpgradeMenu() {
 }
 
 // Additional game state variables
-let difficulty = 1;
 let autoSaveInterval = null;
-let highScores = [];
 
 // Gradius-style power-up system
 let powerUpMenu = false;
@@ -416,7 +414,7 @@ let touchStartX = 0;
 let touchStartY = 0;
 
 // Starfield background
-let stars = [];
+// stars array already declared at top
 
 
 
@@ -482,7 +480,6 @@ function drawSoundEffects() {
 }
 
 // --- Boss System ---
-let bossHealth = 0;
 let bossMaxHealth = 0;
 
 const BOSS_TYPES = {
@@ -544,7 +541,7 @@ let skillTree = {
   }
 };
 
-let playerSkills = {};
+// playerSkills already declared at top
 
 // --- Advanced Weapon System ---
 let weaponTypes = {
