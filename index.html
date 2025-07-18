@@ -200,7 +200,6 @@
             <div class="menu-instructions">
                 <h3>🏆 High Scores:</h3>
                 <p><strong>Highest Score:</strong> <span id="highScoreDisplay">0</span></p>
-                <p><strong>Highest Level:</strong> <span id="highestLevelDisplay">1</span></p>
             </div>
             
             <div class="menu-instructions">
@@ -215,7 +214,7 @@
         <canvas id="gameCanvas" width="800" height="600"></canvas>
         
         <div id="scoreBoard">
-            <div id="score">Score: 0 | Level: 1 | Lives: 25 | Kills: 0</div>
+            <div id="score">Score: 0 | Lives: 25 | Kills: 0</div>
             <div id="stats">Power: Basic | Consecutive: 0 | Survival: 0s | 💵: 0 | 💎: 0</div>
         </div>
         
@@ -246,10 +245,7 @@
         let gameRunning = false;
         let score = 0;
         let lives = 25;
-        let level = 1;
-        let levelScore = 0;
         let highScore = 0;
-        let highestLevel = 1;
         let player = { x: 375, y: 500, width: 50, height: 40 };
         let bullets = [];
         let enemyBullets = [];
@@ -271,7 +267,7 @@
         let isMobile = false;
         let audioContext = null;
         
-        // Level system variables
+        // Dynamic difficulty scaling based on score
         let enemySpawnRate = 0.02;
         let enemySpeedMultiplier = 1;
         let bossActive = false;
@@ -487,15 +483,6 @@
             gameStarted = true;
             score = 0;
             lives = 25;
-            level = 1;
-            levelScore = 0;
-            levelComplete = false;
-            levelCompleteTimer = 0;
-            bossActive = false;
-            bossHealth = 0;
-            bossMaxHealth = 0;
-            enemySpawnRate = 0.02;
-            enemySpeedMultiplier = 1;
             bullets = [];
             enemyBullets = [];
             enemies = [];
@@ -509,6 +496,13 @@
             fireRateBoost = false;
             fireRateTimer = 0;
             player = { x: 375, y: 500, width: 50, height: 40 };
+            
+            // Reset difficulty
+            enemySpawnRate = 0.02;
+            enemySpeedMultiplier = 1;
+            bossActive = false;
+            bossHealth = 0;
+            bossMaxHealth = 0;
             
             // Reset challenge tracking
             totalEnemiesDestroyed = 0;
@@ -546,7 +540,6 @@
             
             // Update high score displays
             highScoreDisplay.textContent = highScore;
-            highestLevelDisplay.textContent = highestLevel;
             
             // Show menu, hide game
             mainMenu.style.display = 'block';
@@ -970,7 +963,7 @@
         function gameOver() {
             gameRunning = false;
             saveHighScores();
-            alert(`Game Over!\nFinal Score: ${score}\nLevel Reached: ${level}\n${score > highScore ? '🎉 NEW HIGH SCORE! 🎉' : ''}`);
+            alert(`Game Over!\nFinal Score: ${score}\n${score > highScore ? '🎉 NEW HIGH SCORE! 🎉' : ''}`);
             backToMenu();
         }
 
@@ -1022,7 +1015,7 @@
             if (starPowerActive) powerText += ' + Star Power';
             if (fireRateBoost) powerText += ' + Fire Rate';
             
-            scoreDisplay.textContent = `Score: ${score} | Level: ${level} | Lives: ${lives} | Kills: ${totalEnemiesDestroyed}`;
+            scoreDisplay.textContent = `Score: ${score} | Lives: ${lives} | Kills: ${totalEnemiesDestroyed}`;
             
             // Update stats display
             statsDisplay.textContent = `Power: ${powerText} | Consecutive: ${consecutiveHits} | Survival: ${survivalTime}s | 💵: ${totalMoneyCollected} | 💎: ${totalDiamondsCollected}`;
@@ -1058,28 +1051,6 @@
                     challengeCompleteMessage = '';
                 }
             }
-            
-            // Draw level completion message
-            if (levelComplete && levelCompleteTimer > 0) {
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                ctx.fillStyle = '#00ff00';
-                ctx.font = '48px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(`LEVEL ${level} COMPLETE!`, canvas.width / 2, canvas.height / 2 - 50);
-                
-                ctx.fillStyle = '#ffff00';
-                ctx.font = '24px Arial';
-                ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2);
-                ctx.fillText(`Next Level: ${level + 1}`, canvas.width / 2, canvas.height / 2 + 30);
-                
-                levelCompleteTimer--;
-                if (levelCompleteTimer <= 0) {
-                    levelComplete = false;
-                }
-            }
         }
 
         function gameLoop() {
@@ -1103,7 +1074,7 @@
             updateEnemies();
             updatePowerups();
             checkCollisions();
-            checkLevelProgress(); // Check for level progression
+            updateDifficulty(); // Update difficulty based on score
             draw();
 
             requestAnimationFrame(gameLoop);
@@ -1129,47 +1100,29 @@
                     highScore = score;
                     localStorage.setItem('kadenAdelynnHighScore', highScore.toString());
                 }
-                if (level > highestLevel) {
-                    highestLevel = level;
-                    localStorage.setItem('kadenAdelynnHighestLevel', highestLevel.toString());
-                }
-                console.log('Saved high scores:', { highScore, highestLevel });
+                console.log('Saved high scores:', { highScore });
             } catch (error) {
                 console.log('Error saving high scores:', error);
             }
         }
-
-        // Level progression system
-        function checkLevelProgress() {
-            const levelThreshold = level * 100; // 100 points per level
-            if (score >= levelThreshold && !levelComplete) {
-                levelUp();
-            }
-        }
         
-        function levelUp() {
-            level++;
-            levelComplete = true;
-            levelCompleteTimer = 180; // 3 seconds at 60fps
+        // Dynamic difficulty scaling based on score
+        function updateDifficulty() {
+            // Increase spawn rate based on score (capped to prevent overwhelming)
+            enemySpawnRate = Math.min(0.08, 0.02 + (score / 1000) * 0.01);
             
-            // Increase difficulty
-            enemySpawnRate = Math.min(0.05, 0.02 + (level - 1) * 0.005);
-            enemySpeedMultiplier = 1 + (level - 1) * 0.2;
+            // Increase enemy speed based on score (capped for playability)
+            enemySpeedMultiplier = Math.min(2.5, 1 + (score / 500) * 0.3);
             
-            // Update challenge progress
-            updateChallengeProgress('level', 1);
-            
-            // Spawn boss every 5 levels
-            if (level % 5 === 0) {
+            // Spawn boss every 500 points
+            if (score > 0 && score % 500 === 0 && !bossActive) {
                 spawnBoss();
             }
-            
-            console.log(`Level ${level} reached! Difficulty increased.`);
         }
         
         function spawnBoss() {
             bossActive = true;
-            bossMaxHealth = level * 10;
+            bossMaxHealth = Math.floor(score / 100) + 10; // Boss health scales with score
             bossHealth = bossMaxHealth;
             
             const boss = {
@@ -1228,7 +1181,7 @@
                 { id: 'survive_time', name: 'Survivor', description: 'Survive for 2 minutes', target: 120, reward: 40, type: 'time' },
                 { id: 'consecutive_hits', name: 'Sharpshooter', description: 'Hit 5 enemies in a row', target: 5, reward: 25, type: 'consecutive' },
                 { id: 'collect_powerups', name: 'Power Collector', description: 'Collect 8 power-ups', target: 8, reward: 35, type: 'powerups' },
-                { id: 'reach_level', name: 'Level Master', description: 'Reach level 5', target: 5, reward: 60, type: 'level' },
+                { id: 'reach_score', name: 'Score Master', description: 'Reach 500 points', target: 500, reward: 60, type: 'score' },
                 { id: 'defeat_boss', name: 'Boss Slayer', description: 'Defeat a boss', target: 1, reward: 100, type: 'boss' },
                 { id: 'collect_money', name: 'Money Collector', description: 'Collect 15 money items', target: 15, reward: 45, type: 'money' }
             ];
@@ -1267,6 +1220,11 @@
                 } else if (type === 'consecutive') {
                     // For consecutive hits, check if the challenge is completed
                     if (amount >= currentChallenge.target) {
+                        completeChallenge();
+                    }
+                } else if (type === 'score') {
+                    // For score-based challenges, check if score meets target
+                    if (score >= currentChallenge.target) {
                         completeChallenge();
                     }
                 } else {
