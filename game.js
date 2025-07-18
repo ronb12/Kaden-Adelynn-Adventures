@@ -101,7 +101,7 @@ function drawPowerUps() {
 // --- Enemy Types ---
 function spawnEnemy() {
   const y = Math.random() * (canvas.height - 32) + 8;
-  const x = Math.random() * (canvas.width - 200) + 200; // Spawn in middle-right area
+  const x = Math.random() * (canvas.width - 32) + 8; // Spawn anywhere on screen
   const type = Math.random() < 0.7 ? 'basic' : 'shooter';
   if (type === 'basic') {
     enemies.push({ x, y, w: 32, h: 24, type, lifeTimer: 0 });
@@ -111,35 +111,47 @@ function spawnEnemy() {
 }
 let enemyBullets = [];
 function updateEnemies() {
-  // Enemies move within the fixed screen area
+  // Enemies move freely across the entire screen
   for (let e of enemies) {
     // Add movement patterns
     if (!e.movementPattern) {
-      e.movementPattern = Math.random() < 0.5 ? 'horizontal' : 'vertical';
-      e.movementSpeed = 1 + Math.random() * 2;
+      e.movementPattern = Math.random() < 0.33 ? 'horizontal' : Math.random() < 0.5 ? 'vertical' : 'diagonal';
+      e.movementSpeed = 1 + Math.random() * 3;
       e.movementDirection = 1;
       e.originalX = e.x;
       e.originalY = e.y;
+      e.diagonalDirectionX = Math.random() < 0.5 ? 1 : -1;
+      e.diagonalDirectionY = Math.random() < 0.5 ? 1 : -1;
     }
     
     // Horizontal movement pattern
     if (e.movementPattern === 'horizontal') {
       e.x += e.movementSpeed * e.movementDirection;
-      if (e.x > e.originalX + 100 || e.x < e.originalX - 100) {
+      // Bounce off screen edges
+      if (e.x > canvas.width - e.w || e.x < 0) {
         e.movementDirection *= -1;
       }
     }
     // Vertical movement pattern
     else if (e.movementPattern === 'vertical') {
       e.y += e.movementSpeed * e.movementDirection;
-      if (e.y > e.originalY + 80 || e.y < e.originalY - 80) {
+      // Bounce off screen edges
+      if (e.y > canvas.height - e.h || e.y < 0) {
         e.movementDirection *= -1;
       }
     }
-    
-    // Keep enemies within screen bounds
-    e.x = Math.max(50, Math.min(canvas.width - e.w - 50, e.x));
-    e.y = Math.max(10, Math.min(canvas.height - e.h - 10, e.y));
+    // Diagonal movement pattern
+    else if (e.movementPattern === 'diagonal') {
+      e.x += e.movementSpeed * e.diagonalDirectionX;
+      e.y += e.movementSpeed * e.diagonalDirectionY;
+      // Bounce off screen edges
+      if (e.x > canvas.width - e.w || e.x < 0) {
+        e.diagonalDirectionX *= -1;
+      }
+      if (e.y > canvas.height - e.h || e.y < 0) {
+        e.diagonalDirectionY *= -1;
+      }
+    }
     
     // Update life timer
     e.lifeTimer = (e.lifeTimer || 0) + 1;
@@ -153,8 +165,8 @@ function updateEnemies() {
     }
   }
   
-  // Remove enemies that have been alive too long (10 seconds at 60fps = 600 frames)
-  enemies = enemies.filter(e => e.lifeTimer < 600);
+  // Remove enemies that have been alive too long (15 seconds at 60fps = 900 frames)
+  enemies = enemies.filter(e => e.lifeTimer < 900);
 }
 function updateEnemyBullets() {
   // Enemy bullets stay in fixed positions - no horizontal movement
