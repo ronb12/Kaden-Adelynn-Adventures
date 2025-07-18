@@ -292,16 +292,6 @@ function showUpgradeMenu() {
   menu.classList.remove('hidden');
 }
 
-document.getElementById('upgrade-confirm').onclick = () => {
-  const selected = document.querySelector('.upgrade-option.selected');
-  if (!selected) return;
-  // Apply upgrade (TODO: implement effects)
-  // Hide menu and start next stage
-  document.getElementById('upgrade-menu').classList.add('hidden');
-  stage++;
-  startStage();
-};
-
 let player, bullets, enemies, score, lives, keys, enemyTimer;
 let gameTime = 0;
 let difficulty = 1;
