@@ -3,6 +3,43 @@ let canvas, ctx, hud, mainMenu, startBtn, gameOverScreen, restartBtn, mainMenuBt
 let scoreDisplay, livesDisplay, finalScore, highScoreDisplay, weaponLevelDisplay, difficultyDisplay, timeDisplay;
 let pauseMenu, resumeBtn, saveExitBtn, exitNoSaveBtn, continueBtn;
 
+// --- Game Arrays ---
+let bullets = [];
+let enemies = [];
+let enemyBullets = [];
+let particles = [];
+let soundEffects = [];
+let collectibles = [];
+let powerCapsules = [];
+let powerUps = [];
+let options = [];
+
+// --- Game Objects ---
+let player = null;
+let boss = null;
+
+// --- Game State Variables ---
+let gameTime = 0;
+let score = 0;
+let lives = 3;
+let gamePaused = false;
+let enemyTimer = 60;
+let bossSpawned = false;
+let fireHeld = false;
+
+// --- Touch Controls ---
+let isTouchDevice = false;
+let isTouching = false;
+let touchX = 0;
+let touchY = 0;
+
+// --- Keyboard Input ---
+let keys = {};
+
+// --- Constants ---
+const COLLECTIBLE_DROP_RATE = 0.1;
+const POWERUP_DROP_RATE = 0.05;
+
 // --- Input System ---
 // Keyboard event listeners will be added in initGame()
 
@@ -1048,28 +1085,21 @@ function updateEnemies() {
   );
 }
 function updateEnemyBullets() {
-  enemyBullets.forEach(b => {
-    b.x += b.dx || 0;
-    b.y += (b.dy || ENEMY_BULLET_SPEED);
+  enemyBullets.forEach(bullet => {
+    bullet.x += bullet.dx || 0;
+    bullet.y += (bullet.dy || ENEMY_BULLET_SPEED);
   });
-  enemyBullets = enemyBullets.filter(b => b.y < canvas.height + 20 && b.x > -20 && b.x < canvas.width + 20);
+  enemyBullets = enemyBullets.filter(bullet => bullet.y < canvas.height + 20 && bullet.x > -20 && bullet.x < canvas.width + 20);
 }
 function drawEnemyBullets() {
-  enemyBullets.forEach(b => {
+  enemyBullets.forEach(bullet => {
     ctx.save();
-    ctx.translate(b.x + b.w/2, b.y + b.h/2);
-    
-    // Classic Gradius enemy bullets - simple red circles
-    ctx.fillStyle = '#ff0000';
+    ctx.fillStyle = '#ff4444';
+    ctx.shadowColor = '#ff0000';
+    ctx.shadowBlur = 10;
     ctx.beginPath();
-    ctx.arc(0, 0, b.w/2, 0, Math.PI * 2);
+    ctx.arc(bullet.x, bullet.y, bullet.radius || 3, 0, Math.PI * 2);
     ctx.fill();
-    
-    // White outline
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    
     ctx.restore();
   });
 }
@@ -3271,4 +3301,41 @@ function showAchievementNotification(achievementName) {
       document.body.removeChild(notification);
     }, 500);
   }, 3000);
+}
+
+// --- Utility Functions ---
+function rectsCollide(rect1, rect2) {
+  return rect1.x < rect2.x + rect2.width &&
+         rect1.x + rect1.width > rect2.x &&
+         rect1.y < rect2.y + rect2.height &&
+         rect1.y + rect1.height > rect2.y;
+}
+
+function updateDrones() {
+  // Update drone positions and behavior
+  options.forEach(drone => {
+    // Follow player with offset
+    const offsetX = drone.offsetX || 0;
+    const offsetY = drone.offsetY || 0;
+    
+    drone.x = player.x + offsetX;
+    drone.y = player.y + offsetY;
+    
+    // Keep drones within canvas bounds
+    drone.x = Math.max(0, Math.min(canvas.width - drone.width, drone.x));
+    drone.y = Math.max(0, Math.min(canvas.height - drone.height, drone.y));
+    
+    // Auto-shoot from drones
+    if (gameTime % 30 === 0) {
+      const droneBullet = {
+        x: drone.x + drone.width / 2,
+        y: drone.y,
+        width: 4,
+        height: 8,
+        speed: 8,
+        damage: 1
+      };
+      bullets.push(droneBullet);
+    }
+  });
 }
