@@ -1,7 +1,47 @@
 // --- Game Variables ---
-let canvas, ctx, hud, mainMenu, startBtn, gameOverScreen, restartBtn, mainMenuBtn;
-let scoreDisplay, livesDisplay, finalScore, highScoreDisplay, weaponLevelDisplay, difficultyDisplay, timeDisplay;
-let pauseMenu, resumeBtn, saveExitBtn, exitNoSaveBtn, continueBtn;
+let canvas, ctx, mainMenu, hud;
+let gameState = 'menu';
+let gamePaused = false;
+let score = 0;
+let lives = 3;
+let gameTime = 0;
+let enemyTimer = 60;
+let difficulty = 1;
+let stageProgress = 0;
+let stageGoal = 20;
+let missionCompleted = false;
+let bossSpawned = false;
+let boss = null;
+let bossHealth = 0;
+let fireHeld = false;
+let fireCooldown = 0;
+let currentMission = 1;
+let totalMissions = 50;
+let playerLevel = 1;
+let playerXP = 0;
+let skillPoints = 0;
+let credits = 0;
+let playerSkills = {};
+let highScores = [];
+let highScoreDisplay;
+
+// Arrays
+let bullets = [];
+let enemies = [];
+let enemyBullets = [];
+let particles = [];
+let soundEffects = [];
+let collectibles = [];
+let powerCapsules = [];
+let powerUps = [];
+let options = [];
+let stars = [];
+
+// Mission data
+let missionData = [];
+
+// Input
+let keys = {};
 
 // --- Game Arrays ---
 let bullets = [];
@@ -3291,6 +3331,23 @@ let achievements = {
 };
 
 function checkAchievements() {
+  // Ensure achievements object exists
+  if (!achievements) {
+    achievements = {
+      firstBlood: { name: 'First Blood', description: 'Destroy your first enemy', unlocked: false },
+      sharpshooter: { name: 'Sharpshooter', description: 'Destroy 100 enemies', unlocked: false, progress: 0, target: 100 },
+      bossSlayer: { name: 'Boss Slayer', description: 'Defeat your first boss', unlocked: false },
+      missionMaster: { name: 'Mission Master', description: 'Complete 10 missions', unlocked: false, progress: 0, target: 10 },
+      skillMaster: { name: 'Skill Master', description: 'Unlock 5 skills', unlocked: false, progress: 0, target: 5 },
+      ultimateChampion: { name: 'Ultimate Champion', description: 'Complete all 50 missions', unlocked: false }
+    };
+  }
+  
+  // Ensure playerSkills exists
+  if (!playerSkills) {
+    playerSkills = {};
+  }
+  
   // First Blood
   if (score > 0 && !achievements.firstBlood.unlocked) {
     unlockAchievement('firstBlood');
@@ -3326,7 +3383,7 @@ function checkAchievements() {
   }
   
   // Ultimate Champion
-  if (currentMission > totalMissions && !achievements.ultimateChampion.unlocked) {
+  if (currentMission > 50 && !achievements.ultimateChampion.unlocked) {
     unlockAchievement('ultimateChampion');
   }
 }
