@@ -1140,7 +1140,9 @@ function drawBasicEnemy(e) {
 
   // --- Glowing core with shield ring ---
   const pulse = 0.7 + 0.3*Math.sin(Date.now()*0.08);
-  const coreGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, w/7*pulse);
+  const minRadius = 2;
+  const coreRadius = Math.max(minRadius, w/7*pulse);
+  const coreGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, coreRadius);
   coreGrad.addColorStop(0, '#fff');
   coreGrad.addColorStop(0.5, '#ff4444');
   coreGrad.addColorStop(1, 'rgba(255,68,68,0)');
@@ -1148,14 +1150,14 @@ function drawBasicEnemy(e) {
   ctx.globalAlpha = 0.8;
   ctx.fillStyle = coreGrad;
   ctx.beginPath();
-  ctx.arc(0, 0, w/7*pulse, 0, Math.PI*2);
+  ctx.arc(0, 0, coreRadius, 0, Math.PI*2);
   ctx.fill();
   // Shield ring
   ctx.globalAlpha = 0.18;
   ctx.strokeStyle = '#ff4444';
   ctx.lineWidth = 4;
   ctx.beginPath();
-  ctx.arc(0, 0, w/5, 0, Math.PI*2);
+  ctx.arc(0, 0, Math.max(minRadius, w/5), 0, Math.PI*2);
   ctx.stroke();
   ctx.restore();
 
