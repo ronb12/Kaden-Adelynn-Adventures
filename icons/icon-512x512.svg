@@ -1,0 +1,21 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a23;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a1a40;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+  
+  <!-- Ship triangle (Vic Viper style) -->
+  <polygon points="256,128 171,384 341,384" fill="#00ffff" stroke="#ffffff" stroke-width="10"/>
+  
+  <!-- Cockpit -->
+  <circle cx="256" cy="256" r="25" fill="#ffffff"/>
+  
+  <!-- Engine glow -->
+  <circle cx="171" cy="384" r="16" fill="#ffff00"/>
+  <circle cx="341" cy="384" r="16" fill="#ffff00"/>
+</svg> 
