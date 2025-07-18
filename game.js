@@ -174,8 +174,31 @@ function updateEnemyBullets() {
   }
 }
 function drawEnemyBullets() {
-  ctx.fillStyle = '#ff0';
-  enemyBullets.forEach(b => ctx.fillRect(b.x, b.y, b.w, b.h));
+  enemyBullets.forEach(b => {
+    ctx.save();
+    ctx.translate(b.x + b.w/2, b.y + b.h/2);
+    
+    // Enemy bullet glow (red/orange)
+    const bulletGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, b.w/2);
+    bulletGradient.addColorStop(0, '#ffffff');
+    bulletGradient.addColorStop(0.5, '#ff4444');
+    bulletGradient.addColorStop(1, 'transparent');
+    
+    ctx.fillStyle = bulletGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, b.w/2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Enemy bullet trail
+    ctx.strokeStyle = '#ff4444';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(b.w/2 + 4, 0);
+    ctx.lineTo(b.w/2, 0);
+    ctx.stroke();
+    
+    ctx.restore();
+  });
 }
 
 function resetGame() {
@@ -256,37 +279,250 @@ function update() {
 function draw() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
   drawStars();
-  // Player (triangle)
+  
+  // Draw player ship
+  drawPlayerShip();
+  
+  // Bullets
+  drawBullets();
+  
+  // Enemy bullets
+  drawEnemyBullets();
+  
+  // Enemies
+  drawEnemies();
+  
+  // Power-ups
+  drawPowerUps();
+}
+
+function drawPlayerShip() {
   ctx.save();
-  ctx.translate(player.x+player.w/2, player.y+player.h/2);
-  ctx.fillStyle = player.shield > 0 ? '#0ff' : '#00fff7';
+  ctx.translate(player.x + player.w/2, player.y + player.h/2);
+  
+  // Main body gradient
+  const bodyGradient = ctx.createLinearGradient(-player.w/2, -player.h/2, player.w/2, player.h/2);
+  bodyGradient.addColorStop(0, '#1a1a2e');
+  bodyGradient.addColorStop(0.3, '#16213e');
+  bodyGradient.addColorStop(0.7, '#0f3460');
+  bodyGradient.addColorStop(1, '#e94560');
+  
+  // Draw main body
+  ctx.fillStyle = bodyGradient;
   ctx.beginPath();
   ctx.moveTo(-player.w/2, -player.h/2);
+  ctx.lineTo(player.w/2 - 4, -player.h/2 + 2);
   ctx.lineTo(player.w/2, 0);
+  ctx.lineTo(player.w/2 - 4, player.h/2 - 2);
   ctx.lineTo(-player.w/2, player.h/2);
   ctx.closePath();
   ctx.fill();
-  // Draw shield
+  
+  // Cockpit
+  const cockpitGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 8);
+  cockpitGradient.addColorStop(0, '#00ffff');
+  cockpitGradient.addColorStop(0.5, '#0088ff');
+  cockpitGradient.addColorStop(1, 'transparent');
+  
+  ctx.fillStyle = cockpitGradient;
+  ctx.beginPath();
+  ctx.arc(-2, 0, 6, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Engine glow
+  const engineGradient = ctx.createLinearGradient(-player.w/2, -player.h/2, -player.w/2 - 10, 0);
+  engineGradient.addColorStop(0, '#ff4444');
+  engineGradient.addColorStop(0.5, '#ff8800');
+  engineGradient.addColorStop(1, 'transparent');
+  
+  ctx.fillStyle = engineGradient;
+  ctx.beginPath();
+  ctx.moveTo(-player.w/2, -player.h/2 + 4);
+  ctx.lineTo(-player.w/2 - 8, -player.h/2 + 2);
+  ctx.lineTo(-player.w/2 - 8, player.h/2 - 2);
+  ctx.lineTo(-player.w/2, player.h/2 - 4);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Wing details
+  ctx.strokeStyle = '#e94560';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-player.w/2 + 4, -player.h/2);
+  ctx.lineTo(-player.w/2 + 8, -player.h/2 - 2);
+  ctx.moveTo(-player.w/2 + 4, player.h/2);
+  ctx.lineTo(-player.w/2 + 8, player.h/2 + 2);
+  ctx.stroke();
+  
+  // Shield effect
   if (player.shield > 0) {
-    ctx.strokeStyle = '#0ff';
-    ctx.lineWidth = 3;
+    const shieldGradient = ctx.createRadialGradient(0, 0, 15, 0, 0, 25);
+    shieldGradient.addColorStop(0, 'rgba(0, 255, 255, 0.3)');
+    shieldGradient.addColorStop(0.7, 'rgba(0, 255, 255, 0.1)');
+    shieldGradient.addColorStop(1, 'transparent');
+    
+    ctx.fillStyle = shieldGradient;
     ctx.beginPath();
-    ctx.arc(0,0,20,0,Math.PI*2);
+    ctx.arc(0, 0, 25, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.strokeStyle = '#00ffff';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.arc(0, 0, 22, 0, Math.PI * 2);
     ctx.stroke();
+    ctx.setLineDash([]);
   }
+  
   ctx.restore();
-  // Bullets
-  ctx.fillStyle = '#fff';
-  bullets.forEach(b => ctx.fillRect(b.x, b.y, b.w, b.h));
-  // Enemy bullets
-  drawEnemyBullets();
-  // Enemies (rects)
+}
+
+function drawEnemies() {
   for (let e of enemies) {
-    ctx.fillStyle = e.type === 'basic' ? '#ff3366' : '#ffb347';
-    ctx.fillRect(e.x, e.y, e.w, e.h);
+    ctx.save();
+    ctx.translate(e.x + e.w/2, e.y + e.h/2);
+    
+    if (e.type === 'basic') {
+      drawBasicEnemy(e);
+    } else {
+      drawShooterEnemy(e);
+    }
+    
+    ctx.restore();
   }
-  // Power-ups
-  drawPowerUps();
+}
+
+function drawBasicEnemy(e) {
+  // Main body gradient
+  const bodyGradient = ctx.createLinearGradient(-e.w/2, -e.h/2, e.w/2, e.h/2);
+  bodyGradient.addColorStop(0, '#2d1b69');
+  bodyGradient.addColorStop(0.3, '#4c1d95');
+  bodyGradient.addColorStop(0.7, '#7c3aed');
+  bodyGradient.addColorStop(1, '#a855f7');
+  
+  // Draw main body (diamond shape)
+  ctx.fillStyle = bodyGradient;
+  ctx.beginPath();
+  ctx.moveTo(0, -e.h/2);
+  ctx.lineTo(e.w/2 - 2, 0);
+  ctx.lineTo(0, e.h/2);
+  ctx.lineTo(-e.w/2 + 2, 0);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Central core
+  const coreGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 6);
+  coreGradient.addColorStop(0, '#ff6b6b');
+  coreGradient.addColorStop(0.7, '#ee5a24');
+  coreGradient.addColorStop(1, 'transparent');
+  
+  ctx.fillStyle = coreGradient;
+  ctx.beginPath();
+  ctx.arc(0, 0, 6, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Wing details
+  ctx.strokeStyle = '#a855f7';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-e.w/2 + 4, -e.h/2 + 2);
+  ctx.lineTo(-e.w/2 + 8, -e.h/2);
+  ctx.moveTo(-e.w/2 + 4, e.h/2 - 2);
+  ctx.lineTo(-e.w/2 + 8, e.h/2);
+  ctx.stroke();
+  
+  // Weapon pods
+  ctx.fillStyle = '#ff6b6b';
+  ctx.fillRect(-e.w/2 + 2, -e.h/2 + 4, 4, 4);
+  ctx.fillRect(-e.w/2 + 2, e.h/2 - 8, 4, 4);
+}
+
+function drawShooterEnemy(e) {
+  // Main body gradient (more aggressive colors)
+  const bodyGradient = ctx.createLinearGradient(-e.w/2, -e.h/2, e.w/2, e.h/2);
+  bodyGradient.addColorStop(0, '#450a0a');
+  bodyGradient.addColorStop(0.3, '#7f1d1d');
+  bodyGradient.addColorStop(0.7, '#dc2626');
+  bodyGradient.addColorStop(1, '#ef4444');
+  
+  // Draw main body (hexagonal shape)
+  ctx.fillStyle = bodyGradient;
+  ctx.beginPath();
+  ctx.moveTo(-e.w/2 + 2, -e.h/2);
+  ctx.lineTo(e.w/2 - 2, -e.h/2);
+  ctx.lineTo(e.w/2, 0);
+  ctx.lineTo(e.w/2 - 2, e.h/2);
+  ctx.lineTo(-e.w/2 + 2, e.h/2);
+  ctx.lineTo(-e.w/2, 0);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Central weapon core
+  const weaponGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 8);
+  weaponGradient.addColorStop(0, '#fbbf24');
+  weaponGradient.addColorStop(0.5, '#f59e0b');
+  weaponGradient.addColorStop(1, '#d97706');
+  
+  ctx.fillStyle = weaponGradient;
+  ctx.beginPath();
+  ctx.arc(0, 0, 8, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Weapon charging effect
+  if (e.shootTimer > 45) {
+    const chargeGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 12);
+    chargeGradient.addColorStop(0, 'rgba(251, 191, 36, 0.8)');
+    chargeGradient.addColorStop(1, 'transparent');
+    
+    ctx.fillStyle = chargeGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, 12, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  // Wing structures
+  ctx.strokeStyle = '#ef4444';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(-e.w/2 + 4, -e.h/2 + 2);
+  ctx.lineTo(-e.w/2 + 12, -e.h/2 - 2);
+  ctx.moveTo(-e.w/2 + 4, e.h/2 - 2);
+  ctx.lineTo(-e.w/2 + 12, e.h/2 + 2);
+  ctx.stroke();
+  
+  // Weapon barrels
+  ctx.fillStyle = '#1f2937';
+  ctx.fillRect(e.w/2 - 4, -e.h/2 + 6, 6, 4);
+  ctx.fillRect(e.w/2 - 4, e.h/2 - 10, 6, 4);
+}
+
+function drawBullets() {
+  bullets.forEach(b => {
+    ctx.save();
+    ctx.translate(b.x + b.w/2, b.y + b.h/2);
+    
+    // Bullet glow
+    const bulletGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, b.w/2);
+    bulletGradient.addColorStop(0, '#ffffff');
+    bulletGradient.addColorStop(0.5, '#00ffff');
+    bulletGradient.addColorStop(1, 'transparent');
+    
+    ctx.fillStyle = bulletGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, b.w/2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Bullet trail
+    ctx.strokeStyle = '#00ffff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-b.w/2 - 4, 0);
+    ctx.lineTo(-b.w/2, 0);
+    ctx.stroke();
+    
+    ctx.restore();
+  });
 }
 
 function gameLoop() {
