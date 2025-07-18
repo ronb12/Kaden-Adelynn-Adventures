@@ -1524,6 +1524,12 @@ function gameLoop() {
 function showGameUI() {
   debugLog('Showing game UI');
   
+  // Hide main menu
+  if (mainMenu) {
+    mainMenu.classList.add('hidden');
+    debugLog('Main menu hidden');
+  }
+  
   // Show HUD
   if (hud) {
     hud.classList.remove('hidden');
@@ -1557,6 +1563,13 @@ function showGameUI() {
     debugLog('Top bar shown');
   } else {
     console.error('❌ Top bar element not found');
+  }
+  
+  // Make sure canvas is visible
+  if (canvas) {
+    canvas.style.display = 'block';
+    canvas.focus();
+    debugLog('Canvas made visible and focused');
   }
   
   debugLog('Game UI shown successfully');
@@ -2359,72 +2372,6 @@ function drawBullets() {
     
     ctx.restore();
   });
-}
-
-function gameLoop() {
-  if (gameState === 'playing') {
-    update();
-    draw();
-  }
-  requestAnimationFrame(gameLoop);
-}
-
-// --- UI Management ---
-function showGameUI() {
-  document.getElementById('mission-ui').classList.remove('hidden');
-  document.getElementById('progression-ui').classList.remove('hidden');
-  hud.classList.remove('hidden');
-  document.getElementById('top-bar').classList.remove('hidden');
-}
-
-function hideGameUI() {
-  document.getElementById('mission-ui').classList.add('hidden');
-  document.getElementById('progression-ui').classList.add('hidden');
-  hud.classList.add('hidden');
-  document.getElementById('top-bar').classList.add('hidden');
-}
-
-function draw() {
-  // Clear canvas
-  ctx.fillStyle = '#0a0a23';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
-  // Draw stars
-  drawStars();
-  
-  // Draw player
-  drawPlayerShip();
-  
-  // Draw enemies
-  drawEnemies();
-  
-  // Draw bullets
-  drawBullets();
-  drawEnemyBullets();
-  
-  // Draw collectibles
-  drawCollectibles();
-  drawPowerCapsules();
-  drawPowerUps();
-  
-  // Draw drones
-  drawDrones();
-  
-  // Draw particles
-  drawParticles();
-  
-  // Draw sound effects
-  drawSoundEffects();
-  
-  // Draw boss
-  if (boss) {
-    drawBoss();
-  }
-  
-  // Draw power-up menu
-  if (powerUpMenu) {
-    drawPowerUpMenu();
-  }
 }
 
 function gameLoop() {
