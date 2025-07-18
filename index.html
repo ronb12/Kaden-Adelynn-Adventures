@@ -65,6 +65,58 @@
             color: #ffd700;
             margin: 5px 0;
         }
+        
+        #scoreboard {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #4a90e2;
+            border-radius: 10px;
+            padding: 15px;
+            min-width: 200px;
+            box-shadow: 0 0 20px rgba(74, 144, 226, 0.3);
+        }
+        
+        #scoreboard h3 {
+            margin: 0 0 10px 0;
+            color: #4a90e2;
+            text-align: center;
+        }
+        
+        .score-entry {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            padding: 3px 0;
+            border-bottom: 1px solid #333;
+        }
+        
+        .score-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .high-score {
+            color: #ffd700;
+            font-weight: bold;
+        }
+        
+        #newHighScore {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #000;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+            z-index: 1000;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -79,13 +131,30 @@
         </div>
     </div>
 
+    <div id="scoreboard">
+        <h3>🏆 High Scores</h3>
+        <div id="highScoresList">
+            <div class="score-entry">1. <span class="high-score">0</span></div>
+            <div class="score-entry">2. <span class="high-score">0</span></div>
+            <div class="score-entry">3. <span class="high-score">0</span></div>
+            <div class="score-entry">4. <span class="high-score">0</span></div>
+            <div class="score-entry">5. <span class="high-score">0</span></div>
+        </div>
+    </div>
+
+    <div id="newHighScore">
+        🎉 NEW HIGH SCORE! 🎉
+    </div>
+
     <script>
-        // Enhanced Space Shooter Game with Gradius Features
+        // Enhanced Space Shooter Game with Gradius Features and Scoreboard
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const startBtn = document.getElementById('startBtn');
         const scoreDisplay = document.getElementById('score');
         const powerupInfo = document.getElementById('powerupInfo');
+        const highScoresList = document.getElementById('highScoresList');
+        const newHighScoreDiv = document.getElementById('newHighScore');
 
         // Game variables
         let gameRunning = false;
@@ -103,6 +172,7 @@
         let shieldTimer = 0;
         let lastShot = 0;
         let shotCooldown = 200;
+        let highScores = [];
 
         // Initialize stars
         for (let i = 0; i < 100; i++) {
@@ -111,6 +181,59 @@
                 y: Math.random() * canvas.height,
                 speed: 0.5 + Math.random() * 1.5
             });
+        }
+
+        // Load high scores from localStorage
+        function loadHighScores() {
+            const saved = localStorage.getItem('kadenAdelynnHighScores');
+            if (saved) {
+                highScores = JSON.parse(saved);
+            } else {
+                highScores = [0, 0, 0, 0, 0];
+            }
+            updateScoreboard();
+        }
+
+        // Save high scores to localStorage
+        function saveHighScores() {
+            localStorage.setItem('kadenAdelynnHighScores', JSON.stringify(highScores));
+        }
+
+        // Update scoreboard display
+        function updateScoreboard() {
+            const scoreElements = highScoresList.querySelectorAll('.high-score');
+            highScores.forEach((score, index) => {
+                if (scoreElements[index]) {
+                    scoreElements[index].textContent = score;
+                }
+            });
+        }
+
+        // Check if current score is a high score
+        function checkHighScore(currentScore) {
+            for (let i = 0; i < highScores.length; i++) {
+                if (currentScore > highScores[i]) {
+                    // Insert the new score
+                    highScores.splice(i, 0, currentScore);
+                    // Keep only top 5
+                    highScores = highScores.slice(0, 5);
+                    saveHighScores();
+                    updateScoreboard();
+                    
+                    // Show celebration
+                    showHighScoreCelebration();
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Show high score celebration
+        function showHighScoreCelebration() {
+            newHighScoreDiv.style.display = 'block';
+            setTimeout(() => {
+                newHighScoreDiv.style.display = 'none';
+            }, 3000);
         }
 
         // Event listeners
@@ -405,7 +528,16 @@
 
         function gameOver() {
             gameRunning = false;
-            alert(`Game Over! Final Score: ${score}`);
+            
+            // Check for high score
+            const isNewHighScore = checkHighScore(score);
+            
+            let message = `Game Over! Final Score: ${score}`;
+            if (isNewHighScore) {
+                message += '\n🎉 NEW HIGH SCORE! 🎉';
+            }
+            
+            alert(message);
             startBtn.textContent = 'Start Game';
         }
 
@@ -464,7 +596,8 @@
             requestAnimationFrame(gameLoop);
         }
 
-        // Initial draw
+        // Initialize high scores and start
+        loadHighScores();
         draw();
     </script>
 </body>
