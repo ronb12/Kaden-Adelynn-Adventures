@@ -2492,19 +2492,23 @@ function initGame() {
   startBtn.textContent = 'Start Mission';
   console.log('🎮 Start button after:', startBtn.textContent);
   startBtn.onclick = () => {
-    const selectedMission = parseInt(document.getElementById('mission-dropdown').value);
-    startMission(selectedMission);
+    console.log('🎮 Start button clicked');
+    const missionDropdown = document.getElementById('mission-dropdown');
+    console.log('🎮 Mission dropdown element:', missionDropdown);
+    if (missionDropdown) {
+      const selectedMission = parseInt(missionDropdown.value);
+      console.log('🎮 Selected mission:', selectedMission);
+      console.log('🎮 Starting mission:', selectedMission);
+      startMission(selectedMission);
+    } else {
+      console.error('❌ Mission dropdown not found');
+      // Fallback to mission 1
+      console.log('🎮 Falling back to mission 1');
+      startMission(1);
+    }
   };
   
   // Add event listeners for new UI with null checks
-  const backToMenuBtn = document.getElementById('back-to-menu');
-  if (backToMenuBtn) {
-    backToMenuBtn.onclick = () => {
-      document.getElementById('mission-select').classList.add('hidden');
-      mainMenu.classList.remove('hidden');
-    };
-  }
-  
   const nextMissionBtn = document.getElementById('next-mission');
   if (nextMissionBtn) {
     nextMissionBtn.onclick = () => {

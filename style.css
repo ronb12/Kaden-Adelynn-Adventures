@@ -251,6 +251,15 @@ body.overlay-active {
   overflow: hidden;
 }
 
+/* Main menu specific styling */
+#main-menu.overlay {
+  justify-content: flex-start;
+  align-items: center;
+  padding: 40px 20px;
+  overflow-y: auto;
+  max-height: 100vh;
+}
+
 /* Mission select specific styling */
 #mission-select.overlay {
   justify-content: flex-start;
