@@ -2352,8 +2352,8 @@ function handleTouchMove(e) {
   
   // Move player to touch position
   if (gameState === 'playing' && !gamePaused) {
-    player.x = Math.max(0, Math.min(canvas.width - player.w, touchX - player.w/2));
-    player.y = Math.max(0, Math.min(canvas.height - player.h, touchY - player.h/2));
+    player.x = Math.max(0, Math.min(canvas.width - player.width, touchX - player.w/2));
+    player.y = Math.max(0, Math.min(canvas.height - player.height, touchY - player.h/2));
   }
 }
 
@@ -2782,6 +2782,36 @@ function drawStars() {
   });
   ctx.globalAlpha = 1;
 }
+
+// Pause/Resume Functions
+function pauseGame() {
+  if (gameState === 'playing') {
+    gameState = 'paused';
+    gamePaused = true;
+    pauseMenu.classList.remove('hidden');
+    console.log('🎮 Game paused');
+  }
+}
+
+function resumeGame() {
+  if (gameState === 'paused') {
+    gameState = 'playing';
+    gamePaused = false;
+    pauseMenu.classList.add('hidden');
+    console.log('🎮 Game resumed');
+  }
+}
+
+// Add keyboard event listeners for pause
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
+    if (gameState === 'playing') {
+      pauseGame();
+    } else if (gameState === 'paused') {
+      resumeGame();
+    }
+  }
+});
 
 // Initialize the game when the page loads
 window.addEventListener('load', () => {
