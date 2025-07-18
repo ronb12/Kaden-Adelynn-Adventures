@@ -1142,7 +1142,9 @@ function drawBasicEnemy(e) {
   const pulse = 0.7 + 0.3*Math.sin(Date.now()*0.08);
   const minRadius = 2;
   const coreRadius = Math.max(minRadius, w/7*pulse);
-  const coreGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, coreRadius);
+  const gradRadius = Math.max(minRadius, w/7*pulse);
+  const shieldRadius = Math.max(minRadius, w/5);
+  const coreGrad = ctx.createRadialGradient(0, 0, minRadius, 0, 0, gradRadius);
   coreGrad.addColorStop(0, '#fff');
   coreGrad.addColorStop(0.5, '#ff4444');
   coreGrad.addColorStop(1, 'rgba(255,68,68,0)');
@@ -1157,7 +1159,7 @@ function drawBasicEnemy(e) {
   ctx.strokeStyle = '#ff4444';
   ctx.lineWidth = 4;
   ctx.beginPath();
-  ctx.arc(0, 0, Math.max(minRadius, w/5), 0, Math.PI*2);
+  ctx.arc(0, 0, shieldRadius, 0, Math.PI*2);
   ctx.stroke();
   ctx.restore();
 
