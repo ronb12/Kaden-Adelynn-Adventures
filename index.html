@@ -359,7 +359,7 @@
 
         // Touch controls
         const joystick = document.getElementById('joystick');
-        const joystickKnob = document.getElementById('joystickKnob');
+        const joystickKnobElement = document.getElementById('joystickKnob');
         const shootBtn = document.getElementById('shootBtn');
         const powerBtn = document.getElementById('powerBtn');
 
@@ -402,7 +402,7 @@
                 joystickKnob.y = y;
             }
             
-            joystickKnob.style.transform = `translate(${joystickKnob.x - 15}px, ${joystickKnob.y - 15}px)`;
+            joystickKnobElement.style.transform = `translate(${joystickKnob.x - 15}px, ${joystickKnob.y - 15}px)`;
             
             // Update player movement based on joystick
             if (gameRunning) {
@@ -417,7 +417,7 @@
         function handleJoystickEnd(e) {
             e.preventDefault();
             joystickActive = false;
-            joystickKnob.style.transform = 'translate(-50%, -50%)';
+            joystickKnobElement.style.transform = 'translate(-50%, -50%)';
         }
 
         function handleShoot(e) {
