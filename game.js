@@ -1534,6 +1534,11 @@ function gameLoop() {
 function showGameUI() {
   debugLog('Showing game UI');
   
+  // Add body class for game playing state
+  document.body.classList.add('game-playing');
+  document.body.classList.remove('menu-active');
+  debugLog('Body classes updated for game playing');
+  
   // Hide main menu
   if (mainMenu) {
     mainMenu.classList.add('hidden');
@@ -1575,17 +1580,29 @@ function showGameUI() {
     console.error('❌ Top bar element not found');
   }
   
-  // Make sure canvas is visible
+  // Make sure canvas is visible and on top
   if (canvas) {
     canvas.style.display = 'block';
+    canvas.style.zIndex = '10';
+    canvas.style.position = 'absolute';
     canvas.focus();
     debugLog('Canvas made visible and focused');
+    debugLog('Canvas display style:', canvas.style.display);
+    debugLog('Canvas z-index:', canvas.style.zIndex);
+    debugLog('Canvas position:', canvas.style.position);
+  } else {
+    console.error('❌ Canvas element not found');
   }
   
   debugLog('Game UI shown successfully');
 }
 
 function hideGameUI() {
+  // Add body class for menu state
+  document.body.classList.add('menu-active');
+  document.body.classList.remove('game-playing');
+  debugLog('Body classes updated for menu state');
+  
   document.getElementById('mission-ui').classList.add('hidden');
   document.getElementById('progression-ui').classList.add('hidden');
   hud.classList.add('hidden');
@@ -2528,147 +2545,109 @@ function applyRandomPowerUp() {
 
 // --- Game Initialization ---
 function initGame() {
-  console.log('🎮 Initializing DOM elements...');
+  debugLog('🎮 Kaden & Adelynn Adventures - Loading...');
+  
+  // Initialize body class for menu state
+  document.body.classList.add('menu-active');
+  debugLog('Body class initialized for menu state');
   
   // Initialize DOM elements
+  debugLog('🎮 Initializing DOM elements...');
   canvas = document.getElementById('gameCanvas');
   ctx = canvas.getContext('2d');
-  hud = document.getElementById('hud');
   mainMenu = document.getElementById('main-menu');
-  startBtn = document.getElementById('start-btn');
-  gameOverScreen = document.getElementById('game-over');
-  restartBtn = document.getElementById('restart-btn');
-  mainMenuBtn = document.getElementById('main-menu-btn');
-  scoreDisplay = document.getElementById('score');
-  livesDisplay = document.getElementById('lives');
-  finalScore = document.getElementById('final-score');
-  highScoreDisplay = document.getElementById('high-score');
-  weaponLevelDisplay = document.getElementById('weapon-level');
-  difficultyDisplay = document.getElementById('difficulty');
-  timeDisplay = document.getElementById('time');
+  hud = document.getElementById('hud');
   
-  // Pause Menu
-  pauseMenu = document.getElementById('pause-menu');
-  resumeBtn = document.getElementById('resume-btn');
-  saveExitBtn = document.getElementById('save-exit-btn');
-  exitNoSaveBtn = document.getElementById('exit-no-save-btn');
-  
-  // Continue button
-  continueBtn = document.getElementById('continue-btn');
-  
-  // Check if all critical elements exist
-  if (!canvas || !ctx || !mainMenu || !startBtn) {
-    throw new Error('Critical DOM elements not found. Please refresh the page.');
+  if (!canvas || !ctx) {
+    console.error('❌ Canvas or context not found');
+    return;
   }
   
-  console.log('🎮 DOM elements initialized');
+  debugLog('🎮 DOM elements initialized');
   
-  // Initialize game systems
-  generateMissions();
-  initHighScores();
-  initSavedGame();
-  initStars();
-  initTouchSupport();
+  // Initialize game state
+  gameState = 'menu';
+  gamePaused = false;
   
-  // Update main menu buttons
-  console.log('🎮 Updating main menu buttons...');
-  console.log('🎮 Start button before:', startBtn.textContent);
-  startBtn.textContent = 'Start Mission';
-  console.log('🎮 Start button after:', startBtn.textContent);
-  startBtn.onclick = () => {
-    console.log('🎮 Start button clicked');
-    const missionDropdown = document.getElementById('mission-dropdown');
-    console.log('🎮 Mission dropdown element:', missionDropdown);
-    if (missionDropdown) {
-      const selectedMission = parseInt(missionDropdown.value);
-      console.log('🎮 Selected mission:', selectedMission);
-      console.log('🎮 Starting mission:', selectedMission);
-      mainMenu.classList.add('hidden');
-      startMission(selectedMission);
-    } else {
-      console.error('❌ Mission dropdown not found');
-      // Fallback to mission 1
-      console.log('🎮 Falling back to mission 1');
-      mainMenu.classList.add('hidden');
-      startMission(1);
-    }
+  // Initialize arrays
+  bullets = [];
+  enemies = [];
+  enemyBullets = [];
+  particles = [];
+  soundEffects = [];
+  collectibles = [];
+  powerCapsules = [];
+  powerUps = [];
+  options = [];
+  
+  // Initialize player
+  player = {
+    x: canvas.width / 2 - 25,
+    y: canvas.height - 100,
+    width: 50,
+    height: 50,
+    speed: 5,
+    weaponLevel: 1,
+    weaponMultiplier: 1,
+    shield: 0
   };
   
-  // Add event listeners for new UI with null checks
-  const nextMissionBtn = document.getElementById('next-mission');
-  if (nextMissionBtn) {
-    nextMissionBtn.onclick = () => {
-      document.getElementById('mission-complete').classList.add('hidden');
-      if (currentMission < totalMissions) {
-        startMission(currentMission + 1);
-      } else {
-        // Game completed!
-        showGameComplete();
-      }
-    };
-  }
+  // Initialize game variables
+  score = 0;
+  lives = 3;
+  gameTime = 0;
+  enemyTimer = 60;
+  difficulty = 1;
+  stageProgress = 0;
+  stageGoal = 20;
+  missionCompleted = false;
+  bossSpawned = false;
+  boss = null;
+  bossHealth = 0;
+  fireHeld = false;
+  fireCooldown = 0;
   
-  const missionSelectBtn = document.getElementById('mission-select-btn');
-  if (missionSelectBtn) {
-    missionSelectBtn.onclick = () => {
-      document.getElementById('mission-complete').classList.add('hidden');
-      mainMenu.classList.remove('hidden');
-    };
-  }
+  // Initialize mission system
+  generateMissions();
+  currentMission = 1;
   
-  // Skill tree event listeners
-  const skillTreeBtn = document.getElementById('skill-tree-btn');
-  if (skillTreeBtn) {
-    skillTreeBtn.onclick = () => {
-      mainMenu.classList.add('hidden');
-      showSkillTree();
-    };
-  }
+  // Initialize player progression
+  playerLevel = 1;
+  playerXP = 0;
+  skillPoints = 0;
+  credits = 0;
   
-  const backFromSkillsBtn = document.getElementById('back-from-skills');
-  if (backFromSkillsBtn) {
-    backFromSkillsBtn.onclick = () => {
-      document.getElementById('skill-tree').classList.add('hidden');
-      mainMenu.classList.remove('hidden');
-    };
-  }
+  // Initialize achievements
+  achievements = [];
   
-  // Pause menu event listeners
-  if (resumeBtn) resumeBtn.onclick = resumeGame;
-  if (saveExitBtn) saveExitBtn.onclick = () => exitGame(true);
-  if (exitNoSaveBtn) exitNoSaveBtn.onclick = () => exitGame(false);
-  
-  // Game over event listeners
-  if (restartBtn) restartBtn.onclick = resetGame;
-  if (mainMenuBtn) {
-    mainMenuBtn.onclick = () => {
-      gameOverScreen.classList.add('hidden');
-      mainMenu.classList.remove('hidden');
-    };
-  }
-  
-  // Initialize keyboard input system
+  // Initialize keyboard input
   keys = {};
   
-  // Keyboard event listeners
-  document.addEventListener('keydown', (e) => {
-    keys[e.key] = true;
-    
-    // Pause/resume with Escape or P
-    if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
-      if (gameState === 'playing') {
-        pauseGame();
-      } else if (gameState === 'paused') {
-        resumeGame();
-      }
-    }
-  });
+  // Initialize touch support
+  initTouchSupport();
   
-  document.addEventListener('keyup', (e) => {
-    keys[e.key] = false;
-  });
+  // Initialize high scores
+  initHighScores();
   
-  console.log('✅ Game initialization complete');
+  // Initialize saved game
+  initSavedGame();
+  
+  // Initialize star background
+  initStars();
+  
+  // Update main menu buttons
+  debugLog('🎮 Updating main menu buttons...');
+  const startBtn = document.getElementById('start-btn');
+  if (startBtn) {
+    debugLog('🎮 Start button before:', startBtn.textContent);
+    startBtn.textContent = 'Start Mission';
+    debugLog('🎮 Start button after:', startBtn.textContent);
+  }
+  
+  // Start game loop
+  gameLoop();
+  
+  debugLog('✅ Game initialization complete');
 }
 
 function showGameComplete() {
