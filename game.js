@@ -1005,10 +1005,15 @@ function drawPowerUps() {
 
 // --- Enemy Types ---
 function spawnEnemy() {
+  debugLog('🔍 DEBUG: Spawning enemy...');
   const mission = missionData[currentMission - 1];
+  debugLog('🔍 DEBUG: Mission data:', mission);
   const availableTypes = mission.enemyTypes;
+  debugLog('🔍 DEBUG: Available enemy types:', availableTypes);
   const enemyType = availableTypes[Math.floor(Math.random() * availableTypes.length)];
+  debugLog('🔍 DEBUG: Selected enemy type:', enemyType);
   const enemyData = ENEMY_TYPES[enemyType];
+  debugLog('🔍 DEBUG: Enemy data:', enemyData);
   
   const enemy = {
     x: Math.random() * (canvas.width - 40) + 20,
@@ -1028,6 +1033,8 @@ function spawnEnemy() {
   };
   
   enemies.push(enemy);
+  debugLog('🔍 DEBUG: Enemy spawned:', enemy);
+  debugLog('🔍 DEBUG: Total enemies:', enemies.length);
 }
 
 function updateEnemies() {
@@ -1351,9 +1358,12 @@ function update() {
   updateStars();
   
   // Spawn enemies
+  debugLog(`🔍 DEBUG: Enemy spawn check - gameTime: ${gameTime}, enemyTimer: ${enemyTimer}, condition: ${gameTime % enemyTimer === 0}`);
   if (gameTime % enemyTimer === 0) {
+    debugLog('🔍 DEBUG: Spawning enemy - condition met!');
     spawnEnemy();
     enemyTimer = Math.max(20, 60 - difficulty * 10);
+    debugLog(`🔍 DEBUG: New enemy timer: ${enemyTimer}`);
   }
   
   // Spawn collectibles
