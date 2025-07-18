@@ -1141,8 +1141,9 @@ function drawBasicEnemy(e) {
   // --- Glowing core with shield ring ---
   const pulse = 0.7 + 0.3*Math.sin(Date.now()*0.08);
   const minRadius = 2;
-  const coreRadius = Math.max(minRadius, w/7*pulse);
-  const gradRadius = Math.max(minRadius, w/7*pulse);
+  const unclampedCore = w/7*pulse;
+  const coreRadius = Math.max(minRadius, unclampedCore);
+  const gradRadius = coreRadius;
   const shieldRadius = Math.max(minRadius, w/5);
   const coreGrad = ctx.createRadialGradient(0, 0, minRadius, 0, 0, gradRadius);
   coreGrad.addColorStop(0, '#fff');
