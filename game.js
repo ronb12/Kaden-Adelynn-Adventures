@@ -365,27 +365,18 @@ function showUpgradeMenu() {
   menu.classList.remove('hidden');
 }
 
-let player, bullets, enemies, score, lives, keys, enemyTimer;
-let gameTime = 0;
+// Additional game state variables
 let difficulty = 1;
-let bossSpawned = false;
-let boss = null;
-let gamePaused = false;
 let autoSaveInterval = null;
 let highScores = [];
 
 // Gradius-style power-up system
 let powerUpMenu = false;
 let selectedPowerUp = 0;
-let options = []; // Drones that follow the player
 
 // Touch support for iOS
-let isTouchDevice = false;
 let touchStartX = 0;
 let touchStartY = 0;
-let touchX = 0;
-let touchY = 0;
-let isTouching = false;
 
 // Starfield background
 let stars = [];
@@ -393,7 +384,6 @@ let stars = [];
 
 
 // --- Particle System ---
-let particles = [];
 function createParticle(x, y, color, speed = 2, life = 30) {
   particles.push({
     x, y,
@@ -426,7 +416,6 @@ function drawParticles() {
 }
 
 // --- Sound Effects (Visual) ---
-let soundEffects = [];
 function playSoundEffect(type, x, y) {
   soundEffects.push({
     type, x, y, timer: 0, maxTimer: 20,
