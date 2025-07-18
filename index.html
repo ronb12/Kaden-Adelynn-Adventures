@@ -169,6 +169,12 @@
             </div>
             
             <div class="menu-instructions">
+                <h3>🏆 High Scores:</h3>
+                <p><strong>Highest Score:</strong> <span id="highScoreDisplay">0</span></p>
+                <p><strong>Highest Level:</strong> <span id="highestLevelDisplay">1</span></p>
+            </div>
+            
+            <div class="menu-instructions">
                 <h3>🌟 Credits:</h3>
                 <p><strong>Game:</strong> Kaden & Adelynn Adventures</p>
                 <p><strong>Style:</strong> Gradius-inspired Space Shooter</p>
@@ -203,11 +209,17 @@
         const scoreBoard = document.getElementById('scoreBoard');
         const scoreDisplay = document.getElementById('score');
         const powerupInfo = document.getElementById('powerupInfo');
+        const highScoreDisplay = document.getElementById('highScoreDisplay');
+        const highestLevelDisplay = document.getElementById('highestLevelDisplay');
 
         // Game variables
         let gameRunning = false;
         let score = 0;
         let lives = 25;
+        let level = 1;
+        let levelScore = 0;
+        let highScore = 0;
+        let highestLevel = 1;
         let player = { x: 375, y: 500, width: 50, height: 40 };
         let bullets = [];
         let enemyBullets = [];
@@ -228,6 +240,15 @@
         let gameStarted = false;
         let isMobile = false;
         let audioContext = null;
+        
+        // Level system variables
+        let enemySpawnRate = 0.02;
+        let enemySpeedMultiplier = 1;
+        let bossActive = false;
+        let bossHealth = 0;
+        let bossMaxHealth = 0;
+        let levelComplete = false;
+        let levelCompleteTimer = 0;
 
         // Initialize stars
         for (let i = 0; i < 100; i++) {
@@ -404,6 +425,9 @@
         function startGame() {
             console.log('Starting game...');
             
+            // Load high scores
+            loadHighScores();
+            
             // Initialize audio context on user interaction
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -414,6 +438,15 @@
             gameStarted = true;
             score = 0;
             lives = 25;
+            level = 1;
+            levelScore = 0;
+            levelComplete = false;
+            levelCompleteTimer = 0;
+            bossActive = false;
+            bossHealth = 0;
+            bossMaxHealth = 0;
+            enemySpawnRate = 0.02;
+            enemySpeedMultiplier = 1;
             bullets = [];
             enemyBullets = [];
             enemies = [];
@@ -447,6 +480,10 @@
         function backToMenu() {
             gameRunning = false;
             gameStarted = false;
+            
+            // Update high score displays
+            highScoreDisplay.textContent = highScore;
+            highestLevelDisplay.textContent = highestLevel;
             
             // Show menu, hide game
             mainMenu.style.display = 'block';
@@ -633,14 +670,14 @@
         }
 
         function spawnEnemy() {
-            if (Math.random() < 0.02) {
+            if (Math.random() < enemySpawnRate) {
                 const type = Math.random() < 0.3 ? 'fast' : 'basic';
                 const enemy = {
                     x: Math.random() * (canvas.width - 40),
                     y: -40,
                     width: 40,
                     height: 40,
-                    speed: type === 'fast' ? 4 + Math.random() * 2 : 2 + Math.random() * 2,
+                    speed: (type === 'fast' ? 4 + Math.random() * 2 : 2 + Math.random() * 2) * enemySpeedMultiplier,
                     type: type,
                     lastShot: Date.now(),
                     shotCooldown: type === 'fast' ? 1500 : 2000
@@ -728,9 +765,24 @@
                         bullets[i].x + bullets[i].width > enemies[j].x &&
                         bullets[i].y < enemies[j].y + enemies[j].height &&
                         bullets[i].y + bullets[i].height > enemies[j].y) {
-                        score += enemies[j].type === 'fast' ? 20 : 10;
-                        bullets.splice(i, 1);
-                        enemies.splice(j, 1);
+                        
+                        if (enemies[j].type === 'boss') {
+                            // Boss takes damage but doesn't die immediately
+                            enemies[j].health -= 1;
+                            bullets.splice(i, 1);
+                            
+                            if (enemies[j].health <= 0) {
+                                score += 100; // Boss gives more points
+                                enemies.splice(j, 1);
+                                bossActive = false;
+                                console.log('Boss defeated!');
+                            }
+                        } else {
+                            // Regular enemies die immediately
+                            score += enemies[j].type === 'fast' ? 20 : 10;
+                            bullets.splice(i, 1);
+                            enemies.splice(j, 1);
+                        }
                         break;
                     }
                 }
@@ -832,7 +884,8 @@
 
         function gameOver() {
             gameRunning = false;
-            alert(`Game Over! Final Score: ${score}`);
+            saveHighScores();
+            alert(`Game Over!\nFinal Score: ${score}\nLevel Reached: ${level}\n${score > highScore ? '🎉 NEW HIGH SCORE! 🎉' : ''}`);
             backToMenu();
         }
 
@@ -854,7 +907,11 @@
 
             // Draw enemies
             enemies.forEach(enemy => {
-                drawEnemyShip(enemy.x, enemy.y, enemy.type);
+                if (enemy.type === 'boss') {
+                    drawBoss(enemy.x, enemy.y, enemy.health, bossMaxHealth);
+                } else {
+                    drawEnemyShip(enemy.x, enemy.y, enemy.type);
+                }
             });
 
             // Draw bullets
@@ -880,7 +937,29 @@
             if (starPowerActive) powerText += ' + Star Power';
             if (fireRateBoost) powerText += ' + Fire Rate';
             
-            scoreDisplay.textContent = `Score: ${score} | Lives: ${lives} | Power: ${powerText}`;
+            scoreDisplay.textContent = `Score: ${score} | Level: ${level} | Lives: ${lives} | Power: ${powerText}`;
+            
+            // Draw level completion message
+            if (levelComplete && levelCompleteTimer > 0) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = '#00ff00';
+                ctx.font = '48px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(`LEVEL ${level} COMPLETE!`, canvas.width / 2, canvas.height / 2 - 50);
+                
+                ctx.fillStyle = '#ffff00';
+                ctx.font = '24px Arial';
+                ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2);
+                ctx.fillText(`Next Level: ${level + 1}`, canvas.width / 2, canvas.height / 2 + 30);
+                
+                levelCompleteTimer--;
+                if (levelCompleteTimer <= 0) {
+                    levelComplete = false;
+                }
+            }
         }
 
         function gameLoop() {
@@ -898,13 +977,123 @@
             updateEnemies();
             updatePowerups();
             checkCollisions();
+            checkLevelProgress(); // Check for level progression
             draw();
 
             requestAnimationFrame(gameLoop);
         }
 
+        // Load high scores from localStorage
+        function loadHighScores() {
+            try {
+                const savedHighScore = localStorage.getItem('kadenAdelynnHighScore');
+                const savedHighestLevel = localStorage.getItem('kadenAdelynnHighestLevel');
+                if (savedHighScore) highScore = parseInt(savedHighScore);
+                if (savedHighestLevel) highestLevel = parseInt(savedHighestLevel);
+                console.log('Loaded high scores:', { highScore, highestLevel });
+            } catch (error) {
+                console.log('Error loading high scores:', error);
+            }
+        }
+        
+        // Save high scores to localStorage
+        function saveHighScores() {
+            try {
+                if (score > highScore) {
+                    highScore = score;
+                    localStorage.setItem('kadenAdelynnHighScore', highScore.toString());
+                }
+                if (level > highestLevel) {
+                    highestLevel = level;
+                    localStorage.setItem('kadenAdelynnHighestLevel', highestLevel.toString());
+                }
+                console.log('Saved high scores:', { highScore, highestLevel });
+            } catch (error) {
+                console.log('Error saving high scores:', error);
+            }
+        }
+
+        // Level progression system
+        function checkLevelProgress() {
+            const levelThreshold = level * 100; // 100 points per level
+            if (score >= levelThreshold && !levelComplete) {
+                levelUp();
+            }
+        }
+        
+        function levelUp() {
+            level++;
+            levelComplete = true;
+            levelCompleteTimer = 180; // 3 seconds at 60fps
+            
+            // Increase difficulty
+            enemySpawnRate = Math.min(0.05, 0.02 + (level - 1) * 0.005);
+            enemySpeedMultiplier = 1 + (level - 1) * 0.2;
+            
+            // Spawn boss every 5 levels
+            if (level % 5 === 0) {
+                spawnBoss();
+            }
+            
+            console.log(`Level ${level} reached! Difficulty increased.`);
+        }
+        
+        function spawnBoss() {
+            bossActive = true;
+            bossMaxHealth = level * 10;
+            bossHealth = bossMaxHealth;
+            
+            const boss = {
+                x: canvas.width / 2 - 40,
+                y: -80,
+                width: 80,
+                height: 80,
+                speed: 1,
+                type: 'boss',
+                lastShot: Date.now(),
+                shotCooldown: 1000,
+                health: bossHealth
+            };
+            enemies.push(boss);
+            console.log('Boss spawned:', boss);
+        }
+        
+        function drawBoss(x, y, health, maxHealth) {
+            ctx.save();
+            ctx.translate(x + 40, y + 40);
+            
+            // Boss body
+            ctx.fillStyle = '#ff0000';
+            ctx.beginPath();
+            ctx.moveTo(0, -30);
+            ctx.lineTo(-25, 20);
+            ctx.lineTo(-15, 30);
+            ctx.lineTo(15, 30);
+            ctx.lineTo(25, 20);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Boss details
+            ctx.fillStyle = '#ff6666';
+            ctx.fillRect(-20, 10, 40, 8);
+            ctx.fillRect(-15, 20, 30, 6);
+            
+            // Health bar
+            const healthBarWidth = 60;
+            const healthBarHeight = 6;
+            const healthPercentage = health / maxHealth;
+            
+            ctx.fillStyle = '#333333';
+            ctx.fillRect(-healthBarWidth/2, -45, healthBarWidth, healthBarHeight);
+            ctx.fillStyle = '#00ff00';
+            ctx.fillRect(-healthBarWidth/2, -45, healthBarWidth * healthPercentage, healthBarHeight);
+            
+            ctx.restore();
+        }
+
         // Initialize the game
         console.log('Game initialization complete');
+        loadHighScores(); // Load high scores on page load
         // Don't start the game loop automatically - wait for start button
     </script>
 </body>
