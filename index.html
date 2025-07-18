@@ -249,6 +249,25 @@
         let bossMaxHealth = 0;
         let levelComplete = false;
         let levelCompleteTimer = 0;
+        
+        // Challenge system variables
+        let challenges = [];
+        let currentChallenge = null;
+        let challengeProgress = 0;
+        let challengeTarget = 0;
+        let challengeReward = 0;
+        let challengeTimer = 0;
+        let challengeActive = false;
+        let totalEnemiesDestroyed = 0;
+        let totalPowerupsCollected = 0;
+        let totalDiamondsCollected = 0;
+        let totalMoneyCollected = 0;
+        let consecutiveHits = 0;
+        let maxConsecutiveHits = 0;
+        let survivalTime = 0;
+        let startTime = 0;
+        let challengeCompleteMessage = '';
+        let challengeCompleteTimer = 0;
 
         // Initialize stars
         for (let i = 0; i < 100; i++) {
@@ -461,6 +480,20 @@
             fireRateTimer = 0;
             player = { x: 375, y: 500, width: 50, height: 40 };
             
+            // Reset challenge tracking
+            totalEnemiesDestroyed = 0;
+            totalPowerupsCollected = 0;
+            totalDiamondsCollected = 0;
+            totalMoneyCollected = 0;
+            consecutiveHits = 0;
+            maxConsecutiveHits = 0;
+            survivalTime = 0;
+            startTime = Date.now();
+            
+            // Initialize challenges
+            initializeChallenges();
+            startRandomChallenge(); // Start the first challenge
+            
             // Hide menu, show game
             mainMenu.style.display = 'none';
             canvas.style.display = 'block';
@@ -605,6 +638,8 @@
                 case 'extraLife': emoji = '💎'; break;
                 case 'starPower': emoji = '⭐'; break;
                 case 'fireRate': emoji = '🔥'; break;
+                case 'money': emoji = '💰'; break;
+                case 'diamond': emoji = '💎'; break;
             }
             
             // Draw emoji
@@ -725,7 +760,7 @@
 
         function spawnPowerup() {
             if (Math.random() < 0.008) {
-                const types = ['speed', 'double', 'shield', 'extraLife', 'starPower', 'fireRate'];
+                const types = ['speed', 'double', 'shield', 'extraLife', 'starPower', 'fireRate', 'money', 'diamond'];
                 const type = types[Math.floor(Math.random() * types.length)];
                 powerups.push({
                     x: Math.random() * (canvas.width - 20),
@@ -775,6 +810,7 @@
                                 score += 100; // Boss gives more points
                                 enemies.splice(j, 1);
                                 bossActive = false;
+                                updateChallengeProgress('boss', 1);
                                 console.log('Boss defeated!');
                             }
                         } else {
@@ -782,6 +818,11 @@
                             score += enemies[j].type === 'fast' ? 20 : 10;
                             bullets.splice(i, 1);
                             enemies.splice(j, 1);
+                            totalEnemiesDestroyed++;
+                            consecutiveHits++;
+                            maxConsecutiveHits = Math.max(maxConsecutiveHits, consecutiveHits);
+                            updateChallengeProgress('enemies', 1);
+                            updateChallengeProgress('consecutive', 1);
                         }
                         break;
                     }
@@ -812,6 +853,7 @@
                         player.y + player.height > enemies[i].y) {
                         lives--;
                         enemies.splice(i, 1);
+                        consecutiveHits = 0; // Reset consecutive hits
                         if (lives <= 0) {
                             gameOver();
                         }
@@ -826,6 +868,7 @@
                         player.y + player.height > enemyBullets[i].y) {
                         lives--;
                         enemyBullets.splice(i, 1);
+                        consecutiveHits = 0; // Reset consecutive hits
                         if (lives <= 0) {
                             gameOver();
                         }
@@ -841,6 +884,8 @@
                     player.y + player.height > powerups[i].y) {
                     collectPowerup(powerups[i].type);
                     powerups.splice(i, 1);
+                    totalPowerupsCollected++;
+                    updateChallengeProgress('powerups', 1);
                 }
             }
         }
@@ -873,6 +918,16 @@
                         fireRateBoost = false;
                         shotCooldown = 200;
                     }, 12000);
+                    break;
+                case 'money':
+                    score += 10;
+                    totalMoneyCollected++;
+                    updateChallengeProgress('collect_money', 1);
+                    break;
+                case 'diamond':
+                    score += 20;
+                    totalDiamondsCollected++;
+                    updateChallengeProgress('collect_diamonds', 1);
                     break;
             }
         }
@@ -939,6 +994,38 @@
             
             scoreDisplay.textContent = `Score: ${score} | Level: ${level} | Lives: ${lives} | Power: ${powerText}`;
             
+            // Draw current challenge
+            if (challengeActive && currentChallenge && challengeTimer > 0) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(10, 80, 300, 60);
+                ctx.fillStyle = '#ffff00';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText(`Challenge: ${currentChallenge.name}`, 20, 100);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '14px Arial';
+                ctx.fillText(`${currentChallenge.description}`, 20, 120);
+                ctx.fillText(`Progress: ${challengeProgress}/${challengeTarget}`, 20, 135);
+                challengeTimer--;
+            }
+            
+            // Draw challenge completion message
+            if (challengeCompleteMessage && challengeCompleteTimer > 0) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = '#00ff00';
+                ctx.font = '36px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(challengeCompleteMessage, canvas.width / 2, canvas.height / 2);
+
+                challengeCompleteTimer--;
+                if (challengeCompleteTimer <= 0) {
+                    challengeCompleteMessage = '';
+                }
+            }
+            
             // Draw level completion message
             if (levelComplete && levelCompleteTimer > 0) {
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
@@ -967,6 +1054,12 @@
                 console.log('Game not running, exiting gameLoop');
                 return;
             }
+
+            const currentTime = Date.now();
+            survivalTime = Math.floor((currentTime - startTime) / 1000);
+            
+            // Update time-based challenges
+            updateChallengeProgress('time', survivalTime);
 
             updateStars();
             updatePlayer();
@@ -1030,6 +1123,9 @@
             enemySpawnRate = Math.min(0.05, 0.02 + (level - 1) * 0.005);
             enemySpeedMultiplier = 1 + (level - 1) * 0.2;
             
+            // Update challenge progress
+            updateChallengeProgress('level', 1);
+            
             // Spawn boss every 5 levels
             if (level % 5 === 0) {
                 spawnBoss();
@@ -1089,6 +1185,88 @@
             ctx.fillRect(-healthBarWidth/2, -45, healthBarWidth * healthPercentage, healthBarHeight);
             
             ctx.restore();
+        }
+
+        // Challenge system
+        function initializeChallenges() {
+            challenges = [
+                { id: 'collect_diamonds', name: 'Diamond Hunter', description: 'Collect 10 diamonds', target: 10, reward: 50, type: 'diamonds' },
+                { id: 'destroy_enemies', name: 'Enemy Destroyer', description: 'Destroy 20 enemies', target: 20, reward: 30, type: 'enemies' },
+                { id: 'survive_time', name: 'Survivor', description: 'Survive for 2 minutes', target: 120, reward: 40, type: 'time' },
+                { id: 'consecutive_hits', name: 'Sharpshooter', description: 'Hit 5 enemies in a row', target: 5, reward: 25, type: 'consecutive' },
+                { id: 'collect_powerups', name: 'Power Collector', description: 'Collect 8 power-ups', target: 8, reward: 35, type: 'powerups' },
+                { id: 'reach_level', name: 'Level Master', description: 'Reach level 5', target: 5, reward: 60, type: 'level' },
+                { id: 'defeat_boss', name: 'Boss Slayer', description: 'Defeat a boss', target: 1, reward: 100, type: 'boss' },
+                { id: 'collect_money', name: 'Money Collector', description: 'Collect 15 money items', target: 15, reward: 45, type: 'money' }
+            ];
+        }
+        
+        function startRandomChallenge() {
+            if (challengeActive) return;
+            
+            const availableChallenges = challenges.filter(c => !c.completed);
+            if (availableChallenges.length === 0) {
+                // Reset all challenges if all completed
+                challenges.forEach(c => c.completed = false);
+                return startRandomChallenge();
+            }
+            
+            const randomIndex = Math.floor(Math.random() * availableChallenges.length);
+            currentChallenge = availableChallenges[randomIndex];
+            challengeProgress = 0;
+            challengeTarget = currentChallenge.target;
+            challengeReward = currentChallenge.reward;
+            challengeActive = true;
+            challengeTimer = 600; // 10 seconds to show challenge
+            
+            console.log('New challenge started:', currentChallenge.name);
+        }
+        
+        function updateChallengeProgress(type, amount = 1) {
+            if (!challengeActive || !currentChallenge) return;
+            
+            if (currentChallenge.type === type) {
+                if (type === 'time') {
+                    // For time-based challenges, check if survival time meets target
+                    if (survivalTime >= currentChallenge.target) {
+                        completeChallenge();
+                    }
+                } else if (type === 'consecutive') {
+                    // For consecutive hits, check if the challenge is completed
+                    if (amount >= currentChallenge.target) {
+                        completeChallenge();
+                    }
+                } else {
+                    // For other challenges, accumulate progress
+                    challengeProgress += amount;
+                    if (challengeProgress >= challengeTarget) {
+                        completeChallenge();
+                    }
+                }
+            }
+        }
+        
+        function completeChallenge() {
+            if (!challengeActive || !currentChallenge) return;
+            
+            score += challengeReward;
+            currentChallenge.completed = true;
+            challengeActive = false;
+            
+            // Show completion message
+            showChallengeComplete(currentChallenge.name, challengeReward);
+            
+            console.log('Challenge completed:', currentChallenge.name, 'Reward:', challengeReward);
+            
+            // Start new challenge after a delay
+            setTimeout(() => {
+                startRandomChallenge();
+            }, 3000);
+        }
+        
+        function showChallengeComplete(challengeName, reward) {
+            challengeCompleteMessage = `${challengeName} Complete! +${reward} points`;
+            challengeCompleteTimer = 180; // 3 seconds
         }
 
         // Initialize the game
