@@ -25,7 +25,107 @@ const exitNoSaveBtn = document.getElementById('exit-no-save-btn');
 // Continue button
 const continueBtn = document.getElementById('continue-btn');
 
-let gameState = 'menu';
+// --- Game States ---
+let gameState = 'menu'; // 'menu', 'playing', 'upgrade', 'boss', 'gameover'
+let stage = 1;
+let stageProgress = 0;
+let stageGoal = 20; // Enemies to defeat per stage
+let credits = 0;
+let upgrades = [];
+
+// --- Upgrade Pool ---
+const UPGRADE_POOL = [
+  { name: 'Weapon Power +1', effect: 'weapon', icon: '🔫' },
+  { name: 'Drone +1', effect: 'drone', icon: '🛸' },
+  { name: 'Shield +1', effect: 'shield', icon: '🛡️' },
+  { name: 'Speed +1', effect: 'speed', icon: '⚡' },
+  { name: 'Missile', effect: 'missile', icon: '🚀' },
+  { name: 'Triple Shot', effect: 'triple', icon: '🔱' },
+  { name: 'Heal', effect: 'heal', icon: '❤️' },
+  { name: 'Bomb', effect: 'bomb', icon: '💣' }
+];
+
+// --- State Transition Functions ---
+function startStage() {
+  gameState = 'playing';
+  stageProgress = 0;
+  updateTopBar();
+}
+
+function endStage() {
+  gameState = 'upgrade';
+  showUpgradeMenu();
+}
+
+function startBoss() {
+  gameState = 'boss';
+  // TODO: spawn boss
+  updateTopBar();
+}
+
+function endGame() {
+  gameState = 'gameover';
+  finalScore.textContent = 'Final Score: ' + score;
+  
+  // Check for new high score
+  const isNewHighScore = checkForNewHighScore();
+  
+  gameOverScreen.classList.remove('hidden');
+  mainMenu.classList.add('hidden');
+  stopAutoSave();
+  saveGame(); // Auto-save on game over
+  
+  // Show high score celebration if it's a new record
+  if (isNewHighScore) {
+    finalScore.textContent = 'Final Score: ' + score + ' - NEW HIGH SCORE! 🎉';
+    finalScore.style.color = '#ffff00';
+    finalScore.style.textShadow = '0 0 10px #ffff00';
+  }
+}
+
+// --- Top Bar Update ---
+function updateTopBar() {
+  document.getElementById('stage-indicator').textContent = `Stage ${stage}`;
+  document.getElementById('credits').textContent = `Credits: ${credits}`;
+  const percent = Math.min(100, Math.floor((stageProgress / stageGoal) * 100));
+  document.getElementById('progress-fill').style.width = percent + '%';
+}
+
+// --- Upgrade Menu ---
+function showUpgradeMenu() {
+  const menu = document.getElementById('upgrade-menu');
+  const optionsDiv = document.getElementById('upgrade-options');
+  optionsDiv.innerHTML = '';
+  // Pick 3 random upgrades
+  const choices = [];
+  while (choices.length < 3) {
+    const pick = UPGRADE_POOL[Math.floor(Math.random() * UPGRADE_POOL.length)];
+    if (!choices.includes(pick)) choices.push(pick);
+  }
+  choices.forEach((upg, idx) => {
+    const div = document.createElement('div');
+    div.className = 'upgrade-option';
+    div.innerHTML = `<span style="font-size:2rem;">${upg.icon}</span><br>${upg.name}`;
+    div.onclick = () => {
+      document.querySelectorAll('.upgrade-option').forEach(el => el.classList.remove('selected'));
+      div.classList.add('selected');
+      div.dataset.selected = 'true';
+    };
+    optionsDiv.appendChild(div);
+  });
+  menu.classList.remove('hidden');
+}
+
+document.getElementById('upgrade-confirm').onclick = () => {
+  const selected = document.querySelector('.upgrade-option.selected');
+  if (!selected) return;
+  // Apply upgrade (TODO: implement effects)
+  // Hide menu and start next stage
+  document.getElementById('upgrade-menu').classList.add('hidden');
+  stage++;
+  startStage();
+};
+
 let player, bullets, enemies, score, lives, keys, enemyTimer;
 let gameTime = 0;
 let difficulty = 1;
@@ -703,6 +803,10 @@ function update() {
         enemies.splice(i,1);
         bullets.splice(j,1);
         score += 100;
+        stageProgress++;
+        credits += 5;
+        if (stageProgress >= stageGoal) endStage();
+        if (stage % 3 === 0 && stageProgress >= stageGoal) startBoss();
         break;
       }
     }
@@ -1389,58 +1493,26 @@ function drawBullets() {
 }
 
 function gameLoop() {
-  if (gameState === 'playing') {
+  if (gameState === 'playing' || gameState === 'boss') {
     if (!gamePaused) {
       update();
     }
     draw();
-    
-    // Update HUD
-    scoreDisplay.textContent = 'Score: ' + score;
-    livesDisplay.textContent = 'Lives: ' + lives;
-    weaponLevelDisplay.textContent = 'Weapon: Level ' + (player.weaponLevel || 1) + ' (x' + (player.weaponMultiplier || 4) + ')';
-    difficultyDisplay.textContent = 'Difficulty: ' + difficulty;
-    
-    // Format time (MM:SS)
-    const minutes = Math.floor(gameTime / 3600);
-    const seconds = Math.floor((gameTime % 3600) / 60);
-    timeDisplay.textContent = 'Time: ' + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
-    
-    // Update high score
-    const highScore = localStorage.getItem('highScore') || 0;
-    if (score > highScore) {
-      localStorage.setItem('highScore', score);
-      highScoreDisplay.textContent = 'High Score: ' + score;
-    } else {
-      highScoreDisplay.textContent = 'High Score: ' + highScore;
-    }
-    
+    updateTopBar();
+    requestAnimationFrame(gameLoop);
+  } else if (gameState === 'upgrade') {
+    draw(); // Still draw background/ships for effect
+    updateTopBar();
+    requestAnimationFrame(gameLoop);
+  } else if (gameState === 'menu' || gameState === 'gameover') {
+    // Only draw menu/overlays
+    draw();
     requestAnimationFrame(gameLoop);
   }
 }
 
 function rectsCollide(a, b) {
   return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-}
-
-function endGame() {
-  gameState = 'gameover';
-  finalScore.textContent = 'Final Score: ' + score;
-  
-  // Check for new high score
-  const isNewHighScore = checkForNewHighScore();
-  
-  gameOverScreen.classList.remove('hidden');
-  mainMenu.classList.add('hidden');
-  stopAutoSave();
-  saveGame(); // Auto-save on game over
-  
-  // Show high score celebration if it's a new record
-  if (isNewHighScore) {
-    finalScore.textContent = 'Final Score: ' + score + ' - NEW HIGH SCORE! 🎉';
-    finalScore.style.color = '#ffff00';
-    finalScore.style.textShadow = '0 0 10px #ffff00';
-  }
 }
 
 // Show menu on load

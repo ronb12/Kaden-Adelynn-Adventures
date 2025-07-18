@@ -4,10 +4,10 @@ html, body {
   padding: 0;
   overflow: hidden;
   touch-action: none;
+  background: #0a0a23;
 }
 
 body {
-  background: linear-gradient(180deg, #0a0a23 0%, #1a1a40 100%);
   font-family: 'Segoe UI', 'Arial', sans-serif;
   color: #fff;
   min-height: 100vh;
@@ -42,9 +42,55 @@ body {
   touch-action: none;
 }
 
+#top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 48px;
+  background: rgba(10,10,35,0.95);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  z-index: 10;
+  box-shadow: 0 2px 16px #00fff755;
+  border-bottom: 2px solid #00fff7;
+}
+#stage-indicator {
+  font-size: 1.2rem;
+  color: #00fff7;
+  text-shadow: 0 0 8px #00fff7;
+  font-weight: bold;
+}
+#progress-bar {
+  flex: 1;
+  height: 16px;
+  margin: 0 32px;
+  background: #222;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 8px #00fff7;
+  border: 1.5px solid #00fff7;
+}
+#progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #00fff7 0%, #ff00cc 100%);
+  border-radius: 8px;
+  box-shadow: 0 0 12px #00fff7;
+  transition: width 0.3s;
+}
+#credits {
+  font-size: 1.1rem;
+  color: #ff00cc;
+  text-shadow: 0 0 8px #ff00cc;
+  font-weight: bold;
+}
+
 #hud {
   position: fixed;
-  top: 16px;
+  top: 64px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -58,6 +104,75 @@ body {
   z-index: 2;
   border: 2px solid #00fff7;
   pointer-events: none;
+}
+
+.overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(10,10,35,0.92);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.overlay.hidden { display: none; }
+
+#upgrade-menu {
+  background: rgba(20, 0, 40, 0.98);
+  border: 3px solid #00fff7;
+  border-radius: 18px;
+  box-shadow: 0 0 32px #ff00cc99;
+  padding: 32px 48px;
+  color: #fff;
+  text-align: center;
+}
+#upgrade-menu h2 {
+  color: #00fff7;
+  font-size: 2rem;
+  margin-bottom: 24px;
+  text-shadow: 0 0 12px #00fff7;
+}
+#upgrade-options {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 24px;
+  justify-content: center;
+}
+#upgrade-options .upgrade-option {
+  background: linear-gradient(135deg, #00fff7 0%, #ff00cc 100%);
+  border-radius: 12px;
+  padding: 18px 24px;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: bold;
+  box-shadow: 0 0 16px #00fff7;
+  cursor: pointer;
+  border: 2px solid #fff;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+#upgrade-options .upgrade-option.selected {
+  border: 3px solid #ff00cc;
+  box-shadow: 0 0 24px #ff00cc;
+  transform: scale(1.08);
+}
+#upgrade-confirm {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #fff;
+  background: linear-gradient(90deg, #00fff7 0%, #ff00cc 100%);
+  border: none;
+  border-radius: 12px;
+  padding: 14px 36px;
+  margin: 12px 0 0 0;
+  cursor: pointer;
+  box-shadow: 0 2px 12px #00fff744;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+}
+#upgrade-confirm:hover, #upgrade-confirm:focus {
+  background: linear-gradient(90deg, #ff00cc 0%, #00fff7 100%);
+  box-shadow: 0 4px 24px #ff00ccaa;
+  transform: translateY(-2px) scale(1.04);
 }
 
 .force-block {
@@ -215,6 +330,17 @@ button:active {
     max-width: 400px;
     max-height: 600px;
     margin: 20px auto 0 auto;
+  }
+  #top-bar {
+    padding: 0 8px;
+    font-size: 0.9rem;
+  }
+  #upgrade-menu {
+    padding: 16px 8px;
+  }
+  #upgrade-options {
+    flex-direction: column;
+    gap: 16px;
   }
   
   #hud {
