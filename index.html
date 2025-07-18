@@ -2,149 +2,27 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Kaden & Adelynn Adventures">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#0a0a23">
-  <meta name="description" content="An addicting space shooter game with massive firepower and dynamic combat">
-  <title>Kaden & Adelynn Adventures v2.0 - Mission System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Space Shooter</title>
   <link rel="stylesheet" href="style.css">
-  <!-- <link rel="manifest" href="manifest.json"> -->
-  <link rel="apple-touch-icon" href="icons/icon-192x192.svg">
-  <link rel="icon" type="image/svg+xml" sizes="192x192" href="icons/icon-192x192.svg">
-  <link rel="icon" type="image/svg+xml" sizes="512x512" href="icons/icon-512x512.svg">
 </head>
 <body>
-  <div id="main-menu" class="overlay">
-    <h1>Kaden & Adelynn Adventures</h1>
-    <p class="version">v2.0 - Arcade Mode</p>
-    
-    <div class="button-container">
-      <button id="start-btn">Start Game</button>
-      <button id="continue-btn" class="hidden">Continue Game</button>
-      <button id="skill-tree-btn">Skill Tree</button>
-    </div>
-    
-    <div id="high-scores-section">
-      <h3>Top Scores</h3>
-      <div id="high-scores-list">
-        <div class="score-entry">1. <span class="score-value">0</span></div>
-        <div class="score-entry">2. <span class="score-value">0</span></div>
-        <div class="score-entry">3. <span class="score-value">0</span></div>
-        <div class="score-entry">4. <span class="score-value">0</span></div>
-        <div class="score-entry">5. <span class="score-value">0</span></div>
-      </div>
-    </div>
-    <p class="credit">A simple Gradius-style clone</p>
-  </div>
-  <canvas id="gameCanvas" width="800" height="900" tabindex="0" aria-label="Game Canvas"></canvas>
-  
-
-  
-  <div id="hud">
-    <div class="hud-row">
-    <span id="score">Score: 0</span>
-      <span id="high-score">High Score: 0</span>
-    </div>
-    <div class="hud-row">
-    <span id="lives">Lives: 3</span>
-      <span id="weapon-level">Weapon: Level 1</span>
-    </div>
-    <div class="hud-row">
-      <span id="difficulty">Difficulty: 1</span>
-      <span id="time">Time: 0:00</span>
-    </div>
+  <div id="main-menu">
+    <h1>Simple Space Shooter</h1>
+    <button id="start-btn">Start Game</button>
   </div>
   
-  <div id="top-bar">
-    <div id="stage-indicator">Stage 1</div>
-    <div id="progress-bar"><div id="progress-fill"></div></div>
-    <div id="credits">Credits: 0</div>
-  </div>
-
-  <!-- Mission System UI -->
-  <div id="mission-ui" class="hidden">
-    <div id="mission-info">
-      <h3 id="mission-name">Mission 1</h3>
-      <p id="mission-description">Clear the sector of enemy forces</p>
-      <div id="mission-progress-container">
-        <div id="mission-progress"></div>
-        <span id="mission-progress-text">0/20</span>
-      </div>
-    </div>
-    <div id="mission-objectives-container">
-      <h4>Objectives:</h4>
-      <ul id="mission-objectives"></ul>
-    </div>
-  </div>
-
-  <!-- Player Progression UI -->
-  <div id="progression-ui" class="hidden">
-    <div id="player-stats">
-      <div id="player-level">Level 1</div>
-      <div id="skill-points">0 SP</div>
-    </div>
-    <div id="xp-container">
-      <div id="xp-bar"></div>
-      <span id="player-xp">0/100 XP</span>
-    </div>
-  </div>
-
-  <!-- Mission Complete Screen -->
-  <div id="mission-complete" class="overlay hidden">
-    <h2>Mission Complete!</h2>
-    <h3 id="mission-complete-name">Mission 1</h3>
-    <div id="mission-rewards">
-      <div id="mission-complete-credits">+10 Credits</div>
-      <div id="mission-complete-xp">+5 XP</div>
-    </div>
-    <button id="next-mission">Next Mission</button>
-    <button id="mission-select-btn">Mission Select</button>
-  </div>
-
-  <!-- Pause Menu -->
-  <div id="pause-menu" class="overlay hidden">
-    <h2>Game Paused</h2>
-    <button id="resume-btn">Resume Game</button>
-    <button id="save-exit-btn">Save & Exit</button>
-    <button id="exit-no-save-btn">Exit Without Saving</button>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  
+  <div id="hud" style="display: none;">
+    <div>Score: <span id="score">0</span></div>
+    <div>Lives: <span id="lives">3</span></div>
   </div>
   
-  <div id="game-over" class="overlay hidden">
-    <h2>Game Over</h2>
-    <p id="final-score"></p>
-    <button id="restart-btn">Restart</button>
-    <button id="main-menu-btn">Main Menu</button>
-  </div>
-  <script src="game.js?v=2.0"></script>
-  <script src="sw.js?v=2.0"></script>
-  <div class="force-block" style="display:none;">Game Paused</div>
-
-  <!-- Skill Tree Screen -->
-  <div id="skill-tree" class="overlay hidden">
-    <h2>Skill Tree</h2>
-    <div id="skill-tree-content"></div>
-    <button id="back-from-skills">Back to Menu</button>
-  </div>
-
-  <!-- Game Complete Screen -->
-  <div id="game-complete" class="overlay hidden">
-    <h2>🎉 Congratulations! 🎉</h2>
-    <h3>You have completed all missions!</h3>
-    <div id="final-stats">
-      <div class="stat">Total Score: <span id="final-total-score">0</span></div>
-      <div class="stat">Final Level: <span id="final-level">1</span></div>
-      <div class="stat">Total Credits: <span id="final-credits">0</span></div>
-      <div class="stat">Missions Completed: <span id="final-missions">50/50</span></div>
-    </div>
-    <div class="achievement">
-      <h4>🏆 Ultimate Champion Achievement Unlocked! 🏆</h4>
-      <p>You have proven yourself as the greatest pilot in the galaxy!</p>
-    </div>
-    <button id="new-game-plus">New Game+</button>
-    <button id="back-to-main">Back to Main Menu</button>
+  <div id="game-over" style="display: none;">
+    <h2>Game Over!</h2>
+    <p>Final Score: <span id="final-score">0</span></p>
+    <button onclick="location.reload()">Play Again</button>
   </div>
 </body>
 </html> 
