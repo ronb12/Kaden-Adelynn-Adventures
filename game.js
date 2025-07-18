@@ -111,67 +111,79 @@ function spawnEnemy() {
 }
 let enemyBullets = [];
 function updateEnemies() {
-  // Enemies move freely across the entire screen
+  // Enemies actively pursue the player ship
   for (let e of enemies) {
-    // Add movement patterns
-    if (!e.movementPattern) {
-      e.movementPattern = Math.random() < 0.33 ? 'horizontal' : Math.random() < 0.5 ? 'vertical' : 'diagonal';
-      e.movementSpeed = 1 + Math.random() * 3;
-      e.movementDirection = 1;
-      e.originalX = e.x;
-      e.originalY = e.y;
-      e.diagonalDirectionX = Math.random() < 0.5 ? 1 : -1;
-      e.diagonalDirectionY = Math.random() < 0.5 ? 1 : -1;
+    // Initialize enemy properties
+    if (!e.movementSpeed) {
+      e.movementSpeed = 1 + Math.random() * 2;
     }
     
-    // Horizontal movement pattern
-    if (e.movementPattern === 'horizontal') {
-      e.x += e.movementSpeed * e.movementDirection;
-      // Bounce off screen edges
-      if (e.x > canvas.width - e.w || e.x < 0) {
-        e.movementDirection *= -1;
-      }
+    // Calculate direction to player
+    const dx = player.x - e.x;
+    const dy = player.y - e.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    // Move toward player
+    if (distance > 0) {
+      e.x += (dx / distance) * e.movementSpeed;
+      e.y += (dy / distance) * e.movementSpeed;
     }
-    // Vertical movement pattern
-    else if (e.movementPattern === 'vertical') {
-      e.y += e.movementSpeed * e.movementDirection;
-      // Bounce off screen edges
-      if (e.y > canvas.height - e.h || e.y < 0) {
-        e.movementDirection *= -1;
-      }
-    }
-    // Diagonal movement pattern
-    else if (e.movementPattern === 'diagonal') {
-      e.x += e.movementSpeed * e.diagonalDirectionX;
-      e.y += e.movementSpeed * e.diagonalDirectionY;
-      // Bounce off screen edges
-      if (e.x > canvas.width - e.w || e.x < 0) {
-        e.diagonalDirectionX *= -1;
-      }
-      if (e.y > canvas.height - e.h || e.y < 0) {
-        e.diagonalDirectionY *= -1;
-      }
-    }
+    
+    // Keep enemies within screen bounds
+    e.x = Math.max(0, Math.min(canvas.width - e.w, e.x));
+    e.y = Math.max(0, Math.min(canvas.height - e.h, e.y));
     
     // Update life timer
     e.lifeTimer = (e.lifeTimer || 0) + 1;
     
+    // Shooter enemies fire more frequently when closer to player
     if (e.type === 'shooter') {
       e.shootTimer = (e.shootTimer || 0) + 1;
-      if (e.shootTimer > 60) {
-        enemyBullets.push({ x: e.x, y: e.y + e.h/2 - 3, w: 10, h: 6, speed: 5 });
+      const shootInterval = distance < 100 ? 30 : 60; // Shoot faster when closer
+      if (e.shootTimer > shootInterval) {
+        // Shoot toward player
+        const bulletSpeed = 4;
+        const bulletDx = dx / distance * bulletSpeed;
+        const bulletDy = dy / distance * bulletSpeed;
+        enemyBullets.push({ 
+          x: e.x + e.w/2, 
+          y: e.y + e.h/2, 
+          w: 8, 
+          h: 8, 
+          dx: bulletDx,
+          dy: bulletDy,
+          speed: bulletSpeed
+        });
         e.shootTimer = 0;
       }
     }
   }
   
-  // Remove enemies that have been alive too long (15 seconds at 60fps = 900 frames)
-  enemies = enemies.filter(e => e.lifeTimer < 900);
+  // Remove enemies that have been alive too long (20 seconds at 60fps = 1200 frames)
+  enemies = enemies.filter(e => e.lifeTimer < 1200);
 }
 function updateEnemyBullets() {
-  // Enemy bullets stay in fixed positions - no horizontal movement
+  // Enemy bullets move toward player
   for (let i = enemyBullets.length-1; i >= 0; i--) {
-    if (rectsCollide(player, enemyBullets[i])) {
+    const b = enemyBullets[i];
+    
+    // Move bullet
+    if (b.dx && b.dy) {
+      b.x += b.dx;
+      b.y += b.dy;
+    } else {
+      // Fallback for old bullet format
+      b.x -= b.speed;
+    }
+    
+    // Remove bullets that go off screen
+    if (b.x < -20 || b.x > canvas.width + 20 || b.y < -20 || b.y > canvas.height + 20) {
+      enemyBullets.splice(i, 1);
+      continue;
+    }
+    
+    // Check collision with player
+    if (rectsCollide(player, b)) {
       if (player.shield > 0) {
         player.shield = 0;
       } else {
@@ -181,7 +193,7 @@ function updateEnemyBullets() {
           return;
         }
       }
-      enemyBullets.splice(i,1);
+      enemyBullets.splice(i, 1);
     }
   }
 }
