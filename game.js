@@ -104,15 +104,46 @@ function spawnEnemy() {
   const x = Math.random() * (canvas.width - 200) + 200; // Spawn in middle-right area
   const type = Math.random() < 0.7 ? 'basic' : 'shooter';
   if (type === 'basic') {
-    enemies.push({ x, y, w: 32, h: 24, type });
+    enemies.push({ x, y, w: 32, h: 24, type, lifeTimer: 0 });
   } else {
-    enemies.push({ x, y, w: 32, h: 24, type, shootTimer: 0 });
+    enemies.push({ x, y, w: 32, h: 24, type, shootTimer: 0, lifeTimer: 0 });
   }
 }
 let enemyBullets = [];
 function updateEnemies() {
-  // Enemies stay in fixed positions - no horizontal movement
+  // Enemies move within the fixed screen area
   for (let e of enemies) {
+    // Add movement patterns
+    if (!e.movementPattern) {
+      e.movementPattern = Math.random() < 0.5 ? 'horizontal' : 'vertical';
+      e.movementSpeed = 1 + Math.random() * 2;
+      e.movementDirection = 1;
+      e.originalX = e.x;
+      e.originalY = e.y;
+    }
+    
+    // Horizontal movement pattern
+    if (e.movementPattern === 'horizontal') {
+      e.x += e.movementSpeed * e.movementDirection;
+      if (e.x > e.originalX + 100 || e.x < e.originalX - 100) {
+        e.movementDirection *= -1;
+      }
+    }
+    // Vertical movement pattern
+    else if (e.movementPattern === 'vertical') {
+      e.y += e.movementSpeed * e.movementDirection;
+      if (e.y > e.originalY + 80 || e.y < e.originalY - 80) {
+        e.movementDirection *= -1;
+      }
+    }
+    
+    // Keep enemies within screen bounds
+    e.x = Math.max(50, Math.min(canvas.width - e.w - 50, e.x));
+    e.y = Math.max(10, Math.min(canvas.height - e.h - 10, e.y));
+    
+    // Update life timer
+    e.lifeTimer = (e.lifeTimer || 0) + 1;
+    
     if (e.type === 'shooter') {
       e.shootTimer = (e.shootTimer || 0) + 1;
       if (e.shootTimer > 60) {
@@ -121,6 +152,9 @@ function updateEnemies() {
       }
     }
   }
+  
+  // Remove enemies that have been alive too long (10 seconds at 60fps = 600 frames)
+  enemies = enemies.filter(e => e.lifeTimer < 600);
 }
 function updateEnemyBullets() {
   // Enemy bullets stay in fixed positions - no horizontal movement
