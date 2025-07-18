@@ -349,48 +349,63 @@ function drawPowerUps() {
 
 // --- Enemy Types ---
 function spawnEnemy() {
-  const x = Math.random() * (canvas.width - 32) + 8;
-  const y = -32; // Spawn from top of screen
+  const side = Math.floor(Math.random() * 4); // 0: top, 1: right, 2: bottom, 3: left
+  let x, y;
+  
+  if (side === 0) { // Top
+    x = Math.random() * (canvas.width - 32) + 8;
+    y = -32;
+  } else if (side === 1) { // Right
+    x = canvas.width + 32;
+    y = Math.random() * (canvas.height - 32) + 8;
+  } else if (side === 2) { // Bottom
+    x = Math.random() * (canvas.width - 32) + 8;
+    y = canvas.height + 32;
+  } else { // Left
+    x = -32;
+    y = Math.random() * (canvas.height - 32) + 8;
+  }
+  
   const type = Math.random() < 0.7 ? 'basic' : 'shooter';
   if (type === 'basic') {
-    enemies.push({ x, y, w: 32, h: 24, type, lifeTimer: 0 });
+    enemies.push({ x, y, w: 32, h: 24, type, lifeTimer: 0, spawnSide: side });
   } else {
-    enemies.push({ x, y, w: 32, h: 24, type, shootTimer: 0, lifeTimer: 0 });
+    enemies.push({ x, y, w: 32, h: 24, type, shootTimer: 0, lifeTimer: 0, spawnSide: side });
   }
 }
 let enemyBullets = [];
 function updateEnemies() {
-  // Enemies move from top to bottom
+  // Enemies move toward the player
   for (let e of enemies) {
     // Initialize enemy properties
     if (!e.movementSpeed) {
-      e.movementSpeed = 2 + Math.random() * 2;
+      e.movementSpeed = 1 + Math.random() * 2;
     }
     
-    // Move from top to bottom
-    e.y += e.movementSpeed;
+    // Calculate direction toward player
+    const dx = player.x - e.x;
+    const dy = player.y - e.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
     
-    // Add some horizontal movement patterns
-    if (!e.horizontalPattern) {
-      e.horizontalPattern = Math.random() < 0.5 ? 'sine' : 'linear';
-      e.horizontalSpeed = 0.5 + Math.random() * 1;
-      e.horizontalDirection = Math.random() < 0.5 ? 1 : -1;
-      e.originalX = e.x;
-      e.sineOffset = Math.random() * Math.PI * 2;
+    if (distance > 0) {
+      // Move toward player
+      e.x += (dx / distance) * e.movementSpeed;
+      e.y += (dy / distance) * e.movementSpeed;
     }
     
-    // Horizontal movement patterns
-    if (e.horizontalPattern === 'sine') {
-      e.x = e.originalX + Math.sin((e.y + e.sineOffset) * 0.02) * 30;
-    } else if (e.horizontalPattern === 'linear') {
-      e.x += e.horizontalSpeed * e.horizontalDirection;
-      if (e.x > e.originalX + 40 || e.x < e.originalX - 40) {
-        e.horizontalDirection *= -1;
-      }
+    // Add some random movement for variety
+    if (!e.randomOffset) {
+      e.randomOffset = Math.random() * Math.PI * 2;
+      e.randomSpeed = 0.5 + Math.random() * 1;
     }
+    
+    e.randomOffset += e.randomSpeed * 0.02;
+    e.x += Math.sin(e.randomOffset) * 0.5;
+    e.y += Math.cos(e.randomOffset) * 0.5;
     
     // Keep enemies within screen bounds
-    e.x = Math.max(10, Math.min(canvas.width - e.w - 10, e.x));
+    e.x = Math.max(-e.w, Math.min(canvas.width + e.w, e.x));
+    e.y = Math.max(-e.h, Math.min(canvas.height + e.h, e.y));
     
     // Update life timer
     e.lifeTimer = (e.lifeTimer || 0) + 1;
@@ -399,34 +414,48 @@ function updateEnemies() {
     if (e.type === 'shooter') {
       e.shootTimer = (e.shootTimer || 0) + 1;
       if (e.shootTimer > 90) { // Shoot every 1.5 seconds
-        // Shoot straight down
-        enemyBullets.push({ 
-          x: e.x + e.w/2 - 3, 
-          y: e.y + e.h, 
-          w: 6, 
-          h: 10, 
-          speed: 6,
-          dx: 0,
-          dy: 6
-        });
+        // Calculate direction toward player for shooting
+        const shootDx = player.x - e.x;
+        const shootDy = player.y - e.y;
+        const shootDistance = Math.sqrt(shootDx * shootDx + shootDy * shootDy);
+        
+        if (shootDistance > 0) {
+          const bulletSpeed = 4;
+          const bulletDx = (shootDx / shootDistance) * bulletSpeed;
+          const bulletDy = (shootDy / shootDistance) * bulletSpeed;
+          
+          enemyBullets.push({ 
+            x: e.x + e.w/2 - 3, 
+            y: e.y + e.h/2 - 3, 
+            w: 6, 
+            h: 6, 
+            speed: bulletSpeed,
+            dx: bulletDx,
+            dy: bulletDy
+          });
+        }
         e.shootTimer = 0;
       }
     }
   }
   
-  // Remove enemies that go off the bottom of screen
-  enemies = enemies.filter(e => e.y < canvas.height + e.h);
+  // Remove enemies that go too far off screen
+  enemies = enemies.filter(e => 
+    e.x > -e.w * 2 && e.x < canvas.width + e.w * 2 && 
+    e.y > -e.h * 2 && e.y < canvas.height + e.h * 2
+  );
 }
 function updateEnemyBullets() {
-  // Enemy bullets move from top to bottom
+  // Enemy bullets move in their calculated direction
   for (let i = enemyBullets.length-1; i >= 0; i--) {
     const b = enemyBullets[i];
     
-    // Move bullet down
-    b.y += b.speed;
+    // Move bullet in its direction
+    b.x += b.dx;
+    b.y += b.dy;
     
-    // Remove bullets that go off the bottom of screen
-    if (b.y > canvas.height + 20) {
+    // Remove bullets that go off screen
+    if (b.x < -20 || b.x > canvas.width + 20 || b.y < -20 || b.y > canvas.height + 20) {
       enemyBullets.splice(i, 1);
       continue;
     }
@@ -464,12 +493,19 @@ function drawEnemyBullets() {
     ctx.arc(0, 0, b.w/2, 0, Math.PI * 2);
     ctx.fill();
     
-    // Enemy bullet trail
+    // Enemy bullet trail (in direction of movement)
     ctx.strokeStyle = '#ff4444';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(0, -b.h/2 - 4);
-    ctx.lineTo(0, -b.h/2);
+    
+    // Calculate trail direction based on bullet movement
+    const angle = Math.atan2(-b.dy, -b.dx);
+    const trailLength = 8;
+    const trailX = Math.cos(angle) * trailLength;
+    const trailY = Math.sin(angle) * trailLength;
+    
+    ctx.moveTo(trailX, trailY);
+    ctx.lineTo(0, 0);
     ctx.stroke();
     
     ctx.restore();
@@ -477,7 +513,7 @@ function drawEnemyBullets() {
 }
 
 function resetGame() {
-  player = { x: canvas.width/2-16, y: canvas.height-60, w: 32, h: 24, speed: 4, weaponLevel: 1, shield: 0, weaponMultiplier: 4 };
+  player = { x: canvas.width/2-16, y: canvas.height/2-12, w: 32, h: 24, speed: 4, weaponLevel: 1, shield: 0, weaponMultiplier: 4 };
   bullets = [];
   enemies = [];
   enemyBullets = [];
@@ -505,13 +541,14 @@ function update() {
   updateParticles();
   updateSoundEffects();
   updateBoss();
-  // Player movement - horizontal movement allowed, vertical restricted
+  // Player movement - full movement allowed
   if (keys['ArrowLeft']) player.x -= player.speed;
   if (keys['ArrowRight']) player.x += player.speed;
+  if (keys['ArrowUp']) player.y -= player.speed;
+  if (keys['ArrowDown']) player.y += player.speed;
   // Keep player within screen bounds
   player.x = Math.max(0, Math.min(canvas.width - player.w, player.x));
-  // Keep player at fixed vertical position (near bottom of screen)
-  player.y = canvas.height - 60;
+  player.y = Math.max(0, Math.min(canvas.height - player.h, player.y));
 
   // Bullets
   bullets.forEach(b => b.y -= b.speed);
