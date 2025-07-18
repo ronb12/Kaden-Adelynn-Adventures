@@ -2094,3 +2094,15 @@ function handleTouchEnd(e) {
 let fireHeld = false;
 let fireCooldown = 0;
 const FIRE_RATE = 5; // Lower is faster (frames between shots) 
+
+// --- Balance Tweaks ---
+const ENEMY_SPAWN_RATE = 90; // Higher = slower spawn
+const MAX_ENEMIES = 7; // Cap on enemies on screen
+const ENEMY_BULLET_SPEED = 3; // Slower enemy bullets
+const ENEMY_BULLET_FREQ = 80; // Higher = less frequent
+const PLAYER_BULLET_DAMAGE = 2; // Player bullets do more damage
+const PLAYER_INVINCIBILITY_FRAMES = 60; // 1 second of invincibility
+const POWERUP_DROP_RATE = 0.35; // 35% chance
+const COLLECTIBLE_DROP_RATE = 0.2; // 20% chance
+const PLAYER_COLLISION_SHRINK = 0.7; // 70% of sprite size
+const ENEMY_BULLET_COLLISION_SHRINK = 0.6;
