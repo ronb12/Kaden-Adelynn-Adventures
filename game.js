@@ -2499,11 +2499,13 @@ function initGame() {
       const selectedMission = parseInt(missionDropdown.value);
       console.log('🎮 Selected mission:', selectedMission);
       console.log('🎮 Starting mission:', selectedMission);
+      mainMenu.classList.add('hidden');
       startMission(selectedMission);
     } else {
       console.error('❌ Mission dropdown not found');
       // Fallback to mission 1
       console.log('🎮 Falling back to mission 1');
+      mainMenu.classList.add('hidden');
       startMission(1);
     }
   };
