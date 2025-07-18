@@ -717,7 +717,6 @@ function drawBoss() {
 }
 
 // --- Gradius Power-Up System ---
-let powerCapsules = [];
 const POWER_UP_OPTIONS = [
   { name: 'Speed Up', icon: '⚡', effect: 'speed', maxLevel: 3 },
   { name: 'Missile', icon: '🚀', effect: 'missile', maxLevel: 2 },
@@ -738,7 +737,6 @@ let playerPowerUps = {
 };
 
 // --- Collectibles (Legacy) ---
-let collectibles = [];
 const COLLECTIBLE_TYPES = [
   { type: 'money', emoji: '💰', value: 50, color: '#ffd700' },
   { type: 'health', emoji: '❤️', value: 75, color: '#ff6b6b' },
@@ -924,7 +922,6 @@ function drawPowerCapsules() {
 }
 
 // --- Power-Ups (Legacy) ---
-let powerUps = [];
 const POWERUP_TYPES = ['weapon', 'shield'];
 function spawnPowerUp(x, y) {
   const type = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
