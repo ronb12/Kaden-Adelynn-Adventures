@@ -43,29 +43,8 @@ let missionData = [];
 // Input
 let keys = {};
 
-// --- Game Arrays ---
-let bullets = [];
-let enemies = [];
-let enemyBullets = [];
-let particles = [];
-let soundEffects = [];
-let collectibles = [];
-let powerCapsules = [];
-let powerUps = [];
-let options = [];
-
 // --- Game Objects ---
 let player = null;
-let boss = null;
-
-// --- Game State Variables ---
-let gameTime = 0;
-let score = 0;
-let lives = 3;
-let gamePaused = false;
-let enemyTimer = 60;
-let bossSpawned = false;
-let fireHeld = false;
 
 // --- Touch Controls ---
 let isTouchDevice = false;
@@ -73,36 +52,19 @@ let isTouching = false;
 let touchX = 0;
 let touchY = 0;
 
-// --- Keyboard Input ---
-let keys = {};
-
 // --- Constants ---
 const COLLECTIBLE_DROP_RATE = 0.1;
 const POWERUP_DROP_RATE = 0.05;
 
-// --- Input System ---
-// Keyboard event listeners will be added in initGame()
-
 // --- Game States ---
-let gameState = 'menu'; // 'menu', 'playing', 'upgrade', 'boss', 'gameover'
 let stage = 1;
-let stageProgress = 0;
-let stageGoal = 20; // Enemies to defeat per stage
-let credits = 0;
 let upgrades = [];
 
 // --- Mission System ---
-let currentMission = 1;
-let totalMissions = 50;
-let missionData = [];
 let missionObjectives = [];
-let missionCompleted = false;
 
 // --- Level Progression ---
-let playerLevel = 1;
-let playerXP = 0;
 let xpToNextLevel = 100;
-let skillPoints = 0;
 
 // --- Debug Mode ---
 const DEBUG_MODE = true;
