@@ -1509,10 +1509,10 @@ function draw() {
     drawBoss();
   }
   
-  // Draw power-up menu
-  if (powerUpMenu) {
-    drawPowerUpMenu();
-  }
+  // Draw power-up menu (removed - function doesn't exist)
+  // if (powerUpMenu) {
+  //   drawPowerUpMenu();
+  // }
 }
 
 function gameLoop() {
@@ -2400,13 +2400,7 @@ function drawBullets() {
   });
 }
 
-function gameLoop() {
-  if (gameState === 'playing') {
-    update();
-    draw();
-  }
-  requestAnimationFrame(gameLoop);
-}
+
 
 // --- Touch Support for iOS ---
 function initTouchSupport() {
