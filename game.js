@@ -27,21 +27,22 @@ function initStars() {
   }
 }
 function updateStars() {
-  // Stars stay in fixed positions - no scrolling
-  // Only add subtle twinkling effect
+  // Stars scroll from right to left for horizontal movement effect
   for (let s of stars) {
-    // Optional: Add subtle twinkling by varying alpha
-    s.twinkle = (s.twinkle || 0) + 0.1;
-    if (s.twinkle > Math.PI * 2) s.twinkle = 0;
+    s.x -= s.speed;
+    if (s.x < 0) {
+      s.x = canvas.width;
+      s.y = Math.random() * canvas.height;
+      s.speed = 0.5 + Math.random() * 1.5;
+      s.size = Math.random() * 1.5 + 0.5;
+    }
   }
 }
 function drawStars() {
   ctx.save();
   ctx.fillStyle = '#fff';
   for (let s of stars) {
-    // Add twinkling effect
-    const twinkleAlpha = 0.3 + 0.4 * Math.sin(s.twinkle || 0);
-    ctx.globalAlpha = twinkleAlpha * (0.5 + 0.5 * (s.size / 2));
+    ctx.globalAlpha = 0.5 + 0.5 * (s.size / 2);
     ctx.beginPath();
     ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
     ctx.fill();
@@ -101,7 +102,7 @@ function drawPowerUps() {
 // --- Enemy Types ---
 function spawnEnemy() {
   const y = Math.random() * (canvas.height - 32) + 8;
-  const x = Math.random() * (canvas.width - 32) + 8; // Spawn anywhere on screen
+  const x = canvas.width + 32; // Spawn from right side of screen
   const type = Math.random() < 0.7 ? 'basic' : 'shooter';
   if (type === 'basic') {
     enemies.push({ x, y, w: 32, h: 24, type, lifeTimer: 0 });
@@ -111,73 +112,73 @@ function spawnEnemy() {
 }
 let enemyBullets = [];
 function updateEnemies() {
-  // Enemies actively pursue the player ship
+  // Enemies move from right to left like Gradius
   for (let e of enemies) {
     // Initialize enemy properties
     if (!e.movementSpeed) {
-      e.movementSpeed = 1 + Math.random() * 2;
+      e.movementSpeed = 2 + Math.random() * 2;
     }
     
-    // Calculate direction to player
-    const dx = player.x - e.x;
-    const dy = player.y - e.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
+    // Move from right to left
+    e.x -= e.movementSpeed;
     
-    // Move toward player
-    if (distance > 0) {
-      e.x += (dx / distance) * e.movementSpeed;
-      e.y += (dy / distance) * e.movementSpeed;
+    // Add some vertical movement patterns
+    if (!e.verticalPattern) {
+      e.verticalPattern = Math.random() < 0.5 ? 'sine' : 'linear';
+      e.verticalSpeed = 0.5 + Math.random() * 1;
+      e.verticalDirection = Math.random() < 0.5 ? 1 : -1;
+      e.originalY = e.y;
+      e.sineOffset = Math.random() * Math.PI * 2;
+    }
+    
+    // Vertical movement patterns
+    if (e.verticalPattern === 'sine') {
+      e.y = e.originalY + Math.sin((e.x + e.sineOffset) * 0.02) * 30;
+    } else if (e.verticalPattern === 'linear') {
+      e.y += e.verticalSpeed * e.verticalDirection;
+      if (e.y > e.originalY + 40 || e.y < e.originalY - 40) {
+        e.verticalDirection *= -1;
+      }
     }
     
     // Keep enemies within screen bounds
-    e.x = Math.max(0, Math.min(canvas.width - e.w, e.x));
-    e.y = Math.max(0, Math.min(canvas.height - e.h, e.y));
+    e.y = Math.max(10, Math.min(canvas.height - e.h - 10, e.y));
     
     // Update life timer
     e.lifeTimer = (e.lifeTimer || 0) + 1;
     
-    // Shooter enemies fire more frequently when closer to player
+    // Shooter enemies fire at regular intervals
     if (e.type === 'shooter') {
       e.shootTimer = (e.shootTimer || 0) + 1;
-      const shootInterval = distance < 100 ? 30 : 60; // Shoot faster when closer
-      if (e.shootTimer > shootInterval) {
-        // Shoot toward player
-        const bulletSpeed = 4;
-        const bulletDx = dx / distance * bulletSpeed;
-        const bulletDy = dy / distance * bulletSpeed;
+      if (e.shootTimer > 90) { // Shoot every 1.5 seconds
+        // Shoot straight left
         enemyBullets.push({ 
-          x: e.x + e.w/2, 
-          y: e.y + e.h/2, 
-          w: 8, 
-          h: 8, 
-          dx: bulletDx,
-          dy: bulletDy,
-          speed: bulletSpeed
+          x: e.x, 
+          y: e.y + e.h/2 - 3, 
+          w: 10, 
+          h: 6, 
+          speed: 6,
+          dx: -6,
+          dy: 0
         });
         e.shootTimer = 0;
       }
     }
   }
   
-  // Remove enemies that have been alive too long (20 seconds at 60fps = 1200 frames)
-  enemies = enemies.filter(e => e.lifeTimer < 1200);
+  // Remove enemies that go off the left side of screen
+  enemies = enemies.filter(e => e.x > -e.w);
 }
 function updateEnemyBullets() {
-  // Enemy bullets move toward player
+  // Enemy bullets move from right to left
   for (let i = enemyBullets.length-1; i >= 0; i--) {
     const b = enemyBullets[i];
     
-    // Move bullet
-    if (b.dx && b.dy) {
-      b.x += b.dx;
-      b.y += b.dy;
-    } else {
-      // Fallback for old bullet format
-      b.x -= b.speed;
-    }
+    // Move bullet left
+    b.x -= b.speed;
     
-    // Remove bullets that go off screen
-    if (b.x < -20 || b.x > canvas.width + 20 || b.y < -20 || b.y > canvas.height + 20) {
+    // Remove bullets that go off the left side of screen
+    if (b.x < -20) {
       enemyBullets.splice(i, 1);
       continue;
     }
