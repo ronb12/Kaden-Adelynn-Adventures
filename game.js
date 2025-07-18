@@ -1175,15 +1175,16 @@ function drawBasicEnemy(e) {
   ctx.fillStyle = '#00fff7';
   ctx.globalAlpha = 0.5;
   ctx.beginPath();
-  ctx.arc(-w/3, h/6, w/16, 0, Math.PI*2);
-  ctx.arc(w/3, h/6, w/16, 0, Math.PI*2);
+  safeArc(ctx, -w/3, h/6, w/16, 0, Math.PI*2);
+  safeArc(ctx, w/3, h/6, w/16, 0, Math.PI*2);
   ctx.fill();
   // Scanning lights
   ctx.globalAlpha = 0.7;
   ctx.fillStyle = '#fff';
   for (let i = -1; i <= 1; i += 2) {
     ctx.beginPath();
-    ctx.arc(i*w/3, h/6, w/40 + (Math.sin(Date.now()*0.01 + i)*2), 0, Math.PI*2);
+    const scanRadius = Math.max(2, w/40 + (Math.sin(Date.now()*0.01 + i)*2));
+    safeArc(ctx, i*w/3, h/6, scanRadius, 0, Math.PI*2);
     ctx.fill();
   }
   ctx.restore();
