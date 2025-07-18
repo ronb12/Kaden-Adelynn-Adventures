@@ -1,34 +1,220 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kaden & Adelynn Adventures - Simple Space Shooter</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaden & Adelynn Adventures</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #000;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        #gameContainer {
+            text-align: center;
+        }
+        
+        #gameCanvas {
+            border: 2px solid #fff;
+            background: #000;
+            margin: 20px 0;
+        }
+        
+        #controls {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        
+        button {
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        
+        button:hover {
+            background: #ccc;
+        }
+        
+        #score {
+            font-size: 20px;
+            margin: 10px 0;
+        }
+    </style>
 </head>
 <body>
-  <div id="main-menu">
-    <h1>Kaden & Adelynn Adventures</h1>
-    <p class="subtitle">Simple Space Shooter</p>
-    <button id="start-btn">Start Game</button>
-    <div class="instructions">
-      <p><strong>Controls:</strong></p>
-      <p>Move: Arrow Keys or WASD</p>
-      <p>Shoot: Spacebar</p>
+    <div id="gameContainer">
+        <h1>Kaden & Adelynn Adventures</h1>
+        <div id="score">Score: 0 | Lives: 3</div>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="controls">
+            <p>Move: Arrow Keys | Shoot: Spacebar</p>
+            <button id="startBtn">Start Game</button>
+        </div>
     </div>
-  </div>
-  
-  <canvas id="gameCanvas" width="800" height="600"></canvas>
-  
-  <div id="hud" style="display: none;">
-    <div class="hud-item">Score: <span id="score">0</span></div>
-    <div class="hud-item">Lives: <span id="lives">3</span></div>
-  </div>
-  
-  <div id="game-over" style="display: none;">
-    <h2>Game Over!</h2>
-    <p>Final Score: <span id="final-score">0</span></p>
-    <button onclick="location.reload()">Play Again</button>
-  </div>
+
+    <script>
+        // Simple Space Shooter Game
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const startBtn = document.getElementById('startBtn');
+        const scoreDisplay = document.getElementById('score');
+
+        // Game variables
+        let gameRunning = false;
+        let score = 0;
+        let lives = 3;
+        let player = { x: 375, y: 500, width: 50, height: 50 };
+        let bullets = [];
+        let enemies = [];
+        let keys = {};
+
+        // Event listeners
+        startBtn.addEventListener('click', startGame);
+        document.addEventListener('keydown', (e) => {
+            keys[e.code] = true;
+            if (e.code === 'Space') e.preventDefault();
+        });
+        document.addEventListener('keyup', (e) => {
+            keys[e.code] = false;
+        });
+
+        function startGame() {
+            gameRunning = true;
+            score = 0;
+            lives = 3;
+            bullets = [];
+            enemies = [];
+            player = { x: 375, y: 500, width: 50, height: 50 };
+            startBtn.textContent = 'Restart Game';
+            gameLoop();
+        }
+
+        function updatePlayer() {
+            if (keys['ArrowLeft'] && player.x > 0) player.x -= 5;
+            if (keys['ArrowRight'] && player.x < canvas.width - player.width) player.x += 5;
+            if (keys['ArrowUp'] && player.y > 0) player.y -= 5;
+            if (keys['ArrowDown'] && player.y < canvas.height - player.height) player.y += 5;
+            
+            if (keys['Space']) {
+                bullets.push({ x: player.x + 23, y: player.y, width: 4, height: 10, speed: 7 });
+            }
+        }
+
+        function updateBullets() {
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                bullets[i].y -= bullets[i].speed;
+                if (bullets[i].y < 0) bullets.splice(i, 1);
+            }
+        }
+
+        function spawnEnemy() {
+            if (Math.random() < 0.02) {
+                enemies.push({
+                    x: Math.random() * (canvas.width - 30),
+                    y: -30,
+                    width: 30,
+                    height: 30,
+                    speed: 2 + Math.random() * 2
+                });
+            }
+        }
+
+        function updateEnemies() {
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                enemies[i].y += enemies[i].speed;
+                if (enemies[i].y > canvas.height) {
+                    enemies.splice(i, 1);
+                }
+            }
+        }
+
+        function checkCollisions() {
+            // Bullets vs enemies
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    if (bullets[i].x < enemies[j].x + enemies[j].width &&
+                        bullets[i].x + bullets[i].width > enemies[j].x &&
+                        bullets[i].y < enemies[j].y + enemies[j].height &&
+                        bullets[i].y + bullets[i].height > enemies[j].y) {
+                        score += 10;
+                        bullets.splice(i, 1);
+                        enemies.splice(j, 1);
+                        break;
+                    }
+                }
+            }
+
+            // Player vs enemies
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                if (player.x < enemies[i].x + enemies[i].width &&
+                    player.x + player.width > enemies[i].x &&
+                    player.y < enemies[i].y + enemies[i].height &&
+                    player.y + player.height > enemies[i].y) {
+                    lives--;
+                    enemies.splice(i, 1);
+                    if (lives <= 0) {
+                        gameOver();
+                    }
+                }
+            }
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            alert(`Game Over! Final Score: ${score}`);
+            startBtn.textContent = 'Start Game';
+        }
+
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw player
+            ctx.fillStyle = '#0f0';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+
+            // Draw bullets
+            ctx.fillStyle = '#ff0';
+            bullets.forEach(bullet => {
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+            });
+
+            // Draw enemies
+            ctx.fillStyle = '#f00';
+            enemies.forEach(enemy => {
+                ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+            });
+
+            // Update score display
+            scoreDisplay.textContent = `Score: ${score} | Lives: ${lives}`;
+        }
+
+        function gameLoop() {
+            if (!gameRunning) return;
+
+            updatePlayer();
+            updateBullets();
+            spawnEnemy();
+            updateEnemies();
+            checkCollisions();
+            draw();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initial draw
+        draw();
+    </script>
 </body>
 </html> 
