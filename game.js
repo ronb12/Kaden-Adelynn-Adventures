@@ -2489,9 +2489,12 @@ function initGame() {
   // Update main menu buttons
   console.log('🎮 Updating main menu buttons...');
   console.log('🎮 Start button before:', startBtn.textContent);
-  startBtn.textContent = 'Mission Select';
+  startBtn.textContent = 'Start Mission';
   console.log('🎮 Start button after:', startBtn.textContent);
-  startBtn.onclick = showMissionSelect;
+  startBtn.onclick = () => {
+    const selectedMission = parseInt(document.getElementById('mission-dropdown').value);
+    startMission(selectedMission);
+  };
   
   // Add event listeners for new UI with null checks
   const backToMenuBtn = document.getElementById('back-to-menu');
@@ -2519,7 +2522,7 @@ function initGame() {
   if (missionSelectBtn) {
     missionSelectBtn.onclick = () => {
       document.getElementById('mission-complete').classList.add('hidden');
-      showMissionSelect();
+      mainMenu.classList.remove('hidden');
     };
   }
   
@@ -2578,42 +2581,6 @@ function initGame() {
   console.log('✅ Game initialization complete');
 }
 
-function showMissionSelect() {
-  mainMenu.classList.add('hidden');
-  const missionSelect = document.getElementById('mission-select');
-  const missionGrid = document.getElementById('mission-grid');
-  
-  missionGrid.innerHTML = '';
-  
-  missionData.forEach((mission, index) => {
-    const card = document.createElement('div');
-    card.className = 'mission-card';
-    if (index + 1 > currentMission) {
-      card.classList.add('locked');
-    } else if (index + 1 < currentMission) {
-      card.classList.add('completed');
-    }
-    
-    card.innerHTML = `
-      <h3>${mission.name}</h3>
-      <p>${mission.description}</p>
-      <div class="difficulty">Difficulty: ${mission.difficulty.toFixed(1)}</div>
-      <div class="reward">Reward: ${mission.reward.credits} Credits, ${mission.reward.xp} XP</div>
-    `;
-    
-    if (index + 1 <= currentMission) {
-      card.onclick = () => {
-        missionSelect.classList.add('hidden');
-        startMission(index + 1);
-      };
-    }
-    
-    missionGrid.appendChild(card);
-  });
-  
-  missionSelect.classList.remove('hidden');
-}
-
 function showGameComplete() {
   const gameComplete = document.getElementById('game-complete');
   
@@ -2635,37 +2602,6 @@ function showGameComplete() {
     gameComplete.classList.add('hidden');
     mainMenu.classList.remove('hidden');
   };
-}
-
-function startNewGamePlus() {
-  // New Game+ - keep some progress but increase difficulty
-  const newGamePlus = {
-    playerLevel: Math.floor(playerLevel / 2),
-    skillPoints: Math.floor(skillPoints / 2),
-    credits: Math.floor(credits / 2),
-    currentMission: 1,
-    playerSkills: {},
-    difficulty: 2
-  };
-  
-  // Save New Game+ data
-  localStorage.setItem('newGamePlus', JSON.stringify(newGamePlus));
-  
-  // Reset game with New Game+ settings
-  resetGame();
-  
-  // Apply New Game+ bonuses
-  playerLevel = newGamePlus.playerLevel;
-  skillPoints = newGamePlus.skillPoints;
-  credits = newGamePlus.credits;
-  difficulty = newGamePlus.difficulty;
-  
-  // Update UI
-  updateProgressionUI();
-  
-  // Hide completion screen and start game
-  document.getElementById('game-complete').classList.add('hidden');
-  startMission(1);
 }
 
 // High Score Functions
