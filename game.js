@@ -2478,7 +2478,7 @@ function initGame() {
   
   // Initialize game systems
   generateMissions();
-  loadHighScores();
+  initHighScores();
   checkForSavedGame();
   initStars();
   initTouchSupport();
@@ -2642,6 +2642,89 @@ function startNewGamePlus() {
   // Hide completion screen and start game
   document.getElementById('game-complete').classList.add('hidden');
   startMission(1);
+}
+
+// High Score Functions
+function initHighScores() {
+  const saved = localStorage.getItem('highScores');
+  if (saved) {
+    try {
+      highScores = JSON.parse(saved);
+    } catch (e) {
+      highScores = [];
+    }
+  }
+  updateHighScoreDisplay();
+}
+
+function updateHighScoreDisplay() {
+  if (highScoreDisplay) {
+    const topScore = highScores.length > 0 ? Math.max(...highScores) : 0;
+    highScoreDisplay.textContent = `High Score: ${topScore.toLocaleString()}`;
+  }
+}
+
+function checkForNewHighScore() {
+  const topScore = highScores.length > 0 ? Math.max(...highScores) : 0;
+  return score > topScore;
+}
+
+function saveHighScore() {
+  highScores.push(score);
+  highScores.sort((a, b) => b - a); // Sort descending
+  highScores = highScores.slice(0, 10); // Keep top 10
+  localStorage.setItem('highScores', JSON.stringify(highScores));
+  updateHighScoreDisplay();
+}
+
+function showNewHighScoreCelebration() {
+  // Create celebration effect
+  for (let i = 0; i < 50; i++) {
+    createParticle(
+      canvas.width / 2 + (Math.random() - 0.5) * 200,
+      canvas.height / 2 + (Math.random() - 0.5) * 200,
+      ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1'][Math.floor(Math.random() * 4)],
+      3,
+      60
+    );
+  }
+  
+  // Show notification
+  const notification = document.createElement('div');
+  notification.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(45deg, #ffd700, #ff6b6b);
+    color: white;
+    padding: 20px 40px;
+    border-radius: 12px;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    z-index: 10000;
+    animation: celebration 2s ease-out;
+  `;
+  notification.innerHTML = '🎉 NEW HIGH SCORE! 🎉';
+  document.body.appendChild(notification);
+  
+  // Add CSS animation
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes celebration {
+      0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+      50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+    }
+  `;
+  document.head.appendChild(style);
+  
+  // Remove after animation
+  setTimeout(() => {
+    document.body.removeChild(notification);
+    document.head.removeChild(style);
+  }, 2000);
 }
 
 // Initialize the game when the page loads
