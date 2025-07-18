@@ -143,6 +143,8 @@ function startMission(missionId) {
   stageProgress = 0;
   stageGoal = mission.enemyCount;
   missionCompleted = false;
+  bossSpawned = false;
+  boss = null;
   
   // Set mission objectives
   missionObjectives = [
@@ -413,20 +415,110 @@ function drawSoundEffects() {
 }
 
 // --- Boss System ---
+let bossHealth = 0;
+let bossMaxHealth = 0;
+
+const BOSS_TYPES = {
+  destroyer: {
+    name: 'Destroyer Boss',
+    health: 50,
+    size: 80,
+    speed: 1,
+    fireRate: 0.05,
+    pattern: 'circle',
+    color: '#ff0000'
+  },
+  carrier: {
+    name: 'Carrier Boss',
+    health: 75,
+    size: 100,
+    speed: 0.8,
+    fireRate: 0.03,
+    pattern: 'spawn',
+    color: '#ff8800'
+  },
+  dreadnought: {
+    name: 'Dreadnought Boss',
+    health: 100,
+    size: 120,
+    speed: 0.6,
+    fireRate: 0.04,
+    pattern: 'laser',
+    color: '#ff00ff'
+  }
+};
+
+// --- Skill Tree System ---
+let skillTree = {
+  weapons: {
+    name: 'Weapons',
+    skills: [
+      { id: 'rapid_fire', name: 'Rapid Fire', cost: 1, maxLevel: 3, effect: 'Increase fire rate' },
+      { id: 'multi_shot', name: 'Multi Shot', cost: 2, maxLevel: 3, effect: 'Fire multiple bullets' },
+      { id: 'laser_beam', name: 'Laser Beam', cost: 3, maxLevel: 1, effect: 'Unlock laser weapon' },
+      { id: 'missile_launcher', name: 'Missile Launcher', cost: 2, maxLevel: 2, effect: 'Add missile weapons' }
+    ]
+  },
+  defense: {
+    name: 'Defense',
+    skills: [
+      { id: 'shield_boost', name: 'Shield Boost', cost: 1, maxLevel: 3, effect: 'Increase shield duration' },
+      { id: 'armor_plating', name: 'Armor Plating', cost: 2, maxLevel: 2, effect: 'Reduce damage taken' },
+      { id: 'auto_repair', name: 'Auto Repair', cost: 3, maxLevel: 1, effect: 'Slowly regenerate health' }
+    ]
+  },
+  mobility: {
+    name: 'Mobility',
+    skills: [
+      { id: 'speed_boost', name: 'Speed Boost', cost: 1, maxLevel: 3, effect: 'Increase movement speed' },
+      { id: 'dash', name: 'Dash', cost: 2, maxLevel: 1, effect: 'Quick dodge ability' },
+      { id: 'teleport', name: 'Teleport', cost: 3, maxLevel: 1, effect: 'Short-range teleport' }
+    ]
+  }
+};
+
+let playerSkills = {};
+
+// --- Advanced Weapon System ---
+let weaponTypes = {
+  basic: { name: 'Basic Laser', damage: 1, fireRate: 1, type: 'laser' },
+  rapid: { name: 'Rapid Laser', damage: 1, fireRate: 2, type: 'laser' },
+  heavy: { name: 'Heavy Laser', damage: 3, fireRate: 0.5, type: 'laser' },
+  missile: { name: 'Missile', damage: 5, fireRate: 0.3, type: 'missile' },
+  plasma: { name: 'Plasma Cannon', damage: 4, fireRate: 0.4, type: 'plasma' }
+};
+
+let currentWeapon = 'basic';
+let weaponLevel = 1;
+
 function spawnBoss() {
-  if (!bossSpawned && gameTime > 3000) { // Spawn boss after 50 seconds
-    boss = {
-      x: canvas.width + 50,
-      y: canvas.height / 2 - 40,
-      w: 80, h: 60,
-      health: 20,
-      maxHealth: 20,
-      speed: 1,
-      shootTimer: 0,
-      phase: 0,
-      movePattern: 'approach'
-    };
-    bossSpawned = true;
+  const mission = missionData[currentMission - 1];
+  if (!mission.bossType) return;
+  
+  const bossType = BOSS_TYPES[mission.bossType] || BOSS_TYPES.destroyer;
+  boss = {
+    x: canvas.width / 2 - bossType.size / 2,
+    y: -bossType.size,
+    width: bossType.size,
+    height: bossType.size,
+    health: bossType.health,
+    maxHealth: bossType.health,
+    speed: bossType.speed,
+    fireRate: bossType.fireRate,
+    pattern: bossType.pattern,
+    type: mission.bossType,
+    lastShot: 0,
+    phase: 1,
+    moveTimer: 0
+  };
+  
+  bossSpawned = true;
+  bossHealth = boss.health;
+  bossMaxHealth = boss.health;
+  
+  // Create boss entrance effect
+  for (let i = 0; i < 50; i++) {
+    createParticle(canvas.width/2, canvas.height/2, '#ff0000', 5, 60);
   }
 }
 
@@ -434,43 +526,114 @@ function updateBoss() {
   if (!boss) return;
   
   // Boss movement patterns
-  switch(boss.movePattern) {
-    case 'approach':
-      boss.x -= boss.speed;
-      if (boss.x < canvas.width - 100) {
-        boss.movePattern = 'attack';
+  boss.moveTimer++;
+  
+  switch (boss.pattern) {
+    case 'circle':
+      // Move in a circular pattern
+      const angle = boss.moveTimer * 0.02;
+      const radius = 100;
+      boss.x = canvas.width/2 + Math.cos(angle) * radius - boss.width/2;
+      boss.y = canvas.height/3 + Math.sin(angle) * radius - boss.height/2;
+      break;
+      
+    case 'spawn':
+      // Move side to side and spawn enemies
+      boss.x = canvas.width/2 + Math.sin(boss.moveTimer * 0.01) * 200 - boss.width/2;
+      boss.y = canvas.height/4 - boss.height/2;
+      
+      // Spawn enemies periodically
+      if (boss.moveTimer % 120 === 0) {
+        spawnEnemy();
       }
       break;
-    case 'attack':
-      boss.y += Math.sin(gameTime * 0.01) * 2;
-      boss.shootTimer++;
-      if (boss.shootTimer > 30) {
-        // Multi-directional shots
-        for (let i = 0; i < 8; i++) {
-          const angle = (i / 8) * Math.PI * 2;
-          enemyBullets.push({
-            x: boss.x + boss.w/2,
-            y: boss.y + boss.h/2,
-            w: 12, h: 12,
-            speed: 4,
-            dx: Math.cos(angle) * 4,
-            dy: Math.sin(angle) * 4
-          });
-        }
-        boss.shootTimer = 0;
-      }
+      
+    case 'laser':
+      // Stay in center and fire lasers
+      boss.x = canvas.width/2 - boss.width/2;
+      boss.y = canvas.height/4 - boss.height/2;
       break;
   }
   
-  // Boss health check
-  if (boss.health <= 0) {
-    // Boss defeated
-    for (let i = 0; i < 20; i++) {
-      createParticle(boss.x + boss.w/2, boss.y + boss.h/2, '#ff0000', 5, 60);
+  // Boss shooting
+  boss.lastShot++;
+  if (boss.lastShot > (1 / boss.fireRate) * 60) {
+    fireBossWeapon();
+    boss.lastShot = 0;
+  }
+  
+  // Boss phase changes
+  const healthPercent = boss.health / boss.maxHealth;
+  if (healthPercent <= 0.5 && boss.phase === 1) {
+    boss.phase = 2;
+    boss.fireRate *= 1.5;
+    // Phase 2 effect
+    for (let i = 0; i < 30; i++) {
+      createParticle(boss.x + boss.width/2, boss.y + boss.height/2, '#ff0000', 3, 40);
     }
-    score += 1000;
-    boss = null;
-    bossSpawned = false;
+  }
+  
+  if (healthPercent <= 0.25 && boss.phase === 2) {
+    boss.phase = 3;
+    boss.fireRate *= 2;
+    // Phase 3 effect
+    for (let i = 0; i < 50; i++) {
+      createParticle(boss.x + boss.width/2, boss.y + boss.height/2, '#ff0000', 4, 50);
+    }
+  }
+}
+
+function fireBossWeapon() {
+  if (!boss) return;
+  
+  const bossType = BOSS_TYPES[boss.type];
+  
+  switch (boss.pattern) {
+    case 'circle':
+      // Fire in all directions
+      for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2;
+        const speed = 4;
+        enemyBullets.push({
+          x: boss.x + boss.width/2 - 4,
+          y: boss.y + boss.height/2 - 4,
+          w: 8, h: 8,
+          dx: Math.cos(angle) * speed,
+          dy: Math.sin(angle) * speed
+        });
+      }
+      break;
+      
+    case 'spawn':
+      // Fire at player
+      const dx = player.x - boss.x;
+      const dy = player.y - boss.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance > 0) {
+        const speed = 5;
+        enemyBullets.push({
+          x: boss.x + boss.width/2 - 4,
+          y: boss.y + boss.height/2 - 4,
+          w: 8, h: 8,
+          dx: (dx / distance) * speed,
+          dy: (dy / distance) * speed
+        });
+      }
+      break;
+      
+    case 'laser':
+      // Fire laser beam
+      const laserWidth = 20;
+      enemyBullets.push({
+        x: boss.x + boss.width/2 - laserWidth/2,
+        y: boss.y + boss.height/2,
+        w: laserWidth,
+        h: canvas.height,
+        dx: 0,
+        dy: 8,
+        type: 'laser'
+      });
+      break;
   }
 }
 
@@ -478,28 +641,47 @@ function drawBoss() {
   if (!boss) return;
   
   ctx.save();
-  ctx.translate(boss.x + boss.w/2, boss.y + boss.h/2);
+  ctx.translate(boss.x + boss.width/2, boss.y + boss.height/2);
   
-  // Boss body
-  const bossGradient = ctx.createLinearGradient(-boss.w/2, -boss.h/2, boss.w/2, boss.h/2);
-  bossGradient.addColorStop(0, '#8b0000');
-  bossGradient.addColorStop(0.5, '#ff0000');
-  bossGradient.addColorStop(1, '#8b0000');
+  const bossType = BOSS_TYPES[boss.type];
+  const w = boss.width, h = boss.height;
   
-  ctx.fillStyle = bossGradient;
-  ctx.fillRect(-boss.w/2, -boss.h/2, boss.w, boss.h);
+  // Boss hull
+  const hullGrad = ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
+  hullGrad.addColorStop(0, '#000');
+  hullGrad.addColorStop(0.3, bossType.color);
+  hullGrad.addColorStop(0.7, '#fff');
+  hullGrad.addColorStop(1, '#000');
   
-  // Boss details
-  ctx.strokeStyle = '#ffff00';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(-boss.w/2, -boss.h/2, boss.w, boss.h);
+  ctx.fillStyle = hullGrad;
+  ctx.beginPath();
+  ctx.moveTo(0, -h/2);
+  ctx.lineTo(w/2, -h/4);
+  ctx.lineTo(w/2, h/4);
+  ctx.lineTo(w/3, h/2);
+  ctx.lineTo(0, h/2);
+  ctx.lineTo(-w/3, h/2);
+  ctx.lineTo(-w/2, h/4);
+  ctx.lineTo(-w/2, -h/4);
+  ctx.closePath();
+  ctx.fill();
   
-  // Health bar
+  // Boss health bar
   const healthPercent = boss.health / boss.maxHealth;
-  ctx.fillStyle = '#ff0000';
-  ctx.fillRect(-boss.w/2, -boss.h/2 - 10, boss.w, 5);
-  ctx.fillStyle = '#00ff00';
-  ctx.fillRect(-boss.w/2, -boss.h/2 - 10, boss.w * healthPercent, 5);
+  const barWidth = w;
+  const barHeight = 8;
+  
+  ctx.fillStyle = '#333';
+  ctx.fillRect(-barWidth/2, -h/2 - 20, barWidth, barHeight);
+  
+  ctx.fillStyle = healthPercent > 0.5 ? '#00ff00' : healthPercent > 0.25 ? '#ffff00' : '#ff0000';
+  ctx.fillRect(-barWidth/2, -h/2 - 20, barWidth * healthPercent, barHeight);
+  
+  // Boss name
+  ctx.fillStyle = '#fff';
+  ctx.font = '12px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText(bossType.name, 0, -h/2 - 30);
   
   ctx.restore();
 }
@@ -1125,12 +1307,86 @@ function update() {
   
   // Check mission completion
   if (stageProgress >= stageGoal && !missionCompleted) {
-    completeMission();
+    const mission = missionData[currentMission - 1];
+    if (mission.bossType && !bossSpawned) {
+      spawnBoss();
+    } else if (!mission.bossType || (boss && boss.health <= 0)) {
+      completeMission();
+    }
+  }
+  
+  // Boss collision detection
+  if (boss) {
+    // Player bullets hitting boss
+    for (let i = bullets.length - 1; i >= 0; i--) {
+      const bullet = bullets[i];
+      if (rectsCollide(bullet, boss)) {
+        // Boss hit
+        boss.health--;
+        bossHealth = boss.health;
+        
+        // Create explosion particles
+        for (let k = 0; k < 8; k++) {
+          createParticle(bullet.x, bullet.y, '#ff0000', 3, 25);
+        }
+        
+        // Remove bullet
+        bullets.splice(i, 1);
+        
+        // Check if boss is defeated
+        if (boss.health <= 0) {
+          // Boss defeated
+          score += 1000;
+          
+          // Create massive explosion
+          for (let k = 0; k < 100; k++) {
+            createParticle(boss.x + boss.width/2, boss.y + boss.height/2, '#ff0000', 5, 60);
+          }
+          
+          // Remove boss
+          boss = null;
+          bossSpawned = false;
+          
+          // Play explosion sound effect
+          playSoundEffect('hit', boss.x + boss.width/2, boss.y + boss.height/2);
+          
+          // Check mission completion
+          if (stageProgress >= stageGoal && !missionCompleted) {
+            completeMission();
+          }
+        }
+        
+        break; // Bullet can only hit boss once
+      }
+    }
+    
+    // Player collision with boss
+    if (rectsCollide(player, boss)) {
+      // Player hit by boss
+      lives--;
+      
+      // Create explosion particles
+      for (let k = 0; k < 10; k++) {
+        createParticle(player.x + player.width/2, player.y + player.height/2, '#ff0000', 3, 30);
+      }
+      
+      // Play hit sound effect
+      playSoundEffect('hit', player.x + player.width/2, player.y + player.height/2);
+      
+      // Check game over
+      if (lives <= 0) {
+        endGame();
+        return;
+      }
+    }
   }
   
   // Update UI
   updateMissionUI();
   updateProgressionUI();
+  
+  // Check achievements
+  checkAchievements();
   
   // Update difficulty
   difficulty = 1 + Math.floor(gameTime / 1000);
@@ -2247,6 +2503,17 @@ function initGame() {
     document.getElementById('mission-complete').classList.add('hidden');
     showMissionSelect();
   };
+  
+  // Skill tree event listeners
+  document.getElementById('skill-tree-btn').onclick = () => {
+    mainMenu.classList.add('hidden');
+    showSkillTree();
+  };
+  
+  document.getElementById('back-from-skills').onclick = () => {
+    document.getElementById('skill-tree').classList.add('hidden');
+    mainMenu.classList.remove('hidden');
+  };
 }
 
 function showMissionSelect() {
@@ -2286,9 +2553,57 @@ function showMissionSelect() {
 }
 
 function showGameComplete() {
-  // TODO: Implement game completion screen
-  alert('Congratulations! You have completed all missions!');
-  mainMenu.classList.remove('hidden');
+  const gameComplete = document.getElementById('game-complete');
+  
+  // Update final stats
+  document.getElementById('final-total-score').textContent = score;
+  document.getElementById('final-level').textContent = playerLevel;
+  document.getElementById('final-credits').textContent = credits;
+  document.getElementById('final-missions').textContent = '50/50';
+  
+  gameComplete.classList.remove('hidden');
+  gameState = 'game-complete';
+  
+  // Add event listeners
+  document.getElementById('new-game-plus').onclick = () => {
+    startNewGamePlus();
+  };
+  
+  document.getElementById('back-to-main').onclick = () => {
+    gameComplete.classList.add('hidden');
+    mainMenu.classList.remove('hidden');
+  };
+}
+
+function startNewGamePlus() {
+  // New Game+ - keep some progress but increase difficulty
+  const newGamePlus = {
+    playerLevel: Math.floor(playerLevel / 2),
+    skillPoints: Math.floor(skillPoints / 2),
+    credits: Math.floor(credits / 2),
+    currentMission: 1,
+    playerSkills: {},
+    difficulty: 2
+  };
+  
+  // Save New Game+ data
+  localStorage.setItem('newGamePlus', JSON.stringify(newGamePlus));
+  
+  // Reset game with New Game+ settings
+  resetGame();
+  
+  // Apply New Game+ bonuses
+  playerLevel = newGamePlus.playerLevel;
+  skillPoints = newGamePlus.skillPoints;
+  credits = newGamePlus.credits;
+  difficulty = newGamePlus.difficulty;
+  
+  // Update UI
+  updateProgressionUI();
+  
+  // Hide completion screen and start game
+  document.getElementById('game-complete').classList.add('hidden');
+  startMission(1);
 }
 
 // Initialize the game when the page loads
@@ -2296,3 +2611,338 @@ window.addEventListener('load', () => {
   initGame();
   gameLoop();
 });
+
+// --- Skill Tree UI ---
+function showSkillTree() {
+  const skillTreeUI = document.getElementById('skill-tree');
+  const skillTreeContent = document.getElementById('skill-tree-content');
+  
+  skillTreeContent.innerHTML = '';
+  
+  Object.keys(skillTree).forEach(category => {
+    const categoryData = skillTree[category];
+    const categoryDiv = document.createElement('div');
+    categoryDiv.className = 'skill-category';
+    
+    categoryDiv.innerHTML = `
+      <h3>${categoryData.name}</h3>
+      <div class="skill-grid">
+        ${categoryData.skills.map(skill => {
+          const currentLevel = playerSkills[skill.id] || 0;
+          const canAfford = skillPoints >= skill.cost;
+          const canUpgrade = currentLevel < skill.maxLevel;
+          
+          return `
+            <div class="skill-item ${canAfford && canUpgrade ? 'available' : 'locked'}" 
+                 data-skill="${skill.id}" 
+                 data-cost="${skill.cost}">
+              <div class="skill-name">${skill.name}</div>
+              <div class="skill-effect">${skill.effect}</div>
+              <div class="skill-level">Level ${currentLevel}/${skill.maxLevel}</div>
+              <div class="skill-cost">Cost: ${skill.cost} SP</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+    
+    skillTreeContent.appendChild(categoryDiv);
+  });
+  
+  // Add event listeners
+  document.querySelectorAll('.skill-item.available').forEach(item => {
+    item.onclick = () => purchaseSkill(item.dataset.skill, parseInt(item.dataset.cost));
+  });
+  
+  skillTreeUI.classList.remove('hidden');
+  gameState = 'skill-tree';
+}
+
+function purchaseSkill(skillId, cost) {
+  if (skillPoints < cost) return;
+  
+  const currentLevel = playerSkills[skillId] || 0;
+  const skill = findSkill(skillId);
+  
+  if (currentLevel >= skill.maxLevel) return;
+  
+  skillPoints -= cost;
+  playerSkills[skillId] = currentLevel + 1;
+  
+  // Apply skill effect
+  applySkillEffect(skillId, currentLevel + 1);
+  
+  // Update UI
+  updateProgressionUI();
+  showSkillTree(); // Refresh skill tree
+  
+  // Show effect
+  playSoundEffect('levelup', player.x + player.width/2, player.y + player.height/2);
+}
+
+function findSkill(skillId) {
+  for (const category of Object.values(skillTree)) {
+    const skill = category.skills.find(s => s.id === skillId);
+    if (skill) return skill;
+  }
+  return null;
+}
+
+function applySkillEffect(skillId, level) {
+  switch (skillId) {
+    case 'rapid_fire':
+      player.fireRate = Math.max(0.1, 1 - (level * 0.2));
+      break;
+    case 'multi_shot':
+      player.multiShot = level;
+      break;
+    case 'laser_beam':
+      currentWeapon = 'laser';
+      break;
+    case 'missile_launcher':
+      player.hasMissiles = true;
+      player.missileLevel = level;
+      break;
+    case 'shield_boost':
+      player.shieldDuration = 300 + (level * 60);
+      break;
+    case 'armor_plating':
+      player.armor = level;
+      break;
+    case 'auto_repair':
+      player.autoRepair = true;
+      break;
+    case 'speed_boost':
+      player.speed = 4 + (level * 1);
+      break;
+    case 'dash':
+      player.canDash = true;
+      break;
+    case 'teleport':
+      player.canTeleport = true;
+      break;
+  }
+}
+
+function shoot() {
+  if (gameState !== 'playing' || gamePaused) return;
+  
+  const weaponType = weaponTypes[currentWeapon];
+  const multiShot = player.multiShot || 1;
+  
+  for (let i = 0; i < multiShot; i++) {
+    const spread = (i - (multiShot - 1) / 2) * 10;
+    
+    switch (currentWeapon) {
+      case 'laser':
+        bullets.push({
+          x: player.x + player.width/2 - 2,
+          y: player.y,
+          w: 4,
+          h: 20,
+          speed: 8,
+          damage: weaponType.damage,
+          type: 'laser'
+        });
+        break;
+        
+      case 'missile':
+        bullets.push({
+          x: player.x + player.width/2 - 4,
+          y: player.y,
+          w: 8,
+          h: 16,
+          speed: 6,
+          damage: weaponType.damage,
+          type: 'missile',
+          tracking: true
+        });
+        break;
+        
+      case 'plasma':
+        bullets.push({
+          x: player.x + player.width/2 - 6,
+          y: player.y,
+          w: 12,
+          h: 12,
+          speed: 5,
+          damage: weaponType.damage,
+          type: 'plasma'
+        });
+        break;
+        
+      default:
+        bullets.push({
+          x: player.x + player.width/2 - 2 + spread,
+          y: player.y,
+          w: 4,
+          h: 12,
+          speed: 7,
+          damage: weaponType.damage,
+          type: 'basic'
+        });
+        break;
+    }
+  }
+  
+  // Create muzzle flash
+  for (let i = 0; i < 5; i++) {
+    createParticle(player.x + player.width/2, player.y, '#ffff00', 2, 10);
+  }
+}
+
+function saveGame() {
+  const saveData = {
+    score,
+    lives,
+    playerLevel,
+    playerXP,
+    xpToNextLevel,
+    skillPoints,
+    credits,
+    currentMission,
+    stageProgress,
+    stageGoal,
+    playerSkills,
+    currentWeapon,
+    weaponLevel,
+    difficulty,
+    gameTime,
+    highScores,
+    missionData,
+    timestamp: Date.now()
+  };
+  
+  localStorage.setItem('gameSave', JSON.stringify(saveData));
+}
+
+function loadGame() {
+  const saveData = localStorage.getItem('gameSave');
+  if (!saveData) return false;
+  
+  try {
+    const data = JSON.parse(saveData);
+    
+    score = data.score || 0;
+    lives = data.lives || 3;
+    playerLevel = data.playerLevel || 1;
+    playerXP = data.playerXP || 0;
+    xpToNextLevel = data.xpToNextLevel || 100;
+    skillPoints = data.skillPoints || 0;
+    credits = data.credits || 0;
+    currentMission = data.currentMission || 1;
+    stageProgress = data.stageProgress || 0;
+    stageGoal = data.stageGoal || 20;
+    playerSkills = data.playerSkills || {};
+    currentWeapon = data.currentWeapon || 'basic';
+    weaponLevel = data.weaponLevel || 1;
+    difficulty = data.difficulty || 1;
+    gameTime = data.gameTime || 0;
+    highScores = data.highScores || [];
+    missionData = data.missionData || [];
+    
+    // Apply loaded skills
+    Object.keys(playerSkills).forEach(skillId => {
+      applySkillEffect(skillId, playerSkills[skillId]);
+    });
+    
+    // Update UI
+    updateProgressionUI();
+    updateMissionUI();
+    
+    return true;
+  } catch (error) {
+    console.error('Error loading save data:', error);
+    return false;
+  }
+}
+
+// --- Achievement System ---
+let achievements = {
+  firstBlood: { name: 'First Blood', description: 'Destroy your first enemy', unlocked: false },
+  sharpshooter: { name: 'Sharpshooter', description: 'Destroy 100 enemies', unlocked: false, progress: 0, target: 100 },
+  bossSlayer: { name: 'Boss Slayer', description: 'Defeat your first boss', unlocked: false },
+  missionMaster: { name: 'Mission Master', description: 'Complete 10 missions', unlocked: false, progress: 0, target: 10 },
+  skillMaster: { name: 'Skill Master', description: 'Unlock 5 skills', unlocked: false, progress: 0, target: 5 },
+  ultimateChampion: { name: 'Ultimate Champion', description: 'Complete all 50 missions', unlocked: false }
+};
+
+function checkAchievements() {
+  // First Blood
+  if (score > 0 && !achievements.firstBlood.unlocked) {
+    unlockAchievement('firstBlood');
+  }
+  
+  // Sharpshooter
+  if (!achievements.sharpshooter.unlocked) {
+    achievements.sharpshooter.progress = Math.floor(score / 10); // Rough estimate
+    if (achievements.sharpshooter.progress >= achievements.sharpshooter.target) {
+      unlockAchievement('sharpshooter');
+    }
+  }
+  
+  // Boss Slayer
+  if (boss && boss.health <= 0 && !achievements.bossSlayer.unlocked) {
+    unlockAchievement('bossSlayer');
+  }
+  
+  // Mission Master
+  if (!achievements.missionMaster.unlocked) {
+    achievements.missionMaster.progress = currentMission - 1;
+    if (achievements.missionMaster.progress >= achievements.missionMaster.target) {
+      unlockAchievement('missionMaster');
+    }
+  }
+  
+  // Skill Master
+  if (!achievements.skillMaster.unlocked) {
+    achievements.skillMaster.progress = Object.keys(playerSkills).length;
+    if (achievements.skillMaster.progress >= achievements.skillMaster.target) {
+      unlockAchievement('skillMaster');
+    }
+  }
+  
+  // Ultimate Champion
+  if (currentMission > totalMissions && !achievements.ultimateChampion.unlocked) {
+    unlockAchievement('ultimateChampion');
+  }
+}
+
+function unlockAchievement(achievementId) {
+  if (achievements[achievementId].unlocked) return;
+  
+  achievements[achievementId].unlocked = true;
+  
+  // Show achievement notification
+  showAchievementNotification(achievements[achievementId].name);
+  
+  // Save achievements
+  localStorage.setItem('achievements', JSON.stringify(achievements));
+}
+
+function showAchievementNotification(achievementName) {
+  const notification = document.createElement('div');
+  notification.className = 'achievement-notification';
+  notification.innerHTML = `
+    <div class="achievement-icon">🏆</div>
+    <div class="achievement-text">
+      <div class="achievement-title">Achievement Unlocked!</div>
+      <div class="achievement-name">${achievementName}</div>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Animate in
+  setTimeout(() => {
+    notification.classList.add('show');
+  }, 100);
+  
+  // Remove after 3 seconds
+  setTimeout(() => {
+    notification.classList.remove('show');
+    setTimeout(() => {
+      document.body.removeChild(notification);
+    }, 500);
+  }, 3000);
+}
