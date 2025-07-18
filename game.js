@@ -512,7 +512,11 @@ function updateEnemies() {
     e.lifeTimer = (e.lifeTimer || 0) + 1;
     
     // Shooter enemies fire at regular intervals
-    if (e.type === 'shooter') {
+    if (
+      e.type === 'shooter' &&
+      e.x + e.w > 0 && e.x < canvas.width &&
+      e.y + e.h > 0 && e.y < canvas.height
+    ) {
       e.shootTimer = (e.shootTimer || 0) + 1;
       if (e.shootTimer > ENEMY_BULLET_FREQ) { // Shoot every 1 second (more frequent)
         // Calculate direction toward player for shooting
@@ -2106,3 +2110,8 @@ const POWERUP_DROP_RATE = 0.35; // 35% chance
 const COLLECTIBLE_DROP_RATE = 0.2; // 20% chance
 const PLAYER_COLLISION_SHRINK = 0.7; // 70% of sprite size
 const ENEMY_BULLET_COLLISION_SHRINK = 0.6;
+
+// --- Lockdown: Prevent page scroll and touchmove ---
+window.addEventListener('scroll', () => { window.scrollTo(0, 0); });
+document.body.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+document.body.addEventListener('wheel', e => e.preventDefault(), { passive: false });
