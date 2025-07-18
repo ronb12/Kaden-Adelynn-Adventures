@@ -1516,14 +1516,18 @@ function draw() {
 }
 
 function gameLoop() {
-  debugLog(`Game loop running - State: ${gameState}, Paused: ${gamePaused}`);
+  debugLog(`Game loop running - State: ${gameState}, Paused: ${gamePaused}, Canvas: ${canvas ? 'exists' : 'missing'}, Player: ${player ? 'exists' : 'missing'}`);
   
   if (gameState === 'playing' && !gamePaused) {
+    debugLog('Updating and drawing game...');
     update();
     draw();
   } else if (gameState === 'menu') {
     // Draw menu background
+    debugLog('Drawing menu background...');
     drawStars();
+  } else {
+    debugLog(`Game state: ${gameState}, paused: ${gamePaused} - not updating`);
   }
   
   requestAnimationFrame(gameLoop);
