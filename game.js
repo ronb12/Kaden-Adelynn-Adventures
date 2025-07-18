@@ -2642,6 +2642,117 @@ function initGame() {
     debugLog('🎮 Start button before:', startBtn.textContent);
     startBtn.textContent = 'Start Mission';
     debugLog('🎮 Start button after:', startBtn.textContent);
+    
+    // Add event listener for start button
+    startBtn.onclick = () => {
+      debugLog('🎮 Start button clicked');
+      const missionDropdown = document.getElementById('mission-dropdown');
+      if (missionDropdown) {
+        debugLog('🎮 Mission dropdown element:', missionDropdown);
+        const selectedMission = parseInt(missionDropdown.value);
+        debugLog('🎮 Selected mission:', selectedMission);
+        debugLog('🎮 Starting mission:', selectedMission);
+        startMission(selectedMission);
+      }
+    };
+  }
+  
+  // Add event listener for continue button
+  const continueBtn = document.getElementById('continue-btn');
+  if (continueBtn) {
+    continueBtn.onclick = () => {
+      debugLog('🎮 Continue button clicked');
+      loadGame();
+    };
+  }
+  
+  // Add event listener for skill tree button
+  const skillTreeBtn = document.getElementById('skill-tree-btn');
+  if (skillTreeBtn) {
+    skillTreeBtn.onclick = () => {
+      debugLog('🎮 Skill tree button clicked');
+      showSkillTree();
+    };
+  }
+  
+  // Add event listener for back from skills button
+  const backFromSkillsBtn = document.getElementById('back-from-skills');
+  if (backFromSkillsBtn) {
+    backFromSkillsBtn.onclick = () => {
+      debugLog('🎮 Back from skills button clicked');
+      document.getElementById('skill-tree').classList.add('hidden');
+      mainMenu.classList.remove('hidden');
+    };
+  }
+  
+  // Add event listener for restart button
+  const restartBtn = document.getElementById('restart-btn');
+  if (restartBtn) {
+    restartBtn.onclick = () => {
+      debugLog('🎮 Restart button clicked');
+      resetGame();
+    };
+  }
+  
+  // Add event listener for main menu button
+  const mainMenuBtn = document.getElementById('main-menu-btn');
+  if (mainMenuBtn) {
+    mainMenuBtn.onclick = () => {
+      debugLog('🎮 Main menu button clicked');
+      resetGame();
+    };
+  }
+  
+  // Add event listener for next mission button
+  const nextMissionBtn = document.getElementById('next-mission');
+  if (nextMissionBtn) {
+    nextMissionBtn.onclick = () => {
+      debugLog('🎮 Next mission button clicked');
+      currentMission++;
+      if (currentMission <= 50) {
+        startMission(currentMission);
+      } else {
+        showGameComplete();
+      }
+    };
+  }
+  
+  // Add event listener for mission select button
+  const missionSelectBtn = document.getElementById('mission-select-btn');
+  if (missionSelectBtn) {
+    missionSelectBtn.onclick = () => {
+      debugLog('🎮 Mission select button clicked');
+      document.getElementById('mission-complete').classList.add('hidden');
+      mainMenu.classList.remove('hidden');
+    };
+  }
+  
+  // Add event listener for resume button
+  const resumeBtn = document.getElementById('resume-btn');
+  if (resumeBtn) {
+    resumeBtn.onclick = () => {
+      debugLog('🎮 Resume button clicked');
+      resumeGame();
+    };
+  }
+  
+  // Add event listener for save & exit button
+  const saveExitBtn = document.getElementById('save-exit-btn');
+  if (saveExitBtn) {
+    saveExitBtn.onclick = () => {
+      debugLog('🎮 Save & exit button clicked');
+      saveGame();
+      resetGame();
+    };
+  }
+  
+  // Add event listener for exit without saving button
+  const exitNoSaveBtn = document.getElementById('exit-no-save-btn');
+  if (exitNoSaveBtn) {
+    exitNoSaveBtn.onclick = () => {
+      debugLog('🎮 Exit without saving button clicked');
+      resetGame();
+    };
   }
   
   // Start game loop
@@ -3337,3 +3448,32 @@ function drawDrones() {
     ctx.restore();
   });
 }
+
+// Initialize keyboard input
+keys = {};
+
+// Add keyboard event listeners
+document.addEventListener('keydown', (e) => {
+  keys[e.code] = true;
+  
+  // Pause/Resume with Escape or P key
+  if (e.code === 'Escape' || e.code === 'KeyP') {
+    e.preventDefault();
+    if (gameState === 'playing') {
+      if (gamePaused) {
+        resumeGame();
+      } else {
+        pauseGame();
+      }
+    }
+  }
+  
+  // Prevent default for game keys
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
+    e.preventDefault();
+  }
+});
+
+document.addEventListener('keyup', (e) => {
+  keys[e.code] = false;
+});
