@@ -753,9 +753,21 @@ function update() {
   // Shield timer
   if (player.shield > 0) player.shield--;
   
+  // Rapid fire logic
+  if (fireHeld && !gamePaused && gameState === 'playing') {
+    if (fireCooldown <= 0) {
+      shoot();
+      fireCooldown = FIRE_RATE;
+    }
+  }
+  if (fireCooldown > 0) fireCooldown--;
+
   // Auto-shoot on touch devices
   if (isTouchDevice && isTouching && gameState === 'playing' && !gamePaused) {
-    shoot();
+    if (fireCooldown <= 0) {
+      shoot();
+      fireCooldown = FIRE_RATE;
+    }
   }
   
   gameTime++;
@@ -871,99 +883,185 @@ function drawPowerUpMenu() {
 function drawPlayerShip() {
   ctx.save();
   ctx.translate(player.x + player.w/2, player.y + player.h/2);
-  
-  // Classic Gradius Vic Viper design
-  const shipWidth = player.w;
-  const shipHeight = player.h;
-  
-  // Main body - classic Gradius shape
-  ctx.fillStyle = '#00ffff';
+  const w = player.w, h = player.h;
+
+  // --- Main hull ---
+  const hullGrad = ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
+  hullGrad.addColorStop(0, '#0a1a2f');
+  hullGrad.addColorStop(0.2, '#1e3a5c');
+  hullGrad.addColorStop(0.5, '#3fd0ff');
+  hullGrad.addColorStop(0.8, '#1e3a5c');
+  hullGrad.addColorStop(1, '#0a1a2f');
+  ctx.fillStyle = hullGrad;
   ctx.beginPath();
-  // Nose
-  ctx.moveTo(0, -shipHeight/2);
-  // Top left wing
-  ctx.lineTo(-shipWidth/2, -shipHeight/4);
-  ctx.lineTo(-shipWidth/2, 0);
-  // Bottom left wing
-  ctx.lineTo(-shipWidth/3, shipHeight/4);
-  ctx.lineTo(-shipWidth/4, shipHeight/2);
-  // Bottom center
-  ctx.lineTo(-shipWidth/8, shipHeight/2);
-  ctx.lineTo(shipWidth/8, shipHeight/2);
-  // Bottom right wing
-  ctx.lineTo(shipWidth/4, shipHeight/2);
-  ctx.lineTo(shipWidth/3, shipHeight/4);
-  // Top right wing
-  ctx.lineTo(shipWidth/2, 0);
-  ctx.lineTo(shipWidth/2, -shipHeight/4);
+  ctx.moveTo(0, -h/2); // nose
+  ctx.lineTo(-w/2.2, h/4);
+  ctx.lineTo(-w/3, h/2.5);
+  ctx.lineTo(-w/8, h/2);
+  ctx.lineTo(w/8, h/2);
+  ctx.lineTo(w/3, h/2.5);
+  ctx.lineTo(w/2.2, h/4);
   ctx.closePath();
   ctx.fill();
-  
-  // White outline
-  ctx.strokeStyle = '#ffffff';
+
+  // --- Layered armor plates ---
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  ctx.fillStyle = '#b3e6ff';
+  ctx.beginPath();
+  ctx.moveTo(0, -h/2.2);
+  ctx.lineTo(-w/4, 0);
+  ctx.lineTo(0, h/3);
+  ctx.lineTo(w/4, 0);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  // --- Panel lines and vents ---
+  ctx.strokeStyle = 'rgba(255,255,255,0.13)';
   ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(0, -h/2);
+  ctx.lineTo(0, h/2);
+  ctx.moveTo(-w/4, -h/8);
+  ctx.lineTo(w/4, -h/8);
+  ctx.moveTo(-w/6, h/8);
+  ctx.lineTo(w/6, h/8);
+  ctx.moveTo(-w/8, h/3);
+  ctx.lineTo(w/8, h/3);
   ctx.stroke();
-  
-  // Cockpit
-  ctx.fillStyle = '#ffffff';
-  ctx.beginPath();
-  ctx.arc(0, -shipHeight/6, 6, 0, Math.PI * 2);
-  ctx.fill();
-  
-  // Cockpit detail
-  ctx.fillStyle = '#000000';
-  ctx.beginPath();
-  ctx.arc(0, -shipHeight/6, 3, 0, Math.PI * 2);
-  ctx.fill();
-  
-  // Engine glow
-  ctx.fillStyle = '#ffff00';
-  ctx.beginPath();
-  ctx.arc(-shipWidth/6, shipHeight/2, 3, 0, Math.PI * 2);
-  ctx.arc(shipWidth/6, shipHeight/2, 3, 0, Math.PI * 2);
-  ctx.fill();
-  
-  // Weapon systems based on power-ups
-  const weaponLevel = player.weaponLevel || 1;
-  const hasMissiles = playerPowerUps.missile > 0;
-  const hasLaser = playerPowerUps.laser > 0;
-  
-  // Primary weapon (center)
-  ctx.fillStyle = hasLaser ? '#ff0000' : '#ff4444';
-  ctx.fillRect(-2, -shipHeight/2 - 4, 4, 6);
-  
-  // Secondary weapons (if weapon level 2+)
-  if (weaponLevel >= 2) {
-    ctx.fillStyle = hasLaser ? '#ff0000' : '#ff8800';
-    ctx.fillRect(-shipWidth/2 - 2, -shipHeight/2 - 3, 4, 5);
-    ctx.fillRect(shipWidth/2 - 2, -shipHeight/2 - 3, 4, 5);
-  }
-  
-  // Tertiary weapons (if weapon level 3+)
-  if (weaponLevel >= 3) {
-    ctx.fillStyle = hasLaser ? '#ff0000' : '#ffff00';
-    ctx.fillRect(-shipWidth/2 - 4, -shipHeight/2 - 2, 3, 4);
-    ctx.fillRect(shipWidth/2 + 1, -shipHeight/2 - 2, 3, 4);
-  }
-  
-  // Missile launchers (if missiles available)
-  if (hasMissiles) {
-    ctx.fillStyle = '#ff8800';
-    ctx.fillRect(-shipWidth/3 - 1, -shipHeight/2 - 2, 2, 4);
-    ctx.fillRect(shipWidth/3 - 1, -shipHeight/2 - 2, 2, 4);
-  }
-  
-  // Shield effect (if active)
-  if (player.shield > 0) {
-    ctx.strokeStyle = '#00ffff';
-    ctx.lineWidth = 3;
-    ctx.globalAlpha = 0.6;
+
+  // --- Vents ---
+  ctx.save();
+  ctx.strokeStyle = '#222';
+  ctx.lineWidth = 1.2;
+  for (let i = -1; i <= 1; i += 2) {
     ctx.beginPath();
-    ctx.arc(0, 0, shipWidth/2 + 8, 0, Math.PI * 2);
+    ctx.moveTo(i*w/6, h/6);
+    ctx.lineTo(i*w/6, h/4);
     ctx.stroke();
-    ctx.globalAlpha = 1;
   }
-  
+  ctx.restore();
+
+  // --- Cockpit glass with highlights ---
+  const cockpitGrad = ctx.createRadialGradient(0, -h/6, 2, 0, -h/6, h/7);
+  cockpitGrad.addColorStop(0, '#b3e6ff');
+  cockpitGrad.addColorStop(0.7, '#1e90ff');
+  cockpitGrad.addColorStop(1, 'rgba(30,144,255,0.1)');
+  ctx.fillStyle = cockpitGrad;
+  ctx.beginPath();
+  ctx.ellipse(0, -h/6, w/8, h/7, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.strokeStyle = '#b3e6ff';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  // Reflection highlight
+  ctx.save();
+  ctx.globalAlpha = 0.25;
+  ctx.strokeStyle = '#fff';
+  ctx.beginPath();
+  ctx.ellipse(0, -h/6, w/16, h/20, Math.PI/4, 0, Math.PI);
+  ctx.stroke();
+  ctx.restore();
+  // Pilot silhouette
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  ctx.fillStyle = '#222';
+  ctx.beginPath();
+  ctx.ellipse(0, -h/6+2, w/24, h/18, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+  // --- Engine glow with rings ---
+  const engineGrad = ctx.createRadialGradient(0, h/2, 2, 0, h/2, w/5);
+  engineGrad.addColorStop(0, '#fffbe6');
+  engineGrad.addColorStop(0.3, '#ffe066');
+  engineGrad.addColorStop(1, 'rgba(255,255,0,0)');
+  ctx.save();
+  ctx.globalAlpha = 0.7;
+  ctx.fillStyle = engineGrad;
+  ctx.beginPath();
+  ctx.ellipse(0, h/2, w/6, h/10, 0, 0, Math.PI*2);
+  ctx.fill();
+  // Engine rings
+  ctx.globalAlpha = 0.18;
+  ctx.strokeStyle = '#ffe066';
+  for (let r = 1; r <= 2; r++) {
+    ctx.beginPath();
+    ctx.ellipse(0, h/2, w/8*r, h/18*r, 0, 0, Math.PI*2);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // --- Side thrusters with animated exhaust ---
+  ctx.save();
+  ctx.globalAlpha = 0.5;
+  ctx.fillStyle = '#00fff7';
+  ctx.beginPath();
+  ctx.ellipse(-w/4, h/2.5, w/16, h/16, 0, 0, Math.PI*2);
+  ctx.ellipse(w/4, h/2.5, w/16, h/16, 0, 0, Math.PI*2);
+  ctx.fill();
+  // Animated exhaust
+  ctx.globalAlpha = 0.18 + 0.12*Math.sin(Date.now()*0.04);
+  ctx.fillStyle = '#3fd0ff';
+  ctx.beginPath();
+  ctx.ellipse(-w/4, h/2.5+8, w/24, h/12, 0, 0, Math.PI*2);
+  ctx.ellipse(w/4, h/2.5+8, w/24, h/12, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+  // --- Wing edge lights and sensors ---
+  ctx.save();
+  ctx.strokeStyle = '#00fff7';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-w/2.2, h/4);
+  ctx.lineTo(-w/3, h/2.5);
+  ctx.moveTo(w/2.2, h/4);
+  ctx.lineTo(w/3, h/2.5);
+  ctx.stroke();
+  // Antenna/sensor
+  ctx.globalAlpha = 0.7;
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(0, -h/2);
+  ctx.lineTo(0, -h/2-10);
+  ctx.stroke();
+  ctx.restore();
+
+  // --- Weapon pods (sci-fi, glowing tips) ---
+  ctx.save();
+  ctx.fillStyle = '#ff4444';
+  ctx.shadowColor = '#ff4444';
+  ctx.shadowBlur = 8;
+  ctx.fillRect(-w/16-2, -h/2-8, 6, 12);
+  ctx.fillRect(w/16-4, -h/2-8, 6, 12);
+  // Glowing tips
+  ctx.globalAlpha = 0.7;
+  ctx.fillStyle = '#fffbe6';
+  ctx.fillRect(-w/16-1, -h/2-8, 4, 4);
+  ctx.fillRect(w/16-3, -h/2-8, 4, 4);
+  ctx.restore();
+
+  // --- Shield effect ---
+  if (player.shield > 0) {
+    ctx.save();
+    ctx.globalAlpha = 0.25 + 0.15*Math.sin(Date.now()*0.01);
+    ctx.strokeStyle = '#00fff7';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.arc(0, 0, w/2+8, 0, Math.PI*2);
+    ctx.stroke();
+    // Shield ring
+    ctx.globalAlpha = 0.12;
+    ctx.lineWidth = 10;
+    ctx.beginPath();
+    ctx.arc(0, 0, w/2+16, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
   ctx.restore();
 }
 
@@ -983,93 +1081,227 @@ function drawEnemies() {
 }
 
 function drawBasicEnemy(e) {
-  // Classic Gradius basic enemy (Zub)
-  const shipWidth = e.w;
-  const shipHeight = e.h;
-  
-  // Main body - red diamond shape
-  ctx.fillStyle = '#ff0000';
+  ctx.save();
+  ctx.translate(e.x + e.w/2, e.y + e.h/2);
+  const w = e.w, h = e.h;
+
+  // --- Main hull ---
+  const hullGrad = ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
+  hullGrad.addColorStop(0, '#2a2a2a');
+  hullGrad.addColorStop(0.3, '#b22222');
+  hullGrad.addColorStop(0.7, '#ff4444');
+  hullGrad.addColorStop(1, '#2a2a2a');
+  ctx.fillStyle = hullGrad;
   ctx.beginPath();
-  ctx.moveTo(0, -shipHeight/2);
-  ctx.lineTo(shipWidth/2, 0);
-  ctx.lineTo(0, shipHeight/2);
-  ctx.lineTo(-shipWidth/2, 0);
+  ctx.moveTo(0, -h/2);
+  ctx.lineTo(w/2.2, 0);
+  ctx.lineTo(w/3, h/4);
+  ctx.lineTo(0, h/2);
+  ctx.lineTo(-w/3, h/4);
+  ctx.lineTo(-w/2.2, 0);
   ctx.closePath();
   ctx.fill();
-  
-  // White outline
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 2;
+
+  // --- Layered armor ---
+  ctx.save();
+  ctx.globalAlpha = 0.13;
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.moveTo(0, -h/2.5);
+  ctx.lineTo(w/4, 0);
+  ctx.lineTo(0, h/4);
+  ctx.lineTo(-w/4, 0);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  // --- Panel lines and vents ---
+  ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(0, -h/2);
+  ctx.lineTo(0, h/2);
+  ctx.moveTo(-w/4, 0);
+  ctx.lineTo(w/4, 0);
+  ctx.moveTo(-w/6, h/8);
+  ctx.lineTo(w/6, h/8);
   ctx.stroke();
-  
-  // Central core
-  ctx.fillStyle = '#ffffff';
+  // Vents
+  ctx.save();
+  ctx.strokeStyle = '#222';
+  ctx.lineWidth = 1.1;
+  for (let i = -1; i <= 1; i += 2) {
+    ctx.beginPath();
+    ctx.moveTo(i*w/6, h/8);
+    ctx.lineTo(i*w/6, h/4);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // --- Glowing core with shield ring ---
+  const pulse = 0.7 + 0.3*Math.sin(Date.now()*0.08);
+  const coreGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, w/7*pulse);
+  coreGrad.addColorStop(0, '#fff');
+  coreGrad.addColorStop(0.5, '#ff4444');
+  coreGrad.addColorStop(1, 'rgba(255,68,68,0)');
+  ctx.save();
+  ctx.globalAlpha = 0.8;
+  ctx.fillStyle = coreGrad;
   ctx.beginPath();
-  ctx.arc(0, 0, 4, 0, Math.PI * 2);
+  ctx.arc(0, 0, w/7*pulse, 0, Math.PI*2);
   ctx.fill();
-  
-  // Core detail
-  ctx.fillStyle = '#ff0000';
+  // Shield ring
+  ctx.globalAlpha = 0.18;
+  ctx.strokeStyle = '#ff4444';
+  ctx.lineWidth = 4;
   ctx.beginPath();
-  ctx.arc(0, 0, 2, 0, Math.PI * 2);
+  ctx.arc(0, 0, w/5, 0, Math.PI*2);
+  ctx.stroke();
+  ctx.restore();
+
+  // --- Side lights and scanning dots ---
+  ctx.save();
+  ctx.fillStyle = '#00fff7';
+  ctx.globalAlpha = 0.5;
+  ctx.beginPath();
+  ctx.arc(-w/3, h/6, w/16, 0, Math.PI*2);
+  ctx.arc(w/3, h/6, w/16, 0, Math.PI*2);
   ctx.fill();
+  // Scanning lights
+  ctx.globalAlpha = 0.7;
+  ctx.fillStyle = '#fff';
+  for (let i = -1; i <= 1; i += 2) {
+    ctx.beginPath();
+    ctx.arc(i*w/3, h/6, w/40 + (Math.sin(Date.now()*0.01 + i)*2), 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  ctx.restore();
 }
 
 function drawShooterEnemy(e) {
-  // Classic Gradius shooter enemy (Gan)
-  const shipWidth = e.w;
-  const shipHeight = e.h;
-  
-  // Main body - orange/brown color
-  ctx.fillStyle = '#ff8800';
+  ctx.save();
+  ctx.translate(e.x + e.w/2, e.y + e.h/2);
+  const w = e.w, h = e.h;
+
+  // --- Main hull ---
+  const hullGrad = ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
+  hullGrad.addColorStop(0, '#222');
+  hullGrad.addColorStop(0.3, '#ff8800');
+  hullGrad.addColorStop(0.7, '#ffaa00');
+  hullGrad.addColorStop(1, '#222');
+  ctx.fillStyle = hullGrad;
   ctx.beginPath();
-  // Top section
-  ctx.moveTo(0, -shipHeight/2);
-  ctx.lineTo(shipWidth/2, -shipHeight/4);
-  ctx.lineTo(shipWidth/2, shipHeight/4);
-  ctx.lineTo(0, shipHeight/2);
-  // Bottom section
-  ctx.lineTo(-shipWidth/2, shipHeight/4);
-  ctx.lineTo(-shipWidth/2, -shipHeight/4);
+  ctx.moveTo(0, -h/2);
+  ctx.lineTo(w/2.5, -h/4);
+  ctx.lineTo(w/2, h/8);
+  ctx.lineTo(w/2.5, h/4);
+  ctx.lineTo(0, h/2);
+  ctx.lineTo(-w/2.5, h/4);
+  ctx.lineTo(-w/2, h/8);
+  ctx.lineTo(-w/2.5, -h/4);
   ctx.closePath();
   ctx.fill();
-  
-  // White outline
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-  
-  // Central weapon core
-  ctx.fillStyle = '#ffff00';
+
+  // --- Layered armor and bolts ---
+  ctx.save();
+  ctx.globalAlpha = 0.13;
+  ctx.fillStyle = '#fff';
   ctx.beginPath();
-  ctx.arc(0, 0, 6, 0, Math.PI * 2);
+  ctx.moveTo(0, -h/2.5);
+  ctx.lineTo(w/4, 0);
+  ctx.lineTo(0, h/4);
+  ctx.lineTo(-w/4, 0);
+  ctx.closePath();
   ctx.fill();
-  
-  // Weapon core detail
-  ctx.fillStyle = '#ff0000';
-  ctx.beginPath();
-  ctx.arc(0, 0, 3, 0, Math.PI * 2);
-  ctx.fill();
-  
-  // Weapon barrels
-  ctx.fillStyle = '#000000';
-  ctx.fillRect(shipWidth/2 - 2, -shipHeight/4, 4, 8);
-  ctx.fillRect(shipWidth/2 - 2, shipHeight/4 - 8, 4, 8);
-  
-  // Barrel tips
-  ctx.fillStyle = '#ffff00';
-  ctx.fillRect(shipWidth/2, -shipHeight/4, 2, 4);
-  ctx.fillRect(shipWidth/2, shipHeight/4 - 4, 2, 4);
-  
-  // Charging effect when about to shoot
-  if (e.shootTimer > 45) {
-    ctx.fillStyle = '#ffff00';
-    ctx.globalAlpha = 0.6;
+  // Bolts
+  ctx.globalAlpha = 0.25;
+  ctx.fillStyle = '#ffaa00';
+  for (let i = -1; i <= 1; i += 2) {
     ctx.beginPath();
-    ctx.arc(0, 0, 10, 0, Math.PI * 2);
+    ctx.arc(i*w/3, -h/8, w/32, 0, Math.PI*2);
     ctx.fill();
-    ctx.globalAlpha = 1;
   }
+  ctx.restore();
+
+  // --- Panel lines and scratches ---
+  ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(0, -h/2);
+  ctx.lineTo(0, h/2);
+  ctx.moveTo(-w/4, 0);
+  ctx.lineTo(w/4, 0);
+  ctx.moveTo(-w/6, h/8);
+  ctx.lineTo(w/6, h/8);
+  ctx.stroke();
+  // Scratches
+  ctx.save();
+  ctx.strokeStyle = '#fffbe6';
+  ctx.globalAlpha = 0.08;
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 3; i++) {
+    ctx.beginPath();
+    ctx.moveTo(-w/4 + i*10, h/8 + i*4);
+    ctx.lineTo(-w/4 + i*10 + 8, h/8 + i*4 + 2);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // --- Weapon core with charging ring ---
+  const pulse = 0.7 + 0.3*Math.sin(Date.now()*0.09);
+  const coreGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, w/6*pulse);
+  coreGrad.addColorStop(0, '#fffbe6');
+  coreGrad.addColorStop(0.5, '#ffe066');
+  coreGrad.addColorStop(1, 'rgba(255,224,102,0)');
+  ctx.save();
+  ctx.globalAlpha = 0.8;
+  ctx.fillStyle = coreGrad;
+  ctx.beginPath();
+  ctx.arc(0, 0, w/6*pulse, 0, Math.PI*2);
+  ctx.fill();
+  // Charging ring
+  ctx.globalAlpha = 0.18;
+  ctx.strokeStyle = '#ffe066';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.arc(0, 0, w/4, 0, Math.PI*2);
+  ctx.stroke();
+  ctx.restore();
+
+  // --- Weapon barrels with muzzle glow ---
+  ctx.save();
+  ctx.fillStyle = '#222';
+  ctx.fillRect(w/2.5-2, -h/8, 8, 12);
+  ctx.fillRect(w/2.5-2, h/8, 8, 12);
+  // Muzzle glow
+  ctx.globalAlpha = 0.7;
+  ctx.fillStyle = '#ffaa00';
+  ctx.beginPath();
+  ctx.arc(w/2.5+10, -h/8+3, 4, 0, Math.PI*2);
+  ctx.arc(w/2.5+10, h/8+3, 4, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+  // --- Thruster glows and exhaust ---
+  ctx.save();
+  ctx.globalAlpha = 0.5;
+  ctx.fillStyle = '#00fff7';
+  ctx.beginPath();
+  ctx.ellipse(-w/3, h/2.5, w/14, h/16, 0, 0, Math.PI*2);
+  ctx.ellipse(w/3, h/2.5, w/14, h/16, 0, 0, Math.PI*2);
+  ctx.fill();
+  // Animated exhaust
+  ctx.globalAlpha = 0.18 + 0.12*Math.sin(Date.now()*0.04);
+  ctx.fillStyle = '#3fd0ff';
+  ctx.beginPath();
+  ctx.ellipse(-w/3, h/2.5+8, w/24, h/12, 0, 0, Math.PI*2);
+  ctx.ellipse(w/3, h/2.5+8, w/24, h/12, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+  ctx.restore();
 }
 
 function drawBullets() {
@@ -1511,7 +1743,7 @@ document.addEventListener('keydown', e => {
     
     keys[e.key] = true;
     if (e.key === ' ' || e.key === 'Spacebar') {
-      shoot();
+      fireHeld = true;
     }
   }
 });
@@ -1520,6 +1752,9 @@ document.addEventListener('keydown', e => {
 
 document.addEventListener('keyup', e => {
   if (gameState === 'playing') keys[e.key] = false;
+  if (e.key === ' ' || e.key === 'Spacebar') {
+    fireHeld = false;
+  }
 });
 
 // Shooting function
