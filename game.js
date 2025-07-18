@@ -2479,6 +2479,11 @@ function initGame() {
   // Continue button
   continueBtn = document.getElementById('continue-btn');
   
+  // Check if all critical elements exist
+  if (!canvas || !ctx || !mainMenu || !startBtn) {
+    throw new Error('Critical DOM elements not found. Please refresh the page.');
+  }
+  
   console.log('🎮 DOM elements initialized');
   
   // Initialize game systems
@@ -2495,49 +2500,66 @@ function initGame() {
   console.log('🎮 Start button after:', startBtn.textContent);
   startBtn.onclick = showMissionSelect;
   
-  // Add event listeners for new UI
-  document.getElementById('back-to-menu').onclick = () => {
-    document.getElementById('mission-select').classList.add('hidden');
-    mainMenu.classList.remove('hidden');
-  };
+  // Add event listeners for new UI with null checks
+  const backToMenuBtn = document.getElementById('back-to-menu');
+  if (backToMenuBtn) {
+    backToMenuBtn.onclick = () => {
+      document.getElementById('mission-select').classList.add('hidden');
+      mainMenu.classList.remove('hidden');
+    };
+  }
   
-  document.getElementById('next-mission').onclick = () => {
-    document.getElementById('mission-complete').classList.add('hidden');
-    if (currentMission < totalMissions) {
-      startMission(currentMission + 1);
-    } else {
-      // Game completed!
-      showGameComplete();
-    }
-  };
+  const nextMissionBtn = document.getElementById('next-mission');
+  if (nextMissionBtn) {
+    nextMissionBtn.onclick = () => {
+      document.getElementById('mission-complete').classList.add('hidden');
+      if (currentMission < totalMissions) {
+        startMission(currentMission + 1);
+      } else {
+        // Game completed!
+        showGameComplete();
+      }
+    };
+  }
   
-  document.getElementById('mission-select-btn').onclick = () => {
-    document.getElementById('mission-complete').classList.add('hidden');
-    showMissionSelect();
-  };
+  const missionSelectBtn = document.getElementById('mission-select-btn');
+  if (missionSelectBtn) {
+    missionSelectBtn.onclick = () => {
+      document.getElementById('mission-complete').classList.add('hidden');
+      showMissionSelect();
+    };
+  }
   
   // Skill tree event listeners
-  document.getElementById('skill-tree-btn').onclick = () => {
-    mainMenu.classList.add('hidden');
-    showSkillTree();
-  };
+  const skillTreeBtn = document.getElementById('skill-tree-btn');
+  if (skillTreeBtn) {
+    skillTreeBtn.onclick = () => {
+      mainMenu.classList.add('hidden');
+      showSkillTree();
+    };
+  }
   
-  document.getElementById('back-from-skills').onclick = () => {
-    document.getElementById('skill-tree').classList.add('hidden');
-    mainMenu.classList.remove('hidden');
-  };
+  const backFromSkillsBtn = document.getElementById('back-from-skills');
+  if (backFromSkillsBtn) {
+    backFromSkillsBtn.onclick = () => {
+      document.getElementById('skill-tree').classList.add('hidden');
+      mainMenu.classList.remove('hidden');
+    };
+  }
   
   // Pause menu event listeners
-  resumeBtn.onclick = resumeGame;
-  saveExitBtn.onclick = () => exitGame(true);
-  exitNoSaveBtn.onclick = () => exitGame(false);
+  if (resumeBtn) resumeBtn.onclick = resumeGame;
+  if (saveExitBtn) saveExitBtn.onclick = () => exitGame(true);
+  if (exitNoSaveBtn) exitNoSaveBtn.onclick = () => exitGame(false);
   
   // Game over event listeners
-  restartBtn.onclick = resetGame;
-  mainMenuBtn.onclick = () => {
-    gameOverScreen.classList.add('hidden');
-    mainMenu.classList.remove('hidden');
-  };
+  if (restartBtn) restartBtn.onclick = resetGame;
+  if (mainMenuBtn) {
+    mainMenuBtn.onclick = () => {
+      gameOverScreen.classList.add('hidden');
+      mainMenu.classList.remove('hidden');
+    };
+  }
   
   console.log('✅ Game initialization complete');
 }
