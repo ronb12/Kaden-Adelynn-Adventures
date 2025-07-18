@@ -81,11 +81,14 @@ body::before {
 body.game-playing #gameCanvas {
   z-index: 10;
   display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 /* Hide canvas when in menu */
 body.menu-active #gameCanvas {
   z-index: 1;
+  visibility: hidden;
 }
 
 @keyframes canvasGlow {

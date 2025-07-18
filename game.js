@@ -1,6 +1,32 @@
 // Kaden & Adelynn Adventures - Arcade Version
 console.log('🚀 game.js loading...');
 
+// Immediate debugging
+window.addEventListener('DOMContentLoaded', () => {
+  console.log('🔍 DOM Content Loaded');
+  const startBtn = document.getElementById('start-btn');
+  console.log('🔍 Start button found:', startBtn ? 'YES' : 'NO');
+  if (startBtn) {
+    console.log('🔍 Start button text:', startBtn.textContent);
+    console.log('🔍 Start button onclick:', startBtn.onclick);
+  }
+});
+
+// Test if window load event fires
+window.addEventListener('load', () => {
+  console.log('🔍 Window load event fired');
+  const startBtn = document.getElementById('start-btn');
+  console.log('🔍 Start button found on load:', startBtn ? 'YES' : 'NO');
+  
+  // Add a simple test click handler
+  if (startBtn) {
+    startBtn.addEventListener('click', () => {
+      console.log('🎯 SIMPLE CLICK TEST - Button was clicked!');
+      alert('Button click detected!');
+    });
+  }
+});
+
 // Game state variables
 let canvas, ctx;
 let gameState = 'menu';
