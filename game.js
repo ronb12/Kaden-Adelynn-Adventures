@@ -27,21 +27,21 @@ function initStars() {
   }
 }
 function updateStars() {
+  // Stars stay in fixed positions - no scrolling
+  // Only add subtle twinkling effect
   for (let s of stars) {
-    s.x -= s.speed;
-    if (s.x < 0) {
-      s.x = canvas.width;
-      s.y = Math.random() * canvas.height;
-      s.speed = 0.5 + Math.random() * 1.5;
-      s.size = Math.random() * 1.5 + 0.5;
-    }
+    // Optional: Add subtle twinkling by varying alpha
+    s.twinkle = (s.twinkle || 0) + 0.1;
+    if (s.twinkle > Math.PI * 2) s.twinkle = 0;
   }
 }
 function drawStars() {
   ctx.save();
   ctx.fillStyle = '#fff';
   for (let s of stars) {
-    ctx.globalAlpha = 0.5 + 0.5 * (s.size / 2);
+    // Add twinkling effect
+    const twinkleAlpha = 0.3 + 0.4 * Math.sin(s.twinkle || 0);
+    ctx.globalAlpha = twinkleAlpha * (0.5 + 0.5 * (s.size / 2));
     ctx.beginPath();
     ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
     ctx.fill();
@@ -55,11 +55,10 @@ let powerUps = [];
 const POWERUP_TYPES = ['weapon', 'shield'];
 function spawnPowerUp(x, y) {
   const type = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
-  powerUps.push({ x, y, w: 18, h: 18, type, speed: 2 });
+  powerUps.push({ x, y, w: 18, h: 18, type });
 }
 function updatePowerUps() {
-  powerUps.forEach(p => p.x -= p.speed);
-  powerUps = powerUps.filter(p => p.x > -20);
+  // Power-ups stay in fixed positions - no horizontal movement
   // Player collects power-up
   for (let i = powerUps.length-1; i >= 0; i--) {
     if (rectsCollide(player, powerUps[i])) {
@@ -102,17 +101,18 @@ function drawPowerUps() {
 // --- Enemy Types ---
 function spawnEnemy() {
   const y = Math.random() * (canvas.height - 32) + 8;
+  const x = Math.random() * (canvas.width - 200) + 200; // Spawn in middle-right area
   const type = Math.random() < 0.7 ? 'basic' : 'shooter';
   if (type === 'basic') {
-    enemies.push({ x: canvas.width + 32, y, w: 32, h: 24, speed: 2 + Math.random()*1.5, type });
+    enemies.push({ x, y, w: 32, h: 24, type });
   } else {
-    enemies.push({ x: canvas.width + 32, y, w: 32, h: 24, speed: 1.5, type, shootTimer: 0 });
+    enemies.push({ x, y, w: 32, h: 24, type, shootTimer: 0 });
   }
 }
 let enemyBullets = [];
 function updateEnemies() {
+  // Enemies stay in fixed positions - no horizontal movement
   for (let e of enemies) {
-    e.x -= e.speed;
     if (e.type === 'shooter') {
       e.shootTimer = (e.shootTimer || 0) + 1;
       if (e.shootTimer > 60) {
@@ -121,11 +121,9 @@ function updateEnemies() {
       }
     }
   }
-  enemies = enemies.filter(e => e.x > -40);
 }
 function updateEnemyBullets() {
-  enemyBullets.forEach(b => b.x -= b.speed);
-  enemyBullets = enemyBullets.filter(b => b.x > -20);
+  // Enemy bullets stay in fixed positions - no horizontal movement
   for (let i = enemyBullets.length-1; i >= 0; i--) {
     if (rectsCollide(player, enemyBullets[i])) {
       if (player.shield > 0) {
