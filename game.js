@@ -3359,3 +3359,45 @@ function updateDrones() {
     }
   });
 }
+
+function drawDrones() {
+  // Draw each drone
+  options.forEach(drone => {
+    ctx.save();
+    ctx.translate(drone.x + drone.w/2, drone.y + drone.h/2);
+    
+    // Drone body
+    const droneGrad = ctx.createLinearGradient(-drone.w/2, -drone.h/2, drone.w/2, drone.h/2);
+    droneGrad.addColorStop(0, '#4444ff');
+    droneGrad.addColorStop(0.5, '#8888ff');
+    droneGrad.addColorStop(1, '#4444ff');
+    
+    ctx.fillStyle = droneGrad;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, drone.w/2, drone.h/2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Drone outline
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Drone glow effect
+    ctx.save();
+    ctx.globalAlpha = 0.3;
+    ctx.shadowColor = '#4444ff';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, drone.w/2 + 2, drone.h/2 + 2, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+    
+    // Drone weapon tip
+    ctx.fillStyle = '#ff4444';
+    ctx.beginPath();
+    ctx.ellipse(0, -drone.h/2 - 2, 2, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.restore();
+  });
+}
