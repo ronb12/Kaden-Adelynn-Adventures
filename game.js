@@ -2608,8 +2608,15 @@ function startNewGamePlus() {
 
 // Initialize the game when the page loads
 window.addEventListener('load', () => {
-  initGame();
-  gameLoop();
+  console.log('🎮 Kaden & Adelynn Adventures - Loading...');
+  try {
+    initGame();
+    console.log('✅ Game initialized successfully');
+    gameLoop();
+    console.log('✅ Game loop started');
+  } catch (error) {
+    console.error('❌ Error initializing game:', error);
+  }
 });
 
 // --- Skill Tree UI ---
