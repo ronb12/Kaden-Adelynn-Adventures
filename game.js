@@ -253,6 +253,10 @@ function startMission(missionId) {
   
   debugLog(`Mission ${missionId} started successfully`);
   debugLog('Final check - Game state:', gameState, 'Player:', player ? 'exists' : 'missing', 'Canvas:', canvas ? 'exists' : 'missing');
+  
+  // Test canvas functionality
+  debugLog('Testing canvas...');
+  testCanvas();
 }
 
 function updateMissionUI() {
@@ -3498,4 +3502,29 @@ document.addEventListener('keydown', (e) => {
 
 document.addEventListener('keyup', (e) => {
   keys[e.code] = false;
+});
+
+// Simple test function to verify canvas is working
+function testCanvas() {
+  debugLog('Testing canvas functionality...');
+  if (!canvas || !ctx) {
+    debugLog('Canvas or context is missing!');
+    return false;
+  }
+  
+  // Clear canvas
+  ctx.fillStyle = '#ff0000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Draw a simple shape
+  ctx.fillStyle = '#00ff00';
+  ctx.fillRect(100, 100, 200, 200);
+  
+  debugLog('Canvas test completed - should see red background with green square');
+  return true;
+}
+
+// Call test when game starts
+window.addEventListener('load', () => {
+  testCanvas();
 });
