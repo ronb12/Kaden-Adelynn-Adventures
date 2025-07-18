@@ -187,6 +187,41 @@ function startMission(missionId) {
   bossSpawned = false;
   boss = null;
   
+  // Initialize player if not already initialized
+  if (!player) {
+    player = {
+      x: canvas.width / 2 - 25,
+      y: canvas.height - 100,
+      width: 50,
+      height: 50,
+      w: 50, // Add w and h properties for compatibility
+      h: 50,
+      speed: 5,
+      weaponLevel: 1,
+      weaponMultiplier: 1,
+      shield: 0
+    };
+    debugLog('Player initialized for mission:', player);
+  }
+  
+  // Reset game arrays
+  bullets = [];
+  enemies = [];
+  enemyBullets = [];
+  particles = [];
+  soundEffects = [];
+  collectibles = [];
+  powerCapsules = [];
+  powerUps = [];
+  options = [];
+  
+  // Reset game state
+  gameTime = 0;
+  score = 0;
+  lives = 3;
+  gamePaused = false;
+  enemyTimer = 60;
+  
   // Set mission objectives
   missionObjectives = [
     `Destroy ${mission.enemyCount} enemies`,
@@ -1627,8 +1662,8 @@ function drawBullets() {
 
 function drawPlayerShip() {
   ctx.save();
-  ctx.translate(player.x + player.w/2, player.y + player.h/2);
-  const w = player.w, h = player.h;
+  ctx.translate(player.x + player.width/2, player.y + player.height/2);
+  const w = player.width, h = player.height;
 
   // --- Main hull ---
   const hullGrad = ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
