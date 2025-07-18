@@ -2469,8 +2469,8 @@ function handleTouchEnd(e) {
 } 
 
 // --- Rapid Fire System ---
-let fireCooldown = 0;
-const FIRE_RATE = 5; // Lower is faster (frames between shots) 
+// fireCooldown already declared at top
+const FIRE_RATE = 5; // Lower is faster (frames between shots)
 
 // --- Balance Tweaks ---
 const ENEMY_SPAWN_RATE = 90; // Higher = slower spawn
