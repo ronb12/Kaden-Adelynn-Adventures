@@ -13,6 +13,12 @@ const weaponLevelDisplay = document.getElementById('weapon-level');
 const difficultyDisplay = document.getElementById('difficulty');
 const timeDisplay = document.getElementById('time');
 
+// Touch Controls
+const touchControls = document.getElementById('touch-controls');
+const joystick = document.getElementById('joystick');
+const joystickThumb = document.getElementById('joystick-thumb');
+const fireBtn = document.getElementById('fire-btn');
+
 let gameState = 'menu';
 let player, bullets, enemies, score, lives, keys, enemyTimer;
 let gameTime = 0;
@@ -22,6 +28,14 @@ let boss = null;
 
 // Starfield background
 let stars = [];
+
+// Touch control variables
+let isTouchDevice = false;
+let joystickActive = false;
+let joystickCenter = { x: 0, y: 0 };
+let joystickRadius = 0;
+let touchDirection = { x: 0, y: 0 };
+let fireButtonPressed = false;
 
 // --- Particle System ---
 let particles = [];
@@ -542,10 +556,10 @@ function update() {
   updateSoundEffects();
   updateBoss();
   // Player movement - full movement allowed
-  if (keys['ArrowLeft']) player.x -= player.speed;
-  if (keys['ArrowRight']) player.x += player.speed;
-  if (keys['ArrowUp']) player.y -= player.speed;
-  if (keys['ArrowDown']) player.y += player.speed;
+  if (keys['ArrowLeft'] || (isTouchDevice && touchDirection.x < -0.3)) player.x -= player.speed;
+  if (keys['ArrowRight'] || (isTouchDevice && touchDirection.x > 0.3)) player.x += player.speed;
+  if (keys['ArrowUp'] || (isTouchDevice && touchDirection.y < -0.3)) player.y -= player.speed;
+  if (keys['ArrowDown'] || (isTouchDevice && touchDirection.y > 0.3)) player.y += player.speed;
   // Keep player within screen bounds
   player.x = Math.max(0, Math.min(canvas.width - player.w, player.x));
   player.y = Math.max(0, Math.min(canvas.height - player.h, player.y));
@@ -603,6 +617,12 @@ function update() {
   }
   // Shield timer
   if (player.shield > 0) player.shield--;
+  
+  // Touch shooting
+  if (isTouchDevice && fireButtonPressed) {
+    shoot();
+  }
+  
   gameTime++;
 }
 
@@ -937,40 +957,48 @@ document.addEventListener('keydown', e => {
   if (gameState === 'playing') {
     keys[e.key] = true;
     if (e.key === ' ' || e.key === 'Spacebar') {
-      // Shoot with weapon multiplier
-      let level = player.weaponLevel || 1;
-      let multiplier = player.weaponMultiplier || 4;
-      
-      // Add shooting particles
-      for (let i = 0; i < multiplier * 2; i++) {
-        createParticle(player.x + player.w/2, player.y, '#00ffff', 3, 15);
-      }
-      
-      if (level === 1) {
-        // Single shot with multiplier
-        for (let i = 0; i < multiplier; i++) {
-          bullets.push({ x: player.x+player.w/2-3, y: player.y, w: 6, h: 12, speed: 8 });
-        }
-      } else if (level === 2) {
-        // Double shot with multiplier
-        for (let i = 0; i < multiplier; i++) {
-          bullets.push({ x: player.x+player.w/2-10, y: player.y, w: 6, h: 12, speed: 8 });
-          bullets.push({ x: player.x+player.w/2+4, y: player.y, w: 6, h: 12, speed: 8 });
-        }
-      } else if (level >= 3) {
-        // Triple shot with multiplier
-        for (let i = 0; i < multiplier; i++) {
-          bullets.push({ x: player.x+player.w/2-12, y: player.y, w: 6, h: 12, speed: 8 });
-          bullets.push({ x: player.x+player.w/2-3, y: player.y, w: 6, h: 12, speed: 8 });
-          bullets.push({ x: player.x+player.w/2+8, y: player.y, w: 6, h: 12, speed: 8 });
-        }
-      }
+      shoot();
     }
   }
 });
+
 document.addEventListener('keyup', e => {
   if (gameState === 'playing') keys[e.key] = false;
 });
+
+// Shooting function
+function shoot() {
+  if (gameState !== 'playing') return;
+  
+  // Shoot with weapon multiplier
+  let level = player.weaponLevel || 1;
+  let multiplier = player.weaponMultiplier || 4;
+  
+  // Add shooting particles
+  for (let i = 0; i < multiplier * 2; i++) {
+    createParticle(player.x + player.w/2, player.y, '#00ffff', 3, 15);
+  }
+  
+  if (level === 1) {
+    // Single shot with multiplier
+    for (let i = 0; i < multiplier; i++) {
+      bullets.push({ x: player.x+player.w/2-3, y: player.y, w: 6, h: 12, speed: 8 });
+    }
+  } else if (level === 2) {
+    // Double shot with multiplier
+    for (let i = 0; i < multiplier; i++) {
+      bullets.push({ x: player.x+player.w/2-10, y: player.y, w: 6, h: 12, speed: 8 });
+      bullets.push({ x: player.x+player.w/2+4, y: player.y, w: 6, h: 12, speed: 8 });
+    }
+  } else if (level >= 3) {
+    // Triple shot with multiplier
+    for (let i = 0; i < multiplier; i++) {
+      bullets.push({ x: player.x+player.w/2-12, y: player.y, w: 6, h: 12, speed: 8 });
+      bullets.push({ x: player.x+player.w/2-3, y: player.y, w: 6, h: 12, speed: 8 });
+      bullets.push({ x: player.x+player.w/2+8, y: player.y, w: 6, h: 12, speed: 8 });
+    }
+  }
+}
 
 startBtn.onclick = () => {
   mainMenu.classList.add('hidden');
@@ -1001,6 +1029,99 @@ function endGame() {
 mainMenu.classList.remove('hidden');
 gameOverScreen.classList.add('hidden');
 canvas.tabIndex = 0;
+
+// Initialize touch controls
+function initTouchControls() {
+  // Detect touch device
+  isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  
+  if (isTouchDevice) {
+    touchControls.classList.remove('hidden');
+    
+    // Initialize joystick
+    const joystickRect = joystick.getBoundingClientRect();
+    joystickCenter = {
+      x: joystickRect.left + joystickRect.width / 2,
+      y: joystickRect.top + joystickRect.height / 2
+    };
+    joystickRadius = joystickRect.width / 2 - 20;
+    
+    // Joystick touch events
+    joystick.addEventListener('touchstart', handleJoystickStart);
+    joystick.addEventListener('touchmove', handleJoystickMove);
+    joystick.addEventListener('touchend', handleJoystickEnd);
+    
+    // Fire button touch events
+    fireBtn.addEventListener('touchstart', handleFireStart);
+    fireBtn.addEventListener('touchend', handleFireEnd);
+    
+    // Prevent default touch behaviors
+    joystick.addEventListener('touchstart', e => e.preventDefault());
+    joystick.addEventListener('touchmove', e => e.preventDefault());
+    fireBtn.addEventListener('touchstart', e => e.preventDefault());
+  }
+}
+
+function handleJoystickStart(e) {
+  e.preventDefault();
+  joystickActive = true;
+  handleJoystickMove(e);
+}
+
+function handleJoystickMove(e) {
+  if (!joystickActive) return;
+  e.preventDefault();
+  
+  const touch = e.touches[0];
+  const dx = touch.clientX - joystickCenter.x;
+  const dy = touch.clientY - joystickCenter.y;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+  
+  if (distance <= joystickRadius) {
+    touchDirection.x = dx / joystickRadius;
+    touchDirection.y = dy / joystickRadius;
+    joystickThumb.style.transform = `translate(${dx}px, ${dy}px)`;
+  } else {
+    const angle = Math.atan2(dy, dx);
+    touchDirection.x = Math.cos(angle);
+    touchDirection.y = Math.sin(angle);
+    joystickThumb.style.transform = `translate(${Math.cos(angle) * joystickRadius}px, ${Math.sin(angle) * joystickRadius}px)`;
+  }
+}
+
+function handleJoystickEnd(e) {
+  e.preventDefault();
+  joystickActive = false;
+  touchDirection.x = 0;
+  touchDirection.y = 0;
+  joystickThumb.style.transform = 'translate(-50%, -50%)';
+}
+
+function handleFireStart(e) {
+  e.preventDefault();
+  fireButtonPressed = true;
+}
+
+function handleFireEnd(e) {
+  e.preventDefault();
+  fireButtonPressed = false;
+}
+
+// Initialize touch controls on load
+document.addEventListener('DOMContentLoaded', initTouchControls);
+
+// Register service worker for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(registration => {
+        console.log('SW registered: ', registration);
+      })
+      .catch(registrationError => {
+        console.log('SW registration failed: ', registrationError);
+      });
+  });
+}
 
 // --- Starfield Background ---
 function initStars() {

@@ -2,9 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Kaden & Adelynn Adventures">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0a0a23">
+  <meta name="description" content="An addicting space shooter game with massive firepower and dynamic combat">
   <title>Kaden & Adelynn Adventures - Gradius Clone</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512x512.png">
 </head>
 <body>
   <div id="main-menu" class="overlay">
@@ -13,6 +23,19 @@
     <p class="credit">A simple Gradius-style clone</p>
   </div>
   <canvas id="gameCanvas" width="480" height="640" tabindex="0" aria-label="Game Canvas"></canvas>
+  
+  <!-- Touch Controls -->
+  <div id="touch-controls" class="hidden">
+    <div class="joystick-area">
+      <div id="joystick" class="joystick">
+        <div id="joystick-thumb" class="joystick-thumb"></div>
+      </div>
+    </div>
+    <div class="action-buttons">
+      <button id="fire-btn" class="action-btn">FIRE</button>
+    </div>
+  </div>
+  
   <div id="hud">
     <div class="hud-row">
       <span id="score">Score: 0</span>
@@ -33,5 +56,6 @@
     <button id="restart-btn">Restart</button>
   </div>
   <script src="game.js"></script>
+  <script src="sw.js"></script>
 </body>
 </html> 

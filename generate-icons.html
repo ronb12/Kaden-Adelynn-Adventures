@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Icons</title>
+</head>
+<body>
+    <canvas id="icon192" width="192" height="192"></canvas>
+    <canvas id="icon512" width="512" height="512"></canvas>
+    <script>
+        function generateIcon(canvasId, size) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#0a0a23');
+            gradient.addColorStop(1, '#1a1a40');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Ship triangle
+            ctx.fillStyle = '#00fff7';
+            ctx.beginPath();
+            ctx.moveTo(size/2, size/4);
+            ctx.lineTo(size/3, size*3/4);
+            ctx.lineTo(size*2/3, size*3/4);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Border
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = size/50;
+            ctx.stroke();
+            
+            // Download link
+            const link = document.createElement('a');
+            link.download = `icon-${size}x${size}.png`;
+            link.href = canvas.toDataURL();
+            link.textContent = `Download ${size}x${size}`;
+            link.style.display = 'block';
+            link.style.margin = '10px';
+            document.body.appendChild(link);
+        }
+        
+        generateIcon('icon192', 192);
+        generateIcon('icon512', 512);
+    </script>
+</body>
+</html> 
