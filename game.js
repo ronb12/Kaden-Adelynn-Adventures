@@ -20,6 +20,9 @@ let difficulty = 1;
 let bossSpawned = false;
 let boss = null;
 
+// Starfield background
+let stars = [];
+
 // --- Particle System ---
 let particles = [];
 function createParticle(x, y, color, speed = 2, life = 30) {
@@ -205,14 +208,14 @@ function spawnCollectible(x, y) {
 }
 
 function updateCollectibles() {
-  // Collectibles move from right to left
+  // Collectibles move from top to bottom
   collectibles.forEach(c => {
-    c.x -= 1; // Slow movement
+    c.y += 1; // Slow movement
     c.floatOffset += c.floatSpeed;
   });
   
   // Remove collectibles that go off screen
-  collectibles = collectibles.filter(c => c.x > -30);
+  collectibles = collectibles.filter(c => c.y < canvas.height + 30);
   
   // Player collects collectibles
   for (let i = collectibles.length-1; i >= 0; i--) {
@@ -346,8 +349,8 @@ function drawPowerUps() {
 
 // --- Enemy Types ---
 function spawnEnemy() {
-  const y = Math.random() * (canvas.height - 32) + 8;
-  const x = canvas.width + 32; // Spawn from right side of screen
+  const x = Math.random() * (canvas.width - 32) + 8;
+  const y = -32; // Spawn from top of screen
   const type = Math.random() < 0.7 ? 'basic' : 'shooter';
   if (type === 'basic') {
     enemies.push({ x, y, w: 32, h: 24, type, lifeTimer: 0 });
@@ -357,37 +360,37 @@ function spawnEnemy() {
 }
 let enemyBullets = [];
 function updateEnemies() {
-  // Enemies move from right to left like Gradius
+  // Enemies move from top to bottom
   for (let e of enemies) {
     // Initialize enemy properties
     if (!e.movementSpeed) {
       e.movementSpeed = 2 + Math.random() * 2;
     }
     
-    // Move from right to left
-    e.x -= e.movementSpeed;
+    // Move from top to bottom
+    e.y += e.movementSpeed;
     
-    // Add some vertical movement patterns
-    if (!e.verticalPattern) {
-      e.verticalPattern = Math.random() < 0.5 ? 'sine' : 'linear';
-      e.verticalSpeed = 0.5 + Math.random() * 1;
-      e.verticalDirection = Math.random() < 0.5 ? 1 : -1;
-      e.originalY = e.y;
+    // Add some horizontal movement patterns
+    if (!e.horizontalPattern) {
+      e.horizontalPattern = Math.random() < 0.5 ? 'sine' : 'linear';
+      e.horizontalSpeed = 0.5 + Math.random() * 1;
+      e.horizontalDirection = Math.random() < 0.5 ? 1 : -1;
+      e.originalX = e.x;
       e.sineOffset = Math.random() * Math.PI * 2;
     }
     
-    // Vertical movement patterns
-    if (e.verticalPattern === 'sine') {
-      e.y = e.originalY + Math.sin((e.x + e.sineOffset) * 0.02) * 30;
-    } else if (e.verticalPattern === 'linear') {
-      e.y += e.verticalSpeed * e.verticalDirection;
-      if (e.y > e.originalY + 40 || e.y < e.originalY - 40) {
-        e.verticalDirection *= -1;
+    // Horizontal movement patterns
+    if (e.horizontalPattern === 'sine') {
+      e.x = e.originalX + Math.sin((e.y + e.sineOffset) * 0.02) * 30;
+    } else if (e.horizontalPattern === 'linear') {
+      e.x += e.horizontalSpeed * e.horizontalDirection;
+      if (e.x > e.originalX + 40 || e.x < e.originalX - 40) {
+        e.horizontalDirection *= -1;
       }
     }
     
     // Keep enemies within screen bounds
-    e.y = Math.max(10, Math.min(canvas.height - e.h - 10, e.y));
+    e.x = Math.max(10, Math.min(canvas.width - e.w - 10, e.x));
     
     // Update life timer
     e.lifeTimer = (e.lifeTimer || 0) + 1;
@@ -396,34 +399,34 @@ function updateEnemies() {
     if (e.type === 'shooter') {
       e.shootTimer = (e.shootTimer || 0) + 1;
       if (e.shootTimer > 90) { // Shoot every 1.5 seconds
-        // Shoot straight left
+        // Shoot straight down
         enemyBullets.push({ 
-          x: e.x, 
-          y: e.y + e.h/2 - 3, 
-          w: 10, 
-          h: 6, 
+          x: e.x + e.w/2 - 3, 
+          y: e.y + e.h, 
+          w: 6, 
+          h: 10, 
           speed: 6,
-          dx: -6,
-          dy: 0
+          dx: 0,
+          dy: 6
         });
         e.shootTimer = 0;
       }
     }
   }
   
-  // Remove enemies that go off the left side of screen
-  enemies = enemies.filter(e => e.x > -e.w);
+  // Remove enemies that go off the bottom of screen
+  enemies = enemies.filter(e => e.y < canvas.height + e.h);
 }
 function updateEnemyBullets() {
-  // Enemy bullets move from right to left
+  // Enemy bullets move from top to bottom
   for (let i = enemyBullets.length-1; i >= 0; i--) {
     const b = enemyBullets[i];
     
-    // Move bullet left
-    b.x -= b.speed;
+    // Move bullet down
+    b.y += b.speed;
     
-    // Remove bullets that go off the left side of screen
-    if (b.x < -20) {
+    // Remove bullets that go off the bottom of screen
+    if (b.y > canvas.height + 20) {
       enemyBullets.splice(i, 1);
       continue;
     }
@@ -440,6 +443,7 @@ function updateEnemyBullets() {
         }
       }
       enemyBullets.splice(i, 1);
+      createParticle(b.x, b.y, '#ff0000', 3, 20);
       playSoundEffect('hit', b.x, b.y);
     }
   }
@@ -464,8 +468,8 @@ function drawEnemyBullets() {
     ctx.strokeStyle = '#ff4444';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(b.w/2 + 4, 0);
-    ctx.lineTo(b.w/2, 0);
+    ctx.moveTo(0, -b.h/2 - 4);
+    ctx.lineTo(0, -b.h/2);
     ctx.stroke();
     
     ctx.restore();
@@ -473,7 +477,7 @@ function drawEnemyBullets() {
 }
 
 function resetGame() {
-  player = { x: 40, y: canvas.height/2-16, w: 32, h: 24, speed: 4, weaponLevel: 1, shield: 0 };
+  player = { x: canvas.width/2-16, y: canvas.height-60, w: 32, h: 24, speed: 4, weaponLevel: 1, shield: 0 };
   bullets = [];
   enemies = [];
   enemyBullets = [];
@@ -501,17 +505,17 @@ function update() {
   updateParticles();
   updateSoundEffects();
   updateBoss();
-  // Player movement - only vertical movement allowed
-  if (keys['ArrowUp']) player.y -= player.speed;
-  if (keys['ArrowDown']) player.y += player.speed;
-  // Remove left/right movement - player stays at fixed horizontal position
-  player.y = Math.max(0, Math.min(canvas.height - player.h, player.y));
-  // Keep player at fixed horizontal position (40 pixels from left edge)
-  player.x = 40;
+  // Player movement - horizontal movement allowed, vertical restricted
+  if (keys['ArrowLeft']) player.x -= player.speed;
+  if (keys['ArrowRight']) player.x += player.speed;
+  // Keep player within screen bounds
+  player.x = Math.max(0, Math.min(canvas.width - player.w, player.x));
+  // Keep player at fixed vertical position (near bottom of screen)
+  player.y = canvas.height - 60;
 
   // Bullets
-  bullets.forEach(b => b.x += b.speed);
-  bullets = bullets.filter(b => b.x < canvas.width + 20);
+  bullets.forEach(b => b.y -= b.speed);
+  bullets = bullets.filter(b => b.y > -20);
 
   // Enemies
   updateEnemies();
@@ -602,12 +606,12 @@ function drawPlayerShip() {
   bodyGradient.addColorStop(0.7, '#c0c0c0');
   bodyGradient.addColorStop(1, '#e6e6e6');
   
-  // Main body (triangle shape)
+  // Main body (triangle shape pointing upward)
   ctx.fillStyle = bodyGradient;
   ctx.beginPath();
-  ctx.moveTo(-player.w/2, -player.h/2);
-  ctx.lineTo(player.w/2, 0);
+  ctx.moveTo(0, -player.h/2);
   ctx.lineTo(-player.w/2, player.h/2);
+  ctx.lineTo(player.w/2, player.h/2);
   ctx.closePath();
   ctx.fill();
   
@@ -624,7 +628,7 @@ function drawPlayerShip() {
   
   ctx.fillStyle = cockpitGradient;
   ctx.beginPath();
-  ctx.arc(-2, 0, 8, 0, Math.PI * 2);
+  ctx.arc(0, 0, 8, 0, Math.PI * 2);
   ctx.fill();
   
   // Multiple weapon systems
@@ -632,38 +636,38 @@ function drawPlayerShip() {
   
   // Primary gun (center)
   ctx.fillStyle = '#ff4444';
-  ctx.fillRect(player.w/2 - 2, -3, 6, 6);
+  ctx.fillRect(-3, -player.h/2 - 2, 6, 6);
   
   // Secondary guns (if weapon level 2+)
   if (weaponLevel >= 2) {
     ctx.fillStyle = '#ff8800';
-    ctx.fillRect(player.w/2 - 3, -player.h/2 + 4, 4, 4);
-    ctx.fillRect(player.w/2 - 3, player.h/2 - 8, 4, 4);
+    ctx.fillRect(-player.w/2 + 4, -player.h/2 - 3, 4, 4);
+    ctx.fillRect(player.w/2 - 8, -player.h/2 - 3, 4, 4);
   }
   
   // Tertiary guns (if weapon level 3+)
   if (weaponLevel >= 3) {
     ctx.fillStyle = '#ffff00';
-    ctx.fillRect(player.w/2 - 4, -player.h/2 + 8, 3, 3);
-    ctx.fillRect(player.w/2 - 4, player.h/2 - 11, 3, 3);
+    ctx.fillRect(-player.w/2 + 8, -player.h/2 - 4, 3, 3);
+    ctx.fillRect(player.w/2 - 11, -player.h/2 - 4, 3, 3);
   }
   
   // Missile launchers (if weapon level 4+)
   if (weaponLevel >= 4) {
     ctx.fillStyle = '#ff00ff';
-    ctx.fillRect(player.w/2 - 5, -player.h/2 + 12, 2, 2);
-    ctx.fillRect(player.w/2 - 5, player.h/2 - 14, 2, 2);
+    ctx.fillRect(-player.w/2 + 12, -player.h/2 - 5, 2, 2);
+    ctx.fillRect(player.w/2 - 14, -player.h/2 - 5, 2, 2);
   }
   
   // Heavy weapons (if weapon level 5)
   if (weaponLevel >= 5) {
     ctx.fillStyle = '#00ff00';
-    ctx.fillRect(player.w/2 - 6, -player.h/2 + 16, 1, 1);
-    ctx.fillRect(player.w/2 - 6, player.h/2 - 17, 1, 1);
+    ctx.fillRect(-player.w/2 + 16, -player.h/2 - 6, 1, 1);
+    ctx.fillRect(player.w/2 - 17, -player.h/2 - 6, 1, 1);
   }
   
   // Engine exhaust (blue flame)
-  const engineGradient = ctx.createLinearGradient(-player.w/2, -player.h/2, -player.w/2 - 12, 0);
+  const engineGradient = ctx.createLinearGradient(-player.w/2, player.h/2, 0, player.h/2 + 12);
   engineGradient.addColorStop(0, '#00ffff');
   engineGradient.addColorStop(0.3, '#0099ff');
   engineGradient.addColorStop(0.7, '#0066cc');
@@ -671,10 +675,10 @@ function drawPlayerShip() {
   
   ctx.fillStyle = engineGradient;
   ctx.beginPath();
-  ctx.moveTo(-player.w/2, -player.h/2 + 4);
-  ctx.lineTo(-player.w/2 - 12, -player.h/2 + 2);
-  ctx.lineTo(-player.w/2 - 12, player.h/2 - 2);
-  ctx.lineTo(-player.w/2, player.h/2 - 4);
+  ctx.moveTo(-player.w/2 + 4, player.h/2);
+  ctx.lineTo(-player.w/2 + 2, player.h/2 + 12);
+  ctx.lineTo(player.w/2 - 2, player.h/2 + 12);
+  ctx.lineTo(player.w/2 - 4, player.h/2);
   ctx.closePath();
   ctx.fill();
   
@@ -682,10 +686,10 @@ function drawPlayerShip() {
   ctx.strokeStyle = '#c0c0c0';
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(-player.w/2 + 4, -player.h/2);
-  ctx.lineTo(-player.w/2 + 12, -player.h/2 - 4);
-  ctx.moveTo(-player.w/2 + 4, player.h/2);
-  ctx.lineTo(-player.w/2 + 12, player.h/2 + 4);
+  ctx.moveTo(-player.w/2, -player.h/2 + 4);
+  ctx.lineTo(-player.w/2 - 4, -player.h/2 + 12);
+  ctx.moveTo(player.w/2, -player.h/2 + 4);
+  ctx.lineTo(player.w/2 + 4, -player.h/2 + 12);
   ctx.stroke();
   
   // Shield effect (blue)
@@ -851,8 +855,8 @@ function drawBullets() {
     ctx.strokeStyle = '#00ffff';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(-b.w/2 - 4, 0);
-    ctx.lineTo(-b.w/2, 0);
+    ctx.moveTo(0, b.h/2 + 4);
+    ctx.lineTo(0, b.h/2);
     ctx.stroke();
     
     ctx.restore();
@@ -899,14 +903,14 @@ document.addEventListener('keydown', e => {
       // Shoot
       let level = player.weaponLevel || 1;
       if (level === 1) {
-        bullets.push({ x: player.x+player.w, y: player.y+player.h/2-3, w: 12, h: 6, speed: 8 });
+        bullets.push({ x: player.x+player.w/2-3, y: player.y, w: 6, h: 12, speed: 8 });
       } else if (level === 2) {
-        bullets.push({ x: player.x+player.w, y: player.y+player.h/2-10, w: 12, h: 6, speed: 8 });
-        bullets.push({ x: player.x+player.w, y: player.y+player.h/2+4, w: 12, h: 6, speed: 8 });
+        bullets.push({ x: player.x+player.w/2-10, y: player.y, w: 6, h: 12, speed: 8 });
+        bullets.push({ x: player.x+player.w/2+4, y: player.y, w: 6, h: 12, speed: 8 });
       } else if (level >= 3) {
-        bullets.push({ x: player.x+player.w, y: player.y+player.h/2-12, w: 12, h: 6, speed: 8 });
-        bullets.push({ x: player.x+player.w, y: player.y+player.h/2-3, w: 12, h: 6, speed: 8 });
-        bullets.push({ x: player.x+player.w, y: player.y+player.h/2+8, w: 12, h: 6, speed: 8 });
+        bullets.push({ x: player.x+player.w/2-12, y: player.y, w: 6, h: 12, speed: 8 });
+        bullets.push({ x: player.x+player.w/2-3, y: player.y, w: 6, h: 12, speed: 8 });
+        bullets.push({ x: player.x+player.w/2+8, y: player.y, w: 6, h: 12, speed: 8 });
       }
     }
   }
@@ -943,4 +947,34 @@ function endGame() {
 // Show menu on load
 mainMenu.classList.remove('hidden');
 gameOverScreen.classList.add('hidden');
-canvas.tabIndex = 0; 
+canvas.tabIndex = 0;
+
+// --- Starfield Background ---
+function initStars() {
+  stars = [];
+  for (let i = 0; i < 100; i++) {
+    stars.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 2 + 1,
+      speed: Math.random() * 2 + 1
+    });
+  }
+}
+
+function updateStars() {
+  stars.forEach(star => {
+    star.y += star.speed;
+    if (star.y > canvas.height + 5) {
+      star.y = -5;
+      star.x = Math.random() * canvas.width;
+    }
+  });
+}
+
+function drawStars() {
+  stars.forEach(star => {
+    ctx.fillStyle = `rgba(255, 255, 255, ${star.size / 3})`;
+    ctx.fillRect(star.x, star.y, star.size, star.size);
+  });
+} 
