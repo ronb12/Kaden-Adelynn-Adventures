@@ -1,29 +1,7 @@
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-const hud = document.getElementById('hud');
-const mainMenu = document.getElementById('main-menu');
-const startBtn = document.getElementById('start-btn');
-const gameOverScreen = document.getElementById('game-over');
-const restartBtn = document.getElementById('restart-btn');
-const mainMenuBtn = document.getElementById('main-menu-btn');
-const scoreDisplay = document.getElementById('score');
-const livesDisplay = document.getElementById('lives');
-const finalScore = document.getElementById('final-score');
-const highScoreDisplay = document.getElementById('high-score');
-const weaponLevelDisplay = document.getElementById('weapon-level');
-const difficultyDisplay = document.getElementById('difficulty');
-const timeDisplay = document.getElementById('time');
-
-
-
-// Pause Menu
-const pauseMenu = document.getElementById('pause-menu');
-const resumeBtn = document.getElementById('resume-btn');
-const saveExitBtn = document.getElementById('save-exit-btn');
-const exitNoSaveBtn = document.getElementById('exit-no-save-btn');
-
-// Continue button
-const continueBtn = document.getElementById('continue-btn');
+// --- Game Variables ---
+let canvas, ctx, hud, mainMenu, startBtn, gameOverScreen, restartBtn, mainMenuBtn;
+let scoreDisplay, livesDisplay, finalScore, highScoreDisplay, weaponLevelDisplay, difficultyDisplay, timeDisplay;
+let pauseMenu, resumeBtn, saveExitBtn, exitNoSaveBtn, continueBtn;
 
 // --- Game States ---
 let gameState = 'menu'; // 'menu', 'playing', 'upgrade', 'boss', 'gameover'
@@ -2473,6 +2451,37 @@ function applyRandomPowerUp() {
 
 // --- Game Initialization ---
 function initGame() {
+  console.log('🎮 Initializing DOM elements...');
+  
+  // Initialize DOM elements
+  canvas = document.getElementById('gameCanvas');
+  ctx = canvas.getContext('2d');
+  hud = document.getElementById('hud');
+  mainMenu = document.getElementById('main-menu');
+  startBtn = document.getElementById('start-btn');
+  gameOverScreen = document.getElementById('game-over');
+  restartBtn = document.getElementById('restart-btn');
+  mainMenuBtn = document.getElementById('main-menu-btn');
+  scoreDisplay = document.getElementById('score');
+  livesDisplay = document.getElementById('lives');
+  finalScore = document.getElementById('final-score');
+  highScoreDisplay = document.getElementById('high-score');
+  weaponLevelDisplay = document.getElementById('weapon-level');
+  difficultyDisplay = document.getElementById('difficulty');
+  timeDisplay = document.getElementById('time');
+  
+  // Pause Menu
+  pauseMenu = document.getElementById('pause-menu');
+  resumeBtn = document.getElementById('resume-btn');
+  saveExitBtn = document.getElementById('save-exit-btn');
+  exitNoSaveBtn = document.getElementById('exit-no-save-btn');
+  
+  // Continue button
+  continueBtn = document.getElementById('continue-btn');
+  
+  console.log('🎮 DOM elements initialized');
+  
+  // Initialize game systems
   generateMissions();
   loadHighScores();
   checkForSavedGame();
@@ -2514,6 +2523,20 @@ function initGame() {
     document.getElementById('skill-tree').classList.add('hidden');
     mainMenu.classList.remove('hidden');
   };
+  
+  // Pause menu event listeners
+  resumeBtn.onclick = resumeGame;
+  saveExitBtn.onclick = () => exitGame(true);
+  exitNoSaveBtn.onclick = () => exitGame(false);
+  
+  // Game over event listeners
+  restartBtn.onclick = resetGame;
+  mainMenuBtn.onclick = () => {
+    gameOverScreen.classList.add('hidden');
+    mainMenu.classList.remove('hidden');
+  };
+  
+  console.log('✅ Game initialization complete');
 }
 
 function showMissionSelect() {
@@ -2609,13 +2632,91 @@ function startNewGamePlus() {
 // Initialize the game when the page loads
 window.addEventListener('load', () => {
   console.log('🎮 Kaden & Adelynn Adventures - Loading...');
+  
+  // Show loading indicator
+  const loadingDiv = document.createElement('div');
+  loadingDiv.id = 'loading-indicator';
+  loadingDiv.innerHTML = `
+    <div style="
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(10,10,35,0.95);
+      color: #00fff7;
+      padding: 20px;
+      border-radius: 12px;
+      border: 2px solid #00fff7;
+      text-align: center;
+      z-index: 10000;
+    ">
+      <h2>Loading Kaden & Adelynn Adventures...</h2>
+      <p>Please wait while the game initializes...</p>
+    </div>
+  `;
+  document.body.appendChild(loadingDiv);
+  
   try {
     initGame();
     console.log('✅ Game initialized successfully');
+    
+    // Remove loading indicator
+    document.body.removeChild(loadingDiv);
+    
     gameLoop();
     console.log('✅ Game loop started');
+    
+    // Show success message
+    setTimeout(() => {
+      const successDiv = document.createElement('div');
+      successDiv.innerHTML = `
+        <div style="
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: rgba(0,255,0,0.9);
+          color: #000;
+          padding: 10px;
+          border-radius: 8px;
+          z-index: 10000;
+          font-weight: bold;
+        ">
+          ✅ New Game Loaded Successfully!
+        </div>
+      `;
+      document.body.appendChild(successDiv);
+      setTimeout(() => document.body.removeChild(successDiv), 3000);
+    }, 1000);
+    
   } catch (error) {
     console.error('❌ Error initializing game:', error);
+    
+    // Remove loading indicator
+    if (document.getElementById('loading-indicator')) {
+      document.body.removeChild(loadingDiv);
+    }
+    
+    // Show error message
+    const errorDiv = document.createElement('div');
+    errorDiv.innerHTML = `
+      <div style="
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255,0,0,0.9);
+        color: #fff;
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+        z-index: 10000;
+      ">
+        <h2>❌ Game Loading Error</h2>
+        <p>Please refresh the page to try again.</p>
+        <p>Error: ${error.message}</p>
+      </div>
+    `;
+    document.body.appendChild(errorDiv);
   }
 });
 
