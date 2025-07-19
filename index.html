@@ -566,7 +566,6 @@
             <h1 class="menu-title">Kaden & Adelynn Adventures</h1>
             <p class="menu-subtitle">Space Shooter Adventure</p>
             <button id="startBtn">Start Game</button>
-            <button id="soundTestBtn" onclick="testSound()" style="background: linear-gradient(45deg, #4a90e2, #357abd); color: white; border: none; padding: 10px 20px; font-size: 16px; cursor: pointer; margin: 10px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); transition: all 0.3s ease;">🔊 Test Sound</button>
             <p><strong>Highest Score:</strong> <span id="highScoreDisplay">0</span></p>
             
             <div class="menu-instructions">
@@ -1216,27 +1215,6 @@
                     }
                     lastShot = now;
                 }
-            }
-        }
-
-        // Test sound function
-        function testSound() {
-            console.log('Testing sound...');
-            
-            // Initialize audio context if not already done
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                console.log('Audio context initialized for test');
-            }
-            
-            // Resume audio context if suspended
-            if (audioContext.state === 'suspended') {
-                audioContext.resume().then(() => {
-                    console.log('Audio context resumed');
-                    playMissileSound();
-                });
-            } else {
-                playMissileSound();
             }
         }
 
