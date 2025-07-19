@@ -362,6 +362,202 @@
             margin: 20px 0;
             max-width: 600px;
         }
+
+        /* Medal Modal Styles */
+        #medalModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .medal-content {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 3px solid #ffd700;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+            animation: medalGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes medalGlow {
+            0% { box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3); }
+            100% { box-shadow: 0 15px 40px rgba(255, 215, 0, 0.6); }
+        }
+
+        .medal-header h2 {
+            color: #ffd700;
+            margin: 0 0 20px 0;
+            font-size: 24px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .medal-icon {
+            font-size: 60px;
+            margin: 20px 0;
+            animation: medalBounce 1s ease-in-out infinite;
+        }
+
+        @keyframes medalBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .medal-body {
+            color: white;
+            margin: 20px 0;
+        }
+
+        .medal-body p {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .name-input {
+            margin: 20px 0;
+        }
+
+        .name-input label {
+            display: block;
+            color: #ffd700;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .name-input input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ffd700;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .name-input input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .medal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        .claim-btn {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .claim-btn:hover {
+            background: linear-gradient(45deg, #ffed4e, #ffd700);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+        }
+
+        .skip-btn {
+            background: linear-gradient(45deg, #666, #999);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .skip-btn:hover {
+            background: linear-gradient(45deg, #777, #aaa);
+            transform: translateY(-2px);
+        }
+
+        /* Leaderboard Display Styles */
+        .leaderboard-section {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            max-width: 600px;
+        }
+
+        .leaderboard-title {
+            color: #ffd700;
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 4px rgba(255, 215, 0, 0.5);
+        }
+
+        .medal-entry {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid #ffd700;
+        }
+
+        .medal-entry.gold {
+            border-left-color: #ffd700;
+            background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), transparent);
+        }
+
+        .medal-entry.silver {
+            border-left-color: #c0c0c0;
+            background: linear-gradient(90deg, rgba(192, 192, 192, 0.1), transparent);
+        }
+
+        .medal-entry.bronze {
+            border-left-color: #cd7f32;
+            background: linear-gradient(90deg, rgba(205, 127, 50, 0.1), transparent);
+        }
+
+        .medal-rank {
+            font-size: 24px;
+            margin-right: 15px;
+            min-width: 40px;
+        }
+
+        .medal-info {
+            flex: 1;
+            color: white;
+        }
+
+        .medal-name {
+            font-weight: bold;
+            font-size: 18px;
+            color: #ffd700;
+        }
+
+        .medal-score {
+            font-size: 16px;
+            color: #87ceeb;
+        }
+
+        .medal-date {
+            font-size: 12px;
+            color: #999;
+        }
     </style>
 </head>
 <body>
@@ -429,9 +625,34 @@
                 </ul>
             </div>
             
-            <div class="menu-instructions">
-                <h3>🏆 High Scores:</h3>
-                <p><strong>Highest Score:</strong> <span id="highScoreDisplay">0</span></p>
+            <div class="leaderboard-section">
+                <h3 class="leaderboard-title">🏅 CHAMPION HALL OF FAME 🏅</h3>
+                <div id="leaderboardDisplay">
+                    <div class="medal-entry gold">
+                        <div class="medal-rank">🥇</div>
+                        <div class="medal-info">
+                            <div class="medal-name">Champion</div>
+                            <div class="medal-score">0 points</div>
+                            <div class="medal-date">Crowned: Never</div>
+                        </div>
+                    </div>
+                    <div class="medal-entry silver">
+                        <div class="medal-rank">🥈</div>
+                        <div class="medal-info">
+                            <div class="medal-name">Runner</div>
+                            <div class="medal-score">0 points</div>
+                            <div class="medal-date">Achieved: Never</div>
+                        </div>
+                    </div>
+                    <div class="medal-entry bronze">
+                        <div class="medal-rank">🥉</div>
+                        <div class="medal-info">
+                            <div class="medal-name">Player</div>
+                            <div class="medal-score">0 points</div>
+                            <div class="medal-date">Earned: Never</div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <div class="menu-instructions">
@@ -457,6 +678,29 @@
             </div>
         </div>
         
+        <!-- Medal Modal -->
+        <div id="medalModal" style="display: none;">
+            <div class="medal-content">
+                <div class="medal-header">
+                    <h2 id="medalTitle">🏅 MEDAL ACHIEVED! 🏅</h2>
+                    <div id="medalIcon" class="medal-icon">🥉</div>
+                </div>
+                <div class="medal-body">
+                    <p id="medalMessage">You've earned a medal!</p>
+                    <p><strong>Score:</strong> <span id="medalScore">0</span> points</p>
+                    <p><strong>Rank:</strong> <span id="medalRank">#3</span></p>
+                    <div class="name-input">
+                        <label for="playerName">Enter your name:</label>
+                        <input type="text" id="playerName" maxlength="15" placeholder="Your name (max 15 chars)">
+                    </div>
+                </div>
+                <div class="medal-buttons">
+                    <button onclick="claimMedal()" class="claim-btn">🏅 Claim Medal</button>
+                    <button onclick="skipMedal()" class="skip-btn">Skip</button>
+                </div>
+            </div>
+        </div>
+
         <div id="store">
             <button class="store-close" onclick="closeStore()">×</button>
             <h2>💎 Space Store</h2>
@@ -849,6 +1093,16 @@
         document.getElementById('storeBtn').addEventListener('click', openStore);
         
         document.addEventListener('keydown', (e) => {
+            if (medalModalOpen) {
+                // Handle medal modal keyboard events
+                if (e.code === 'Enter') {
+                    claimMedal();
+                } else if (e.code === 'Escape') {
+                    skipMedal();
+                }
+                return;
+            }
+            
             if (!gameRunning) return;
             keys[e.code] = true;
             if (e.code === 'Space') e.preventDefault();
@@ -1072,6 +1326,9 @@
             
             // Update high score displays
             highScoreDisplay.textContent = highScore;
+            
+            // Update leaderboard display
+            updateLeaderboardDisplay();
             
             // Show menu, hide game
             mainMenu.style.display = 'block';
@@ -1662,8 +1919,18 @@
         function gameOver() {
             gameRunning = false;
             saveHighScores();
-            alert(`Game Over!\nFinal Score: ${score}\n${score > highScore ? '🎉 NEW HIGH SCORE! 🎉' : ''}`);
-            backToMenu();
+            
+            // Check for medal qualification
+            const medalInfo = checkMedalQualification();
+            
+            if (medalInfo) {
+                // Show medal modal instead of regular game over
+                showMedalModal(medalInfo);
+            } else {
+                // Regular game over
+                alert(`Game Over!\nFinal Score: ${score}\n${score > highScore ? '🎉 NEW HIGH SCORE! 🎉' : ''}`);
+                backToMenu();
+            }
         }
 
         function draw() {
@@ -1822,6 +2089,206 @@
                 console.log('Saved high scores:', { highScore });
             } catch (error) {
                 console.log('Error saving high scores:', error);
+            }
+        }
+
+        // Medal System Functions
+        function loadLeaderboard() {
+            try {
+                const savedLeaderboard = localStorage.getItem('kadenAdelynnTop3');
+                if (savedLeaderboard) {
+                    top3Leaderboard = JSON.parse(savedLeaderboard);
+                }
+                updateLeaderboardDisplay();
+                console.log('Loaded leaderboard:', top3Leaderboard);
+            } catch (error) {
+                console.log('Error loading leaderboard:', error);
+            }
+        }
+
+        function saveLeaderboard() {
+            try {
+                localStorage.setItem('kadenAdelynnTop3', JSON.stringify(top3Leaderboard));
+                updateLeaderboardDisplay();
+                console.log('Saved leaderboard:', top3Leaderboard);
+            } catch (error) {
+                console.log('Error saving leaderboard:', error);
+            }
+        }
+
+        function checkMedalQualification() {
+            const currentDate = new Date().toISOString().split('T')[0];
+            let medalEarned = null;
+            let newRank = null;
+
+            // Check if score qualifies for any medal (minimum 500 points)
+            if (score < 500) return null;
+
+            // Check for Gold Medal
+            if (score > top3Leaderboard.gold.score) {
+                medalEarned = 'gold';
+                newRank = 1;
+                // Shift existing medals down
+                top3Leaderboard.bronze = { ...top3Leaderboard.silver };
+                top3Leaderboard.silver = { ...top3Leaderboard.gold };
+                top3Leaderboard.gold = { name: '', score: score, date: currentDate };
+            }
+            // Check for Silver Medal
+            else if (score > top3Leaderboard.silver.score) {
+                medalEarned = 'silver';
+                newRank = 2;
+                // Shift bronze down
+                top3Leaderboard.bronze = { ...top3Leaderboard.silver };
+                top3Leaderboard.silver = { name: '', score: score, date: currentDate };
+            }
+            // Check for Bronze Medal
+            else if (score > top3Leaderboard.bronze.score) {
+                medalEarned = 'bronze';
+                newRank = 3;
+                top3Leaderboard.bronze = { name: '', score: score, date: currentDate };
+            }
+
+            if (medalEarned) {
+                currentMedal = { type: medalEarned, rank: newRank };
+                return { medal: medalEarned, rank: newRank };
+            }
+
+            return null;
+        }
+
+        function showMedalModal(medalInfo) {
+            const modal = document.getElementById('medalModal');
+            const title = document.getElementById('medalTitle');
+            const icon = document.getElementById('medalIcon');
+            const message = document.getElementById('medalMessage');
+            const scoreSpan = document.getElementById('medalScore');
+            const rankSpan = document.getElementById('medalRank');
+            const nameInput = document.getElementById('playerName');
+
+            // Set medal-specific content
+            if (medalInfo.medal === 'gold') {
+                title.textContent = '🥇 NEW GOLD CHAMPION! 🥇';
+                icon.textContent = '🥇';
+                message.textContent = 'You have claimed the throne!';
+                rankSpan.textContent = '#1';
+            } else if (medalInfo.medal === 'silver') {
+                title.textContent = '🥈 SILVER MEDAL! 🥈';
+                icon.textContent = '🥈';
+                message.textContent = 'You take second place!';
+                rankSpan.textContent = '#2';
+            } else if (medalInfo.medal === 'bronze') {
+                title.textContent = '🥉 BRONZE MEDAL! 🥉';
+                icon.textContent = '🥉';
+                message.textContent = 'You earn third place!';
+                rankSpan.textContent = '#3';
+            }
+
+            scoreSpan.textContent = score;
+            nameInput.value = '';
+            nameInput.focus();
+            modal.style.display = 'flex';
+            medalModalOpen = true;
+        }
+
+        function claimMedal() {
+            const nameInput = document.getElementById('playerName');
+            const playerName = nameInput.value.trim();
+
+            if (!playerName) {
+                alert('Please enter your name to claim your medal!');
+                return;
+            }
+
+            if (playerName.length > 15) {
+                alert('Name must be 15 characters or less!');
+                return;
+            }
+
+            // Update the leaderboard with the player's name
+            if (currentMedal && currentMedal.type) {
+                const currentDate = new Date().toISOString().split('T')[0];
+                
+                if (currentMedal.type === 'gold') {
+                    top3Leaderboard.gold.name = playerName;
+                } else if (currentMedal.type === 'silver') {
+                    top3Leaderboard.silver.name = playerName;
+                } else if (currentMedal.type === 'bronze') {
+                    top3Leaderboard.bronze.name = playerName;
+                }
+
+                saveLeaderboard();
+                closeMedalModal();
+                
+                // Show celebration message
+                setTimeout(() => {
+                    alert(`🏅 Congratulations ${playerName}! Your medal has been claimed! 🏅`);
+                }, 100);
+            }
+        }
+
+        function skipMedal() {
+            // If player skips, still save the score but with default name
+            if (currentMedal && currentMedal.type) {
+                const currentDate = new Date().toISOString().split('T')[0];
+                
+                if (currentMedal.type === 'gold') {
+                    top3Leaderboard.gold.name = 'Champion';
+                } else if (currentMedal.type === 'silver') {
+                    top3Leaderboard.silver.name = 'Runner';
+                } else if (currentMedal.type === 'bronze') {
+                    top3Leaderboard.bronze.name = 'Player';
+                }
+
+                saveLeaderboard();
+            }
+            
+            closeMedalModal();
+        }
+
+        function closeMedalModal() {
+            const modal = document.getElementById('medalModal');
+            modal.style.display = 'none';
+            medalModalOpen = false;
+            currentMedal = null;
+        }
+
+        function updateLeaderboardDisplay() {
+            const leaderboardDisplay = document.getElementById('leaderboardDisplay');
+            if (!leaderboardDisplay) return;
+
+            const entries = leaderboardDisplay.children;
+            
+            // Update Gold
+            if (entries[0]) {
+                const goldInfo = entries[0].querySelector('.medal-info');
+                if (goldInfo) {
+                    goldInfo.querySelector('.medal-name').textContent = top3Leaderboard.gold.name;
+                    goldInfo.querySelector('.medal-score').textContent = `${top3Leaderboard.gold.score} points`;
+                    const dateText = top3Leaderboard.gold.score > 0 ? `Crowned: ${top3Leaderboard.gold.date}` : 'Crowned: Never';
+                    goldInfo.querySelector('.medal-date').textContent = dateText;
+                }
+            }
+
+            // Update Silver
+            if (entries[1]) {
+                const silverInfo = entries[1].querySelector('.medal-info');
+                if (silverInfo) {
+                    silverInfo.querySelector('.medal-name').textContent = top3Leaderboard.silver.name;
+                    silverInfo.querySelector('.medal-score').textContent = `${top3Leaderboard.silver.score} points`;
+                    const dateText = top3Leaderboard.silver.score > 0 ? `Achieved: ${top3Leaderboard.silver.date}` : 'Achieved: Never';
+                    silverInfo.querySelector('.medal-date').textContent = dateText;
+                }
+            }
+
+            // Update Bronze
+            if (entries[2]) {
+                const bronzeInfo = entries[2].querySelector('.medal-info');
+                if (bronzeInfo) {
+                    bronzeInfo.querySelector('.medal-name').textContent = top3Leaderboard.bronze.name;
+                    bronzeInfo.querySelector('.medal-score').textContent = `${top3Leaderboard.bronze.score} points`;
+                    const dateText = top3Leaderboard.bronze.score > 0 ? `Earned: ${top3Leaderboard.bronze.date}` : 'Earned: Never';
+                    bronzeInfo.querySelector('.medal-date').textContent = dateText;
+                }
             }
         }
         
@@ -2153,6 +2620,7 @@
         // Initialize the game
         console.log('Game initialization complete');
         loadHighScores(); // Load high scores on page load
+        loadLeaderboard(); // Load leaderboard on page load
         // Don't start the game loop automatically - wait for start button
 
         function buyForceField() {
@@ -2292,6 +2760,26 @@
                 alert('Not enough diamonds!');
             }
         }
+
+        // Game state variables
+        let gameRunning = false;
+        let gameStarted = false;
+        let score = 0;
+        let lives = 25;
+        let highScore = 0;
+        let startTime = Date.now();
+        let survivalTime = 0;
+        
+        // Top 3 Medal System
+        let top3Leaderboard = {
+            gold: { name: "Champion", score: 0, date: "2024-01-01" },
+            silver: { name: "Runner", score: 0, date: "2024-01-01" },
+            bronze: { name: "Player", score: 0, date: "2024-01-01" }
+        };
+        let medalModalOpen = false;
+        let currentMedal = null;
+        let medalAnimationTimer = 0;
+        let medalAnimationActive = false;
     </script>
 </body>
 </html> 
