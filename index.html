@@ -564,7 +564,6 @@
         const powerupInfo = document.getElementById('powerupInfo');
         const statsDisplay = document.getElementById('stats');
         const highScoreDisplay = document.getElementById('highScoreDisplay');
-        const highestLevelDisplay = document.getElementById('highestLevelDisplay');
 
         // Game variables
         let gameRunning = false;
@@ -732,7 +731,10 @@
         }
 
         // Event listeners
-        startBtn.addEventListener('click', startGame);
+        startBtn.addEventListener('click', () => {
+            console.log('Start button clicked!');
+            startGame();
+        });
         menuBtn.addEventListener('click', backToMenu);
         document.getElementById('storeBtn').addEventListener('click', openStore);
         
@@ -1709,10 +1711,8 @@
         function loadHighScores() {
             try {
                 const savedHighScore = localStorage.getItem('kadenAdelynnHighScore');
-                const savedHighestLevel = localStorage.getItem('kadenAdelynnHighestLevel');
                 if (savedHighScore) highScore = parseInt(savedHighScore);
-                if (savedHighestLevel) highestLevel = parseInt(savedHighestLevel);
-                console.log('Loaded high scores:', { highScore, highestLevel });
+                console.log('Loaded high scores:', { highScore });
             } catch (error) {
                 console.log('Error loading high scores:', error);
             }
