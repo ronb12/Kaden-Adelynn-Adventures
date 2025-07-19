@@ -9,29 +9,41 @@
   "orientation": "portrait-primary",
   "scope": "./",
   "lang": "en",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "icons": [
     {
-      "src": "icon-192x192.png",
-      "sizes": "192x192",
+      "src": "icon-144x144.png",
+      "sizes": "144x144",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icon-512x512.png",
-      "sizes": "512x512",
+      "src": "icon-120x120.png",
+      "sizes": "120x120",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icon-192x192.png",
-      "sizes": "192x192",
+      "src": "icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-144x144.png",
+      "sizes": "144x144",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "icon-512x512.png",
-      "sizes": "512x512",
+      "src": "icon-120x120.png",
+      "sizes": "120x120",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-96x96.png",
+      "sizes": "96x96",
       "type": "image/png",
       "purpose": "maskable"
     }
