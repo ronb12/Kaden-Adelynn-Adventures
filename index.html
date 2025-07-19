@@ -972,6 +972,17 @@
         let scoreMultiplierTimer = 0;
         let storeOpen = false;
         
+        // Top 3 Medal System
+        let top3Leaderboard = {
+            gold: { name: "Champion", score: 0, date: "2024-01-01" },
+            silver: { name: "Runner", score: 0, date: "2024-01-01" },
+            bronze: { name: "Player", score: 0, date: "2024-01-01" }
+        };
+        let medalModalOpen = false;
+        let currentMedal = null;
+        let medalAnimationTimer = 0;
+        let medalAnimationActive = false;
+        
         // Ship system
         let currentShip = 'basic';
         let availableShips = ['basic'];
@@ -2760,17 +2771,6 @@
                 alert('Not enough diamonds!');
             }
         }
-
-        // Top 3 Medal System
-        let top3Leaderboard = {
-            gold: { name: "Champion", score: 0, date: "2024-01-01" },
-            silver: { name: "Runner", score: 0, date: "2024-01-01" },
-            bronze: { name: "Player", score: 0, date: "2024-01-01" }
-        };
-        let medalModalOpen = false;
-        let currentMedal = null;
-        let medalAnimationTimer = 0;
-        let medalAnimationActive = false;
     </script>
 </body>
 </html> 
