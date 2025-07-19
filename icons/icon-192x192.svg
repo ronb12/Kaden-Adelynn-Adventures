@@ -1,21 +1,21 @@
-<svg width="192" height="192" xmlns="http://www.w3.org/2000/svg">
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#0a0a23;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#1a1a40;stop-opacity:1" />
+      <stop offset="0%" style="stop-color:#0a0a2a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a1a4a;stop-opacity:1" />
     </linearGradient>
   </defs>
-  
-  <!-- Background -->
   <rect width="192" height="192" fill="url(#bg)"/>
   
-  <!-- Ship triangle (Vic Viper style) -->
-  <polygon points="96,48 64,144 128,144" fill="#00ffff" stroke="#ffffff" stroke-width="4"/>
+  <!-- Stars -->
+  <g fill="#ffffff">
+    <circle cx="31.93119444284291" cy="51.483195645822576" r="1"/><circle cx="190.59678412286783" cy="69.16227495956147" r="1"/><circle cx="141.1070736227736" cy="46.277592449288576" r="1"/><circle cx="131.6724970940037" cy="182.2946635337995" r="1"/><circle cx="173.02076859920214" cy="86.94043120743244" r="1"/><circle cx="117.12723625683306" cy="170.09042474949865" r="1"/><circle cx="88.81288223250883" cy="141.2809790063994" r="1"/><circle cx="72.79427874657063" cy="39.141246736930185" r="1"/><circle cx="132.59662395319015" cy="63.590968626458206" r="1"/><circle cx="84.57874102422008" cy="44.24183168486796" r="1"/><circle cx="4.064353405904413" cy="93.2756942316772" r="1"/><circle cx="137.22479579669607" cy="181.18394236907451" r="1"/><circle cx="119.14683953657615" cy="179.49166489576953" r="1"/><circle cx="40.24837340201441" cy="105.26876079792461" r="1"/><circle cx="115.0776243762203" cy="11.122057546004328" r="1"/><circle cx="90.7843078395214" cy="59.574124636642054" r="1"/><circle cx="182.95456173274715" cy="30.196714359443774" r="1"/><circle cx="145.32229850642386" cy="152.59515693429285" r="1"/><circle cx="172.6341001337688" cy="79.62717313625149" r="1"/><circle cx="147.8084858431655" cy="11.013213300109243" r="1"/><circle cx="12.521870171170647" cy="129.9975975114511" r="1"/><circle cx="7.917313761270691" cy="56.61872690804678" r="1"/><circle cx="179.12861673339694" cy="46.041334460633166" r="1"/><circle cx="90.28852091820987" cy="48.73464256382468" r="1"/>
+  </g>
   
-  <!-- Cockpit -->
-  <circle cx="96" cy="96" r="10" fill="#ffffff"/>
-  
-  <!-- Engine glow -->
-  <circle cx="64" cy="144" r="6" fill="#ffff00"/>
-  <circle cx="128" cy="144" r="6" fill="#ffff00"/>
-</svg> 
+  <!-- Ship -->
+  <g transform="translate(96, 96)">
+    <polygon points="0,-38.400000000000006 -28.799999999999997,28.799999999999997 -19.200000000000003,38.400000000000006 19.200000000000003,38.400000000000006 28.799999999999997,28.799999999999997" fill="#4a90e2"/>
+    <ellipse cx="0" cy="0" rx="3.84" ry="7.68" fill="#87ceeb"/>
+    <rect x="-3.84" y="38.400000000000006" width="7.68" height="3.84" fill="#ff6b35"/>
+  </g>
+</svg>

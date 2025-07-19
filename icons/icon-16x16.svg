@@ -1,0 +1,21 @@
+<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a2a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a1a4a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="16" height="16" fill="url(#bg)"/>
+  
+  <!-- Stars -->
+  <g fill="#ffffff">
+    <circle cx="15.331054703087613" cy="1.577745918243565" r="1"/><circle cx="6.624074023630065" cy="9.607166122311824" r="1"/>
+  </g>
+  
+  <!-- Ship -->
+  <g transform="translate(8, 8)">
+    <polygon points="0,-3.2 -2.4,2.4 -1.6,3.2 1.6,3.2 2.4,2.4" fill="#4a90e2"/>
+    <ellipse cx="0" cy="0" rx="0.32" ry="0.64" fill="#87ceeb"/>
+    <rect x="-0.32" y="3.2" width="0.64" height="0.32" fill="#ff6b35"/>
+  </g>
+</svg>
