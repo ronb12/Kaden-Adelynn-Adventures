@@ -1156,36 +1156,6 @@
             ctx.fillStyle = '#ff6600';
             ctx.fillRect(-10, 20, 20, 10);
         }
-            
-            // Shield effect
-            if (shieldActive) {
-                ctx.strokeStyle = '#00ff00';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.arc(0, 0, 30, 0, Math.PI * 2);
-                ctx.stroke();
-            }
-            
-            // Star power effect
-            if (starPowerActive) {
-                ctx.strokeStyle = '#ffff00';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.arc(0, 0, 35, 0, Math.PI * 2);
-                ctx.stroke();
-                
-                // Add star particles
-                ctx.fillStyle = '#ffff00';
-                for (let i = 0; i < 8; i++) {
-                    const angle = (i * Math.PI * 2) / 8;
-                    const x = Math.cos(angle) * 40;
-                    const y = Math.sin(angle) * 40;
-                    ctx.fillRect(x - 1, y - 1, 2, 2);
-                }
-            }
-            
-            ctx.restore();
-        }
 
         function drawEnemyShip(x, y, type = 'basic') {
             ctx.save();
