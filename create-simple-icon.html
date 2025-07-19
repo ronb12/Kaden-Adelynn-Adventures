@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Simple Rocket Icon</title>
+</head>
+<body>
+    <h1>Simple Rocket Icon Generator</h1>
+    <canvas id="canvas" width="192" height="192"></canvas>
+    <div id="output"></div>
+    
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const output = document.getElementById('output');
+        
+        // Create a simple rocket icon
+        function drawRocket() {
+            const size = 192;
+            
+            // Background
+            ctx.fillStyle = '#0a0a2a';
+            ctx.fillRect(0, 0, size, size);
+            
+            // Stars
+            ctx.fillStyle = '#ffffff';
+            for (let i = 0; i < 20; i++) {
+                const x = Math.random() * size;
+                const y = Math.random() * size;
+                ctx.fillRect(x, y, 1, 1);
+            }
+            
+            // Rocket body
+            ctx.fillStyle = '#ff6b35';
+            ctx.fillRect(size/2 - 20, size/2 - 40, 40, 80);
+            
+            // Rocket nose
+            ctx.fillStyle = '#ff4444';
+            ctx.beginPath();
+            ctx.moveTo(size/2, size/2 - 40);
+            ctx.lineTo(size/2 - 20, size/2 - 20);
+            ctx.lineTo(size/2 + 20, size/2 - 20);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Rocket window
+            ctx.fillStyle = '#87ceeb';
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, 8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Rocket fins
+            ctx.fillStyle = '#ff4444';
+            ctx.fillRect(size/2 - 30, size/2 + 20, 10, 20);
+            ctx.fillRect(size/2 + 20, size/2 + 20, 10, 20);
+            
+            // Engine flames
+            ctx.fillStyle = '#ffff00';
+            ctx.fillRect(size/2 - 15, size/2 + 40, 30, 20);
+            
+            return canvas.toDataURL('image/png');
+        }
+        
+        const dataUrl = drawRocket();
+        
+        // Display the icon
+        const img = document.createElement('img');
+        img.src = dataUrl;
+        img.style.border = '1px solid #ccc';
+        img.style.margin = '10px';
+        output.appendChild(img);
+        
+        // Show the data URL
+        const textarea = document.createElement('textarea');
+        textarea.value = dataUrl;
+        textarea.style.width = '100%';
+        textarea.style.height = '100px';
+        textarea.style.margin = '10px 0';
+        output.appendChild(textarea);
+        
+        // Create download link
+        const link = document.createElement('a');
+        link.download = 'rocket-icon.png';
+        link.href = dataUrl;
+        link.textContent = 'Download Rocket Icon';
+        link.style.display = 'block';
+        link.style.margin = '10px';
+        link.style.padding = '10px';
+        link.style.backgroundColor = '#4CAF50';
+        link.style.color = 'white';
+        link.style.textDecoration = 'none';
+        link.style.borderRadius = '5px';
+        output.appendChild(link);
+        
+        console.log('Rocket icon data URL:', dataUrl);
+    </script>
+</body>
+</html> 
