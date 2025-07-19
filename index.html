@@ -1266,7 +1266,6 @@
             
             // Shooting with cooldown
             const now = Date.now();
-            const ship = ships[currentShip];
             const currentShotCooldown = shotCooldown / ship.fireRate;
             if (keys['Space'] && now - lastShot > currentShotCooldown) {
                 if (doubleShot) {
