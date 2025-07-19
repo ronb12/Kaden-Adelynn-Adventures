@@ -468,6 +468,22 @@
                 </div>
                 <button class="store-item-button" onclick="buyDiamondShield()">Buy</button>
             </div>
+            <div class="store-item">
+                <div class="store-item-info">
+                    <div class="store-item-name">Force Field</div>
+                    <div class="store-item-description">Blocks all damage for 15 seconds</div>
+                    <div class="store-item-cost">Cost: 40 💵</div>
+                </div>
+                <button class="store-item-button" onclick="buyForceField()">Buy</button>
+            </div>
+            <div class="store-item">
+                <div class="store-item-info">
+                    <div class="store-item-name">Invincibility Cloak</div>
+                    <div class="store-item-description">Become invisible to enemies for 10 seconds</div>
+                    <div class="store-item-cost">Cost: 12 💎</div>
+                </div>
+                <button class="store-item-button" onclick="buyInvincibilityCloak()">Buy</button>
+            </div>
             
             <div class="store-category">💖 Extra Life</div>
             <div class="store-item">
@@ -477,6 +493,22 @@
                     <div class="store-item-cost">Cost: 50 💵</div>
                 </div>
                 <button class="store-item-button" onclick="buyExtraLife()">Buy</button>
+            </div>
+            <div class="store-item">
+                <div class="store-item-info">
+                    <div class="store-item-name">Life Pack</div>
+                    <div class="store-item-description">Gain 3 additional lives</div>
+                    <div class="store-item-cost">Cost: 120 💵</div>
+                </div>
+                <button class="store-item-button" onclick="buyLifePack()">Buy</button>
+            </div>
+            <div class="store-item">
+                <div class="store-item-info">
+                    <div class="store-item-name">Auto-Revive</div>
+                    <div class="store-item-description">Automatically revive once when destroyed</div>
+                    <div class="store-item-cost">Cost: 6 💎</div>
+                </div>
+                <button class="store-item-button" onclick="buyAutoRevive()">Buy</button>
             </div>
             
             <div class="store-category">⚡ Energy Boost</div>
@@ -504,6 +536,22 @@
                 </div>
                 <button class="store-item-button" onclick="buyDiamondStorm()">Buy</button>
             </div>
+            <div class="store-item">
+                <div class="store-item-info">
+                    <div class="store-item-name">Speed Demon</div>
+                    <div class="store-item-description">3x movement speed for 20 seconds</div>
+                    <div class="store-item-cost">Cost: 35 💵</div>
+                </div>
+                <button class="store-item-button" onclick="buySpeedDemon()">Buy</button>
+            </div>
+            <div class="store-item">
+                <div class="store-item-info">
+                    <div class="store-item-name">Time Warp</div>
+                    <div class="store-item-description">Slow down enemies for 15 seconds</div>
+                    <div class="store-item-cost">Cost: 10 💎</div>
+                </div>
+                <button class="store-item-button" onclick="buyTimeWarp()">Buy</button>
+            </div>
             
             <div class="store-category">🔫 Weapons</div>
             <div class="store-item">
@@ -521,6 +569,30 @@
                     <div class="store-item-cost">Cost: 3 💎</div>
                 </div>
                 <button class="store-item-button" onclick="buyBossWeakness()">Buy</button>
+            </div>
+            <div class="store-item">
+                <div class="store-item-info">
+                    <div class="store-item-name">Triple Shot</div>
+                    <div class="store-item-description">Fire 3 bullets at once for 25 seconds</div>
+                    <div class="store-item-cost">Cost: 45 💵</div>
+                </div>
+                <button class="store-item-button" onclick="buyTripleShot()">Buy</button>
+            </div>
+            <div class="store-item">
+                <div class="store-item-info">
+                    <div class="store-item-name">Laser Beam</div>
+                    <div class="store-item-description">Continuous laser beam for 12 seconds</div>
+                    <div class="store-item-cost">Cost: 8 💎</div>
+                </div>
+                <button class="store-item-button" onclick="buyLaserBeam()">Buy</button>
+            </div>
+            <div class="store-item">
+                <div class="store-item-info">
+                    <div class="store-item-name">Missile Launcher</div>
+                    <div class="store-item-description">Powerful missiles that track enemies</div>
+                    <div class="store-item-cost">Cost: 7 💎</div>
+                </div>
+                <button class="store-item-button" onclick="buyMissileLauncher()">Buy</button>
             </div>
             
             <div class="store-category">🚀 Ships</div>
@@ -2039,6 +2111,144 @@
         console.log('Game initialization complete');
         loadHighScores(); // Load high scores on page load
         // Don't start the game loop automatically - wait for start button
+
+        function buyForceField() {
+            if (money >= 40) {
+                shieldActive = true;
+                shieldTimer = 900; // 15 seconds
+                money -= 40;
+                updateChallengeProgress('collect_money', -1);
+                updateChallengeProgress('forceField', 1);
+                console.log('Force field purchased!');
+                updateStatsDisplay();
+            } else {
+                alert('Not enough money!');
+            }
+        }
+
+        function buyInvincibilityCloak() {
+            if (diamonds >= 12) {
+                // Add invincibility effect
+                player.invincible = true;
+                setTimeout(() => {
+                    player.invincible = false;
+                }, 10000); // 10 seconds
+                diamonds -= 12;
+                updateChallengeProgress('collect_diamonds', -1);
+                updateChallengeProgress('invincibilityCloak', 1);
+                console.log('Invincibility cloak purchased!');
+                updateStatsDisplay();
+            } else {
+                alert('Not enough diamonds!');
+            }
+        }
+
+        function buyLifePack() {
+            if (money >= 120) {
+                lives += 3;
+                money -= 120;
+                updateChallengeProgress('collect_money', -1);
+                updateChallengeProgress('lifePack', 1);
+                console.log('Life pack purchased!');
+                updateStatsDisplay();
+            } else {
+                alert('Not enough money!');
+            }
+        }
+
+        function buyAutoRevive() {
+            if (diamonds >= 6) {
+                player.autoRevive = true;
+                diamonds -= 6;
+                updateChallengeProgress('collect_diamonds', -1);
+                updateChallengeProgress('autoRevive', 1);
+                console.log('Auto-revive purchased!');
+                updateStatsDisplay();
+            } else {
+                alert('Not enough diamonds!');
+            }
+        }
+
+        function buySpeedDemon() {
+            if (money >= 35) {
+                playerPower = 'speed';
+                setTimeout(() => {
+                    playerPower = 'basic';
+                }, 20000); // 20 seconds
+                money -= 35;
+                updateChallengeProgress('collect_money', -1);
+                updateChallengeProgress('speedDemon', 1);
+                console.log('Speed demon purchased!');
+                updateStatsDisplay();
+            } else {
+                alert('Not enough money!');
+            }
+        }
+
+        function buyTimeWarp() {
+            if (diamonds >= 10) {
+                // Slow down enemies
+                enemySpeedMultiplier *= 0.5;
+                setTimeout(() => {
+                    enemySpeedMultiplier /= 0.5;
+                }, 15000); // 15 seconds
+                diamonds -= 10;
+                updateChallengeProgress('collect_diamonds', -1);
+                updateChallengeProgress('timeWarp', 1);
+                console.log('Time warp purchased!');
+                updateStatsDisplay();
+            } else {
+                alert('Not enough diamonds!');
+            }
+        }
+
+        function buyTripleShot() {
+            if (money >= 45) {
+                doubleShot = true;
+                setTimeout(() => {
+                    doubleShot = false;
+                }, 25000); // 25 seconds
+                money -= 45;
+                updateChallengeProgress('collect_money', -1);
+                updateChallengeProgress('tripleShot', 1);
+                console.log('Triple shot purchased!');
+                updateStatsDisplay();
+            } else {
+                alert('Not enough money!');
+            }
+        }
+
+        function buyLaserBeam() {
+            if (diamonds >= 8) {
+                player.laserBeam = true;
+                setTimeout(() => {
+                    player.laserBeam = false;
+                }, 12000); // 12 seconds
+                diamonds -= 8;
+                updateChallengeProgress('collect_diamonds', -1);
+                updateChallengeProgress('laserBeam', 1);
+                console.log('Laser beam purchased!');
+                updateStatsDisplay();
+            } else {
+                alert('Not enough diamonds!');
+            }
+        }
+
+        function buyMissileLauncher() {
+            if (diamonds >= 7) {
+                player.missileLauncher = true;
+                setTimeout(() => {
+                    player.missileLauncher = false;
+                }, 30000); // 30 seconds
+                diamonds -= 7;
+                updateChallengeProgress('collect_diamonds', -1);
+                updateChallengeProgress('missileLauncher', 1);
+                console.log('Missile launcher purchased!');
+                updateStatsDisplay();
+            } else {
+                alert('Not enough diamonds!');
+            }
+        }
     </script>
 </body>
 </html> 
