@@ -444,8 +444,29 @@
         <div id="store">
             <button class="store-close" onclick="closeStore()">×</button>
             <h2>💎 Space Store</h2>
+            <div style="text-align: center; margin-bottom: 15px; padding: 8px; background: rgba(255, 255, 0, 0.1); border: 1px solid #ffd700; border-radius: 5px; font-size: 12px; color: #ffd700;">
+                ⚠️ DISCLAIMER: This store uses FAKE GAME CURRENCY earned through gameplay. No real money required!
+            </div>
             
-            <div class="store-category">💰 Money Items</div>
+            <div class="store-category">🛡️ Shield & Protection</div>
+            <div class="store-item">
+                <div class="store-item-info">
+                    <div class="store-item-name">Shield Recharge</div>
+                    <div class="store-item-description">Restore shield if lost</div>
+                    <div class="store-item-cost">Cost: 25 💵</div>
+                </div>
+                <button class="store-item-button" onclick="buyShieldRecharge()">Buy</button>
+            </div>
+            <div class="store-item">
+                <div class="store-item-info">
+                    <div class="store-item-name">Diamond Shield</div>
+                    <div class="store-item-description">Blocks 3 hits (permanent)</div>
+                    <div class="store-item-cost">Cost: 8 💎</div>
+                </div>
+                <button class="store-item-button" onclick="buyDiamondShield()">Buy</button>
+            </div>
+            
+            <div class="store-category">💖 Extra Life</div>
             <div class="store-item">
                 <div class="store-item-info">
                     <div class="store-item-name">Extra Life</div>
@@ -453,6 +474,16 @@
                     <div class="store-item-cost">Cost: 50 💵</div>
                 </div>
                 <button class="store-item-button" onclick="buyExtraLife()">Buy</button>
+            </div>
+            
+            <div class="store-category">⚡ Energy Boost</div>
+            <div class="store-item">
+                <div class="store-item-info">
+                    <div class="store-item-name">Emergency Boost</div>
+                    <div class="store-item-description">Speed + fire rate boost</div>
+                    <div class="store-item-cost">Cost: 20 💵</div>
+                </div>
+                <button class="store-item-button" onclick="buyEmergencyBoost()">Buy</button>
             </div>
             <div class="store-item">
                 <div class="store-item-info">
@@ -464,22 +495,14 @@
             </div>
             <div class="store-item">
                 <div class="store-item-info">
-                    <div class="store-item-name">Shield Recharge</div>
-                    <div class="store-item-description">Restore shield if lost</div>
-                    <div class="store-item-cost">Cost: 25 💵</div>
+                    <div class="store-item-name">Diamond Storm</div>
+                    <div class="store-item-description">Rapid-fire all weapons for 10 seconds</div>
+                    <div class="store-item-cost">Cost: 15 💎</div>
                 </div>
-                <button class="store-item-button" onclick="buyShieldRecharge()">Buy</button>
-            </div>
-            <div class="store-item">
-                <div class="store-item-info">
-                    <div class="store-item-name">Emergency Boost</div>
-                    <div class="store-item-description">Speed + fire rate boost</div>
-                    <div class="store-item-cost">Cost: 20 💵</div>
-                </div>
-                <button class="store-item-button" onclick="buyEmergencyBoost()">Buy</button>
+                <button class="store-item-button" onclick="buyDiamondStorm()">Buy</button>
             </div>
             
-            <div class="store-category">💎 Diamond Items</div>
+            <div class="store-category">🔫 Weapons</div>
             <div class="store-item">
                 <div class="store-item-info">
                     <div class="store-item-name">Bullet Damage +1</div>
@@ -495,22 +518,6 @@
                     <div class="store-item-cost">Cost: 3 💎</div>
                 </div>
                 <button class="store-item-button" onclick="buyBossWeakness()">Buy</button>
-            </div>
-            <div class="store-item">
-                <div class="store-item-info">
-                    <div class="store-item-name">Diamond Shield</div>
-                    <div class="store-item-description">Blocks 3 hits (permanent)</div>
-                    <div class="store-item-cost">Cost: 8 💎</div>
-                </div>
-                <button class="store-item-button" onclick="buyDiamondShield()">Buy</button>
-            </div>
-            <div class="store-item">
-                <div class="store-item-info">
-                    <div class="store-item-name">Diamond Storm</div>
-                    <div class="store-item-description">Rapid-fire all weapons for 10 seconds</div>
-                    <div class="store-item-cost">Cost: 15 💎</div>
-                </div>
-                <button class="store-item-button" onclick="buyDiamondStorm()">Buy</button>
             </div>
             
             <div class="store-category">🚀 Ships</div>
