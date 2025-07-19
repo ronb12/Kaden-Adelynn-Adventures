@@ -1,8 +1,6 @@
-const CACHE_NAME = 'kaden-adelynn-adventures-v1.0.8';
+const CACHE_NAME = 'kaden-adelynn-adventures-v1.0.9';
 const urlsToCache = [
-  './',
-  './index.html',
-  './manifest.json'
+  './index.html'
 ];
 
 // Install event - cache resources
@@ -19,13 +17,18 @@ self.addEventListener('install', event => {
 
 // Fetch event - serve from cache, fallback to network
 self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Return cached version or fetch from network
-        return response || fetch(event.request);
-      })
-  );
+  // Only cache the main HTML file
+  if (event.request.url.includes('index.html')) {
+    event.respondWith(
+      caches.match(event.request)
+        .then(response => {
+          return response || fetch(event.request);
+        })
+    );
+  } else {
+    // For all other requests, just fetch from network
+    event.respondWith(fetch(event.request));
+  }
 });
 
 // Activate event - clean up old caches
