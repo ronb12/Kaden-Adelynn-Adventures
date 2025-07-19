@@ -14,7 +14,7 @@
     <meta name="msapplication-config" content="none">
     
     <!-- Cache busting - update this version number when you make changes -->
-    <meta name="version" content="1.0.13">
+    <meta name="version" content="1.0.14">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -22,9 +22,9 @@
     <title>Kaden & Adelynn Adventures</title>
     
     <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json?v=1.0.13">
+    <link rel="manifest" href="manifest.json?v=1.0.14">
     
-    <!-- Simple Rocket Emoji Favicon -->
+    <!-- Simple Rocket Emoji Favicon - Clean Start -->
     <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48dGV4dCB5PSIuOWVtIiBmb250LXNpemU9IjkwIiBmaWxsPSJ3aGl0ZSI+8J+RqDwvdGV4dD48L3N2Zz4=">
     
     <!-- Apple Touch Icon - Simple Rocket -->
@@ -33,6 +33,10 @@
     <!-- Additional icon formats for better compatibility -->
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48dGV4dCB5PSIuOWVtIiBmb250LXNpemU9IjkwIiBmaWxsPSJ3aGl0ZSI+8J+RqDwvdGV4dD48L3N2Zz4=">
     <link rel="icon" type="image/png" sizes="16x16" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48dGV4dCB5PSIuOWVtIiBmb250LXNpemU9IjkwIiBmaWxsPSJ3aGl0ZSI+8J+RqDwvdGV4dD48L3N2Zz4=">
+    
+    <!-- Test icon using simple HTML file -->
+    <link rel="icon" href="./rocket.html">
+    <link rel="apple-touch-icon" href="./rocket.html">
     
     <style>
         body {
@@ -2800,7 +2804,7 @@
                     }
                     
                     // Register new service worker
-                    navigator.serviceWorker.register('./sw.js?v=1.0.13')
+                    navigator.serviceWorker.register('./sw.js?v=1.0.14')
                         .then(registration => {
                             console.log('SW registered successfully: ', registration);
                             
