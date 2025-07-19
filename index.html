@@ -1313,8 +1313,8 @@
             gameRunning = false;
             gameStarted = false;
             
-            // Update high score displays
-            highScoreDisplay.textContent = highScore;
+            // Update high score display to show Gold Champion's score
+            highScoreDisplay.textContent = top3Leaderboard.gold.score;
             
             // Update leaderboard display
             updateLeaderboardDisplay();
@@ -2610,6 +2610,12 @@
         console.log('Game initialization complete');
         loadHighScores(); // Load high scores on page load
         loadLeaderboard(); // Load leaderboard on page load
+        
+        // Update high score display to show Gold Champion's score
+        setTimeout(() => {
+            highScoreDisplay.textContent = top3Leaderboard.gold.score;
+        }, 100);
+        
         // Don't start the game loop automatically - wait for start button
 
         function buyForceField() {
