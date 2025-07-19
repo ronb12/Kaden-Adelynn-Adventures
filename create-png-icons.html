@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create PNG Icons</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        canvas { border: 2px solid #333; margin: 10px; }
+        button { padding: 10px 20px; margin: 10px; font-size: 16px; }
+        .output { margin: 20px 0; padding: 10px; background: #f0f0f0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🚀 Create PNG Icons</h1>
+    
+    <div>
+        <button onclick="generateAllIcons()">Generate All Icons</button>
+        <button onclick="downloadAllIcons()">Download All Icons</button>
+    </div>
+    
+    <div class="output">
+        <h3>Instructions:</h3>
+        <ol>
+            <li>Click "Generate All Icons" to create the icons</li>
+            <li>Click "Download All Icons" to download them</li>
+            <li>Save the downloaded files to your project root directory</li>
+            <li>The files should be: favicon.ico, favicon-16x16.png, favicon-32x32.png, etc.</li>
+        </ol>
+    </div>
+    
+    <script>
+        function generateIcon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, size, size);
+            
+            // Create gradient background
+            const gradient = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
+            gradient.addColorStop(0, '#4a90e2');
+            gradient.addColorStop(1, '#0a0a2a');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Add glow effect
+            ctx.shadowColor = '#4a90e2';
+            ctx.shadowBlur = size/10;
+            ctx.fillStyle = '#ffffff';
+            
+            // Draw rocket emoji
+            const fontSize = size * 0.6;
+            ctx.font = `${fontSize}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🚀', size/2, size/2);
+            
+            // Remove shadow for clean edges
+            ctx.shadowBlur = 0;
+            
+            return canvas;
+        }
+        
+        function generateAllIcons() {
+            const sizes = [16, 32, 48, 64, 72, 76, 96, 114, 120, 144, 152, 180, 192, 512];
+            sizes.forEach(size => {
+                const canvas = generateIcon(size);
+                const dataURL = canvas.toDataURL('image/png');
+                console.log(`${size}x${size} icon generated`);
+            });
+            alert('All icons generated! Click "Download All Icons" to download them.');
+        }
+        
+        function downloadAllIcons() {
+            const sizes = [16, 32, 48, 64, 72, 76, 96, 114, 120, 144, 152, 180, 192, 512];
+            sizes.forEach(size => {
+                const canvas = generateIcon(size);
+                const dataURL = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                
+                if (size === 16) {
+                    link.download = 'favicon-16x16.png';
+                } else if (size === 32) {
+                    link.download = 'favicon-32x32.png';
+                } else if (size === 48) {
+                    link.download = 'favicon-48x48.png';
+                } else if (size === 192) {
+                    link.download = 'icon-192x192.png';
+                } else if (size === 512) {
+                    link.download = 'icon-512x512.png';
+                } else {
+                    link.download = `icon-${size}x${size}.png`;
+                }
+                
+                link.href = dataURL;
+                link.click();
+            });
+            alert('All icons downloaded! Save them to your project root directory.');
+        }
+        
+        // Auto-generate on load
+        window.onload = generateAllIcons;
+    </script>
+</body>
+</html> 

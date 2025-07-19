@@ -15,7 +15,7 @@
     <meta name="msapplication-config" content="none">
     
     <!-- Cache busting - update this version number when you make changes -->
-    <meta name="version" content="1.0.17">
+    <meta name="version" content="1.0.18">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -23,7 +23,13 @@
     <title>Kaden & Adelynn Adventures</title>
     
     <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json?v=1.0.17">
+    <link rel="manifest" href="manifest.json?v=1.0.18">
+    
+    <!-- Simple Icon Approach - Test -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%230a0a2a'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='white'>🚀</text></svg>">
+    
+    <!-- Apple Touch Icon - Simple -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%230a0a2a'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='white'>🚀</text></svg>">
     
     <!-- Standard Favicon Files -->
     <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -33,9 +39,6 @@
     
     <!-- Simple Rocket Emoji Favicon - Clean Start -->
     <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48dGV4dCB5PSIuOWVtIiBmb250LXNpemU9IjkwIiBmaWxsPSJ3aGl0ZSI+8J+RqDwvdGV4dD48L3N2Zz4=">
-    
-    <!-- Apple Touch Icon - Simple Rocket -->
-    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48dGV4dCB5PSIuOWVtIiBmb250LXNpemU9IjkwIiBmaWxsPSJ3aGl0ZSI+8J+RqDwvdGV4dD48L3N2Zz4=">
     
     <!-- Apple Touch Icons for iOS -->
     <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48dGV4dCB5PSIuOWVtIiBmb250LXNpemU9IjkwIiBmaWxsPSJ3aGl0ZSI+8J+RqDwvdGV4dD48L3N2Zz4=">
@@ -2814,7 +2817,7 @@
                 console.log('Starting PWA setup...');
                 
                 // Register service worker without aggressive update checking
-                navigator.serviceWorker.register('./sw.js?v=1.0.17')
+                navigator.serviceWorker.register('./sw.js?v=1.0.18')
                     .then(registration => {
                         console.log('SW registered successfully: ', registration);
                     })
