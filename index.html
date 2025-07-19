@@ -370,6 +370,8 @@
             <h1 class="menu-title">Kaden & Adelynn Adventures</h1>
             <p class="menu-subtitle">Space Shooter Adventure</p>
             <button id="startBtn">Start Game</button>
+            <button id="soundTestBtn" onclick="testSound()" style="background: linear-gradient(45deg, #4a90e2, #357abd); color: white; border: none; padding: 10px 20px; font-size: 16px; cursor: pointer; margin: 10px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); transition: all 0.3s ease;">🔊 Test Sound</button>
+            <p><strong>Highest Score:</strong> <span id="highScoreDisplay">0</span></p>
             
             <div class="menu-instructions">
                 <h3>How to Play:</h3>
@@ -778,12 +780,45 @@
                 // Create a simple missile sound using Web Audio API
                 if (!audioContext) {
                     audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    console.log('Audio context created');
                 }
                 
                 // Resume audio context if suspended
                 if (audioContext.state === 'suspended') {
-                    audioContext.resume();
+                    audioContext.resume().then(() => {
+                        console.log('Audio context resumed');
+                        createMissileSound();
+                    });
+                } else {
+                    createMissileSound();
                 }
+            } catch (error) {
+                console.log('Sound error:', error);
+            }
+        }
+        
+        function createMissileSound() {
+            try {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1);
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.1);
+                
+                console.log('Missile sound played');
+            } catch (error) {
+                console.log('Create sound error:', error);
+            }
+        }
                 
                 const oscillator = audioContext.createOscillator();
                 const gainNode = audioContext.createGain();
@@ -929,7 +964,22 @@
         // Test sound function
         function testSound() {
             console.log('Testing sound...');
-            playMissileSound();
+            
+            // Initialize audio context if not already done
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                console.log('Audio context initialized for test');
+            }
+            
+            // Resume audio context if suspended
+            if (audioContext.state === 'suspended') {
+                audioContext.resume().then(() => {
+                    console.log('Audio context resumed');
+                    playMissileSound();
+                });
+            } else {
+                playMissileSound();
+            }
         }
 
         function handlePowerup(e) {
