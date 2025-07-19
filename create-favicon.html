@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Favicon.ico</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        canvas { border: 2px solid #333; margin: 10px; }
+        button { padding: 10px 20px; margin: 10px; font-size: 16px; }
+        .output { margin: 20px 0; padding: 10px; background: #f0f0f0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🚀 Create Favicon.ico</h1>
+    
+    <canvas id="canvas16" width="16" height="16"></canvas>
+    <canvas id="canvas32" width="32" height="32"></canvas>
+    <canvas id="canvas48" width="48" height="48"></canvas>
+    
+    <div>
+        <button onclick="generateIcon(16)">Generate 16x16</button>
+        <button onclick="generateIcon(32)">Generate 32x32</button>
+        <button onclick="generateIcon(48)">Generate 48x48</button>
+        <button onclick="downloadAll()">Download All</button>
+    </div>
+    
+    <div class="output">
+        <h3>16x16 Icon Data URL:</h3>
+        <textarea id="output16" rows="2" cols="80" readonly></textarea>
+        <button onclick="copyToClipboard('output16')">Copy 16x16</button>
+    </div>
+    
+    <div class="output">
+        <h3>32x32 Icon Data URL:</h3>
+        <textarea id="output32" rows="2" cols="80" readonly></textarea>
+        <button onclick="copyToClipboard('output32')">Copy 32x32</button>
+    </div>
+    
+    <div class="output">
+        <h3>48x48 Icon Data URL:</h3>
+        <textarea id="output48" rows="2" cols="80" readonly></textarea>
+        <button onclick="copyToClipboard('output48')">Copy 48x48</button>
+    </div>
+    
+    <script>
+        function generateIcon(size) {
+            const canvas = document.getElementById(`canvas${size}`);
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, size, size);
+            
+            // Set background
+            ctx.fillStyle = '#0a0a2a';
+            ctx.fillRect(0, 0, size, size);
+            
+            // Draw rocket emoji
+            const fontSize = size * 0.8;
+            ctx.font = `${fontSize}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = 'white';
+            ctx.fillText('🚀', size/2, size/2);
+            
+            // Convert to data URL
+            const dataURL = canvas.toDataURL('image/png');
+            document.getElementById(`output${size}`).value = dataURL;
+            
+            return dataURL;
+        }
+        
+        function downloadAll() {
+            [16, 32, 48].forEach(size => {
+                const dataURL = generateIcon(size);
+                const link = document.createElement('a');
+                link.download = `favicon-${size}x${size}.png`;
+                link.href = dataURL;
+                link.click();
+            });
+        }
+        
+        function copyToClipboard(elementId) {
+            const textarea = document.getElementById(elementId);
+            textarea.select();
+            document.execCommand('copy');
+            alert('Copied to clipboard!');
+        }
+        
+        // Auto-generate on load
+        window.onload = () => {
+            generateIcon(16);
+            generateIcon(32);
+            generateIcon(48);
+        };
+    </script>
+</body>
+</html> 

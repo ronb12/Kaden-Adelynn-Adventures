@@ -14,7 +14,7 @@
     <meta name="msapplication-config" content="none">
     
     <!-- Cache busting - update this version number when you make changes -->
-    <meta name="version" content="1.0.14">
+    <meta name="version" content="1.0.15">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -22,7 +22,13 @@
     <title>Kaden & Adelynn Adventures</title>
     
     <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json?v=1.0.14">
+    <link rel="manifest" href="manifest.json?v=1.0.15">
+    
+    <!-- Standard Favicon Files -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="48x48" href="favicon-48x48.png">
     
     <!-- Simple Rocket Emoji Favicon - Clean Start -->
     <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48dGV4dCB5PSIuOWVtIiBmb250LXNpemU9IjkwIiBmaWxsPSJ3aGl0ZSI+8J+RqDwvdGV4dD48L3N2Zz4=">
@@ -2804,7 +2810,7 @@
                     }
                     
                     // Register new service worker
-                    navigator.serviceWorker.register('./sw.js?v=1.0.14')
+                    navigator.serviceWorker.register('./sw.js?v=1.0.15')
                         .then(registration => {
                             console.log('SW registered successfully: ', registration);
                             

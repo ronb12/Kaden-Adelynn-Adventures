@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Favicon Generator</title>
+</head>
+<body>
+    <h1>🚀 Generate Favicon Files</h1>
+    <canvas id="canvas" width="32" height="32" style="border: 1px solid black;"></canvas>
+    <br>
+    <button onclick="generateFavicon()">Generate Favicon</button>
+    <br>
+    <img id="output" style="border: 1px solid red;">
+    
+    <script>
+        function generateFavicon() {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, 32, 32);
+            
+            // Set background
+            ctx.fillStyle = '#0a0a2a';
+            ctx.fillRect(0, 0, 32, 32);
+            
+            // Draw rocket emoji
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = 'white';
+            ctx.fillText('🚀', 16, 16);
+            
+            // Convert to data URL
+            const dataURL = canvas.toDataURL('image/png');
+            document.getElementById('output').src = dataURL;
+            
+            console.log('Favicon data URL:', dataURL);
+            
+            // Download as favicon.ico
+            const link = document.createElement('a');
+            link.download = 'favicon.ico';
+            link.href = dataURL;
+            link.click();
+        }
+        
+        // Auto-generate on load
+        window.onload = generateFavicon;
+    </script>
+</body>
+</html> 
