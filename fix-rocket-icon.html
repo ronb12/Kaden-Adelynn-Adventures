@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fix Rocket Icon</title>
+</head>
+<body>
+    <h1>Generate Correct Rocket Emoji Icon</h1>
+    <canvas id="canvas" width="192" height="192"></canvas>
+    <div id="output"></div>
+    
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const output = document.getElementById('output');
+        
+        // Create rocket emoji icon
+        function drawRocketIcon() {
+            const size = 192;
+            
+            // Background
+            ctx.fillStyle = '#0a1a4a';
+            ctx.fillRect(0, 0, size, size);
+            
+            // Draw rocket emoji
+            ctx.font = '144px Arial';
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🚀', size/2, size/2);
+            
+            return canvas.toDataURL('image/svg+xml');
+        }
+        
+        // Create SVG with rocket emoji
+        function createSVGWithRocket() {
+            const svg = `<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="192" height="192" fill="#0a1a4a"/>
+<text x="96" y="96" font-family="Arial, sans-serif" font-size="144" font-weight="bold" fill="white" text-anchor="middle">🚀</text>
+</svg>`;
+            
+            return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+        }
+        
+        const dataUrl = createSVGWithRocket();
+        
+        // Display the icon
+        const img = document.createElement('img');
+        img.src = dataUrl;
+        img.style.border = '1px solid #ccc';
+        img.style.margin = '10px';
+        output.appendChild(img);
+        
+        // Show the data URL
+        const textarea = document.createElement('textarea');
+        textarea.value = dataUrl;
+        textarea.style.width = '100%';
+        textarea.style.height = '100px';
+        textarea.style.margin = '10px 0';
+        output.appendChild(textarea);
+        
+        // Show just the base64 part
+        const base64Part = dataUrl.split(',')[1];
+        const base64Textarea = document.createElement('textarea');
+        base64Textarea.value = base64Part;
+        base64Textarea.style.width = '100%';
+        base64Textarea.style.height = '50px';
+        base64Textarea.style.margin = '10px 0';
+        base64Textarea.placeholder = 'Base64 part only';
+        output.appendChild(base64Textarea);
+        
+        console.log('Rocket emoji data URL:', dataUrl);
+        console.log('Base64 part:', base64Part);
+    </script>
+</body>
+</html> 
