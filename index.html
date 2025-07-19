@@ -1621,7 +1621,7 @@
             scoreDisplay.textContent = `Score: ${score} | Lives: ${lives} | Kills: ${totalEnemiesDestroyed}`;
             
             // Update stats display
-            statsDisplay.textContent = `Power: ${powerText} | Consecutive: ${consecutiveHits} | Survival: ${survivalTime}s | 💵: ${money} | 💎: ${diamonds}`;
+            updateStatsDisplay();
             
             // Draw current challenge
             if (challengeActive && currentChallenge && challengeTimer > 0) {
@@ -2038,6 +2038,8 @@
         }
 
         function updateStatsDisplay() {
+            if (!statsDisplay || !gameRunning) return;
+            
             let powerText = 'Basic';
             if (playerPower === 'speed') powerText = 'Speed Boost';
             if (doubleShot) powerText += ' + Double Shot';
