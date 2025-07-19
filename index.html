@@ -14,7 +14,7 @@
     <meta name="msapplication-config" content="none">
     
     <!-- Cache busting - update this version number when you make changes -->
-    <meta name="version" content="1.0.15">
+    <meta name="version" content="1.0.16">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -22,7 +22,7 @@
     <title>Kaden & Adelynn Adventures</title>
     
     <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json?v=1.0.15">
+    <link rel="manifest" href="manifest.json?v=1.0.16">
     
     <!-- Standard Favicon Files -->
     <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -2801,43 +2801,14 @@
             window.addEventListener('load', () => {
                 console.log('Starting PWA setup...');
                 
-                // Force unregister any existing service worker first
-                navigator.serviceWorker.getRegistrations().then(registrations => {
-                    console.log('Found', registrations.length, 'existing service worker registrations');
-                    for(let registration of registrations) {
-                        console.log('Unregistering service worker:', registration);
-                        registration.unregister();
-                    }
-                    
-                    // Register new service worker
-                    navigator.serviceWorker.register('./sw.js?v=1.0.15')
-                        .then(registration => {
-                            console.log('SW registered successfully: ', registration);
-                            
-                            // Force immediate update check
-                            registration.update();
-                            console.log('Forced service worker update check');
-                            
-                            // Check for updates
-                            registration.addEventListener('updatefound', () => {
-                                console.log('Service worker update found!');
-                                const newWorker = registration.installing;
-                                newWorker.addEventListener('statechange', () => {
-                                    console.log('Service worker state changed to:', newWorker.state);
-                                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                        // New version available
-                                        console.log('New version available - prompting for reload');
-                                        if (confirm('A new version of Kaden & Adelynn Adventures is available! Reload to update?')) {
-                                            window.location.reload();
-                                        }
-                                    }
-                                });
-                            });
-                        })
-                        .catch(registrationError => {
-                            console.log('SW registration failed: ', registrationError);
-                        });
-                });
+                // Register service worker without aggressive update checking
+                navigator.serviceWorker.register('./sw.js?v=1.0.16')
+                    .then(registration => {
+                        console.log('SW registered successfully: ', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
             });
         } else {
             console.log('Service Worker not supported');
