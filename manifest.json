@@ -9,7 +9,7 @@
   "orientation": "portrait-primary",
   "scope": "./",
   "lang": "en",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "icons": [
     {
       "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>",

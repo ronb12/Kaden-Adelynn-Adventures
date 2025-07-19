@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kaden-adelynn-adventures-v1.0.9';
+const CACHE_NAME = 'kaden-adelynn-adventures-v1.0.10';
 const urlsToCache = [
   './index.html'
 ];
