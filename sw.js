@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kaden-adelynn-adventures-v1.0.10';
+const CACHE_NAME = 'kaden-adelynn-adventures-v1.0.11';
 const urlsToCache = [
   './index.html'
 ];
@@ -38,12 +38,13 @@ self.addEventListener('activate', event => {
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
+          console.log('Deleting cache:', cacheName);
+          return caches.delete(cacheName);
         })
       );
+    }).then(() => {
+      // Force clients to reload to get new icon
+      return self.clients.claim();
     })
   );
 });

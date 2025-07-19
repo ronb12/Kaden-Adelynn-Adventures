@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Rocket PWA Icon</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        canvas { border: 2px solid #333; margin: 10px; }
+        button { padding: 10px 20px; margin: 10px; font-size: 16px; }
+        .output { margin: 20px 0; padding: 10px; background: #f0f0f0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🚀 Generate Rocket PWA Icon</h1>
+    
+    <div>
+        <button onclick="generateIcon(192)">Generate 192x192 Icon</button>
+        <button onclick="generateIcon(512)">Generate 512x512 Icon</button>
+        <button onclick="generateAllIcons()">Generate All Icons</button>
+    </div>
+    
+    <canvas id="canvas192" width="192" height="192"></canvas>
+    <canvas id="canvas512" width="512" height="512"></canvas>
+    
+    <div class="output">
+        <h3>192x192 Icon Data URL:</h3>
+        <textarea id="output192" rows="3" cols="80" readonly></textarea>
+        <button onclick="copyToClipboard('output192')">Copy 192x192</button>
+    </div>
+    
+    <div class="output">
+        <h3>512x512 Icon Data URL:</h3>
+        <textarea id="output512" rows="3" cols="80" readonly></textarea>
+        <button onclick="copyToClipboard('output512')">Copy 512x512</button>
+    </div>
+    
+    <div class="output">
+        <h3>Complete Manifest Icons Array:</h3>
+        <textarea id="manifestOutput" rows="10" cols="80" readonly></textarea>
+        <button onclick="copyToClipboard('manifestOutput')">Copy Manifest</button>
+    </div>
+    
+    <script>
+        function generateIcon(size) {
+            const canvas = document.getElementById(`canvas${size}`);
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, size, size);
+            
+            // Create gradient background
+            const gradient = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
+            gradient.addColorStop(0, '#4a90e2');
+            gradient.addColorStop(1, '#0a0a2a');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Add glow effect
+            ctx.shadowColor = '#4a90e2';
+            ctx.shadowBlur = size/10;
+            ctx.fillStyle = '#ffffff';
+            
+            // Draw rocket emoji
+            const fontSize = size * 0.6;
+            ctx.font = `${fontSize}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🚀', size/2, size/2);
+            
+            // Remove shadow for clean edges
+            ctx.shadowBlur = 0;
+            
+            // Convert to data URL
+            const dataURL = canvas.toDataURL('image/png');
+            document.getElementById(`output${size}`).value = dataURL;
+            
+            return dataURL;
+        }
+        
+        function generateAllIcons() {
+            const icon192 = generateIcon(192);
+            const icon512 = generateIcon(512);
+            
+            const manifestIcons = [
+                {
+                    "src": icon192,
+                    "sizes": "192x192",
+                    "type": "image/png",
+                    "purpose": "any maskable"
+                },
+                {
+                    "src": icon512,
+                    "sizes": "512x512", 
+                    "type": "image/png",
+                    "purpose": "any maskable"
+                }
+            ];
+            
+            document.getElementById('manifestOutput').value = JSON.stringify(manifestIcons, null, 2);
+        }
+        
+        function copyToClipboard(elementId) {
+            const textarea = document.getElementById(elementId);
+            textarea.select();
+            document.execCommand('copy');
+            alert('Copied to clipboard!');
+        }
+        
+        // Auto-generate on load
+        window.onload = generateAllIcons;
+    </script>
+</body>
+</html> 

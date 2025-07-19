@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-title" content="Kaden & Adelynn Adventures">
     
     <!-- Cache busting - update this version number when you make changes -->
-    <meta name="version" content="1.0.10">
+    <meta name="version" content="1.0.11">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -17,7 +17,7 @@
     <title>Kaden & Adelynn Adventures</title>
     
     <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json?v=1.0.10">
+    <link rel="manifest" href="manifest.json?v=1.0.11">
     
     <!-- Simple Rocket Emoji Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
@@ -2784,26 +2784,37 @@
         // PWA Service Worker Registration
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(registration => {
-                        console.log('SW registered: ', registration);
-                        
-                        // Check for updates
-                        registration.addEventListener('updatefound', () => {
-                            const newWorker = registration.installing;
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // New version available
-                                    if (confirm('A new version of Kaden & Adelynn Adventures is available! Reload to update?')) {
-                                        window.location.reload();
+                // Force unregister any existing service worker first
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    for(let registration of registrations) {
+                        registration.unregister();
+                    }
+                    
+                    // Register new service worker
+                    navigator.serviceWorker.register('./sw.js?v=1.0.11')
+                        .then(registration => {
+                            console.log('SW registered: ', registration);
+                            
+                            // Force immediate update check
+                            registration.update();
+                            
+                            // Check for updates
+                            registration.addEventListener('updatefound', () => {
+                                const newWorker = registration.installing;
+                                newWorker.addEventListener('statechange', () => {
+                                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                        // New version available
+                                        if (confirm('A new version of Kaden & Adelynn Adventures is available! Reload to update?')) {
+                                            window.location.reload();
+                                        }
                                     }
-                                }
+                                });
                             });
+                        })
+                        .catch(registrationError => {
+                            console.log('SW registration failed: ', registrationError);
                         });
-                    })
-                    .catch(registrationError => {
-                        console.log('SW registration failed: ', registrationError);
-                    });
+                });
             });
         }
     </script>
