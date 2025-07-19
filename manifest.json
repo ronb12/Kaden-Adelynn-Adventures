@@ -2,14 +2,14 @@
   "name": "Kaden & Adelynn Adventures",
   "short_name": "K&A Adventures",
   "description": "An exciting space shooter game featuring Kaden and Adelynn's adventures",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#0a0a2a",
   "theme_color": "#0a0a2a",
   "orientation": "portrait-primary",
-  "scope": "/",
+  "scope": "./",
   "lang": "en",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "icons": [
     {
       "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>",

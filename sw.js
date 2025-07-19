@@ -1,8 +1,8 @@
-const CACHE_NAME = 'kaden-adelynn-adventures-v1.0.7';
+const CACHE_NAME = 'kaden-adelynn-adventures-v1.0.8';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json'
+  './',
+  './index.html',
+  './manifest.json'
 ];
 
 // Install event - cache resources
