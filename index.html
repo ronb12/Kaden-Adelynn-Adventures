@@ -2062,12 +2062,15 @@
                 case 'speed': emoji = '⚡'; break;
                 case 'double': emoji = '🚀'; break;
                 case 'shield': emoji = '🛡️'; break;
-                case 'extraLife': emoji = '💎'; break;
+                case 'extraLife': emoji = '❤️'; break;
                 case 'starPower': emoji = '⭐'; break;
                 case 'fireRate': emoji = '🔥'; break;
-                case 'money': emoji = '💵'; break;
+                case 'money': emoji = '💰'; break;
                 case 'diamond': emoji = '💎'; break;
-                // Weapon powerups with enhanced visibility
+                case 'bomb': emoji = '💣'; break;
+                case 'freeze': emoji = '🧊'; break;
+                case 'magnet': emoji = '🧲'; break;
+                // Weapon powerups with distinctive emojis
                 case 'weaponPlasma': emoji = '🔵'; break;
                 case 'weaponSpread': emoji = '🔶'; break;
                 case 'weaponLaser': emoji = '🔴'; break;
@@ -2078,6 +2081,7 @@
                 case 'weaponEnergy': emoji = '💚'; break;
                 case 'weaponQuantum': emoji = '💜'; break;
                 case 'weaponSonic': emoji = '🎵'; break;
+                default: emoji = '❓'; break; // Fallback emoji
             }
             
             // Enhanced rendering for weapon powerups
@@ -2311,7 +2315,7 @@
             const regularSpawnRate = 0.008;
             
             if (Math.random() < regularSpawnRate) {
-                const regularTypes = ['speed', 'double', 'shield', 'extraLife', 'starPower', 'fireRate', 'money', 'diamond'];
+                const regularTypes = ['speed', 'double', 'shield', 'extraLife', 'starPower', 'fireRate', 'money', 'diamond', 'bomb', 'freeze', 'magnet'];
                 const type = regularTypes[Math.floor(Math.random() * regularTypes.length)];
                 powerups.push({
                     x: Math.random() * (canvas.width - 20),
@@ -2345,8 +2349,25 @@
 
         function updatePowerups() {
             for (let i = powerups.length - 1; i >= 0; i--) {
-                powerups[i].y += powerups[i].speed;
-                if (powerups[i].y > canvas.height) {
+                const powerup = powerups[i];
+                
+                // Magnet effect - attract powerups to player
+                if (player.magnetActive) {
+                    const dx = player.x + player.width / 2 - powerup.x;
+                    const dy = player.y + player.height / 2 - powerup.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance > 0) {
+                        const magnetSpeed = 3;
+                        powerup.x += (dx / distance) * magnetSpeed;
+                        powerup.y += (dy / distance) * magnetSpeed;
+                    }
+                } else {
+                    // Normal movement
+                    powerup.y += powerup.speed;
+                }
+                
+                if (powerup.y > canvas.height) {
                     powerups.splice(i, 1);
                 }
             }
@@ -2596,6 +2617,42 @@
                     totalDiamondsCollected++;
                     updateChallengeProgress('collect_diamonds', 1);
                     console.log(`💎 Diamond collected! Total: ${totalDiamondsCollected}, Current diamonds: ${diamonds}`);
+                    break;
+                case 'bomb':
+                    // Destroy all enemies on screen
+                    const enemiesDestroyed = enemies.length;
+                    enemies.splice(0, enemies.length);
+                    score += enemiesDestroyed * 10;
+                    totalEnemiesDestroyed += enemiesDestroyed;
+                    showWeaponSwitchMessage('💣 Bomb! All enemies destroyed!');
+                    console.log(`💣 Bomb powerup collected! Destroyed ${enemiesDestroyed} enemies`);
+                    break;
+                case 'freeze':
+                    // Freeze all enemies for 5 seconds
+                    enemies.forEach(enemy => {
+                        enemy.frozen = true;
+                        enemy.originalSpeed = enemy.speed;
+                        enemy.speed = 0;
+                    });
+                    setTimeout(() => {
+                        enemies.forEach(enemy => {
+                            if (enemy.frozen) {
+                                enemy.speed = enemy.originalSpeed;
+                                enemy.frozen = false;
+                            }
+                        });
+                    }, 5000);
+                    showWeaponSwitchMessage('🧊 Freeze! Enemies stopped for 5s');
+                    console.log(`🧊 Freeze powerup collected! Enemies frozen for 5 seconds`);
+                    break;
+                case 'magnet':
+                    // Attract all powerups to player for 10 seconds
+                    player.magnetActive = true;
+                    setTimeout(() => {
+                        player.magnetActive = false;
+                    }, 10000);
+                    showWeaponSwitchMessage('🧲 Magnet! Powerups attracted for 10s');
+                    console.log(`🧲 Magnet powerup collected! Powerups attracted for 10 seconds`);
                     break;
                 // Weapon powerups
                 case 'weaponPlasma':
