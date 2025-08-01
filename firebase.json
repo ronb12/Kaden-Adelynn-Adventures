@@ -13,11 +13,20 @@
     }
   ],
   "hosting": {
-    "public": "public",
+    "public": ".",
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "*.md",
+      "setup-firebase.js",
+      "firebase-config.example.js",
+      "firebase-config.js",
+      "test-*.html",
+      "debug-*.html",
+      "simple-*.html",
+      "console-*.html",
+      "element-*.html"
     ]
   },
   "firestore": {
