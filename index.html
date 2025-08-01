@@ -73,53 +73,16 @@
 
             console.log('Firebase: Successfully initialized');
 
-            // Anonymous authentication with enhanced error handling
-            signInAnonymously(auth)
-                .then(() => {
-                    console.log('Firebase: Anonymous authentication successful');
-                    window.firebaseState.error = null;
-                })
-                .catch((error) => {
-                    console.warn('Firebase: Authentication error (will use localStorage fallback):', error.message);
-                    window.firebaseState.error = error.message;
-                    
-                    // Set up a mock user for localStorage-only mode
-                    window.currentUser = {
-                        uid: 'local-user-' + Date.now(),
-                        isAnonymous: true,
-                        displayName: 'Anonymous'
-                    };
-                    window.firebaseState.currentUser = window.currentUser;
-                    
-                    console.log('Firebase: Using localStorage-only mode with mock user');
-                });
-
-            // Auth state observer with error handling
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    console.log('Firebase: User is signed in:', user.uid);
-                    window.currentUser = user;
-                    window.firebaseState.currentUser = user;
-                    window.firebaseState.error = null;
-                } else {
-                    console.log('Firebase: User is signed out');
-                    window.currentUser = null;
-                    window.firebaseState.currentUser = null;
-                }
-            }, (error) => {
-                console.warn('Firebase: Auth state observer error:', error.message);
-                window.firebaseState.error = error.message;
-                
-                // Set up mock user for localStorage-only mode
-                if (!window.currentUser) {
-                    window.currentUser = {
-                        uid: 'local-user-' + Date.now(),
-                        isAnonymous: true,
-                        displayName: 'Anonymous'
-                    };
-                    window.firebaseState.currentUser = window.currentUser;
-                }
-            });
+            // Skip Firebase authentication entirely to avoid 400 errors
+            // Set up mock user for localStorage-only mode immediately
+            window.currentUser = {
+                uid: 'local-user-' + Date.now(),
+                isAnonymous: true,
+                displayName: 'Anonymous'
+            };
+            window.firebaseState.currentUser = window.currentUser;
+            
+            console.log('Firebase: Using localStorage-only mode (skipping auth to avoid 400 errors)');
 
         } catch (error) {
             console.warn('Firebase: Initialization error (will use localStorage fallback):', error.message);
