@@ -1,0 +1,26 @@
+{
+  "name": "kaden-adelynn-adventures",
+  "version": "1.0.0",
+  "description": "Kaden & Adelynn Adventures - Space Shooter Game",
+  "main": "index.html",
+  "scripts": {
+    "setup-firebase": "node setup-firebase.js",
+    "deploy-firebase": "firebase deploy --only firestore:indexes,firestore:rules",
+    "deploy-all": "firebase deploy"
+  },
+  "dependencies": {
+    "firebase": "^10.7.1"
+  },
+  "devDependencies": {
+    "firebase-tools": "^13.0.0"
+  },
+  "keywords": [
+    "game",
+    "space-shooter",
+    "firebase",
+    "html5",
+    "javascript"
+  ],
+  "author": "Ronell Bradley",
+  "license": "MIT"
+} 

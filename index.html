@@ -25,6 +25,150 @@
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json?v=1.0.19">
     
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC1b-JWvBRGti5LFKk7LqSS8p1QFbP_D88",
+            authDomain: "kaden---adelynn-adventures.firebaseapp.com",
+            projectId: "kaden---adelynn-adventures",
+            storageBucket: "kaden---adelynn-adventures.firebasestorage.app",
+            messagingSenderId: "265116401918",
+            appId: "1:265116401918:web:e1511695b92aeb05e0e5af",
+            measurementId: "G-W4Q02R318L"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Make Firebase available globally
+        window.firebaseApp = app;
+        window.firebaseAuth = auth;
+        window.firebaseDb = db;
+        window.firebaseAnalytics = analytics;
+
+        // Anonymous authentication
+        signInAnonymously(auth)
+            .then(() => {
+                console.log('Firebase: Anonymous authentication successful');
+            })
+            .catch((error) => {
+                console.error('Firebase: Authentication error:', error);
+            });
+
+        // Auth state observer
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                console.log('Firebase: User is signed in:', user.uid);
+                window.currentUser = user;
+            } else {
+                console.log('Firebase: User is signed out');
+                window.currentUser = null;
+            }
+        });
+
+        // Firebase functions for the game
+        window.firebaseFunctions = {
+            // Save high score to Firebase (free tier only)
+            saveHighScore: async (score, playerName = 'Anonymous') => {
+                if (!window.currentUser) {
+                    // Fallback to localStorage if no Firebase auth
+                    saveHighScoreToLocal(score, playerName);
+                    return;
+                }
+                
+                try {
+                    const scoreData = {
+                        playerName: playerName,
+                        score: score,
+                        timestamp: new Date().toISOString(),
+                        userId: window.currentUser.uid
+                    };
+                    
+                    await addDoc(collection(db, 'highScores'), scoreData);
+                    console.log('Firebase: High score saved successfully (free tier)');
+                } catch (error) {
+                    console.error('Firebase: Error saving high score, using localStorage fallback:', error);
+                    saveHighScoreToLocal(score, playerName);
+                }
+            },
+
+            // Get top high scores from Firebase (free tier only)
+            getHighScores: async () => {
+                try {
+                    const q = query(collection(db, 'highScores'), orderBy('score', 'desc'), limit(10));
+                    const querySnapshot = await getDocs(q);
+                    const scores = [];
+                    querySnapshot.forEach((doc) => {
+                        scores.push(doc.data());
+                    });
+                    return scores;
+                } catch (error) {
+                    console.error('Firebase: Error getting high scores, using localStorage fallback:', error);
+                    return getHighScoresFromLocal();
+                }
+            },
+
+            // Save game stats (free tier only - limited usage)
+            saveGameStats: async (stats) => {
+                if (!window.currentUser) {
+                    // Don't save stats if no auth (save bandwidth)
+                    return;
+                }
+                
+                try {
+                    const statsData = {
+                        ...stats,
+                        userId: window.currentUser.uid,
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    await addDoc(collection(db, 'gameStats'), statsData);
+                    console.log('Firebase: Game stats saved successfully (free tier)');
+                } catch (error) {
+                    console.error('Firebase: Error saving game stats (free tier limit reached):', error);
+                    // Don't retry to avoid hitting limits
+                }
+            },
+
+            // Track game event (free tier only - limited usage)
+            trackEvent: (eventName, parameters = {}) => {
+                if (analytics) {
+                    try {
+                        analytics.logEvent(eventName, parameters);
+                        console.log('Firebase: Event tracked (free tier):', eventName);
+                    } catch (error) {
+                        console.log('Firebase: Analytics error (free tier limit reached):', error);
+                    }
+                }
+            }
+        };
+
+        // Local storage fallback functions
+        function saveHighScoreToLocal(score, playerName) {
+            const scores = JSON.parse(localStorage.getItem('highScores') || '[]');
+            scores.push({ playerName, score, timestamp: new Date().toISOString() });
+            scores.sort((a, b) => b.score - a.score);
+            scores.splice(10); // Keep only top 10
+            localStorage.setItem('highScores', JSON.stringify(scores));
+            console.log('LocalStorage: High score saved');
+        }
+
+        function getHighScoresFromLocal() {
+            const scores = JSON.parse(localStorage.getItem('highScores') || '[]');
+            return scores.slice(0, 10); // Return top 10
+        }
+    </script>
+    
     <!-- Simple Icon Approach - Test -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%230a0a2a'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='white'>🚀</text></svg>">
     
@@ -988,6 +1132,111 @@
         let isMobile = false;
         let audioContext = null;
         
+        // Weapon system
+        let currentWeapon = 'basic';
+        let weaponLevel = 1;
+        let weapons = {
+            basic: {
+                name: 'Basic Laser',
+                damage: 1,
+                fireRate: 1,
+                bulletSpeed: 8,
+                bulletSize: { width: 4, height: 8 },
+                color: '#ffd700',
+                description: 'Standard laser beam'
+            },
+            plasma: {
+                name: 'Plasma Cannon',
+                damage: 2,
+                fireRate: 0.8,
+                bulletSpeed: 6,
+                bulletSize: { width: 6, height: 12 },
+                color: '#00ffff',
+                description: 'High damage plasma bolts'
+            },
+            spread: {
+                name: 'Spread Shot',
+                damage: 1,
+                fireRate: 1.2,
+                bulletSpeed: 7,
+                bulletSize: { width: 3, height: 6 },
+                color: '#ff6b6b',
+                description: 'Multiple projectiles in a spread pattern'
+            },
+            laser: {
+                name: 'Laser Beam',
+                damage: 1.5,
+                fireRate: 1.5,
+                bulletSpeed: 10,
+                bulletSize: { width: 2, height: 20 },
+                color: '#ff1493',
+                description: 'Fast continuous laser beam'
+            },
+            missile: {
+                name: 'Homing Missile',
+                damage: 3,
+                fireRate: 0.6,
+                bulletSpeed: 5,
+                bulletSize: { width: 8, height: 16 },
+                color: '#ff4500',
+                description: 'Slow but powerful homing missiles'
+            },
+            lightning: {
+                name: 'Lightning Bolt',
+                damage: 2.5,
+                fireRate: 0.7,
+                bulletSpeed: 12,
+                bulletSize: { width: 4, height: 15 },
+                color: '#ffff00',
+                description: 'Fast lightning strikes'
+            },
+            ice: {
+                name: 'Ice Shard',
+                damage: 1.5,
+                fireRate: 1.1,
+                bulletSpeed: 9,
+                bulletSize: { width: 5, height: 10 },
+                color: '#87ceeb',
+                description: 'Freezing projectiles that slow enemies'
+            },
+            fire: {
+                name: 'Fireball',
+                damage: 2,
+                fireRate: 0.9,
+                bulletSpeed: 7,
+                bulletSize: { width: 6, height: 12 },
+                color: '#ff6347',
+                description: 'Explosive fireballs'
+            },
+            energy: {
+                name: 'Energy Pulse',
+                damage: 1.8,
+                fireRate: 1.3,
+                bulletSpeed: 8,
+                bulletSize: { width: 4, height: 8 },
+                color: '#32cd32',
+                description: 'Sustained energy pulses'
+            },
+            quantum: {
+                name: 'Quantum Blaster',
+                damage: 4,
+                fireRate: 0.5,
+                bulletSpeed: 6,
+                bulletSize: { width: 7, height: 14 },
+                color: '#8a2be2',
+                description: 'Powerful quantum energy blasts'
+            },
+            sonic: {
+                name: 'Sonic Wave',
+                damage: 1.2,
+                fireRate: 1.4,
+                bulletSpeed: 9,
+                bulletSize: { width: 3, height: 8 },
+                color: '#ff69b4',
+                description: 'High-frequency sonic waves'
+            }
+        };
+        
         // Dynamic difficulty scaling based on score
         let enemySpawnRate = 0.02;
         let enemySpeedMultiplier = 1;
@@ -1159,20 +1408,25 @@
         document.getElementById('storeBtn').addEventListener('click', openStore);
         
         document.addEventListener('keydown', (e) => {
-            if (medalModalOpen) {
-                // Handle medal modal keyboard events
-                if (e.code === 'Enter') {
-                    claimMedal();
-                } else if (e.code === 'Escape') {
-                    skipMedal();
-                }
-                return;
-            }
-            
-            if (!gameRunning) return;
             keys[e.code] = true;
-            if (e.code === 'Space') e.preventDefault();
+            if (e.code === 'Space') {
+                e.preventDefault();
+                handleShoot(e);
+            }
             if (e.code === 'KeyP') activatePowerup();
+            
+            // Weapon switching
+            if (e.code === 'Digit1') switchWeapon('basic');
+            if (e.code === 'Digit2') switchWeapon('plasma');
+            if (e.code === 'Digit3') switchWeapon('spread');
+            if (e.code === 'Digit4') switchWeapon('laser');
+            if (e.code === 'Digit5') switchWeapon('missile');
+            if (e.code === 'Digit6') switchWeapon('lightning');
+            if (e.code === 'Digit7') switchWeapon('ice');
+            if (e.code === 'Digit8') switchWeapon('fire');
+            if (e.code === 'Digit9') switchWeapon('energy');
+            if (e.code === 'Digit0') switchWeapon('quantum');
+            if (e.code === 'Minus') switchWeapon('sonic');
         });
         document.addEventListener('keyup', (e) => {
             keys[e.code] = false;
@@ -1258,20 +1512,190 @@
             e.preventDefault();
             if (gameRunning) {
                 const now = Date.now();
-                if (now - lastShot > shotCooldown) {
-                    if (doubleShot) {
-                        bullets.push({ x: player.x + 5, y: player.y, width: 4, height: 8, speed: 8 });
-                        bullets.push({ x: player.x + 15, y: player.y, width: 4, height: 8, speed: 8 });
-                        bullets.push({ x: player.x + 25, y: player.y, width: 4, height: 8, speed: 8 });
-                        bullets.push({ x: player.x + 35, y: player.y, width: 4, height: 8, speed: 8 });
-                        playMissileSound();
-                    } else {
-                        bullets.push({ x: player.x + 18, y: player.y, width: 4, height: 8, speed: 8 });
-                        playMissileSound();
-                    }
+                const weapon = weapons[currentWeapon];
+                const currentShotCooldown = shotCooldown / weapon.fireRate;
+                
+                if (now - lastShot > currentShotCooldown) {
+                    fireWeapon();
                     lastShot = now;
                 }
             }
+        }
+
+        function fireWeapon() {
+            const weapon = weapons[currentWeapon];
+            const bulletSpeed = weapon.bulletSpeed;
+            const bulletSize = weapon.bulletSize;
+            
+            switch (currentWeapon) {
+                case 'basic':
+                    // Single bullet
+                    bullets.push({
+                        x: player.x + player.width / 2 - bulletSize.width / 2,
+                        y: player.y,
+                        width: bulletSize.width,
+                        height: bulletSize.height,
+                        speed: bulletSpeed,
+                        damage: weapon.damage * bulletDamage,
+                        color: weapon.color,
+                        type: 'basic'
+                    });
+                    break;
+                    
+                case 'plasma':
+                    // Single powerful plasma bolt
+                    bullets.push({
+                        x: player.x + player.width / 2 - bulletSize.width / 2,
+                        y: player.y,
+                        width: bulletSize.width,
+                        height: bulletSize.height,
+                        speed: bulletSpeed,
+                        damage: weapon.damage * bulletDamage,
+                        color: weapon.color,
+                        type: 'plasma'
+                    });
+                    break;
+                    
+                case 'spread':
+                    // Three bullets in spread pattern
+                    const spreadAngles = [-15, 0, 15];
+                    spreadAngles.forEach(angle => {
+                        const rad = angle * Math.PI / 180;
+                        const speedX = Math.sin(rad) * bulletSpeed * 0.3;
+                        const speedY = -bulletSpeed;
+                        
+                        bullets.push({
+                            x: player.x + player.width / 2 - bulletSize.width / 2,
+                            y: player.y,
+                            width: bulletSize.width,
+                            height: bulletSize.height,
+                            speed: bulletSpeed,
+                            speedX: speedX,
+                            speedY: speedY,
+                            damage: weapon.damage * bulletDamage,
+                            color: weapon.color,
+                            type: 'spread'
+                        });
+                    });
+                    break;
+                    
+                case 'laser':
+                    // Fast continuous laser beam
+                    bullets.push({
+                        x: player.x + player.width / 2 - bulletSize.width / 2,
+                        y: player.y,
+                        width: bulletSize.width,
+                        height: bulletSize.height,
+                        speed: bulletSpeed,
+                        damage: weapon.damage * bulletDamage,
+                        color: weapon.color,
+                        type: 'laser'
+                    });
+                    break;
+                    
+                case 'missile':
+                    // Homing missile (basic implementation)
+                    bullets.push({
+                        x: player.x + player.width / 2 - bulletSize.width / 2,
+                        y: player.y,
+                        width: bulletSize.width,
+                        height: bulletSize.height,
+                        speed: bulletSpeed,
+                        damage: weapon.damage * bulletDamage,
+                        color: weapon.color,
+                        type: 'missile',
+                        homing: true
+                    });
+                    break;
+                    
+                case 'lightning':
+                    // Fast lightning bolt
+                    bullets.push({
+                        x: player.x + player.width / 2 - bulletSize.width / 2,
+                        y: player.y,
+                        width: bulletSize.width,
+                        height: bulletSize.height,
+                        speed: bulletSpeed,
+                        damage: weapon.damage * bulletDamage,
+                        color: weapon.color,
+                        type: 'lightning'
+                    });
+                    break;
+                    
+                case 'ice':
+                    // Ice shard that can slow enemies
+                    bullets.push({
+                        x: player.x + player.width / 2 - bulletSize.width / 2,
+                        y: player.y,
+                        width: bulletSize.width,
+                        height: bulletSize.height,
+                        speed: bulletSpeed,
+                        damage: weapon.damage * bulletDamage,
+                        color: weapon.color,
+                        type: 'ice',
+                        slowEffect: true
+                    });
+                    break;
+                    
+                case 'fire':
+                    // Explosive fireball
+                    bullets.push({
+                        x: player.x + player.width / 2 - bulletSize.width / 2,
+                        y: player.y,
+                        width: bulletSize.width,
+                        height: bulletSize.height,
+                        speed: bulletSpeed,
+                        damage: weapon.damage * bulletDamage,
+                        color: weapon.color,
+                        type: 'fire',
+                        explosive: true
+                    });
+                    break;
+                    
+                case 'energy':
+                    // Energy pulse
+                    bullets.push({
+                        x: player.x + player.width / 2 - bulletSize.width / 2,
+                        y: player.y,
+                        width: bulletSize.width,
+                        height: bulletSize.height,
+                        speed: bulletSpeed,
+                        damage: weapon.damage * bulletDamage,
+                        color: weapon.color,
+                        type: 'energy'
+                    });
+                    break;
+                    
+                case 'quantum':
+                    // Powerful quantum blast
+                    bullets.push({
+                        x: player.x + player.width / 2 - bulletSize.width / 2,
+                        y: player.y,
+                        width: bulletSize.width,
+                        height: bulletSize.height,
+                        speed: bulletSpeed,
+                        damage: weapon.damage * bulletDamage,
+                        color: weapon.color,
+                        type: 'quantum'
+                    });
+                    break;
+                    
+                case 'sonic':
+                    // Sonic wave
+                    bullets.push({
+                        x: player.x + player.width / 2 - bulletSize.width / 2,
+                        y: player.y,
+                        width: bulletSize.width,
+                        height: bulletSize.height,
+                        speed: bulletSpeed,
+                        damage: weapon.damage * bulletDamage,
+                        color: weapon.color,
+                        type: 'sonic'
+                    });
+                    break;
+            }
+            
+            playMissileSound();
         }
 
         function handlePowerup(e) {
@@ -1283,6 +1707,14 @@
 
         function startGame() {
             console.log('Starting game...');
+            
+            // Track game start event
+            if (window.firebaseFunctions) {
+                window.firebaseFunctions.trackEvent('game_started', {
+                    ship_used: currentShip,
+                    weapon_used: currentWeapon
+                });
+            }
             
             // Load high scores
             loadHighScores();
@@ -1635,6 +2067,17 @@
                 case 'fireRate': emoji = '🔥'; break;
                 case 'money': emoji = '💵'; break;
                 case 'diamond': emoji = '💎'; break;
+                // Weapon powerups
+                case 'weaponPlasma': emoji = '🔵'; break;
+                case 'weaponSpread': emoji = '🔶'; break;
+                case 'weaponLaser': emoji = '🔴'; break;
+                case 'weaponMissile': emoji = '🚀'; break;
+                case 'weaponLightning': emoji = '⚡'; break;
+                case 'weaponIce': emoji = '❄️'; break;
+                case 'weaponFire': emoji = '🔥'; break;
+                case 'weaponEnergy': emoji = '🟢'; break;
+                case 'weaponQuantum': emoji = '🟣'; break;
+                case 'weaponSonic': emoji = '🔊'; break;
             }
             
             // Draw emoji
@@ -1697,8 +2140,91 @@
 
         function updateBullets() {
             for (let i = bullets.length - 1; i >= 0; i--) {
-                bullets[i].y -= bullets[i].speed;
-                if (bullets[i].y < 0) bullets.splice(i, 1);
+                const bullet = bullets[i];
+                
+                // Handle different bullet types
+                switch (bullet.type) {
+                    case 'spread':
+                        // Spread bullets move in diagonal patterns
+                        if (bullet.speedX !== undefined && bullet.speedY !== undefined) {
+                            bullet.x += bullet.speedX;
+                            bullet.y += bullet.speedY;
+                        } else {
+                            bullet.y -= bullet.speed;
+                        }
+                        break;
+                        
+                    case 'missile':
+                        // Homing missiles (basic homing behavior)
+                        if (bullet.homing && enemies.length > 0) {
+                            // Find closest enemy
+                            let closestEnemy = null;
+                            let closestDistance = Infinity;
+                            
+                            for (let enemy of enemies) {
+                                const distance = Math.sqrt(
+                                    Math.pow(bullet.x - enemy.x, 2) + 
+                                    Math.pow(bullet.y - enemy.y, 2)
+                                );
+                                if (distance < closestDistance) {
+                                    closestDistance = distance;
+                                    closestEnemy = enemy;
+                                }
+                            }
+                            
+                            // Move towards closest enemy
+                            if (closestEnemy) {
+                                const dx = closestEnemy.x - bullet.x;
+                                const dy = closestEnemy.y - bullet.y;
+                                const distance = Math.sqrt(dx * dx + dy * dy);
+                                
+                                if (distance > 0) {
+                                    bullet.x += (dx / distance) * bullet.speed * 0.5;
+                                    bullet.y += (dy / distance) * bullet.speed * 0.5;
+                                }
+                            } else {
+                                bullet.y -= bullet.speed;
+                            }
+                        } else {
+                            bullet.y -= bullet.speed;
+                        }
+                        break;
+                        
+                    case 'lightning':
+                        // Lightning bolts move in zigzag pattern
+                        bullet.y -= bullet.speed;
+                        bullet.x += Math.sin(bullet.y * 0.1) * 2;
+                        break;
+                        
+                    case 'fire':
+                        // Fireballs have slight spread
+                        bullet.y -= bullet.speed;
+                        bullet.x += Math.sin(bullet.y * 0.05) * 1;
+                        break;
+                        
+                    case 'quantum':
+                        // Quantum blasts have energy trail effect
+                        bullet.y -= bullet.speed;
+                        // Add trail effect (handled in rendering)
+                        break;
+                        
+                    case 'sonic':
+                        // Sonic waves have wave pattern
+                        bullet.y -= bullet.speed;
+                        bullet.x += Math.sin(bullet.y * 0.15) * 3;
+                        break;
+                        
+                    default:
+                        // Standard bullet movement
+                        bullet.y -= bullet.speed;
+                        break;
+                }
+                
+                // Remove bullets that go off screen
+                if (bullet.y < 0 || bullet.y > canvas.height || 
+                    bullet.x < 0 || bullet.x > canvas.width) {
+                    bullets.splice(i, 1);
+                }
             }
         }
 
@@ -1758,7 +2284,7 @@
 
         function spawnPowerup() {
             if (Math.random() < 0.008) {
-                const types = ['speed', 'double', 'shield', 'extraLife', 'starPower', 'fireRate', 'money', 'diamond'];
+                const types = ['speed', 'double', 'shield', 'extraLife', 'starPower', 'fireRate', 'money', 'diamond', 'weaponPlasma', 'weaponSpread', 'weaponLaser', 'weaponMissile', 'weaponLightning', 'weaponIce', 'weaponFire', 'weaponEnergy', 'weaponQuantum', 'weaponSonic'];
                 const type = types[Math.floor(Math.random() * types.length)];
                 powerups.push({
                     x: Math.random() * (canvas.width - 20),
@@ -1768,6 +2294,9 @@
                     speed: 2,
                     type: type
                 });
+                if (type === 'diamond') {
+                    console.log(`💎 Diamond powerup spawned at x: ${powerups[powerups.length - 1].x}`);
+                }
             }
         }
 
@@ -1799,21 +2328,91 @@
                         bullets[i].y < enemies[j].y + enemies[j].height &&
                         bullets[i].y + bullets[i].height > enemies[j].y) {
                         
-                        if (enemies[j].type === 'boss') {
+                        // Handle special weapon effects
+                        const bullet = bullets[i];
+                        const enemy = enemies[j];
+                        
+                        if (enemy.type === 'boss') {
                             // Boss takes damage but doesn't die immediately
-                            const damage = bulletDamage * (bossDamageMultiplier > 1 ? bossDamageMultiplier : 1);
-                            enemies[j].health -= damage;
+                            const damage = bullet.damage || bulletDamage * (bossDamageMultiplier > 1 ? bossDamageMultiplier : 1);
+                            enemy.health -= damage;
                             bullets.splice(i, 1);
                             
-                            if (enemies[j].health <= 0) {
+                            if (enemy.health <= 0) {
                                 score += 100; // Boss gives more points
                                 enemies.splice(j, 1);
                                 bossActive = false;
                                 console.log('Boss defeated!');
                             }
                         } else {
-                            // Regular enemies die immediately
-                            const baseScore = enemies[j].type === 'fast' ? 20 : 10;
+                            // Handle special weapon effects
+                            if (bullet.type === 'ice' && bullet.slowEffect) {
+                                // Ice weapons slow enemies
+                                enemy.speed *= 0.7;
+                                enemy.speed = Math.max(enemy.speed, 0.5); // Don't slow below 0.5
+                            }
+                            
+                            if (bullet.type === 'fire' && bullet.explosive) {
+                                // Fire weapons create area damage
+                                const explosionRadius = 60;
+                                for (let k = enemies.length - 1; k >= 0; k--) {
+                                    const distance = Math.sqrt(
+                                        Math.pow(enemy.x - enemies[k].x, 2) + 
+                                        Math.pow(enemy.y - enemies[k].y, 2)
+                                    );
+                                    if (distance < explosionRadius && enemies[k] !== enemy) {
+                                        // Damage nearby enemies
+                                        const damage = bullet.damage * 0.5;
+                                        if (enemies[k].type === 'boss') {
+                                            enemies[k].health -= damage;
+                                            if (enemies[k].health <= 0) {
+                                                score += 100;
+                                                enemies.splice(k, 1);
+                                                if (k < j) j--; // Adjust index
+                                            }
+                                        } else {
+                                            const baseScore = enemies[k].type === 'fast' ? 20 : 10;
+                                            score += baseScore * scoreMultiplier;
+                                            enemies.splice(k, 1);
+                                            totalEnemiesDestroyed++;
+                                            if (k < j) j--; // Adjust index
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            if (bullet.type === 'quantum') {
+                                // Quantum weapons have chain reaction
+                                const chainRadius = 80;
+                                let chainCount = 0;
+                                for (let k = enemies.length - 1; k >= 0; k--) {
+                                    const distance = Math.sqrt(
+                                        Math.pow(enemy.x - enemies[k].x, 2) + 
+                                        Math.pow(enemy.y - enemies[k].y, 2)
+                                    );
+                                    if (distance < chainRadius && enemies[k] !== enemy) {
+                                        chainCount++;
+                                        const damage = bullet.damage * (1 + chainCount * 0.2);
+                                        if (enemies[k].type === 'boss') {
+                                            enemies[k].health -= damage;
+                                            if (enemies[k].health <= 0) {
+                                                score += 100;
+                                                enemies.splice(k, 1);
+                                                if (k < j) j--;
+                                            }
+                                        } else {
+                                            const baseScore = enemies[k].type === 'fast' ? 20 : 10;
+                                            score += baseScore * scoreMultiplier;
+                                            enemies.splice(k, 1);
+                                            totalEnemiesDestroyed++;
+                                            if (k < j) j--;
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // Regular enemy destruction
+                            const baseScore = enemy.type === 'fast' ? 20 : 10;
                             score += baseScore * scoreMultiplier;
                             bullets.splice(i, 1);
                             enemies.splice(j, 1);
@@ -1906,6 +2505,7 @@
                     player.x + player.width > powerups[i].x &&
                     player.y < powerups[i].y + powerups[i].height &&
                     player.y + player.height > powerups[i].y) {
+                    console.log(`🎁 Powerup collected: ${powerups[i].type}`);
                     collectPowerup(powerups[i].type);
                     powerups.splice(i, 1);
                     totalPowerupsCollected++;
@@ -1952,6 +2552,68 @@
                     diamonds += 1;
                     totalDiamondsCollected++;
                     updateChallengeProgress('collect_diamonds', 1);
+                    console.log(`💎 Diamond collected! Total: ${totalDiamondsCollected}, Current diamonds: ${diamonds}`);
+                    break;
+                // Weapon powerups
+                case 'weaponPlasma':
+                    const previousWeapon = currentWeapon;
+                    currentWeapon = 'plasma';
+                    showWeaponSwitchMessage('Plasma Cannon');
+                    setTimeout(() => currentWeapon = previousWeapon, 20000);
+                    break;
+                case 'weaponSpread':
+                    const prevWeapon = currentWeapon;
+                    currentWeapon = 'spread';
+                    showWeaponSwitchMessage('Spread Shot');
+                    setTimeout(() => currentWeapon = prevWeapon, 20000);
+                    break;
+                case 'weaponLaser':
+                    const prevWeapon2 = currentWeapon;
+                    currentWeapon = 'laser';
+                    showWeaponSwitchMessage('Laser Beam');
+                    setTimeout(() => currentWeapon = prevWeapon2, 20000);
+                    break;
+                case 'weaponMissile':
+                    const prevWeapon3 = currentWeapon;
+                    currentWeapon = 'missile';
+                    showWeaponSwitchMessage('Homing Missile');
+                    setTimeout(() => currentWeapon = prevWeapon3, 20000);
+                    break;
+                case 'weaponLightning':
+                    const prevWeapon4 = currentWeapon;
+                    currentWeapon = 'lightning';
+                    showWeaponSwitchMessage('Lightning Bolt');
+                    setTimeout(() => currentWeapon = prevWeapon4, 20000);
+                    break;
+                case 'weaponIce':
+                    const prevWeapon5 = currentWeapon;
+                    currentWeapon = 'ice';
+                    showWeaponSwitchMessage('Ice Shard');
+                    setTimeout(() => currentWeapon = prevWeapon5, 20000);
+                    break;
+                case 'weaponFire':
+                    const prevWeapon6 = currentWeapon;
+                    currentWeapon = 'fire';
+                    showWeaponSwitchMessage('Fireball');
+                    setTimeout(() => currentWeapon = prevWeapon6, 20000);
+                    break;
+                case 'weaponEnergy':
+                    const prevWeapon7 = currentWeapon;
+                    currentWeapon = 'energy';
+                    showWeaponSwitchMessage('Energy Pulse');
+                    setTimeout(() => currentWeapon = prevWeapon7, 20000);
+                    break;
+                case 'weaponQuantum':
+                    const prevWeapon8 = currentWeapon;
+                    currentWeapon = 'quantum';
+                    showWeaponSwitchMessage('Quantum Blaster');
+                    setTimeout(() => currentWeapon = prevWeapon8, 20000);
+                    break;
+                case 'weaponSonic':
+                    const prevWeapon9 = currentWeapon;
+                    currentWeapon = 'sonic';
+                    showWeaponSwitchMessage('Sonic Wave');
+                    setTimeout(() => currentWeapon = prevWeapon9, 20000);
                     break;
             }
         }
@@ -1963,6 +2625,38 @@
 
         function gameOver() {
             gameRunning = false;
+            
+            // Track game over event with detailed stats
+            if (window.firebaseFunctions) {
+                window.firebaseFunctions.trackEvent('game_over', {
+                    final_score: score,
+                    lives_remaining: lives,
+                    enemies_destroyed: totalEnemiesDestroyed,
+                    powerups_collected: totalPowerupsCollected,
+                    diamonds_collected: totalDiamondsCollected,
+                    money_collected: totalMoneyCollected,
+                    consecutive_hits: maxConsecutiveHits,
+                    survival_time: survivalTime,
+                    weapon_used: currentWeapon,
+                    ship_used: currentShip
+                });
+                
+                // Save detailed game stats
+                window.firebaseFunctions.saveGameStats({
+                    final_score: score,
+                    lives_remaining: lives,
+                    enemies_destroyed: totalEnemiesDestroyed,
+                    powerups_collected: totalPowerupsCollected,
+                    diamonds_collected: totalDiamondsCollected,
+                    money_collected: totalMoneyCollected,
+                    consecutive_hits: maxConsecutiveHits,
+                    survival_time: survivalTime,
+                    weapon_used: currentWeapon,
+                    ship_used: currentShip,
+                    max_consecutive_hits: maxConsecutiveHits
+                });
+            }
+            
             saveHighScores();
             
             // Check for medal qualification
@@ -2004,9 +2698,110 @@
             });
 
             // Draw bullets
-            ctx.fillStyle = '#ffd700';
             bullets.forEach(bullet => {
-                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                ctx.save();
+                
+                // Set color based on bullet type
+                if (bullet.color) {
+                    ctx.fillStyle = bullet.color;
+                } else {
+                    ctx.fillStyle = '#ffd700'; // Default gold color
+                }
+                
+                // Handle different bullet types
+                switch (bullet.type) {
+                    case 'plasma':
+                        // Plasma bolts with glow effect
+                        ctx.shadowColor = bullet.color;
+                        ctx.shadowBlur = 10;
+                        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                        break;
+                        
+                    case 'laser':
+                        // Laser beam with trail effect
+                        ctx.shadowColor = bullet.color;
+                        ctx.shadowBlur = 15;
+                        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                        // Add laser trail
+                        ctx.globalAlpha = 0.6;
+                        ctx.fillRect(bullet.x, bullet.y + bullet.height, bullet.width, bullet.height * 2);
+                        break;
+                        
+                    case 'missile':
+                        // Missiles with rocket trail
+                        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                        // Add rocket trail
+                        ctx.fillStyle = '#ff8800';
+                        ctx.globalAlpha = 0.8;
+                        ctx.fillRect(bullet.x + 2, bullet.y + bullet.height, bullet.width - 4, bullet.height);
+                        break;
+                        
+                    case 'lightning':
+                        // Lightning bolts with electric effect
+                        ctx.shadowColor = bullet.color;
+                        ctx.shadowBlur = 8;
+                        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                        // Add lightning branches
+                        ctx.globalAlpha = 0.7;
+                        ctx.fillRect(bullet.x - 2, bullet.y + bullet.height/2, 4, bullet.height/2);
+                        ctx.fillRect(bullet.x + bullet.width - 2, bullet.y + bullet.height/2, 4, bullet.height/2);
+                        break;
+                        
+                    case 'ice':
+                        // Ice shards with crystalline effect
+                        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                        // Add ice crystals
+                        ctx.fillStyle = '#ffffff';
+                        ctx.globalAlpha = 0.8;
+                        ctx.fillRect(bullet.x + 1, bullet.y + 2, 2, 2);
+                        ctx.fillRect(bullet.x + bullet.width - 3, bullet.y + bullet.height - 4, 2, 2);
+                        break;
+                        
+                    case 'fire':
+                        // Fireballs with flame effect
+                        ctx.shadowColor = '#ff4400';
+                        ctx.shadowBlur = 12;
+                        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                        // Add flame trail
+                        ctx.fillStyle = '#ff6600';
+                        ctx.globalAlpha = 0.6;
+                        ctx.fillRect(bullet.x + 1, bullet.y + bullet.height, bullet.width - 2, bullet.height);
+                        break;
+                        
+                    case 'energy':
+                        // Energy pulses with pulse effect
+                        ctx.shadowColor = bullet.color;
+                        ctx.shadowBlur = 6;
+                        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                        break;
+                        
+                    case 'quantum':
+                        // Quantum blasts with energy trail
+                        ctx.shadowColor = bullet.color;
+                        ctx.shadowBlur = 20;
+                        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                        // Add quantum trail
+                        ctx.globalAlpha = 0.5;
+                        ctx.fillRect(bullet.x, bullet.y + bullet.height, bullet.width, bullet.height * 3);
+                        break;
+                        
+                    case 'sonic':
+                        // Sonic waves with wave effect
+                        ctx.shadowColor = bullet.color;
+                        ctx.shadowBlur = 5;
+                        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                        // Add sonic waves
+                        ctx.globalAlpha = 0.4;
+                        ctx.fillRect(bullet.x - 3, bullet.y + bullet.height/2, bullet.width + 6, 2);
+                        break;
+                        
+                    default:
+                        // Standard bullets
+                        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                        break;
+                }
+                
+                ctx.restore();
             });
 
             // Draw enemy bullets
@@ -2026,7 +2821,29 @@
             if (starPowerActive) powerText += ' + Star Power';
             if (fireRateBoost) powerText += ' + Fire Rate';
             
-            scoreDisplay.textContent = `Score: ${score} | Lives: ${lives} | Kills: ${totalEnemiesDestroyed}`;
+            scoreDisplay.textContent = `Score: ${score} | Lives: ${lives} | Kills: ${totalEnemiesDestroyed} | 💎 ${totalDiamondsCollected} | 💵 ${totalMoneyCollected} | Weapon: ${weapons[currentWeapon].name}`;
+            
+            // Draw weapon info
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(10, 10, 200, 60);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(`Weapon: ${weapons[currentWeapon].name}`, 20, 30);
+            ctx.fillText(`Damage: ${weapons[currentWeapon].damage * bulletDamage}`, 20, 45);
+            ctx.fillText(`Fire Rate: ${(weapons[currentWeapon].fireRate * 100).toFixed(0)}%`, 20, 60);
+            
+            // Draw weapon controls hint
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(canvas.width - 250, 10, 240, 80);
+            ctx.fillStyle = '#ffff00';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('Weapon Controls:', canvas.width - 240, 25);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText('1-0: Switch weapons', canvas.width - 240, 40);
+            ctx.fillText('-: Sonic Wave', canvas.width - 240, 55);
+            ctx.fillText('Space: Shoot', canvas.width - 240, 70);
             
             // Update stats display
             updateStatsDisplay();
@@ -2126,14 +2943,23 @@
         
         // Save high scores to localStorage
         function saveHighScores() {
-            try {
-                if (score > highScore) {
-                    highScore = score;
-                    localStorage.setItem('kadenAdelynnHighScore', highScore.toString());
-                }
-                console.log('Saved high scores:', { highScore });
-            } catch (error) {
-                console.log('Error saving high scores:', error);
+            const scores = JSON.parse(localStorage.getItem('highScores') || '[]');
+            scores.push(score);
+            scores.sort((a, b) => b - a);
+            scores.splice(10); // Keep only top 10
+            localStorage.setItem('highScores', JSON.stringify(scores));
+            highScore = scores[0] || 0;
+            
+            // Save to Firebase if available
+            if (window.firebaseFunctions) {
+                window.firebaseFunctions.saveHighScore(score, 'Player');
+                window.firebaseFunctions.trackEvent('game_completed', {
+                    score: score,
+                    lives_remaining: lives,
+                    enemies_destroyed: totalEnemiesDestroyed,
+                    survival_time: survivalTime,
+                    weapon_used: currentWeapon
+                });
             }
         }
 
@@ -2828,6 +3654,46 @@
             });
         } else {
             console.log('Service Worker not supported');
+        }
+
+        function switchWeapon(weaponType) {
+            if (weapons[weaponType]) {
+                const previousWeapon = currentWeapon;
+                currentWeapon = weaponType;
+                console.log(`Switched to ${weapons[weaponType].name}`);
+                
+                // Track weapon switching event
+                if (window.firebaseFunctions) {
+                    window.firebaseFunctions.trackEvent('weapon_switched', {
+                        from_weapon: previousWeapon,
+                        to_weapon: weaponType,
+                        weapon_name: weapons[weaponType].name,
+                        weapon_damage: weapons[weaponType].damage,
+                        weapon_fire_rate: weapons[weaponType].fireRate
+                    });
+                }
+                
+                // Show weapon switch message
+                showWeaponSwitchMessage(weapons[weaponType].name);
+            }
+        }
+        
+        function showWeaponSwitchMessage(weaponName) {
+            // Create temporary weapon switch message
+            const message = `Weapon: ${weaponName}`;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#00ff00';
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(message, canvas.width / 2, canvas.height / 2);
+            
+            // Clear message after 1 second
+            setTimeout(() => {
+                // Message will be cleared in next frame
+            }, 1000);
         }
     </script>
 </body>
