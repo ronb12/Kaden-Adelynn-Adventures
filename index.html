@@ -1911,10 +1911,11 @@
                 }
             }, 10000);
             
-            // Show game UI
+            // Show game UI and canvas
             document.getElementById('mainMenu').style.display = 'none';
             document.getElementById('gameUI').style.display = 'block';
             scoreBoard.style.display = 'block';
+            canvas.style.display = 'block';
             
             // Start game loop
             gameLoop();
@@ -1927,6 +1928,7 @@
             gamePaused = false;
             gameStarted = false;
             document.getElementById('mainMenu').style.display = 'block';
+            canvas.style.display = 'none';
             document.getElementById('gameUI').style.display = 'none';
             scoreBoard.style.display = 'none';
             console.log('Returned to menu');
