@@ -35,13 +35,13 @@
 
         // Your web app's Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyC1b-JWvBRGti5LFKk7LqSS8p1QFbP_D88",
-            authDomain: "kaden---adelynn-adventures.firebaseapp.com",
-            projectId: "kaden---adelynn-adventures",
-            storageBucket: "kaden---adelynn-adventures.firebasestorage.app",
-            messagingSenderId: "265116401918",
-            appId: "1:265116401918:web:e1511695b92aeb05e0e5af",
-            measurementId: "G-W4Q02R318L"
+            apiKey: "YOUR_API_KEY_HERE",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.firebasestorage.app",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID",
+            measurementId: "YOUR_MEASUREMENT_ID"
         };
 
         // Initialize Firebase
@@ -2714,7 +2714,7 @@
                         // Plasma bolts with glow effect
                         ctx.shadowColor = bullet.color;
                         ctx.shadowBlur = 10;
-                        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
                         break;
                         
                     case 'laser':
