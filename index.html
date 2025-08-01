@@ -898,7 +898,7 @@
             </div>
         </div>
         
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <canvas id="gameCanvas" width="1000" height="700"></canvas>
         
         <div id="scoreBoard">
             <div id="score">
@@ -918,6 +918,7 @@
         <div id="gameUI">
             <div id="controls">
                 <button id="menuBtn">Back to Menu</button>
+                <button id="pauseBtn" onclick="togglePause()">⏸️ Pause</button>
                 <button id="storeBtn">💎 Store</button>
             </div>
         </div>
@@ -1153,10 +1154,11 @@
 
         // Game variables
         let gameRunning = false;
+        let gamePaused = false;
         let score = 0;
         let lives = 25;
         let highScore = 0;
-        let player = { x: 375, y: 500, width: 50, height: 40 };
+        let player = { x: 475, y: 600, width: 50, height: 40 };
         let bullets = [];
         let enemyBullets = [];
         let enemies = [];
@@ -1751,29 +1753,12 @@
         }
 
         function startGame() {
-            console.log('Starting game...');
-            
-            // Track game start event
-            if (window.firebaseFunctions) {
-                window.firebaseFunctions.trackEvent('game_started', {
-                    ship_used: currentShip,
-                    weapon_used: currentWeapon
-                });
-            }
-            
-            // Load high scores
-            loadHighScores();
-            
-            // Initialize audio context on user interaction
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                console.log('Audio context initialized');
-            }
-            
             gameRunning = true;
+            gamePaused = false;
             gameStarted = true;
             score = 0;
             lives = 25;
+            player = { x: 475, y: 600, width: 50, height: 40 };
             bullets = [];
             enemyBullets = [];
             enemies = [];
@@ -1786,16 +1771,14 @@
             starPowerTimer = 0;
             fireRateBoost = false;
             fireRateTimer = 0;
-            player = { x: 375, y: 500, width: 50, height: 40 };
-            
-            // Reset difficulty
+            currentWeapon = 'basic';
+            shotCooldown = 200;
+            lastShot = 0;
             enemySpawnRate = 0.02;
             enemySpeedMultiplier = 1;
             bossActive = false;
             bossHealth = 0;
             bossMaxHealth = 0;
-            
-            // Reset challenge tracking
             totalEnemiesDestroyed = 0;
             totalPowerupsCollected = 0;
             totalDiamondsCollected = 0;
@@ -1804,8 +1787,14 @@
             maxConsecutiveHits = 0;
             survivalTime = 0;
             startTime = Date.now();
-            
-            // Reset store system
+            challengeActive = false;
+            currentChallenge = null;
+            challengeProgress = 0;
+            challengeTarget = 0;
+            challengeReward = 0;
+            challengeTimer = 0;
+            challengeCompleteMessage = '';
+            challengeCompleteTimer = 0;
             money = 0;
             diamonds = 0;
             bulletDamage = 1;
@@ -1817,50 +1806,50 @@
             scoreMultiplier = 1;
             scoreMultiplierTimer = 0;
             storeOpen = false;
-            
-            // Reset ship system
             currentShip = 'basic';
-            availableShips = ['basic'];
+            
+            // Reset pause button
+            document.getElementById('pauseBtn').textContent = '⏸️ Pause';
+            
+            // Initialize stars
+            stars = [];
+            for (let i = 0; i < 100; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    speed: 0.5 + Math.random() * 1.5
+                });
+            }
             
             // Initialize challenges
             initializeChallenges();
-            startRandomChallenge(); // Start the first challenge
             
-            // Hide menu, show game
-            mainMenu.style.display = 'none';
-            canvas.style.display = 'block';
-            gameUI.style.display = 'block';
+            // Start random challenge after 10 seconds
+            setTimeout(() => {
+                if (gameRunning) {
+                    startRandomChallenge();
+                }
+            }, 10000);
+            
+            // Show game UI
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('gameUI').style.display = 'block';
             scoreBoard.style.display = 'block';
             
-            // Show touch controls on mobile
-            if (detectMobile()) {
-                // Touch controls are handled directly on canvas
-                console.log('Mobile device detected - touch controls enabled');
-            }
-            
-            console.log('Game started, calling gameLoop');
+            // Start game loop
             gameLoop();
+            
+            console.log('Game started!');
         }
 
         function backToMenu() {
             gameRunning = false;
+            gamePaused = false;
             gameStarted = false;
-            
-            // Update high score display to show Gold Champion's score
-            highScoreDisplay.textContent = top3Leaderboard.gold.score;
-            
-            // Update leaderboard display
-            updateLeaderboardDisplay();
-            
-            // Show menu, hide game
-            mainMenu.style.display = 'block';
-            canvas.style.display = 'none';
-            gameUI.style.display = 'none';
+            document.getElementById('mainMenu').style.display = 'block';
+            document.getElementById('gameUI').style.display = 'none';
             scoreBoard.style.display = 'none';
-            
-            // Clear canvas
-            ctx.fillStyle = '#000033';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            console.log('Returned to menu');
         }
 
         function drawPlayerShip() {
@@ -3154,6 +3143,12 @@
                 console.log('Game not running, exiting gameLoop');
                 return;
             }
+            
+            if (gamePaused) {
+                showPauseMessage();
+                requestAnimationFrame(gameLoop);
+                return;
+            }
 
             const currentTime = Date.now();
             survivalTime = Math.floor((currentTime - startTime) / 1000);
@@ -3767,12 +3762,55 @@
         loadHighScores(); // Load high scores on page load
         loadLeaderboard(); // Load leaderboard on page load
         
-        // Update high score display to show Gold Champion's score
-        setTimeout(() => {
-            highScoreDisplay.textContent = top3Leaderboard.gold.score;
-        }, 100);
+        // Pause and Resume functionality
+        function pauseGame() {
+            if (gameRunning && !gamePaused) {
+                gamePaused = true;
+                console.log('⏸️ Game paused');
+                showPauseMessage();
+            }
+        }
         
-        // Don't start the game loop automatically - wait for start button
+        function resumeGame() {
+            if (gameRunning && gamePaused) {
+                gamePaused = false;
+                console.log('▶️ Game resumed');
+                hidePauseMessage();
+                requestAnimationFrame(gameLoop);
+            }
+        }
+        
+        function togglePause() {
+            if (gamePaused) {
+                resumeGame();
+                document.getElementById('pauseBtn').textContent = '⏸️ Pause';
+            } else {
+                pauseGame();
+                document.getElementById('pauseBtn').textContent = '▶️ Resume';
+            }
+        }
+        
+        function showPauseMessage() {
+            // Draw pause overlay
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#4a90e2';
+            ctx.font = '48px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('⏸️ PAUSED', canvas.width / 2, canvas.height / 2 - 50);
+            
+            ctx.fillStyle = '#87ceeb';
+            ctx.font = '24px Arial';
+            ctx.fillText('Press P or ESC to resume', canvas.width / 2, canvas.height / 2 + 20);
+            ctx.fillText('Press M for menu', canvas.width / 2, canvas.height / 2 + 50);
+        }
+        
+        function hidePauseMessage() {
+            // Clear pause overlay by redrawing the game
+            draw();
+        }
 
         function buyForceField() {
             if (money >= 40) {
@@ -3972,6 +4010,44 @@
                 // Message will be cleared in next frame
             }, 1000);
         }
+
+        // Keyboard event listeners
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            
+            // Pause/Resume controls
+            if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
+                if (gameRunning) {
+                    e.preventDefault();
+                    togglePause();
+                }
+            }
+            
+            // Menu key
+            if (e.key === 'm' || e.key === 'M') {
+                if (gameRunning && gamePaused) {
+                    e.preventDefault();
+                    backToMenu();
+                }
+            }
+            
+            // Weapon switching (only when not paused)
+            if (!gamePaused && gameRunning) {
+                switch(e.key) {
+                    case '1': currentWeapon = 'basic'; showWeaponSwitchMessage('🔫 Basic Laser'); break;
+                    case '2': currentWeapon = 'plasma'; showWeaponSwitchMessage('🔵 Plasma Cannon'); break;
+                    case '3': currentWeapon = 'spread'; showWeaponSwitchMessage('🔶 Spread Shot'); break;
+                    case '4': currentWeapon = 'laser'; showWeaponSwitchMessage('🔴 Laser Beam'); break;
+                    case '5': currentWeapon = 'missile'; showWeaponSwitchMessage('🚀 Homing Missile'); break;
+                    case '6': currentWeapon = 'lightning'; showWeaponSwitchMessage('⚡ Lightning Bolt'); break;
+                    case '7': currentWeapon = 'ice'; showWeaponSwitchMessage('❄️ Ice Shard'); break;
+                    case '8': currentWeapon = 'fire'; showWeaponSwitchMessage('🔥 Fireball'); break;
+                    case '9': currentWeapon = 'energy'; showWeaponSwitchMessage('💚 Energy Pulse'); break;
+                    case '0': currentWeapon = 'quantum'; showWeaponSwitchMessage('💜 Quantum Blaster'); break;
+                    case '-': currentWeapon = 'sonic'; showWeaponSwitchMessage('🎵 Sonic Wave'); break;
+                }
+            }
+        });
     </script>
 </body>
 </html> 
