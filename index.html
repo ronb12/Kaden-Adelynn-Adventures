@@ -2277,14 +2277,16 @@
 
         function updatePlayer() {
             const ship = ships[currentShip];
-            const baseSpeed = playerPower === 'speed' ? 8 : 5;
+            const baseSpeed = playerPower === 'speed' ? 10 : 6; // Increased speed
             const speed = baseSpeed * ship.speed;
+            
+            // Improved movement with better responsiveness
             if (keys['ArrowLeft'] && player.x > 0) player.x -= speed;
             if (keys['ArrowRight'] && player.x < canvas.width - player.width) player.x += speed;
             if (keys['ArrowUp'] && player.y > 0) player.y -= speed;
             if (keys['ArrowDown'] && player.y < canvas.height - player.height) player.y += speed;
             
-            // Shooting with cooldown
+            // Optimized shooting with reduced cooldown
             const now = Date.now();
             const currentShotCooldown = shotCooldown / ship.fireRate;
             if (keys['Space'] && now - lastShot > currentShotCooldown) {
@@ -2293,7 +2295,7 @@
                     bullets.push({ x: player.x + 15, y: player.y, width: 4, height: 8, speed: 8 });
                     bullets.push({ x: player.x + 25, y: player.y, width: 4, height: 8, speed: 8 });
                     bullets.push({ x: player.x + 35, y: player.y, width: 4, height: 8, speed: 8 });
-                    playMissileSound(); // Play missile sound
+                    playMissileSound();
                 } else {
                     bullets.push({ x: player.x + 18, y: player.y, width: 4, height: 8, speed: 8 });
                     playMissileSound();
@@ -2301,20 +2303,13 @@
                 lastShot = now;
             }
             
-            // Update shield timer
-            if (shieldActive) {
-                shieldTimer--;
-                if (shieldTimer <= 0) {
-                    shieldActive = false;
-                }
+            // Optimized timer updates
+            if (shieldActive && --shieldTimer <= 0) {
+                shieldActive = false;
             }
             
-            // Update star power timer
-            if (starPowerActive) {
-                starPowerTimer--;
-                if (starPowerTimer <= 0) {
-                    starPowerActive = false;
-                }
+            if (starPowerActive && --starPowerTimer <= 0) {
+                starPowerActive = false;
             }
         }
 
@@ -2463,40 +2458,41 @@
         }
 
         function spawnPowerup() {
-            // Reduced powerup spawn rates for better balance
-            const weaponSpawnRate = 0.015; // Reduced from 0.025
-            const regularSpawnRate = 0.008; // Reduced from 0.015
+            // Improved powerup spawn rates for better balance
+            const weaponSpawnRate = 0.008; // Reduced for better balance
+            const regularSpawnRate = 0.005; // Reduced for better balance
             
             // Limit total powerups on screen to prevent overwhelming
-            const maxPowerupsOnScreen = 8;
-            const maxWeaponPowerupsOnScreen = 3;
+            const maxPowerupsOnScreen = 6;
+            const maxWeaponPowerupsOnScreen = 2;
             
             if (Math.random() < regularSpawnRate && powerups.filter(p => !p.isWeapon).length < maxPowerupsOnScreen) {
                 const regularTypes = ['speed', 'double', 'shield', 'extraLife', 'starPower', 'fireRate', 'money', 'diamond', 'bomb', 'freeze', 'magnet'];
                 const type = regularTypes[Math.floor(Math.random() * regularTypes.length)];
                 powerups.push({
-                    x: Math.random() * (canvas.width - 25),
-                    y: -25,
-                    width: 22, // Reduced from 30
-                    height: 22, // Reduced from 30
-                    speed: 2.5,
-                    type: type
+                    x: Math.random() * (canvas.width - 20),
+                    y: -20,
+                    width: 20,
+                    height: 20,
+                    speed: 2,
+                    type: type,
+                    isWeapon: false
                 });
                 if (type === 'diamond') {
                     console.log(`💎 Diamond powerup spawned at x: ${powerups[powerups.length - 1].x}`);
                 }
             }
             
-            // Separate weapon powerup spawning with reduced rate
+            // Separate weapon powerup spawning with improved logic
             if (Math.random() < weaponSpawnRate && powerups.filter(p => p.isWeapon).length < maxWeaponPowerupsOnScreen) {
                 const weaponTypes = ['weaponPlasma', 'weaponSpread', 'weaponLaser', 'weaponMissile', 'weaponLightning', 'weaponIce', 'weaponFire', 'weaponEnergy', 'weaponQuantum', 'weaponSonic'];
                 const weaponType = weaponTypes[Math.floor(Math.random() * weaponTypes.length)];
                 powerups.push({
-                    x: Math.random() * (canvas.width - 28),
-                    y: -28,
-                    width: 26, // Reduced from 35
-                    height: 26, // Reduced from 35
-                    speed: 3,
+                    x: Math.random() * (canvas.width - 24),
+                    y: -24,
+                    width: 24,
+                    height: 24,
+                    speed: 2.5,
                     type: weaponType,
                     isWeapon: true // Mark as weapon powerup
                 });
@@ -2508,25 +2504,8 @@
             for (let i = powerups.length - 1; i >= 0; i--) {
                 const powerup = powerups[i];
                 
-                // Add bouncing animation for better visibility
-                const bounce = Math.sin(Date.now() * 0.005 + powerup.x * 0.01) * 2;
-                powerup.y += bounce * 0.1; // Subtle vertical bounce
-                
-                // Magnet effect - attract powerups to player
-                if (player.magnetActive) {
-                    const dx = player.x + player.width / 2 - powerup.x;
-                    const dy = player.y + player.height / 2 - powerup.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    
-                    if (distance > 0) {
-                        const magnetSpeed = 3;
-                        powerup.x += (dx / distance) * magnetSpeed;
-                        powerup.y += (dy / distance) * magnetSpeed;
-                    }
-                } else {
-                    // Normal movement
-                    powerup.y += powerup.speed;
-                }
+                // Simplified movement for better performance
+                powerup.y += powerup.speed;
                 
                 if (powerup.y > canvas.height) {
                     powerups.splice(i, 1);
@@ -2535,13 +2514,14 @@
         }
 
         function updateStars() {
-            stars.forEach(star => {
-                star.y += star.speed;
-                if (star.y > canvas.height) {
-                    star.y = -5;
-                    star.x = Math.random() * canvas.width;
+            // Optimized star movement for better performance
+            for (let i = 0; i < stars.length; i++) {
+                stars[i].y += stars[i].speed;
+                if (stars[i].y > canvas.height) {
+                    stars[i].y = -5;
+                    stars[i].x = Math.random() * canvas.width;
                 }
-            });
+            }
         }
 
         function checkCollisions() {
@@ -3239,12 +3219,14 @@
             const currentTime = Date.now();
             survivalTime = Math.floor((currentTime - startTime) / 1000);
             
-            // Update time-based challenges
-            updateChallengeProgress('time', survivalTime);
+            // Update time-based challenges (only every second)
+            if (currentTime % 1000 < 16) {
+                updateChallengeProgress('time', survivalTime);
+            }
             
-            // Update store system timers
+            // Update store system timers (optimized)
             if (scoreMultiplierTimer > 0) {
-                scoreMultiplierTimer -= 16; // 60fps
+                scoreMultiplierTimer -= 16;
                 if (scoreMultiplierTimer <= 0) {
                     scoreMultiplier = 1;
                 }
@@ -3264,16 +3246,29 @@
                 }
             }
 
+            // Optimized update order for better performance
             updateStars();
             updatePlayer();
             updateBullets();
-            updateEnemyBullets(); // Update enemy bullets
-            spawnEnemy();
-            spawnPowerup();
+            updateEnemyBullets();
+            
+            // Spawn logic (reduced frequency for better performance)
+            if (Math.random() < 0.02) {
+                spawnEnemy();
+            }
+            if (Math.random() < 0.01) {
+                spawnPowerup();
+            }
+            
             updateEnemies();
             updatePowerups();
             checkCollisions();
-            updateDifficulty(); // Update difficulty based on score
+            
+            // Update difficulty less frequently
+            if (currentTime % 5000 < 16) {
+                updateDifficulty();
+            }
+            
             draw();
 
             requestAnimationFrame(gameLoop);
