@@ -35,54 +35,115 @@
 
         // Your web app's Firebase configuration
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY_HERE",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.firebasestorage.app",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID",
-            measurementId: "YOUR_MEASUREMENT_ID"
+            apiKey: "AIzaSyC1b-JWvBRGti5LFKk7LqSS8p1QFbP_D88",
+            authDomain: "kaden---adelynn-adventures.firebaseapp.com",
+            projectId: "kaden---adelynn-adventures",
+            storageBucket: "kaden---adelynn-adventures.firebasestorage.app",
+            messagingSenderId: "265116401918",
+            appId: "1:265116401918:web:e1511695b92aeb05e0e5af",
+            measurementId: "G-W4Q02R318L"
         };
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        // Global Firebase state
+        window.firebaseState = {
+            initialized: false,
+            auth: null,
+            db: null,
+            analytics: null,
+            currentUser: null,
+            error: null
+        };
 
-        // Make Firebase available globally
-        window.firebaseApp = app;
-        window.firebaseAuth = auth;
-        window.firebaseDb = db;
-        window.firebaseAnalytics = analytics;
+        // Initialize Firebase with comprehensive error handling
+        try {
+            const app = initializeApp(firebaseConfig);
+            const analytics = getAnalytics(app);
+            const auth = getAuth(app);
+            const db = getFirestore(app);
 
-        // Anonymous authentication
-        signInAnonymously(auth)
-            .then(() => {
-                console.log('Firebase: Anonymous authentication successful');
-            })
-            .catch((error) => {
-                console.error('Firebase: Authentication error:', error);
+            // Make Firebase available globally
+            window.firebaseApp = app;
+            window.firebaseAuth = auth;
+            window.firebaseDb = db;
+            window.firebaseAnalytics = analytics;
+            window.firebaseState.auth = auth;
+            window.firebaseState.db = db;
+            window.firebaseState.analytics = analytics;
+            window.firebaseState.initialized = true;
+
+            console.log('Firebase: Successfully initialized');
+
+            // Anonymous authentication with enhanced error handling
+            signInAnonymously(auth)
+                .then(() => {
+                    console.log('Firebase: Anonymous authentication successful');
+                    window.firebaseState.error = null;
+                })
+                .catch((error) => {
+                    console.warn('Firebase: Authentication error (will use localStorage fallback):', error.message);
+                    window.firebaseState.error = error.message;
+                    
+                    // Set up a mock user for localStorage-only mode
+                    window.currentUser = {
+                        uid: 'local-user-' + Date.now(),
+                        isAnonymous: true,
+                        displayName: 'Anonymous'
+                    };
+                    window.firebaseState.currentUser = window.currentUser;
+                    
+                    console.log('Firebase: Using localStorage-only mode with mock user');
+                });
+
+            // Auth state observer with error handling
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    console.log('Firebase: User is signed in:', user.uid);
+                    window.currentUser = user;
+                    window.firebaseState.currentUser = user;
+                    window.firebaseState.error = null;
+                } else {
+                    console.log('Firebase: User is signed out');
+                    window.currentUser = null;
+                    window.firebaseState.currentUser = null;
+                }
+            }, (error) => {
+                console.warn('Firebase: Auth state observer error:', error.message);
+                window.firebaseState.error = error.message;
+                
+                // Set up mock user for localStorage-only mode
+                if (!window.currentUser) {
+                    window.currentUser = {
+                        uid: 'local-user-' + Date.now(),
+                        isAnonymous: true,
+                        displayName: 'Anonymous'
+                    };
+                    window.firebaseState.currentUser = window.currentUser;
+                }
             });
 
-        // Auth state observer
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                console.log('Firebase: User is signed in:', user.uid);
-                window.currentUser = user;
-            } else {
-                console.log('Firebase: User is signed out');
-                window.currentUser = null;
-            }
-        });
+        } catch (error) {
+            console.warn('Firebase: Initialization error (will use localStorage fallback):', error.message);
+            window.firebaseState.error = error.message;
+            
+            // Set up mock user for localStorage-only mode
+            window.currentUser = {
+                uid: 'local-user-' + Date.now(),
+                isAnonymous: true,
+                displayName: 'Anonymous'
+            };
+            window.firebaseState.currentUser = window.currentUser;
+        }
 
-        // Firebase functions for the game
+        // Robust Firebase functions with comprehensive fallbacks
         window.firebaseFunctions = {
-            // Save high score to Firebase (free tier only)
+            // Save high score to Firebase with fallback
             saveHighScore: async (score, playerName = 'Anonymous') => {
-                if (!window.currentUser) {
-                    // Fallback to localStorage if no Firebase auth
-                    saveHighScoreToLocal(score, playerName);
+                // Always save to localStorage first for reliability
+                saveHighScoreToLocal(score, playerName);
+                
+                // Try Firebase if available and no auth errors
+                if (!window.firebaseState.initialized || !window.firebaseState.currentUser || window.firebaseState.error) {
+                    console.log('Firebase: Using localStorage fallback for high score (auth error or not initialized)');
                     return;
                 }
                 
@@ -91,82 +152,138 @@
                         playerName: playerName,
                         score: score,
                         timestamp: new Date().toISOString(),
-                        userId: window.currentUser.uid
+                        userId: window.firebaseState.currentUser.uid
                     };
                     
-                    await addDoc(collection(db, 'highScores'), scoreData);
-                    console.log('Firebase: High score saved successfully (free tier)');
+                    await addDoc(collection(window.firebaseState.db, 'highScores'), scoreData);
+                    console.log('Firebase: High score saved successfully');
                 } catch (error) {
-                    console.error('Firebase: Error saving high score, using localStorage fallback:', error);
-                    saveHighScoreToLocal(score, playerName);
+                    console.warn('Firebase: Error saving high score (using localStorage):', error.message);
+                    // localStorage already saved above, so no action needed
                 }
             },
 
-            // Get top high scores from Firebase (free tier only)
+            // Get top high scores with fallback
             getHighScores: async () => {
+                // Always return from localStorage for immediate response
+                const localScores = getHighScoresFromLocal();
+                
+                // Try Firebase if available and no auth errors
+                if (!window.firebaseState.initialized || window.firebaseState.error) {
+                    console.log('Firebase: Using localStorage fallback for high scores (auth error or not initialized)');
+                    return localScores;
+                }
+                
                 try {
-                    const q = query(collection(db, 'highScores'), orderBy('score', 'desc'), limit(10));
+                    const q = query(collection(window.firebaseState.db, 'highScores'), orderBy('score', 'desc'), limit(10));
                     const querySnapshot = await getDocs(q);
                     const scores = [];
                     querySnapshot.forEach((doc) => {
                         scores.push(doc.data());
                     });
-                    return scores;
+                    
+                    // Merge with localStorage scores and return best
+                    const allScores = [...localScores, ...scores];
+                    allScores.sort((a, b) => b.score - a.score);
+                    return allScores.slice(0, 10);
                 } catch (error) {
-                    console.error('Firebase: Error getting high scores, using localStorage fallback:', error);
-                    return getHighScoresFromLocal();
+                    console.warn('Firebase: Error getting high scores (using localStorage):', error.message);
+                    return localScores;
                 }
             },
 
-            // Save game stats (free tier only - limited usage)
+            // Save game stats with fallback
             saveGameStats: async (stats) => {
-                if (!window.currentUser) {
-                    // Don't save stats if no auth (save bandwidth)
+                // Always save to localStorage first
+                saveGameStatsToLocal(stats);
+                
+                // Try Firebase if available and no auth errors
+                if (!window.firebaseState.initialized || !window.firebaseState.currentUser || window.firebaseState.error) {
+                    console.log('Firebase: Using localStorage fallback for game stats (auth error or not initialized)');
                     return;
                 }
                 
                 try {
                     const statsData = {
                         ...stats,
-                        userId: window.currentUser.uid,
+                        userId: window.firebaseState.currentUser.uid,
                         timestamp: new Date().toISOString()
                     };
                     
-                    await addDoc(collection(db, 'gameStats'), statsData);
-                    console.log('Firebase: Game stats saved successfully (free tier)');
+                    await addDoc(collection(window.firebaseState.db, 'gameStats'), statsData);
+                    console.log('Firebase: Game stats saved successfully');
                 } catch (error) {
-                    console.error('Firebase: Error saving game stats (free tier limit reached):', error);
-                    // Don't retry to avoid hitting limits
+                    console.warn('Firebase: Error saving game stats (using localStorage):', error.message);
+                    // localStorage already saved above, so no action needed
                 }
             },
 
-            // Track game event (free tier only - limited usage)
+            // Track game event with fallback
             trackEvent: (eventName, parameters = {}) => {
-                if (analytics) {
+                // Always log locally
+                console.log('Game Event:', eventName, parameters);
+                
+                // Try Firebase analytics if available
+                if (window.firebaseState.initialized && window.firebaseState.analytics) {
                     try {
-                        analytics.logEvent(eventName, parameters);
-                        console.log('Firebase: Event tracked (free tier):', eventName);
+                        window.firebaseState.analytics.logEvent(eventName, parameters);
+                        console.log('Firebase: Event tracked:', eventName);
                     } catch (error) {
-                        console.log('Firebase: Analytics error (free tier limit reached):', error);
+                        console.warn('Firebase: Analytics error (using local logging):', error.message);
                     }
                 }
+            },
+
+            // Check Firebase status
+            getStatus: () => {
+                return {
+                    initialized: window.firebaseState.initialized,
+                    authenticated: !!window.firebaseState.currentUser,
+                    error: window.firebaseState.error
+                };
             }
         };
 
-        // Local storage fallback functions
+        // Enhanced localStorage functions
         function saveHighScoreToLocal(score, playerName) {
-            const scores = JSON.parse(localStorage.getItem('highScores') || '[]');
-            scores.push({ playerName, score, timestamp: new Date().toISOString() });
-            scores.sort((a, b) => b.score - a.score);
-            scores.splice(10); // Keep only top 10
-            localStorage.setItem('highScores', JSON.stringify(scores));
-            console.log('LocalStorage: High score saved');
+            try {
+                const scores = JSON.parse(localStorage.getItem('highScores') || '[]');
+                scores.push({ playerName, score, timestamp: new Date().toISOString() });
+                scores.sort((a, b) => b.score - a.score);
+                scores.splice(10); // Keep only top 10
+                localStorage.setItem('highScores', JSON.stringify(scores));
+                console.log('LocalStorage: High score saved successfully');
+            } catch (error) {
+                console.error('LocalStorage: Error saving high score:', error);
+            }
         }
 
         function getHighScoresFromLocal() {
-            const scores = JSON.parse(localStorage.getItem('highScores') || '[]');
-            return scores.slice(0, 10); // Return top 10
+            try {
+                const scores = JSON.parse(localStorage.getItem('highScores') || '[]');
+                return scores.slice(0, 10); // Return top 10
+            } catch (error) {
+                console.error('LocalStorage: Error getting high scores:', error);
+                return [];
+            }
         }
+
+        function saveGameStatsToLocal(stats) {
+            try {
+                const gameStats = JSON.parse(localStorage.getItem('gameStats') || '[]');
+                gameStats.push({ ...stats, timestamp: new Date().toISOString() });
+                gameStats.splice(50); // Keep only last 50 games
+                localStorage.setItem('gameStats', JSON.stringify(gameStats));
+                console.log('LocalStorage: Game stats saved successfully');
+            } catch (error) {
+                console.error('LocalStorage: Error saving game stats:', error);
+            }
+        }
+
+        // Initialize game data on load
+        window.addEventListener('load', () => {
+            console.log('Firebase Status:', window.firebaseFunctions.getStatus());
+        });
     </script>
     
     <!-- Simple Icon Approach - Test -->
@@ -4015,10 +4132,8 @@
             }, 1000);
         }
 
-        // Keyboard event listeners
+        // Additional keyboard controls
         document.addEventListener('keydown', (e) => {
-            keys[e.key] = true;
-            
             // Pause/Resume controls
             if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
                 if (gameRunning) {
@@ -4032,23 +4147,6 @@
                 if (gameRunning && gamePaused) {
                     e.preventDefault();
                     backToMenu();
-                }
-            }
-            
-            // Weapon switching (only when not paused)
-            if (!gamePaused && gameRunning) {
-                switch(e.key) {
-                    case '1': currentWeapon = 'basic'; showWeaponSwitchMessage('🔫 Basic Laser'); break;
-                    case '2': currentWeapon = 'plasma'; showWeaponSwitchMessage('🔵 Plasma Cannon'); break;
-                    case '3': currentWeapon = 'spread'; showWeaponSwitchMessage('🔶 Spread Shot'); break;
-                    case '4': currentWeapon = 'laser'; showWeaponSwitchMessage('🔴 Laser Beam'); break;
-                    case '5': currentWeapon = 'missile'; showWeaponSwitchMessage('🚀 Homing Missile'); break;
-                    case '6': currentWeapon = 'lightning'; showWeaponSwitchMessage('⚡ Lightning Bolt'); break;
-                    case '7': currentWeapon = 'ice'; showWeaponSwitchMessage('❄️ Ice Shard'); break;
-                    case '8': currentWeapon = 'fire'; showWeaponSwitchMessage('🔥 Fireball'); break;
-                    case '9': currentWeapon = 'energy'; showWeaponSwitchMessage('💚 Energy Pulse'); break;
-                    case '0': currentWeapon = 'quantum'; showWeaponSwitchMessage('💜 Quantum Blaster'); break;
-                    case '-': currentWeapon = 'sonic'; showWeaponSwitchMessage('🎵 Sonic Wave'); break;
                 }
             }
         });
