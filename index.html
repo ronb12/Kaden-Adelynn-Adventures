@@ -2879,6 +2879,20 @@
                     challengeCompleteMessage = '';
                 }
             }
+
+            // Draw weapon indicator
+            if (gameRunning) {
+                const weapon = weapons[currentWeapon];
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(10, 60, 200, 40);
+                ctx.fillStyle = weapon.color;
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText(`🔫 ${weapon.name}`, 20, 80);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '12px Arial';
+                ctx.fillText(`Damage: ${weapon.damage}x | Fire Rate: ${weapon.fireRate}x`, 20, 95);
+            }
         }
 
         function gameLoop() {
@@ -3660,7 +3674,8 @@
             if (weapons[weaponType]) {
                 const previousWeapon = currentWeapon;
                 currentWeapon = weaponType;
-                console.log(`Switched to ${weapons[weaponType].name}`);
+                console.log(`🔫 Switched weapon: ${weapons[previousWeapon].name} → ${weapons[weaponType].name}`);
+                console.log(`   Damage: ${weapons[weaponType].damage}x | Fire Rate: ${weapons[weaponType].fireRate}x | Color: ${weapons[weaponType].color}`);
                 
                 // Track weapon switching event
                 if (window.firebaseFunctions) {
@@ -3675,6 +3690,8 @@
                 
                 // Show weapon switch message
                 showWeaponSwitchMessage(weapons[weaponType].name);
+            } else {
+                console.error(`❌ Invalid weapon type: ${weaponType}`);
             }
         }
         
