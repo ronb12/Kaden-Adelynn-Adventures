@@ -2053,12 +2053,12 @@
             ctx.restore();
         }
 
-        function drawPowerup(x, y, type) {
+        function drawPowerup(powerup) {
             ctx.save();
-            ctx.translate(x + 10, y + 10);
+            ctx.translate(powerup.x + powerup.width / 2, powerup.y + powerup.height / 2);
             
             let emoji;
-            switch(type) {
+            switch(powerup.type) {
                 case 'speed': emoji = '⚡'; break;
                 case 'double': emoji = '🚀'; break;
                 case 'shield': emoji = '🛡️'; break;
@@ -2067,7 +2067,7 @@
                 case 'fireRate': emoji = '🔥'; break;
                 case 'money': emoji = '💵'; break;
                 case 'diamond': emoji = '💎'; break;
-                // Weapon powerups
+                // Weapon powerups with enhanced visibility
                 case 'weaponPlasma': emoji = '🔵'; break;
                 case 'weaponSpread': emoji = '🔶'; break;
                 case 'weaponLaser': emoji = '🔴'; break;
@@ -2075,23 +2075,46 @@
                 case 'weaponLightning': emoji = '⚡'; break;
                 case 'weaponIce': emoji = '❄️'; break;
                 case 'weaponFire': emoji = '🔥'; break;
-                case 'weaponEnergy': emoji = '🟢'; break;
-                case 'weaponQuantum': emoji = '🟣'; break;
-                case 'weaponSonic': emoji = '🔊'; break;
+                case 'weaponEnergy': emoji = '💚'; break;
+                case 'weaponQuantum': emoji = '💜'; break;
+                case 'weaponSonic': emoji = '🎵'; break;
+            }
+            
+            // Enhanced rendering for weapon powerups
+            if (powerup.isWeapon) {
+                // Add pulsing animation for weapon powerups
+                const pulse = Math.sin(Date.now() * 0.01) * 0.2 + 1;
+                ctx.scale(pulse, pulse);
+                
+                // Add rainbow glow effect
+                const hue = (Date.now() * 0.1) % 360;
+                ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
+                ctx.shadowBlur = 15;
+                
+                // Draw background circle for weapon powerups
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                ctx.beginPath();
+                ctx.arc(0, 0, 15, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                // Regular powerup glow
+                ctx.shadowColor = 'white';
+                ctx.shadowBlur = 5;
             }
             
             // Draw emoji
-            ctx.font = '20px Arial';
+            ctx.font = powerup.isWeapon ? '24px Arial' : '20px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(emoji, 0, 0);
             
-            // Add a subtle glow effect
-            ctx.shadowColor = 'white';
-            ctx.shadowBlur = 5;
-            ctx.fillText(emoji, 0, 0);
-            ctx.shadowBlur = 0;
+            // Add extra glow for weapon powerups
+            if (powerup.isWeapon) {
+                ctx.shadowBlur = 8;
+                ctx.fillText(emoji, 0, 0);
+            }
             
+            ctx.shadowBlur = 0;
             ctx.restore();
         }
 
@@ -2283,9 +2306,13 @@
         }
 
         function spawnPowerup() {
-            if (Math.random() < 0.008) {
-                const types = ['speed', 'double', 'shield', 'extraLife', 'starPower', 'fireRate', 'money', 'diamond', 'weaponPlasma', 'weaponSpread', 'weaponLaser', 'weaponMissile', 'weaponLightning', 'weaponIce', 'weaponFire', 'weaponEnergy', 'weaponQuantum', 'weaponSonic'];
-                const type = types[Math.floor(Math.random() * types.length)];
+            // Increase weapon powerup spawn rate
+            const weaponSpawnRate = 0.015; // Increased from 0.008
+            const regularSpawnRate = 0.008;
+            
+            if (Math.random() < regularSpawnRate) {
+                const regularTypes = ['speed', 'double', 'shield', 'extraLife', 'starPower', 'fireRate', 'money', 'diamond'];
+                const type = regularTypes[Math.floor(Math.random() * regularTypes.length)];
                 powerups.push({
                     x: Math.random() * (canvas.width - 20),
                     y: -20,
@@ -2297,6 +2324,22 @@
                 if (type === 'diamond') {
                     console.log(`💎 Diamond powerup spawned at x: ${powerups[powerups.length - 1].x}`);
                 }
+            }
+            
+            // Separate weapon powerup spawning with higher rate
+            if (Math.random() < weaponSpawnRate) {
+                const weaponTypes = ['weaponPlasma', 'weaponSpread', 'weaponLaser', 'weaponMissile', 'weaponLightning', 'weaponIce', 'weaponFire', 'weaponEnergy', 'weaponQuantum', 'weaponSonic'];
+                const weaponType = weaponTypes[Math.floor(Math.random() * weaponTypes.length)];
+                powerups.push({
+                    x: Math.random() * (canvas.width - 20),
+                    y: -20,
+                    width: 25, // Slightly larger for weapon powerups
+                    height: 25,
+                    speed: 2.5, // Slightly faster
+                    type: weaponType,
+                    isWeapon: true // Mark as weapon powerup
+                });
+                console.log(`🔫 Weapon powerup spawned: ${weaponType} at x: ${powerups[powerups.length - 1].x}`);
             }
         }
 
@@ -2558,62 +2601,102 @@
                 case 'weaponPlasma':
                     const previousWeapon = currentWeapon;
                     currentWeapon = 'plasma';
-                    showWeaponSwitchMessage('Plasma Cannon');
-                    setTimeout(() => currentWeapon = previousWeapon, 20000);
+                    showWeaponSwitchMessage('🔵 Plasma Cannon - 30s');
+                    setTimeout(() => {
+                        currentWeapon = previousWeapon;
+                        showWeaponSwitchMessage(`Back to ${weapons[previousWeapon].name}`);
+                    }, 30000); // 30 seconds
+                    console.log(`🔫 Collected Plasma Cannon powerup!`);
                     break;
                 case 'weaponSpread':
                     const prevWeapon = currentWeapon;
                     currentWeapon = 'spread';
-                    showWeaponSwitchMessage('Spread Shot');
-                    setTimeout(() => currentWeapon = prevWeapon, 20000);
+                    showWeaponSwitchMessage('🔶 Spread Shot - 30s');
+                    setTimeout(() => {
+                        currentWeapon = prevWeapon;
+                        showWeaponSwitchMessage(`Back to ${weapons[prevWeapon].name}`);
+                    }, 30000);
+                    console.log(`🔫 Collected Spread Shot powerup!`);
                     break;
                 case 'weaponLaser':
                     const prevWeapon2 = currentWeapon;
                     currentWeapon = 'laser';
-                    showWeaponSwitchMessage('Laser Beam');
-                    setTimeout(() => currentWeapon = prevWeapon2, 20000);
+                    showWeaponSwitchMessage('🔴 Laser Beam - 30s');
+                    setTimeout(() => {
+                        currentWeapon = prevWeapon2;
+                        showWeaponSwitchMessage(`Back to ${weapons[prevWeapon2].name}`);
+                    }, 30000);
+                    console.log(`🔫 Collected Laser Beam powerup!`);
                     break;
                 case 'weaponMissile':
                     const prevWeapon3 = currentWeapon;
                     currentWeapon = 'missile';
-                    showWeaponSwitchMessage('Homing Missile');
-                    setTimeout(() => currentWeapon = prevWeapon3, 20000);
+                    showWeaponSwitchMessage('🚀 Homing Missile - 30s');
+                    setTimeout(() => {
+                        currentWeapon = prevWeapon3;
+                        showWeaponSwitchMessage(`Back to ${weapons[prevWeapon3].name}`);
+                    }, 30000);
+                    console.log(`🔫 Collected Homing Missile powerup!`);
                     break;
                 case 'weaponLightning':
                     const prevWeapon4 = currentWeapon;
                     currentWeapon = 'lightning';
-                    showWeaponSwitchMessage('Lightning Bolt');
-                    setTimeout(() => currentWeapon = prevWeapon4, 20000);
+                    showWeaponSwitchMessage('⚡ Lightning Bolt - 30s');
+                    setTimeout(() => {
+                        currentWeapon = prevWeapon4;
+                        showWeaponSwitchMessage(`Back to ${weapons[prevWeapon4].name}`);
+                    }, 30000);
+                    console.log(`🔫 Collected Lightning Bolt powerup!`);
                     break;
                 case 'weaponIce':
                     const prevWeapon5 = currentWeapon;
                     currentWeapon = 'ice';
-                    showWeaponSwitchMessage('Ice Shard');
-                    setTimeout(() => currentWeapon = prevWeapon5, 20000);
+                    showWeaponSwitchMessage('❄️ Ice Shard - 30s');
+                    setTimeout(() => {
+                        currentWeapon = prevWeapon5;
+                        showWeaponSwitchMessage(`Back to ${weapons[prevWeapon5].name}`);
+                    }, 30000);
+                    console.log(`🔫 Collected Ice Shard powerup!`);
                     break;
                 case 'weaponFire':
                     const prevWeapon6 = currentWeapon;
                     currentWeapon = 'fire';
-                    showWeaponSwitchMessage('Fireball');
-                    setTimeout(() => currentWeapon = prevWeapon6, 20000);
+                    showWeaponSwitchMessage('🔥 Fireball - 30s');
+                    setTimeout(() => {
+                        currentWeapon = prevWeapon6;
+                        showWeaponSwitchMessage(`Back to ${weapons[prevWeapon6].name}`);
+                    }, 30000);
+                    console.log(`🔫 Collected Fireball powerup!`);
                     break;
                 case 'weaponEnergy':
                     const prevWeapon7 = currentWeapon;
                     currentWeapon = 'energy';
-                    showWeaponSwitchMessage('Energy Pulse');
-                    setTimeout(() => currentWeapon = prevWeapon7, 20000);
+                    showWeaponSwitchMessage('💚 Energy Pulse - 30s');
+                    setTimeout(() => {
+                        currentWeapon = prevWeapon7;
+                        showWeaponSwitchMessage(`Back to ${weapons[prevWeapon7].name}`);
+                    }, 30000);
+                    console.log(`🔫 Collected Energy Pulse powerup!`);
                     break;
                 case 'weaponQuantum':
                     const prevWeapon8 = currentWeapon;
                     currentWeapon = 'quantum';
-                    showWeaponSwitchMessage('Quantum Blaster');
-                    setTimeout(() => currentWeapon = prevWeapon8, 20000);
+                    showWeaponSwitchMessage('💜 Quantum Blaster - 30s');
+                    setTimeout(() => {
+                        currentWeapon = prevWeapon8;
+                        showWeaponSwitchMessage(`Back to ${weapons[prevWeapon8].name}`);
+                    }, 30000);
+                    console.log(`🔫 Collected Quantum Blaster powerup!`);
                     break;
                 case 'weaponSonic':
                     const prevWeapon9 = currentWeapon;
                     currentWeapon = 'sonic';
-                    showWeaponSwitchMessage('Sonic Wave');
-                    setTimeout(() => currentWeapon = prevWeapon9, 20000);
+                    showWeaponSwitchMessage('🎵 Sonic Wave - 30s');
+                    setTimeout(() => {
+                        currentWeapon = prevWeapon9;
+                        showWeaponSwitchMessage(`Back to ${weapons[prevWeapon9].name}`);
+                    }, 30000);
+                    console.log(`🔫 Collected Sonic Wave powerup!`);
                     break;
             }
         }
@@ -2685,7 +2768,7 @@
 
             // Draw powerups
             powerups.forEach(powerup => {
-                drawPowerup(powerup.x, powerup.y, powerup.type);
+                drawPowerup(powerup);
             });
 
             // Draw enemies
