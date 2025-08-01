@@ -2103,7 +2103,7 @@
             ctx.globalAlpha = trailOpacity;
             ctx.fillStyle = powerup.isWeapon ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)';
             ctx.beginPath();
-            ctx.arc(-trailOffset, -trailOffset, powerup.isWeapon ? 18 : 15, 0, Math.PI * 2);
+            ctx.arc(-trailOffset, -trailOffset, powerup.isWeapon ? 12 : 10, 0, Math.PI * 2); // Reduced from 18/15
             ctx.fill();
             
             ctx.globalAlpha = 1;
@@ -2149,14 +2149,14 @@
                 // Draw background circle for weapon powerups
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
                 ctx.beginPath();
-                ctx.arc(0, 0, 22, 0, Math.PI * 2);
+                ctx.arc(0, 0, 16, 0, Math.PI * 2); // Reduced from 22
                 ctx.fill();
                 
                 // Add outer glow ring
                 ctx.strokeStyle = `hsl(${hue}, 100%, 70%)`;
                 ctx.lineWidth = 3;
                 ctx.beginPath();
-                ctx.arc(0, 0, 25, 0, Math.PI * 2);
+                ctx.arc(0, 0, 19, 0, Math.PI * 2); // Reduced from 25
                 ctx.stroke();
             } else {
                 // Enhanced visibility for regular powerups
@@ -2166,19 +2166,19 @@
                 // Draw background circle for better visibility
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
                 ctx.beginPath();
-                ctx.arc(0, 0, 20, 0, Math.PI * 2);
+                ctx.arc(0, 0, 14, 0, Math.PI * 2); // Reduced from 20
                 ctx.fill();
                 
                 // Add outer glow ring
                 ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
-                ctx.arc(0, 0, 23, 0, Math.PI * 2);
+                ctx.arc(0, 0, 17, 0, Math.PI * 2); // Reduced from 23
                 ctx.stroke();
             }
             
-            // Draw emoji with larger size for better visibility
-            ctx.font = powerup.isWeapon ? '32px Arial' : '28px Arial';
+            // Draw emoji with smaller size for better balance
+            ctx.font = powerup.isWeapon ? '24px Arial' : '20px Arial'; // Reduced from 32px/28px
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(emoji, 0, 0);
@@ -2381,19 +2381,23 @@
         }
 
         function spawnPowerup() {
-            // Increased powerup spawn rates for better visibility and gameplay
-            const weaponSpawnRate = 0.025; // Increased from 0.015
-            const regularSpawnRate = 0.015; // Increased from 0.008
+            // Reduced powerup spawn rates for better balance
+            const weaponSpawnRate = 0.015; // Reduced from 0.025
+            const regularSpawnRate = 0.008; // Reduced from 0.015
             
-            if (Math.random() < regularSpawnRate) {
+            // Limit total powerups on screen to prevent overwhelming
+            const maxPowerupsOnScreen = 8;
+            const maxWeaponPowerupsOnScreen = 3;
+            
+            if (Math.random() < regularSpawnRate && powerups.filter(p => !p.isWeapon).length < maxPowerupsOnScreen) {
                 const regularTypes = ['speed', 'double', 'shield', 'extraLife', 'starPower', 'fireRate', 'money', 'diamond', 'bomb', 'freeze', 'magnet'];
                 const type = regularTypes[Math.floor(Math.random() * regularTypes.length)];
                 powerups.push({
-                    x: Math.random() * (canvas.width - 30),
-                    y: -30,
-                    width: 30, // Increased from 20
-                    height: 30, // Increased from 20
-                    speed: 2.5, // Slightly faster
+                    x: Math.random() * (canvas.width - 25),
+                    y: -25,
+                    width: 22, // Reduced from 30
+                    height: 22, // Reduced from 30
+                    speed: 2.5,
                     type: type
                 });
                 if (type === 'diamond') {
@@ -2401,16 +2405,16 @@
                 }
             }
             
-            // Separate weapon powerup spawning with higher rate
-            if (Math.random() < weaponSpawnRate) {
+            // Separate weapon powerup spawning with reduced rate
+            if (Math.random() < weaponSpawnRate && powerups.filter(p => p.isWeapon).length < maxWeaponPowerupsOnScreen) {
                 const weaponTypes = ['weaponPlasma', 'weaponSpread', 'weaponLaser', 'weaponMissile', 'weaponLightning', 'weaponIce', 'weaponFire', 'weaponEnergy', 'weaponQuantum', 'weaponSonic'];
                 const weaponType = weaponTypes[Math.floor(Math.random() * weaponTypes.length)];
                 powerups.push({
-                    x: Math.random() * (canvas.width - 35),
-                    y: -35,
-                    width: 35, // Increased from 25
-                    height: 35, // Increased from 25
-                    speed: 3, // Slightly faster
+                    x: Math.random() * (canvas.width - 28),
+                    y: -28,
+                    width: 26, // Reduced from 35
+                    height: 26, // Reduced from 35
+                    speed: 3,
                     type: weaponType,
                     isWeapon: true // Mark as weapon powerup
                 });
