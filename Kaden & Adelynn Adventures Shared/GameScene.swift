@@ -168,10 +168,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: - Scene Setup
     class func newGameScene() -> GameScene {
-        guard let scene = SKScene(fileNamed: "GameScene") as? GameScene else {
-            print("Failed to load GameScene.sks")
-            abort()
-        }
+        // Create scene with a standard size that will scale to fit
+        let scene = GameScene(size: CGSize(width: 750, height: 1334))
         scene.scaleMode = .aspectFill
         return scene
     }
@@ -183,6 +181,31 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         setupUI()
         setupStars()
         showMainMenu()
+    }
+    
+    // MARK: - Orientation Handling
+    override func didChangeSize(_ oldSize: CGSize) {
+        super.didChangeSize(oldSize)
+        
+        // Adjust UI positions for new orientation
+        if let scoreLabel = scoreLabel {
+            scoreLabel.position = CGPoint(x: 100, y: size.height - 50)
+        }
+        if let livesLabel = livesLabel {
+            livesLabel.position = CGPoint(x: 100, y: size.height - 80)
+        }
+        if let weaponLabel = weaponLabel {
+            weaponLabel.position = CGPoint(x: 100, y: size.height - 110)
+        }
+        if let levelLabel = levelLabel {
+            levelLabel.position = CGPoint(x: 100, y: size.height - 140)
+        }
+        
+        // Reposition stars for new size
+        for star in stars {
+            star.position = CGPoint(x: CGFloat.random(in: 0...size.width),
+                                  y: CGFloat.random(in: 0...size.height))
+        }
     }
     
     // MARK: - UI Setup
