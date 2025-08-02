@@ -2291,16 +2291,50 @@
             const now = Date.now();
             const currentShotCooldown = shotCooldown / ship.fireRate;
             if (keys['Space'] && now - lastShot > currentShotCooldown) {
+                // Create bullets based on current weapon
+                const bulletConfig = {
+                    x: player.x + player.width / 2 - weapon.bulletSize.width / 2,
+                    y: player.y,
+                    width: weapon.bulletSize.width,
+                    height: weapon.bulletSize.height,
+                    speed: weapon.bulletSpeed,
+                    color: weapon.color,
+                    type: currentWeapon,
+                    damage: weapon.damage
+                };
+                
                 if (doubleShot) {
-                    bullets.push({ x: player.x + 5, y: player.y, width: 4, height: 8, speed: 8 });
-                    bullets.push({ x: player.x + 15, y: player.y, width: 4, height: 8, speed: 8 });
-                    bullets.push({ x: player.x + 25, y: player.y, width: 4, height: 8, speed: 8 });
-                    bullets.push({ x: player.x + 35, y: player.y, width: 4, height: 8, speed: 8 });
-                    playMissileSound();
+                    // Double shot creates multiple bullets
+                    bullets.push({ ...bulletConfig, x: player.x + 5 });
+                    bullets.push({ ...bulletConfig, x: player.x + 15 });
+                    bullets.push({ ...bulletConfig, x: player.x + 25 });
+                    bullets.push({ ...bulletConfig, x: player.x + 35 });
                 } else {
-                    bullets.push({ x: player.x + 18, y: player.y, width: 4, height: 8, speed: 8 });
-                    playMissileSound();
+                    // Single shot
+                    bullets.push(bulletConfig);
                 }
+                
+                // Special weapon effects
+                if (currentWeapon === 'spread') {
+                    // Spread shot creates diagonal bullets
+                    bullets.push({
+                        ...bulletConfig,
+                        speedX: -2,
+                        speedY: -weapon.bulletSpeed
+                    });
+                    bullets.push({
+                        ...bulletConfig,
+                        speedX: 2,
+                        speedY: -weapon.bulletSpeed
+                    });
+                }
+                
+                if (currentWeapon === 'missile') {
+                    // Missiles have homing capability
+                    bulletConfig.homing = true;
+                }
+                
+                playMissileSound();
                 lastShot = now;
             }
             
