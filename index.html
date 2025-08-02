@@ -543,20 +543,21 @@
         
         #scoreBoard {
             position: fixed;
-            top: 10px;
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
             background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(20, 20, 60, 0.95) 100%);
             border: 2px solid #4a90e2;
             border-radius: 15px;
             padding: 12px 20px;
-            z-index: 100;
+            z-index: 50;
             display: none;
             box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
             backdrop-filter: blur(15px);
             min-width: 400px;
             animation: scoreboardGlow 3s ease-in-out infinite alternate;
             font-family: 'Courier New', monospace;
+            max-width: 90vw;
         }
         
         @keyframes scoreboardGlow {
@@ -2458,13 +2459,13 @@
         }
 
         function spawnPowerup() {
-            // Improved powerup spawn rates for better balance
-            const weaponSpawnRate = 0.008; // Reduced for better balance
-            const regularSpawnRate = 0.005; // Reduced for better balance
+            // Increased powerup spawn rates for better visibility
+            const weaponSpawnRate = 0.015; // Increased for better balance
+            const regularSpawnRate = 0.012; // Increased for better balance
             
             // Limit total powerups on screen to prevent overwhelming
-            const maxPowerupsOnScreen = 6;
-            const maxWeaponPowerupsOnScreen = 2;
+            const maxPowerupsOnScreen = 8;
+            const maxWeaponPowerupsOnScreen = 3;
             
             if (Math.random() < regularSpawnRate && powerups.filter(p => !p.isWeapon).length < maxPowerupsOnScreen) {
                 const regularTypes = ['speed', 'double', 'shield', 'extraLife', 'starPower', 'fireRate', 'money', 'diamond', 'bomb', 'freeze', 'magnet'];
@@ -3246,20 +3247,13 @@
                 }
             }
 
-            // Optimized update order for better performance
+            // Restore proper update order for better gameplay
             updateStars();
             updatePlayer();
             updateBullets();
             updateEnemyBullets();
-            
-            // Spawn logic (reduced frequency for better performance)
-            if (Math.random() < 0.02) {
-                spawnEnemy();
-            }
-            if (Math.random() < 0.01) {
-                spawnPowerup();
-            }
-            
+            spawnEnemy(); // Always spawn enemies
+            spawnPowerup(); // Always spawn powerups
             updateEnemies();
             updatePowerups();
             checkCollisions();
