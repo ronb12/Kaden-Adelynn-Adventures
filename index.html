@@ -1374,8 +1374,8 @@
         };
         
         // Dynamic difficulty scaling based on score
-        let enemySpawnRate = 0.02;
-        let enemySpeedMultiplier = 1;
+        let enemySpawnRate = 0.04; // Increased from 0.02 for more enemies
+        let enemySpeedMultiplier = 1.5; // Increased from 1 for faster enemies
         let bossActive = false;
         let bossHealth = 0;
         let bossMaxHealth = 0;
@@ -1863,8 +1863,8 @@
             currentWeapon = 'basic';
             shotCooldown = 200;
             lastShot = 0;
-            enemySpawnRate = 0.02;
-            enemySpeedMultiplier = 1;
+            enemySpawnRate = 0.04; // Increased from 0.02 for more enemies
+            enemySpeedMultiplier = 1.5; // Increased from 1 for faster enemies
             bossActive = false;
             bossHealth = 0;
             bossMaxHealth = 0;
@@ -2400,10 +2400,10 @@
                     y: -40,
                     width: 40,
                     height: 40,
-                    speed: (type === 'fast' ? 4 + Math.random() * 2 : 2 + Math.random() * 2) * enemySpeedMultiplier,
+                    speed: (type === 'fast' ? 6 + Math.random() * 3 : 3 + Math.random() * 3) * enemySpeedMultiplier,
                     type: type,
                     lastShot: Date.now(),
-                    shotCooldown: type === 'fast' ? 1500 : 2000
+                    shotCooldown: type === 'fast' ? 1200 : 1800
                 };
                 enemies.push(enemy);
                 // Enemy spawned successfully
@@ -3490,11 +3490,11 @@
         
         // Dynamic difficulty scaling based on score
         function updateDifficulty() {
-            // Increase spawn rate based on score (capped to prevent overwhelming)
-            enemySpawnRate = Math.min(0.06, 0.015 + (score / 1000) * 0.008);
+            // Increase spawn rate based on score (more aggressive scaling)
+            enemySpawnRate = Math.min(0.08, 0.04 + (score / 500) * 0.01);
             
-            // Increase enemy speed based on score (capped for playability)
-            enemySpeedMultiplier = Math.min(2.2, 1 + (score / 600) * 0.25);
+            // Increase enemy speed based on score (more aggressive scaling)
+            enemySpeedMultiplier = Math.min(2.5, 1.5 + (score / 400) * 0.3);
             
             // Spawn boss every 500 points
             if (score > 0 && score % 500 === 0 && !bossActive) {
