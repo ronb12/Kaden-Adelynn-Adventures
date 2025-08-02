@@ -30,6 +30,7 @@
         // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // Your web app's Firebase configuration
@@ -57,9 +58,7 @@
         try {
             const app = initializeApp(firebaseConfig);
             const db = getFirestore(app);
-            
-            // Skip auth initialization to prevent 400 errors
-            const auth = null; // Don't initialize auth in localStorage-only mode
+            const auth = getAuth(app);
 
             // Initialize analytics only if supported
             let analytics = null;
@@ -81,17 +80,25 @@
             window.firebaseState.analytics = analytics;
             window.firebaseState.initialized = true;
 
-            console.log('Firebase: Successfully initialized (auth disabled)');
+            console.log('Firebase: Successfully initialized');
 
-            // Set up mock user for localStorage-only mode immediately
-            window.currentUser = {
-                uid: 'local-user-' + Date.now(),
-                isAnonymous: true,
-                displayName: 'Anonymous'
-            };
-            window.firebaseState.currentUser = window.currentUser;
-            
-            console.log('Firebase: Using localStorage-only mode (auth disabled to prevent 400 errors)');
+            // Enable anonymous authentication for multiplayer score tracking
+            signInAnonymously(auth)
+                .then((userCredential) => {
+                    window.currentUser = userCredential.user;
+                    window.firebaseState.currentUser = window.currentUser;
+                    console.log('Firebase: Anonymous authentication successful');
+                })
+                .catch((error) => {
+                    console.warn('Firebase: Authentication error (will use localStorage fallback):', error.message);
+                    // Set up mock user for localStorage-only mode
+                    window.currentUser = {
+                        uid: 'local-user-' + Date.now(),
+                        isAnonymous: true,
+                        displayName: 'Anonymous'
+                    };
+                    window.firebaseState.currentUser = window.currentUser;
+                });
 
         } catch (error) {
             console.warn('Firebase: Initialization error (will use localStorage fallback):', error.message);
@@ -113,9 +120,9 @@
                 // Always save to localStorage first for reliability
                 saveHighScoreToLocal(score, playerName);
                 
-                // Try Firebase if available and no auth errors
+                // Try Firebase if available and authenticated
                 if (!window.firebaseState.initialized || !window.firebaseState.currentUser || window.firebaseState.error) {
-                    console.log('Firebase: Using localStorage fallback for high score (auth error or not initialized)');
+                    console.log('Firebase: Using localStorage fallback for high score (not authenticated or initialized)');
                     return;
                 }
                 
@@ -128,7 +135,7 @@
                     };
                     
                     await addDoc(collection(window.firebaseState.db, 'highScores'), scoreData);
-                    console.log('Firebase: High score saved successfully');
+                    console.log('Firebase: High score saved successfully for multiplayer tracking');
                 } catch (error) {
                     console.warn('Firebase: Error saving high score (using localStorage):', error.message);
                     // localStorage already saved above, so no action needed
@@ -140,24 +147,27 @@
                 // Always return from localStorage for immediate response
                 const localScores = getHighScoresFromLocal();
                 
-                // Try Firebase if available and no auth errors
+                // Try Firebase if available and authenticated
                 if (!window.firebaseState.initialized || window.firebaseState.error) {
-                    console.log('Firebase: Using localStorage fallback for high scores (auth error or not initialized)');
+                    console.log('Firebase: Using localStorage fallback for high scores (not initialized)');
                     return localScores;
                 }
                 
                 try {
                     const q = query(collection(window.firebaseState.db, 'highScores'), orderBy('score', 'desc'), limit(10));
                     const querySnapshot = await getDocs(q);
-                    const scores = [];
+                    const firebaseScores = [];
                     querySnapshot.forEach((doc) => {
-                        scores.push(doc.data());
+                        firebaseScores.push(doc.data());
                     });
                     
-                    // Merge with localStorage scores and return best
-                    const allScores = [...localScores, ...scores];
+                    // Merge Firebase and localStorage scores for true multiplayer leaderboard
+                    const allScores = [...localScores, ...firebaseScores];
                     allScores.sort((a, b) => b.score - a.score);
-                    return allScores.slice(0, 10);
+                    const topScores = allScores.slice(0, 10);
+                    
+                    console.log('Firebase: Multiplayer leaderboard loaded successfully');
+                    return topScores;
                 } catch (error) {
                     console.warn('Firebase: Error getting high scores (using localStorage):', error.message);
                     return localScores;
