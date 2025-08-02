@@ -1577,6 +1577,12 @@
         document.getElementById('storeBtn').addEventListener('click', openStore);
         
         document.addEventListener('keydown', (e) => {
+            // Check if name input is focused - if so, don't capture game controls
+            const nameInput = document.getElementById('playerName');
+            if (nameInput && document.activeElement === nameInput) {
+                return; // Allow normal typing in the name input
+            }
+            
             keys[e.code] = true;
             if (e.code === 'Space') {
                 e.preventDefault();
@@ -1596,6 +1602,22 @@
             if (e.code === 'Digit9') switchWeapon('energy');
             if (e.code === 'Digit0') switchWeapon('quantum');
             if (e.code === 'Minus') switchWeapon('sonic');
+            
+            // Pause/Resume controls
+            if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
+                if (gameRunning) {
+                    e.preventDefault();
+                    togglePause();
+                }
+            }
+            
+            // Menu key
+            if (e.key === 'm' || e.key === 'M') {
+                if (gameRunning && gamePaused) {
+                    e.preventDefault();
+                    backToMenu();
+                }
+            }
         });
         document.addEventListener('keyup', (e) => {
             keys[e.code] = false;
@@ -4218,24 +4240,7 @@
             }, 1000);
         }
 
-        // Additional keyboard controls
-        document.addEventListener('keydown', (e) => {
-            // Pause/Resume controls
-            if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
-                if (gameRunning) {
-                    e.preventDefault();
-                    togglePause();
-                }
-            }
-            
-            // Menu key
-            if (e.key === 'm' || e.key === 'M') {
-                if (gameRunning && gamePaused) {
-                    e.preventDefault();
-                    backToMenu();
-                }
-            }
-        });
+
     </script>
 </body>
 </html> 
