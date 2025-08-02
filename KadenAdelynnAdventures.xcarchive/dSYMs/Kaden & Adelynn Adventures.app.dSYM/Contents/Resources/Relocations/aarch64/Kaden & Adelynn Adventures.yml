@@ -1,0 +1,49 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/ronellbradley/Library/Developer/Xcode/DerivedData/Kaden_&_Adelynn_Adventures-hgodzrgxqzzcjnffefkvgbnsdsnh/Build/Intermediates.noindex/ArchiveIntermediates/Kaden & Adelynn Adventures iOS/InstallationBuildProductsLocation/Applications/Kaden & Adelynn Adventures.app/Kaden & Adelynn Adventures'
+relocations:
+  - { offset: 0x65E7B, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures11AppDelegateC6windowSo8UIWindowCSgvgTo', symObjAddr: 0x0, symBinAddr: 0x100004000, symSize: 0x10 }
+  - { offset: 0x65FEC, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0xE8, symBinAddr: 0x1000040E8, symSize: 0x8C }
+  - { offset: 0x66026, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures11AppDelegateCfETo', symObjAddr: 0xD8, symBinAddr: 0x1000040D8, symSize: 0x10 }
+  - { offset: 0x66055, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures11AppDelegateCMa', symObjAddr: 0x174, symBinAddr: 0x100004174, symSize: 0x20 }
+  - { offset: 0x660E5, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures11AppDelegateC6windowSo8UIWindowCSgvgTo', symObjAddr: 0x0, symBinAddr: 0x100004000, symSize: 0x10 }
+  - { offset: 0x660FD, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures11AppDelegateC6windowSo8UIWindowCSgvgTo', symObjAddr: 0x0, symBinAddr: 0x100004000, symSize: 0x10 }
+  - { offset: 0x66145, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures11AppDelegateC6windowSo8UIWindowCSgvsTo', symObjAddr: 0x10, symBinAddr: 0x100004010, symSize: 0x34 }
+  - { offset: 0x66191, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures11AppDelegateC11application_29didFinishLaunchingWithOptionsSbSo13UIApplicationC_SDySo0l6LaunchK3KeyaypGSgtFTo', symObjAddr: 0x44, symBinAddr: 0x100004044, symSize: 0x8 }
+  - { offset: 0x661A5, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures11AppDelegateC27applicationWillResignActiveyySo13UIApplicationCFTo', symObjAddr: 0x4C, symBinAddr: 0x10000404C, symSize: 0x4 }
+  - { offset: 0x661B9, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures11AppDelegateC29applicationDidEnterBackgroundyySo13UIApplicationCFTo', symObjAddr: 0x50, symBinAddr: 0x100004050, symSize: 0x4 }
+  - { offset: 0x661CD, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures11AppDelegateC30applicationWillEnterForegroundyySo13UIApplicationCFTo', symObjAddr: 0x54, symBinAddr: 0x100004054, symSize: 0x4 }
+  - { offset: 0x661E1, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures11AppDelegateC26applicationDidBecomeActiveyySo13UIApplicationCFTo', symObjAddr: 0x58, symBinAddr: 0x100004058, symSize: 0x4 }
+  - { offset: 0x661F5, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures11AppDelegateC24applicationWillTerminateyySo13UIApplicationCFTo', symObjAddr: 0x5C, symBinAddr: 0x10000405C, symSize: 0x4 }
+  - { offset: 0x6621D, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures11AppDelegateCACycfcTo', symObjAddr: 0x60, symBinAddr: 0x100004060, symSize: 0x48 }
+  - { offset: 0x66252, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures11AppDelegateCfD', symObjAddr: 0xA8, symBinAddr: 0x1000040A8, symSize: 0x30 }
+  - { offset: 0x663A3, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures18GameViewControllerC11viewDidLoadyyF', symObjAddr: 0x0, symBinAddr: 0x100004194, symSize: 0xF0 }
+  - { offset: 0x664D9, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures18GameViewControllerCMa', symObjAddr: 0x2CC, symBinAddr: 0x100004460, symSize: 0x20 }
+  - { offset: 0x66508, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures18GameViewControllerC11viewDidLoadyyF', symObjAddr: 0x0, symBinAddr: 0x100004194, symSize: 0xF0 }
+  - { offset: 0x66585, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures18GameViewControllerC11viewDidLoadyyFTo', symObjAddr: 0xF0, symBinAddr: 0x100004284, symSize: 0x28 }
+  - { offset: 0x665CA, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures18GameViewControllerC30supportedInterfaceOrientationsSo26UIInterfaceOrientationMaskVvgTo', symObjAddr: 0x118, symBinAddr: 0x1000042AC, symSize: 0x8C }
+  - { offset: 0x66608, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures18GameViewControllerC22prefersStatusBarHiddenSbvgTo', symObjAddr: 0x1A4, symBinAddr: 0x100004338, symSize: 0x8 }
+  - { offset: 0x666A7, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures18GameViewControllerC7nibName6bundleACSSSg_So8NSBundleCSgtcfcTo', symObjAddr: 0x1AC, symBinAddr: 0x100004340, symSize: 0xAC }
+  - { offset: 0x66701, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures18GameViewControllerC5coderACSgSo7NSCoderC_tcfcTo', symObjAddr: 0x258, symBinAddr: 0x1000043EC, symSize: 0x44 }
+  - { offset: 0x6673C, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures18GameViewControllerCfD', symObjAddr: 0x29C, symBinAddr: 0x100004430, symSize: 0x30 }
+  - { offset: 0x66A5B, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures9GameSceneCfETo', symObjAddr: 0x4F8, symBinAddr: 0x100004978, symSize: 0x38 }
+  - { offset: 0x66A8A, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures9GameSceneCMa', symObjAddr: 0x530, symBinAddr: 0x1000049B0, symSize: 0x20 }
+  - { offset: 0x66AAD, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures9GameSceneC12touchesBegan_4withyShySo7UITouchCG_So7UIEventCSgtFTo', symObjAddr: 0x550, symBinAddr: 0x1000049D0, symSize: 0x94 }
+  - { offset: 0x66ADF, size: 0x8, addend: 0x0, symName: '_$sSo7UITouchCSo8NSObjectCSH10ObjectiveCWl', symObjAddr: 0x6AC, symBinAddr: 0x100004B2C, symSize: 0x58 }
+  - { offset: 0x66AFE, size: 0x8, addend: 0x0, symName: '_$ss29getContiguousArrayStorageType3fors01_bcD0CyxGmxm_tlFSo8SKActionC_Tgm5', symObjAddr: 0x704, symBinAddr: 0x100004B84, symSize: 0x64 }
+  - { offset: 0x66B6D, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures9GameSceneC12touchesBegan_4withyShySo7UITouchCG_So7UIEventCSgtFTf4ndn_n', symObjAddr: 0x878, symBinAddr: 0x100004CF8, symSize: 0x4B0 }
+  - { offset: 0x66CE7, size: 0x8, addend: 0x0, symName: '_$sSh8IteratorV8_VariantOySo7UITouchC__GWOe', symObjAddr: 0x1128, symBinAddr: 0x1000055A8, symSize: 0x8 }
+  - { offset: 0x66CFB, size: 0x8, addend: 0x0, symName: '_$sypWOb', symObjAddr: 0x1130, symBinAddr: 0x1000055B0, symSize: 0x10 }
+  - { offset: 0x66D0F, size: 0x8, addend: 0x0, symName: ___swift_instantiateConcreteTypeFromMangledName, symObjAddr: 0x1178, symBinAddr: 0x1000055F8, symSize: 0x40 }
+  - { offset: 0x66F71, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures9GameSceneC05setUpE0yyF', symObjAddr: 0x0, symBinAddr: 0x100004480, symSize: 0x35C }
+  - { offset: 0x670F1, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures9GameSceneC7didMove2toySo6SKViewC_tFTo', symObjAddr: 0x35C, symBinAddr: 0x1000047DC, symSize: 0x4C }
+  - { offset: 0x6711B, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures9GameSceneC6updateyySdFTo', symObjAddr: 0x3A8, symBinAddr: 0x100004828, symSize: 0x4 }
+  - { offset: 0x67152, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures9GameSceneC4sizeACSo6CGSizeV_tcfcTo', symObjAddr: 0x3AC, symBinAddr: 0x10000482C, symSize: 0x6C }
+  - { offset: 0x6719B, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures9GameSceneCACycfcTo', symObjAddr: 0x418, symBinAddr: 0x100004898, symSize: 0x54 }
+  - { offset: 0x67211, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures9GameSceneC5coderACSgSo7NSCoderC_tcfcTo', symObjAddr: 0x46C, symBinAddr: 0x1000048EC, symSize: 0x5C }
+  - { offset: 0x6724C, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures9GameSceneCfD', symObjAddr: 0x4C8, symBinAddr: 0x100004948, symSize: 0x30 }
+  - { offset: 0x67295, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures9GameSceneC03newdE0ACyFZTf4d_n', symObjAddr: 0x768, symBinAddr: 0x100004BE8, symSize: 0x110 }
+  - { offset: 0x674FA, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures19ResourceBundleClass33_B1EB52003C44831C672A3CADB655F90DLLCfD', symObjAddr: 0x0, symBinAddr: 0x100005638, symSize: 0x10 }
+  - { offset: 0x6753C, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures19ResourceBundleClass33_B1EB52003C44831C672A3CADB655F90DLLCMa', symObjAddr: 0x10, symBinAddr: 0x100005648, symSize: 0x20 }
+  - { offset: 0x67557, size: 0x8, addend: 0x0, symName: '_$s26Kaden___Adelynn_Adventures19ResourceBundleClass33_B1EB52003C44831C672A3CADB655F90DLLCfD', symObjAddr: 0x0, symBinAddr: 0x100005638, symSize: 0x10 }
+...
