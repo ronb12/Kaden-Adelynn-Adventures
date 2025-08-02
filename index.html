@@ -1264,25 +1264,27 @@
         let gameRunning = false;
         let gamePaused = false;
         let score = 0;
-        let lives = 25;
+        let lives = 3;
         let highScore = 0;
-        let player = { x: 475, y: 600, width: 50, height: 40 };
+        let level = 1;
+        let playerPower = null;
+        let doubleShot = false;
+        let shieldActive = false;
+        let shieldTimer = 0;
+        let starPowerActive = false;
+        let starPowerTimer = 0;
+        let rapidFireActive = false;
+        let rapidFireTimer = 0;
+        let rapidFireCooldown = 100; // Milliseconds between rapid fire shots
         let bullets = [];
         let enemyBullets = [];
         let enemies = [];
         let powerups = [];
         let stars = [];
         let keys = {};
-        let playerPower = 'basic';
-        let doubleShot = false;
-        let shieldActive = false;
-        let shieldTimer = 0;
-        let starPowerActive = false;
-        let starPowerTimer = 0;
-        let fireRateBoost = false;
-        let fireRateTimer = 0;
-        let lastShot = 0;
+        let player = { x: 475, y: 600, width: 50, height: 40 };
         let shotCooldown = 200;
+        let lastShot = 0;
         let gameStarted = false;
         let isMobile = false;
         let audioContext = null;
@@ -1668,189 +1670,73 @@
             if (gameRunning) {
                 const now = Date.now();
                 const weapon = weapons[currentWeapon];
-                const currentShotCooldown = shotCooldown / weapon.fireRate;
+                const normalShotCooldown = shotCooldown / weapon.fireRate;
                 
-                if (now - lastShot > currentShotCooldown) {
-                    fireWeapon();
+                // Handle rapid fire
+                if (rapidFireActive && now - lastShot > rapidFireCooldown) {
+                    // Rapid fire creates bullets more frequently
+                    const bulletConfig = {
+                        x: player.x + player.width / 2 - weapon.bulletSize.width / 2,
+                        y: player.y,
+                        width: weapon.bulletSize.width,
+                        height: weapon.bulletSize.height,
+                        speed: weapon.bulletSpeed,
+                        color: weapon.color,
+                        type: currentWeapon,
+                        damage: weapon.damage
+                    };
+                    
+                    bullets.push(bulletConfig);
+                    playMissileSound();
+                    lastShot = now;
+                } else if (keys['Space'] && now - lastShot > normalShotCooldown) {
+                    // Create bullets based on current weapon
+                    const bulletConfig = {
+                        x: player.x + player.width / 2 - weapon.bulletSize.width / 2,
+                        y: player.y,
+                        width: weapon.bulletSize.width,
+                        height: weapon.bulletSize.height,
+                        speed: weapon.bulletSpeed,
+                        color: weapon.color,
+                        type: currentWeapon,
+                        damage: weapon.damage
+                    };
+                    
+                    if (doubleShot) {
+                        // Double shot creates multiple bullets
+                        bullets.push({ ...bulletConfig, x: player.x + 5 });
+                        bullets.push({ ...bulletConfig, x: player.x + 15 });
+                        bullets.push({ ...bulletConfig, x: player.x + 25 });
+                        bullets.push({ ...bulletConfig, x: player.x + 35 });
+                    } else {
+                        // Single shot
+                        bullets.push(bulletConfig);
+                    }
+                    
+                    // Special weapon effects
+                    if (currentWeapon === 'spread') {
+                        // Spread shot creates diagonal bullets
+                        bullets.push({
+                            ...bulletConfig,
+                            speedX: -2,
+                            speedY: -weapon.bulletSpeed
+                        });
+                        bullets.push({
+                            ...bulletConfig,
+                            speedX: 2,
+                            speedY: -weapon.bulletSpeed
+                        });
+                    }
+                    
+                    if (currentWeapon === 'missile') {
+                        // Missiles have homing capability
+                        bulletConfig.homing = true;
+                    }
+                    
+                    playMissileSound();
                     lastShot = now;
                 }
             }
-        }
-
-        function fireWeapon() {
-            const weapon = weapons[currentWeapon];
-            const bulletSpeed = weapon.bulletSpeed;
-            const bulletSize = weapon.bulletSize;
-            
-            switch (currentWeapon) {
-                case 'basic':
-                    // Single bullet
-                    bullets.push({
-                        x: player.x + player.width / 2 - bulletSize.width / 2,
-                        y: player.y,
-                        width: bulletSize.width,
-                        height: bulletSize.height,
-                        speed: bulletSpeed,
-                        damage: weapon.damage * bulletDamage,
-                        color: weapon.color,
-                        type: 'basic'
-                    });
-                    break;
-                    
-                case 'plasma':
-                    // Single powerful plasma bolt
-                    bullets.push({
-                        x: player.x + player.width / 2 - bulletSize.width / 2,
-                        y: player.y,
-                        width: bulletSize.width,
-                        height: bulletSize.height,
-                        speed: bulletSpeed,
-                        damage: weapon.damage * bulletDamage,
-                        color: weapon.color,
-                        type: 'plasma'
-                    });
-                    break;
-                    
-                case 'spread':
-                    // Three bullets in spread pattern
-                    const spreadAngles = [-15, 0, 15];
-                    spreadAngles.forEach(angle => {
-                        const rad = angle * Math.PI / 180;
-                        const speedX = Math.sin(rad) * bulletSpeed * 0.3;
-                        const speedY = -bulletSpeed;
-                        
-                        bullets.push({
-                            x: player.x + player.width / 2 - bulletSize.width / 2,
-                            y: player.y,
-                            width: bulletSize.width,
-                            height: bulletSize.height,
-                            speed: bulletSpeed,
-                            speedX: speedX,
-                            speedY: speedY,
-                            damage: weapon.damage * bulletDamage,
-                            color: weapon.color,
-                            type: 'spread'
-                        });
-                    });
-                    break;
-                    
-                case 'laser':
-                    // Fast continuous laser beam
-                    bullets.push({
-                        x: player.x + player.width / 2 - bulletSize.width / 2,
-                        y: player.y,
-                        width: bulletSize.width,
-                        height: bulletSize.height,
-                        speed: bulletSpeed,
-                        damage: weapon.damage * bulletDamage,
-                        color: weapon.color,
-                        type: 'laser'
-                    });
-                    break;
-                    
-                case 'missile':
-                    // Homing missile (basic implementation)
-                    bullets.push({
-                        x: player.x + player.width / 2 - bulletSize.width / 2,
-                        y: player.y,
-                        width: bulletSize.width,
-                        height: bulletSize.height,
-                        speed: bulletSpeed,
-                        damage: weapon.damage * bulletDamage,
-                        color: weapon.color,
-                        type: 'missile',
-                        homing: true
-                    });
-                    break;
-                    
-                case 'lightning':
-                    // Fast lightning bolt
-                    bullets.push({
-                        x: player.x + player.width / 2 - bulletSize.width / 2,
-                        y: player.y,
-                        width: bulletSize.width,
-                        height: bulletSize.height,
-                        speed: bulletSpeed,
-                        damage: weapon.damage * bulletDamage,
-                        color: weapon.color,
-                        type: 'lightning'
-                    });
-                    break;
-                    
-                case 'ice':
-                    // Ice shard that can slow enemies
-                    bullets.push({
-                        x: player.x + player.width / 2 - bulletSize.width / 2,
-                        y: player.y,
-                        width: bulletSize.width,
-                        height: bulletSize.height,
-                        speed: bulletSpeed,
-                        damage: weapon.damage * bulletDamage,
-                        color: weapon.color,
-                        type: 'ice',
-                        slowEffect: true
-                    });
-                    break;
-                    
-                case 'fire':
-                    // Explosive fireball
-                    bullets.push({
-                        x: player.x + player.width / 2 - bulletSize.width / 2,
-                        y: player.y,
-                        width: bulletSize.width,
-                        height: bulletSize.height,
-                        speed: bulletSpeed,
-                        damage: weapon.damage * bulletDamage,
-                        color: weapon.color,
-                        type: 'fire',
-                        explosive: true
-                    });
-                    break;
-                    
-                case 'energy':
-                    // Energy pulse
-                    bullets.push({
-                        x: player.x + player.width / 2 - bulletSize.width / 2,
-                        y: player.y,
-                        width: bulletSize.width,
-                        height: bulletSize.height,
-                        speed: bulletSpeed,
-                        damage: weapon.damage * bulletDamage,
-                        color: weapon.color,
-                        type: 'energy'
-                    });
-                    break;
-                    
-                case 'quantum':
-                    // Powerful quantum blast
-                    bullets.push({
-                        x: player.x + player.width / 2 - bulletSize.width / 2,
-                        y: player.y,
-                        width: bulletSize.width,
-                        height: bulletSize.height,
-                        speed: bulletSpeed,
-                        damage: weapon.damage * bulletDamage,
-                        color: weapon.color,
-                        type: 'quantum'
-                    });
-                    break;
-                    
-                case 'sonic':
-                    // Sonic wave
-                    bullets.push({
-                        x: player.x + player.width / 2 - bulletSize.width / 2,
-                        y: player.y,
-                        width: bulletSize.width,
-                        height: bulletSize.height,
-                        speed: bulletSpeed,
-                        damage: weapon.damage * bulletDamage,
-                        color: weapon.color,
-                        type: 'sonic'
-                    });
-                    break;
-            }
-            
-            playMissileSound();
         }
 
         function handlePowerup(e) {
@@ -1865,8 +1751,17 @@
             gamePaused = false;
             gameStarted = true;
             score = 0;
-            lives = 25;
-            player = { x: 475, y: 600, width: 50, height: 40 };
+            lives = 3;
+            level = 1;
+            playerPower = null;
+            doubleShot = false;
+            shieldActive = false;
+            shieldTimer = 0;
+            starPowerActive = false;
+            starPowerTimer = 0;
+            rapidFireActive = false;
+            rapidFireTimer = 0;
+            rapidFireCooldown = 100; // Milliseconds between rapid fire shots
             bullets = [];
             enemyBullets = [];
             enemies = [];
@@ -1877,9 +1772,9 @@
             shieldTimer = 0;
             starPowerActive = false;
             starPowerTimer = 0;
-            fireRateBoost = false;
-            fireRateTimer = 0;
-            currentWeapon = 'basic';
+            rapidFireActive = false;
+            rapidFireTimer = 0;
+            rapidFireCooldown = 100; // Milliseconds between rapid fire shots
             shotCooldown = 200;
             lastShot = 0;
             enemySpawnRate = 0.06; // Increased from 0.04 for more enemies on screen
@@ -2328,9 +2223,30 @@
             // Optimized shooting with reduced cooldown
             const now = Date.now();
             const currentShotCooldown = shotCooldown / ship.fireRate;
-            if (keys['Space'] && now - lastShot > currentShotCooldown) {
+            
+            // Weapon-based shooting system
+            const weapon = weapons[currentWeapon];
+            const currentShotCooldown = shotCooldown / ship.fireRate;
+            
+            // Handle rapid fire
+            if (rapidFireActive && now - lastShot > rapidFireCooldown) {
+                // Rapid fire creates bullets more frequently
+                const bulletConfig = {
+                    x: player.x + player.width / 2 - weapon.bulletSize.width / 2,
+                    y: player.y,
+                    width: weapon.bulletSize.width,
+                    height: weapon.bulletSize.height,
+                    speed: weapon.bulletSpeed,
+                    color: weapon.color,
+                    type: currentWeapon,
+                    damage: weapon.damage
+                };
+                
+                bullets.push(bulletConfig);
+                playMissileSound();
+                lastShot = now;
+            } else if (keys['Space'] && now - lastShot > currentShotCooldown) {
                 // Create bullets based on current weapon
-                const weapon = weapons[currentWeapon];
                 const bulletConfig = {
                     x: player.x + player.width / 2 - weapon.bulletSize.width / 2,
                     y: player.y,
@@ -2477,37 +2393,67 @@
             }
         }
 
-        function spawnEnemy() {
-            if (Math.random() < enemySpawnRate) {
-                // More enemy types for variety
-                const enemyTypes = ['basic', 'fast', 'tank', 'scout', 'bomber'];
-                const typeWeights = [0.4, 0.25, 0.15, 0.15, 0.05]; // Probability weights
-                
-                let selectedType = 'basic';
-                const rand = Math.random();
-                let cumulativeWeight = 0;
-                
-                for (let i = 0; i < enemyTypes.length; i++) {
-                    cumulativeWeight += typeWeights[i];
-                    if (rand <= cumulativeWeight) {
-                        selectedType = enemyTypes[i];
-                        break;
-                    }
+        // Enemy batch spawning system
+        let enemyBatchSize = 10;
+        let enemyBatchTimer = 0;
+        let enemyBatchInterval = 3000; // Spawn batch every 3 seconds
+        
+        function spawnEnemyBatch() {
+            const batchSize = Math.min(enemyBatchSize, 10); // Cap at 10 enemies per batch
+            
+            for (let i = 0; i < batchSize; i++) {
+                // Stagger enemy spawns within the batch
+                setTimeout(() => {
+                    spawnSingleEnemy();
+                }, i * 200); // 200ms delay between each enemy in batch
+            }
+            
+            console.log(`🚀 Enemy batch spawned: ${batchSize} enemies`);
+        }
+        
+        function spawnSingleEnemy() {
+            // More enemy types for variety
+            const enemyTypes = ['basic', 'fast', 'tank', 'scout', 'bomber'];
+            const typeWeights = [0.4, 0.25, 0.15, 0.15, 0.05]; // Probability weights
+            
+            let selectedType = 'basic';
+            const rand = Math.random();
+            let cumulativeWeight = 0;
+            
+            for (let i = 0; i < enemyTypes.length; i++) {
+                cumulativeWeight += typeWeights[i];
+                if (rand <= cumulativeWeight) {
+                    selectedType = enemyTypes[i];
+                    break;
                 }
+            }
+            
+            const enemy = {
+                x: Math.random() * (canvas.width - 40),
+                y: -40,
+                width: 40,
+                height: 40,
+                speed: getEnemySpeed(selectedType) * enemySpeedMultiplier,
+                type: selectedType,
+                lastShot: Date.now(),
+                shotCooldown: getEnemyShotCooldown(selectedType),
+                health: getEnemyHealth(selectedType)
+            };
+            enemies.push(enemy);
+            // Enemy spawned successfully
+        }
+        
+        function spawnEnemy() {
+            // Use batch spawning instead of individual spawning
+            const currentTime = Date.now();
+            
+            if (currentTime - enemyBatchTimer > enemyBatchInterval) {
+                spawnEnemyBatch();
+                enemyBatchTimer = currentTime;
                 
-                const enemy = {
-                    x: Math.random() * (canvas.width - 40),
-                    y: -40,
-                    width: 40,
-                    height: 40,
-                    speed: getEnemySpeed(selectedType) * enemySpeedMultiplier,
-                    type: selectedType,
-                    lastShot: Date.now(),
-                    shotCooldown: getEnemyShotCooldown(selectedType),
-                    health: getEnemyHealth(selectedType)
-                };
-                enemies.push(enemy);
-                // Enemy spawned successfully
+                // Increase batch size and frequency as score increases
+                enemyBatchSize = Math.min(15, 10 + Math.floor(score / 500));
+                enemyBatchInterval = Math.max(1500, 3000 - (score / 100) * 50);
             }
         }
         
@@ -2594,14 +2540,44 @@
         function spawnPowerup() {
             // Increased powerup spawn rates for better visibility
             const weaponSpawnRate = 0.015; // Increased for better balance
-            const regularSpawnRate = 0.012; // Increased for better balance
+            const regularSpawnRate = 0.025; // Increased from 0.012 for more collectibles
+            const moneySpawnRate = 0.02; // New dedicated money spawn rate
+            const diamondSpawnRate = 0.015; // New dedicated diamond spawn rate
             
             // Limit total powerups on screen to prevent overwhelming
-            const maxPowerupsOnScreen = 8;
+            const maxPowerupsOnScreen = 12; // Increased from 8
             const maxWeaponPowerupsOnScreen = 3;
             
-            if (Math.random() < regularSpawnRate && powerups.filter(p => !p.isWeapon).length < maxPowerupsOnScreen) {
-                const regularTypes = ['speed', 'double', 'shield', 'extraLife', 'starPower', 'fireRate', 'money', 'diamond', 'bomb', 'freeze', 'magnet'];
+            // Spawn money collectibles more frequently
+            if (Math.random() < moneySpawnRate && powerups.filter(p => p.type === 'money').length < 4) {
+                powerups.push({
+                    x: Math.random() * (canvas.width - 20),
+                    y: -20,
+                    width: 20,
+                    height: 20,
+                    speed: 2,
+                    type: 'money',
+                    isWeapon: false
+                });
+                console.log(`💰 Money collectible spawned at x: ${powerups[powerups.length - 1].x}`);
+            }
+            
+            // Spawn diamond collectibles more frequently
+            if (Math.random() < diamondSpawnRate && powerups.filter(p => p.type === 'diamond').length < 3) {
+                powerups.push({
+                    x: Math.random() * (canvas.width - 20),
+                    y: -20,
+                    width: 20,
+                    height: 20,
+                    speed: 2.5,
+                    type: 'diamond',
+                    isWeapon: false
+                });
+                console.log(`💎 Diamond collectible spawned at x: ${powerups[powerups.length - 1].x}`);
+            }
+            
+            if (Math.random() < regularSpawnRate && powerups.filter(p => !p.isWeapon && p.type !== 'money' && p.type !== 'diamond').length < maxPowerupsOnScreen) {
+                const regularTypes = ['speed', 'double', 'shield', 'extraLife', 'starPower', 'fireRate', 'rapidFire', 'bomb', 'freeze', 'magnet'];
                 const type = regularTypes[Math.floor(Math.random() * regularTypes.length)];
                 powerups.push({
                     x: Math.random() * (canvas.width - 20),
@@ -2612,9 +2588,6 @@
                     type: type,
                     isWeapon: false
                 });
-                if (type === 'diamond') {
-                    console.log(`💎 Diamond powerup spawned at x: ${powerups[powerups.length - 1].x}`);
-                }
             }
             
             // Separate weapon powerup spawning with improved logic
@@ -2929,6 +2902,13 @@
                     }, 10000);
                     showWeaponSwitchMessage('🧲 Magnet! Powerups attracted for 10s');
                     console.log(`🧲 Magnet powerup collected! Powerups attracted for 10 seconds`);
+                    break;
+                case 'rapidFire':
+                    // Enable rapid fire for 15 seconds
+                    rapidFireActive = true;
+                    rapidFireTimer = 15000;
+                    showWeaponSwitchMessage('⚡ Rapid Fire! 15s');
+                    console.log(`⚡ Rapid Fire powerup collected! Rapid fire active for 15 seconds`);
                     break;
                 // Weapon powerups - Enhanced with better feedback
                 case 'weaponPlasma':
@@ -3368,6 +3348,15 @@
                     diamondStormTimer -= 16;
                     if (diamondStormTimer <= 0) {
                         diamondStormActive = false;
+                    }
+                }
+                
+                // Update rapid fire timer
+                if (rapidFireTimer > 0) {
+                    rapidFireTimer -= 16;
+                    if (rapidFireTimer <= 0) {
+                        rapidFireActive = false;
+                        console.log('⚡ Rapid Fire deactivated');
                     }
                 }
             }
