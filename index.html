@@ -1445,6 +1445,45 @@
         let scoreMultiplierTimer = 0;
         let storeOpen = false;
         
+        // Enhanced gameplay features
+        let comboCount = 0;
+        let comboMultiplier = 1;
+        let maxComboMultiplier = 5;
+        let comboTimer = 0;
+        let comboCooldown = 2000; // 2 seconds to maintain combo
+        
+        // Boss battle system
+        let bossSpawnTimer = 0;
+        let bossSpawnInterval = 300000; // 5 minutes
+        let bossTypes = ['destroyer', 'carrier', 'battleship'];
+        let currentBoss = null;
+        
+        // Life power-up system
+        let lifePowerupSpawnRate = 0.005; // 0.5% chance per frame
+        let maxLifePowerupsOnScreen = 1;
+        let lifePowerups = [];
+        
+        // Visual effects system
+        let particles = [];
+        let screenShake = 0;
+        let screenShakeIntensity = 0;
+        
+        // Achievement system
+        let achievements = {
+            firstKill: { name: 'First Blood', description: 'Destroy your first enemy', earned: false },
+            comboMaster: { name: 'Combo Master', description: 'Achieve 10x combo multiplier', earned: false },
+            survivor: { name: 'Survivor', description: 'Survive for 5 minutes', earned: false },
+            bossSlayer: { name: 'Boss Slayer', description: 'Defeat a boss', earned: false },
+            weaponMaster: { name: 'Weapon Master', description: 'Use all 10 weapons', earned: false },
+            highScorer: { name: 'High Scorer', description: 'Score 10,000 points', earned: false }
+        };
+        let earnedAchievements = [];
+        
+        // Difficulty scaling
+        let difficultyLevel = 1;
+        let difficultyTimer = 0;
+        let difficultyInterval = 60000; // Increase difficulty every minute
+        
         // Top 3 Medal System
         let top3Leaderboard = {
             gold: { name: "Champion", score: 0, date: "2024-01-01" },
@@ -2534,6 +2573,131 @@
             }
         }
 
+        function spawnLifePowerup() {
+            if (lifePowerups.length < maxLifePowerupsOnScreen && Math.random() < lifePowerupSpawnRate) {
+                const lifePowerup = {
+                    x: Math.random() * (canvas.width - 30),
+                    y: -30,
+                    width: 30,
+                    height: 30,
+                    speed: 2,
+                    type: 'life'
+                };
+                lifePowerups.push(lifePowerup);
+                console.log('💚 Life powerup spawned at x:', lifePowerup.x);
+            }
+        }
+
+        function updateLifePowerups() {
+            for (let i = lifePowerups.length - 1; i >= 0; i--) {
+                lifePowerups[i].y += lifePowerups[i].speed;
+                
+                if (lifePowerups[i].y > canvas.height) {
+                    lifePowerups.splice(i, 1);
+                }
+            }
+        }
+
+        function drawLifePowerups() {
+            ctx.fillStyle = '#00ff00';
+            for (const powerup of lifePowerups) {
+                // Draw heart shape
+                ctx.beginPath();
+                ctx.moveTo(powerup.x + 15, powerup.y + 5);
+                ctx.bezierCurveTo(powerup.x + 15, powerup.y + 2, powerup.x + 12, powerup.y, powerup.x + 10, powerup.y);
+                ctx.bezierCurveTo(powerup.x + 5, powerup.y, powerup.x + 5, powerup.y + 5, powerup.x + 5, powerup.y + 10);
+                ctx.bezierCurveTo(powerup.x + 5, powerup.y + 15, powerup.x + 10, powerup.y + 20, powerup.x + 15, powerup.y + 20);
+                ctx.bezierCurveTo(powerup.x + 20, powerup.y + 20, powerup.x + 25, powerup.y + 15, powerup.x + 25, powerup.y + 10);
+                ctx.bezierCurveTo(powerup.x + 25, powerup.y + 5, powerup.x + 20, powerup.y, powerup.x + 15, powerup.y + 5);
+                ctx.fill();
+                
+                // Add glow effect
+                ctx.shadowColor = '#00ff00';
+                ctx.shadowBlur = 10;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        function createComboText(x, y, score, multiplier) {
+            const comboText = {
+                x: x,
+                y: y,
+                text: `+${score}`,
+                multiplier: multiplier,
+                life: 60,
+                maxLife: 60,
+                velocity: { x: 0, y: -2 }
+            };
+            particles.push(comboText);
+        }
+
+        function createExplosionParticles(x, y) {
+            const particleCount = 8;
+            for (let i = 0; i < particleCount; i++) {
+                const angle = (i / particleCount) * Math.PI * 2;
+                const speed = 2 + Math.random() * 3;
+                const particle = {
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 30,
+                    maxLife: 30,
+                    color: `hsl(${Math.random() * 60 + 15}, 100%, 50%)`
+                };
+                particles.push(particle);
+            }
+        }
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const particle = particles[i];
+                
+                if (particle.velocity) {
+                    particle.x += particle.velocity.x;
+                    particle.y += particle.velocity.y;
+                } else if (particle.vx !== undefined) {
+                    particle.x += particle.vx;
+                    particle.y += particle.vy;
+                    particle.vx *= 0.95;
+                    particle.vy *= 0.95;
+                }
+                
+                particle.life--;
+                
+                if (particle.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        function drawParticles() {
+            for (const particle of particles) {
+                const alpha = particle.life / particle.maxLife;
+                
+                if (particle.text) {
+                    ctx.fillStyle = `rgba(255, 255, 0, ${alpha})`;
+                    ctx.font = '16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(particle.text, particle.x, particle.y);
+                    
+                    if (particle.multiplier > 1) {
+                        ctx.fillStyle = `rgba(255, 100, 0, ${alpha})`;
+                        ctx.font = '12px Arial';
+                        ctx.fillText(`${particle.multiplier.toFixed(1)}x`, particle.x, particle.y + 20);
+                    }
+                } else {
+                    ctx.fillStyle = particle.color;
+                    ctx.globalAlpha = alpha;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                }
+            }
+        }
+
         function updateEnemies() {
             for (let i = enemies.length - 1; i >= 0; i--) {
                 enemies[i].y += enemies[i].speed;
@@ -2756,9 +2920,24 @@
                                 }
                             }
                             
-                            // Regular enemy destruction
+                            // Regular enemy destruction with combo system
                             const baseScore = getEnemyScore(enemy.type);
-                            score += baseScore * scoreMultiplier;
+                            
+                            // Update combo system
+                            comboCount++;
+                            comboTimer = Date.now();
+                            comboMultiplier = Math.min(maxComboMultiplier, 1 + (comboCount / 10));
+                            
+                            // Apply combo multiplier to score
+                            const comboScore = baseScore * scoreMultiplier * comboMultiplier;
+                            score += comboScore;
+                            
+                            // Create combo text effect
+                            createComboText(enemy.x, enemy.y, comboScore, comboMultiplier);
+                            
+                            // Create explosion particles
+                            createExplosionParticles(enemy.x + enemy.width/2, enemy.y + enemy.height/2);
+                            
                             bullets.splice(i, 1);
                             enemies.splice(j, 1);
                             totalEnemiesDestroyed++;
@@ -2855,6 +3034,21 @@
                     powerups.splice(i, 1);
                     totalPowerupsCollected++;
                     updateChallengeProgress('powerups', 1);
+                }
+            }
+            
+            // Player vs life powerups
+            for (let i = lifePowerups.length - 1; i >= 0; i--) {
+                if (player.x < lifePowerups[i].x + lifePowerups[i].width &&
+                    player.x + player.width > lifePowerups[i].x &&
+                    player.y < lifePowerups[i].y + lifePowerups[i].height &&
+                    player.y + player.height > lifePowerups[i].y) {
+                    lives++;
+                    lifePowerups.splice(i, 1);
+                    console.log('💚 Extra life collected! Lives:', lives);
+                    
+                    // Create life collection effect
+                    createComboText(player.x, player.y, '+1 LIFE', 1);
                 }
             }
         }
@@ -3149,6 +3343,12 @@
                 }
             });
 
+            // Draw life powerups
+            drawLifePowerups();
+            
+            // Draw particles and visual effects
+            drawParticles();
+            
             // Draw bullets
             bullets.forEach(bullet => {
                 ctx.save();
@@ -3406,11 +3606,20 @@
             }
             if (currentTime % 100 < 16) {
                 spawnPowerup();
+                spawnLifePowerup();
             }
             
             updateEnemies();
             updatePowerups();
+            updateLifePowerups();
+            updateParticles();
             checkCollisions();
+            
+            // Update combo system
+            if (currentTime - comboTimer > comboCooldown) {
+                comboCount = 0;
+                comboMultiplier = 1;
+            }
             
             // Update difficulty less frequently
             if (currentTime % 5000 < 16) {
@@ -4240,7 +4449,137 @@
             }, 1000);
         }
 
+        function spawnLifePowerup() {
+            if (lifePowerups.length < maxLifePowerupsOnScreen && Math.random() < lifePowerupSpawnRate) {
+                const lifePowerup = {
+                    x: Math.random() * (canvas.width - 30),
+                    y: -30,
+                    width: 30,
+                    height: 30,
+                    speed: 2,
+                    type: 'life'
+                };
+                lifePowerups.push(lifePowerup);
+                console.log('💚 Life powerup spawned at x:', lifePowerup.x);
+            }
+        }
 
+        function updateLifePowerups() {
+            for (let i = lifePowerups.length - 1; i >= 0; i--) {
+                lifePowerups[i].y += lifePowerups[i].speed;
+                
+                if (lifePowerups[i].y > canvas.height) {
+                    lifePowerups.splice(i, 1);
+                }
+            }
+        }
+
+        function drawLifePowerups() {
+            ctx.fillStyle = '#00ff00';
+            for (const powerup of lifePowerups) {
+                // Draw heart shape
+                ctx.beginPath();
+                ctx.moveTo(powerup.x + 15, powerup.y + 5);
+                ctx.bezierCurveTo(powerup.x + 15, powerup.y + 2, powerup.x + 12, powerup.y, powerup.x + 10, powerup.y);
+                ctx.bezierCurveTo(powerup.x + 5, powerup.y, powerup.x + 5, powerup.y + 5, powerup.x + 5, powerup.y + 10);
+                ctx.bezierCurveTo(powerup.x + 5, powerup.y + 15, powerup.x + 10, powerup.y + 20, powerup.x + 15, powerup.y + 20);
+                ctx.bezierCurveTo(powerup.x + 20, powerup.y + 20, powerup.x + 25, powerup.y + 15, powerup.x + 25, powerup.y + 10);
+                ctx.bezierCurveTo(powerup.x + 25, powerup.y + 5, powerup.x + 20, powerup.y, powerup.x + 15, powerup.y + 5);
+                ctx.fill();
+                
+                // Add glow effect
+                ctx.shadowColor = '#00ff00';
+                ctx.shadowBlur = 10;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        function createComboText(x, y, score, multiplier) {
+            const comboText = {
+                x: x,
+                y: y,
+                text: `+${score}`,
+                multiplier: multiplier,
+                life: 60,
+                maxLife: 60,
+                velocity: { x: 0, y: -2 }
+            };
+            
+            // Add to particles array for rendering
+            particles.push(comboText);
+        }
+
+        function createExplosionParticles(x, y) {
+            const particleCount = 8;
+            for (let i = 0; i < particleCount; i++) {
+                const angle = (i / particleCount) * Math.PI * 2;
+                const speed = 2 + Math.random() * 3;
+                const particle = {
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 30,
+                    maxLife: 30,
+                    color: `hsl(${Math.random() * 60 + 15}, 100%, 50%)` // Orange to red
+                };
+                particles.push(particle);
+            }
+        }
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const particle = particles[i];
+                
+                // Update position
+                if (particle.velocity) {
+                    particle.x += particle.velocity.x;
+                    particle.y += particle.velocity.y;
+                } else if (particle.vx !== undefined) {
+                    particle.x += particle.vx;
+                    particle.y += particle.vy;
+                    particle.vx *= 0.95; // Friction
+                    particle.vy *= 0.95;
+                }
+                
+                // Update life
+                particle.life--;
+                
+                // Remove dead particles
+                if (particle.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        function drawParticles() {
+            for (const particle of particles) {
+                const alpha = particle.life / particle.maxLife;
+                
+                if (particle.text) {
+                    // Draw combo text
+                    ctx.fillStyle = `rgba(255, 255, 0, ${alpha})`;
+                    ctx.font = '16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(particle.text, particle.x, particle.y);
+                    
+                    if (particle.multiplier > 1) {
+                        ctx.fillStyle = `rgba(255, 100, 0, ${alpha})`;
+                        ctx.font = '12px Arial';
+                        ctx.fillText(`${particle.multiplier.toFixed(1)}x`, particle.x, particle.y + 20);
+                    }
+                } else {
+                    // Draw explosion particles
+                    ctx.fillStyle = particle.color;
+                    ctx.globalAlpha = alpha;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                }
+            }
+        }
     </script>
 </body>
 </html> 
