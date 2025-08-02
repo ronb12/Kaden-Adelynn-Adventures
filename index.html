@@ -1523,7 +1523,7 @@
                 oscillator.start(audioContext.currentTime);
                 oscillator.stop(audioContext.currentTime + 0.1);
                 
-                console.log('Missile sound played');
+                // Sound played successfully
             } catch (error) {
                 console.log('Create sound error:', error);
             }
@@ -2406,7 +2406,7 @@
                     shotCooldown: type === 'fast' ? 1500 : 2000
                 };
                 enemies.push(enemy);
-                console.log('Enemy spawned:', enemy);
+                // Enemy spawned successfully
             }
         }
 
