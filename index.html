@@ -349,22 +349,41 @@
         }
         
         #menuBtn {
-            background: linear-gradient(45deg, #4a90e2, #357abd);
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
             color: white;
             border: none;
-            padding: 8px 16px;
-            font-size: 14px;
+            padding: 12px 24px;
+            font-size: 16px;
             cursor: pointer;
-            margin: 0;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            border-radius: 8px;
+            margin: 5px;
             transition: all 0.3s ease;
+            min-width: 120px;
         }
         
         #menuBtn:hover {
+            background: linear-gradient(45deg, #ee5a52, #ff6b6b);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+        
+        #pauseBtn {
+            background: linear-gradient(45deg, #4a90e2, #357abd);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 8px;
+            margin: 5px;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+        
+        #pauseBtn:hover {
             background: linear-gradient(45deg, #357abd, #4a90e2);
-            transform: translateY(-1px);
-            box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4);
         }
         
         #storeBtn {
@@ -1375,7 +1394,7 @@
         
         // Dynamic difficulty scaling based on score
         let enemySpawnRate = 0.04; // Increased from 0.02 for more enemies
-        let enemySpeedMultiplier = 1.5; // Increased from 1 for faster enemies
+        let enemySpeedMultiplier = 1.2; // Reduced from 1.5 for more balanced speed
         let bossActive = false;
         let bossHealth = 0;
         let bossMaxHealth = 0;
@@ -1864,7 +1883,7 @@
             shotCooldown = 200;
             lastShot = 0;
             enemySpawnRate = 0.04; // Increased from 0.02 for more enemies
-            enemySpeedMultiplier = 1.5; // Increased from 1 for faster enemies
+            enemySpeedMultiplier = 1.2; // Reduced from 1.5 for more balanced speed
             bossActive = false;
             bossHealth = 0;
             bossMaxHealth = 0;
@@ -2400,7 +2419,7 @@
                     y: -40,
                     width: 40,
                     height: 40,
-                    speed: (type === 'fast' ? 6 + Math.random() * 3 : 3 + Math.random() * 3) * enemySpeedMultiplier,
+                    speed: (type === 'fast' ? 5 + Math.random() * 2 : 2.5 + Math.random() * 2) * enemySpeedMultiplier,
                     type: type,
                     lastShot: Date.now(),
                     shotCooldown: type === 'fast' ? 1200 : 1800
