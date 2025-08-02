@@ -2226,7 +2226,6 @@
             
             // Weapon-based shooting system
             const weapon = weapons[currentWeapon];
-            const currentShotCooldown = shotCooldown / ship.fireRate;
             
             // Handle rapid fire
             if (rapidFireActive && now - lastShot > rapidFireCooldown) {
