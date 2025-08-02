@@ -2174,22 +2174,9 @@
             ctx.save();
             ctx.translate(powerup.x + powerup.width / 2, powerup.y + powerup.height / 2);
             
-            // Add subtle rotation animation for better visibility
+            // Simple rotation animation
             const rotation = Math.sin(Date.now() * 0.003) * 0.1;
             ctx.rotate(rotation);
-            
-            // Add subtle trail effect for better visibility
-            const trailOpacity = 0.3;
-            const trailOffset = 5;
-            
-            // Draw trail
-            ctx.globalAlpha = trailOpacity;
-            ctx.fillStyle = powerup.isWeapon ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)';
-            ctx.beginPath();
-            ctx.arc(-trailOffset, -trailOffset, powerup.isWeapon ? 12 : 10, 0, Math.PI * 2); // Reduced from 18/15
-            ctx.fill();
-            
-            ctx.globalAlpha = 1;
             
             let emoji;
             switch(powerup.type) {
@@ -2218,59 +2205,17 @@
                 default: emoji = '❓'; break; // Fallback emoji
             }
             
-            // Enhanced rendering for weapon powerups
+            // Simple pulsing animation for weapon powerups
             if (powerup.isWeapon) {
-                // Add pulsing animation for weapon powerups
-                const pulse = Math.sin(Date.now() * 0.01) * 0.3 + 1.1;
+                const pulse = Math.sin(Date.now() * 0.01) * 0.2 + 1.0;
                 ctx.scale(pulse, pulse);
-                
-                // Add rainbow glow effect
-                const hue = (Date.now() * 0.1) % 360;
-                ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
-                ctx.shadowBlur = 20;
-                
-                // Draw background circle for weapon powerups
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-                ctx.beginPath();
-                ctx.arc(0, 0, 16, 0, Math.PI * 2); // Reduced from 22
-                ctx.fill();
-                
-                // Add outer glow ring
-                ctx.strokeStyle = `hsl(${hue}, 100%, 70%)`;
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.arc(0, 0, 19, 0, Math.PI * 2); // Reduced from 25
-                ctx.stroke();
-            } else {
-                // Enhanced visibility for regular powerups
-                ctx.shadowColor = 'white';
-                ctx.shadowBlur = 12;
-                
-                // Draw background circle for better visibility
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-                ctx.beginPath();
-                ctx.arc(0, 0, 14, 0, Math.PI * 2); // Reduced from 20
-                ctx.fill();
-                
-                // Add outer glow ring
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.arc(0, 0, 17, 0, Math.PI * 2); // Reduced from 23
-                ctx.stroke();
             }
             
-            // Draw emoji with smaller size for better balance
-            ctx.font = powerup.isWeapon ? '24px Arial' : '20px Arial'; // Reduced from 32px/28px
+                        // Draw emoji with clean appearance
+            ctx.font = powerup.isWeapon ? '24px Arial' : '20px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(emoji, 0, 0);
-            
-            // Add extra glow for weapon powerups
-            if (powerup.isWeapon) {
-                ctx.shadowBlur = 15;
-                ctx.fillText(emoji, 0, 0);
-            }
             
             ctx.shadowBlur = 0;
             ctx.restore();
