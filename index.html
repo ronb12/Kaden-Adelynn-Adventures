@@ -54,12 +54,21 @@
             error: null
         };
 
-        // Initialize Firebase with comprehensive error handling
+        // Initialize Firebase with better error handling
         try {
             const app = initializeApp(firebaseConfig);
-            const analytics = getAnalytics(app);
-            const auth = getAuth(app);
             const db = getFirestore(app);
+            const auth = getAuth(app);
+
+            // Initialize analytics only if supported
+            let analytics = null;
+            try {
+                if (typeof window !== 'undefined' && window.indexedDB) {
+                    analytics = getAnalytics(app);
+                }
+            } catch (analyticsError) {
+                console.log('Firebase: Analytics not supported in this environment');
+            }
 
             // Make Firebase available globally
             window.firebaseApp = app;
@@ -73,7 +82,6 @@
 
             console.log('Firebase: Successfully initialized');
 
-            // Skip Firebase authentication entirely to avoid 400 errors
             // Set up mock user for localStorage-only mode immediately
             window.currentUser = {
                 uid: 'local-user-' + Date.now(),
@@ -82,7 +90,7 @@
             };
             window.firebaseState.currentUser = window.currentUser;
             
-            console.log('Firebase: Using localStorage-only mode (skipping auth to avoid 400 errors)');
+            console.log('Firebase: Using localStorage-only mode (auth disabled to prevent 400 errors)');
 
         } catch (error) {
             console.warn('Firebase: Initialization error (will use localStorage fallback):', error.message);
@@ -2994,91 +3002,80 @@
                     ctx.fillStyle = '#ffd700'; // Default gold color
                 }
                 
-                // Handle different bullet types
+                // Handle different bullet types with optimized performance
                 switch (bullet.type) {
                     case 'plasma':
-                        // Plasma bolts with glow effect
+                        // Plasma bolts with minimal glow
                         ctx.shadowColor = bullet.color;
-                        ctx.shadowBlur = 10;
-                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                        ctx.shadowBlur = 5;
+                        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
                         break;
                         
                     case 'laser':
-                        // Laser beam with trail effect
-                        ctx.shadowColor = bullet.color;
-                        ctx.shadowBlur = 15;
+                        // Laser beam with simple trail
                         ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-                        // Add laser trail
-                        ctx.globalAlpha = 0.6;
-                        ctx.fillRect(bullet.x, bullet.y + bullet.height, bullet.width, bullet.height * 2);
+                        // Add simple laser trail
+                        ctx.globalAlpha = 0.4;
+                        ctx.fillRect(bullet.x, bullet.y + bullet.height, bullet.width, bullet.height);
                         break;
                         
                     case 'missile':
-                        // Missiles with rocket trail
+                        // Missiles with simple trail
                         ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-                        // Add rocket trail
+                        // Add simple rocket trail
                         ctx.fillStyle = '#ff8800';
-                        ctx.globalAlpha = 0.8;
-                        ctx.fillRect(bullet.x + 2, bullet.y + bullet.height, bullet.width - 4, bullet.height);
+                        ctx.globalAlpha = 0.6;
+                        ctx.fillRect(bullet.x + 2, bullet.y + bullet.height, bullet.width - 4, bullet.height/2);
                         break;
                         
                     case 'lightning':
-                        // Lightning bolts with electric effect
+                        // Lightning bolts with minimal effect
                         ctx.shadowColor = bullet.color;
-                        ctx.shadowBlur = 8;
+                        ctx.shadowBlur = 4;
                         ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-                        // Add lightning branches
-                        ctx.globalAlpha = 0.7;
-                        ctx.fillRect(bullet.x - 2, bullet.y + bullet.height/2, 4, bullet.height/2);
-                        ctx.fillRect(bullet.x + bullet.width - 2, bullet.y + bullet.height/2, 4, bullet.height/2);
                         break;
                         
                     case 'ice':
-                        // Ice shards with crystalline effect
+                        // Ice shards with simple crystals
                         ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-                        // Add ice crystals
+                        // Add simple ice crystals
                         ctx.fillStyle = '#ffffff';
-                        ctx.globalAlpha = 0.8;
+                        ctx.globalAlpha = 0.6;
                         ctx.fillRect(bullet.x + 1, bullet.y + 2, 2, 2);
-                        ctx.fillRect(bullet.x + bullet.width - 3, bullet.y + bullet.height - 4, 2, 2);
                         break;
                         
                     case 'fire':
-                        // Fireballs with flame effect
-                        ctx.shadowColor = '#ff4400';
-                        ctx.shadowBlur = 12;
+                        // Fireballs with simple flame
                         ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-                        // Add flame trail
+                        // Add simple flame trail
                         ctx.fillStyle = '#ff6600';
-                        ctx.globalAlpha = 0.6;
-                        ctx.fillRect(bullet.x + 1, bullet.y + bullet.height, bullet.width - 2, bullet.height);
+                        ctx.globalAlpha = 0.5;
+                        ctx.fillRect(bullet.x + 1, bullet.y + bullet.height, bullet.width - 2, bullet.height/2);
                         break;
                         
                     case 'energy':
-                        // Energy pulses with pulse effect
+                        // Energy pulses with minimal effect
                         ctx.shadowColor = bullet.color;
-                        ctx.shadowBlur = 6;
+                        ctx.shadowBlur = 3;
                         ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
                         break;
                         
                     case 'quantum':
-                        // Quantum blasts with energy trail
+                        // Quantum blasts with simple trail
                         ctx.shadowColor = bullet.color;
-                        ctx.shadowBlur = 20;
+                        ctx.shadowBlur = 8;
                         ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-                        // Add quantum trail
-                        ctx.globalAlpha = 0.5;
-                        ctx.fillRect(bullet.x, bullet.y + bullet.height, bullet.width, bullet.height * 3);
+                        // Add simple quantum trail
+                        ctx.globalAlpha = 0.4;
+                        ctx.fillRect(bullet.x, bullet.y + bullet.height, bullet.width, bullet.height);
                         break;
                         
                     case 'sonic':
-                        // Sonic waves with wave effect
-                        ctx.shadowColor = bullet.color;
-                        ctx.shadowBlur = 5;
+                        // Sonic waves with simple effect
                         ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-                        // Add sonic waves
-                        ctx.globalAlpha = 0.4;
-                        ctx.fillRect(bullet.x - 3, bullet.y + bullet.height/2, bullet.width + 6, 2);
+                        // Add simple sonic waves
+                        ctx.globalAlpha = 0.3;
+                        ctx.fillRect(bullet.x - 2, bullet.y + bullet.height/2, bullet.width + 4, 1);
                         break;
                         
                     default:
@@ -3200,40 +3197,50 @@
             const currentTime = Date.now();
             survivalTime = Math.floor((currentTime - startTime) / 1000);
             
-            // Update time-based challenges (only every second)
-            if (currentTime % 1000 < 16) {
-                updateChallengeProgress('time', survivalTime);
-            }
-            
-            // Update store system timers (optimized)
-            if (scoreMultiplierTimer > 0) {
-                scoreMultiplierTimer -= 16;
-                if (scoreMultiplierTimer <= 0) {
-                    scoreMultiplier = 1;
+            // Optimized update frequency - only update time-based features every 100ms
+            if (currentTime % 100 < 16) {
+                // Update time-based challenges (only every second)
+                if (currentTime % 1000 < 16) {
+                    updateChallengeProgress('time', survivalTime);
                 }
-            }
-            
-            if (bossDamageTimer > 0) {
-                bossDamageTimer -= 16;
-                if (bossDamageTimer <= 0) {
-                    bossDamageMultiplier = 1;
+                
+                // Update store system timers (optimized)
+                if (scoreMultiplierTimer > 0) {
+                    scoreMultiplierTimer -= 16;
+                    if (scoreMultiplierTimer <= 0) {
+                        scoreMultiplier = 1;
+                    }
                 }
-            }
-            
-            if (diamondStormTimer > 0) {
-                diamondStormTimer -= 16;
-                if (diamondStormTimer <= 0) {
-                    diamondStormActive = false;
+                
+                if (bossDamageTimer > 0) {
+                    bossDamageTimer -= 16;
+                    if (bossDamageTimer <= 0) {
+                        bossDamageMultiplier = 1;
+                    }
+                }
+                
+                if (diamondStormTimer > 0) {
+                    diamondStormTimer -= 16;
+                    if (diamondStormTimer <= 0) {
+                        diamondStormActive = false;
+                    }
                 }
             }
 
-            // Restore proper update order for better gameplay
+            // Core game updates - optimized order for better performance
             updateStars();
             updatePlayer();
             updateBullets();
             updateEnemyBullets();
-            spawnEnemy(); // Always spawn enemies
-            spawnPowerup(); // Always spawn powerups
+            
+            // Spawn enemies and powerups less frequently for better performance
+            if (currentTime % 50 < 16) {
+                spawnEnemy();
+            }
+            if (currentTime % 100 < 16) {
+                spawnPowerup();
+            }
+            
             updateEnemies();
             updatePowerups();
             checkCollisions();
