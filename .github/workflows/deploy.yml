@@ -1,0 +1,65 @@
+name: Deploy Game with Firebase Secrets
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install dependencies
+      run: npm install
+      
+    - name: Configure Firebase with Secrets
+      run: |
+        # Replace placeholder values with actual Firebase secrets
+        sed -i 's|"YOUR_API_KEY_HERE"|"${{ secrets.FIREBASE_API_KEY }}"|g' index.html
+        sed -i 's|"YOUR_PROJECT_ID.firebaseapp.com"|"${{ secrets.FIREBASE_AUTH_DOMAIN }}"|g' index.html
+        sed -i 's|"YOUR_PROJECT_ID"|"${{ secrets.FIREBASE_PROJECT_ID }}"|g' index.html
+        sed -i 's|"YOUR_PROJECT_ID.firebasestorage.app"|"${{ secrets.FIREBASE_STORAGE_BUCKET }}"|g' index.html
+        sed -i 's|"YOUR_SENDER_ID"|"${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}"|g' index.html
+        sed -i 's|"YOUR_APP_ID"|"${{ secrets.FIREBASE_APP_ID }}"|g' index.html
+        sed -i 's|"YOUR_MEASUREMENT_ID"|"${{ secrets.FIREBASE_MEASUREMENT_ID }}"|g' index.html
+        
+        echo "✅ Firebase configuration updated with secrets"
+        
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      if: github.ref == 'refs/heads/main'
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: .
+        publish_branch: gh-pages
+        
+    - name: Deploy to Firebase Hosting
+      if: github.ref == 'refs/heads/main'
+      run: |
+        # Install Firebase CLI
+        npm install -g firebase-tools
+        
+        # Login to Firebase (using token from secrets)
+        firebase use ${{ secrets.FIREBASE_PROJECT_ID }}
+        
+        # Deploy to Firebase Hosting
+        firebase deploy --only hosting --token "${{ secrets.FIREBASE_TOKEN }}"
+      env:
+        FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        
+    - name: Show Deployment Status
+      run: |
+        echo "🚀 Deployment completed!"
+        echo "📊 GitHub Pages: https://ronb12.github.io/Kaden-Adelynn-Adventures/"
+        echo "🔥 Firebase Hosting: https://kaden---adelynn-adventures.web.app"
+        echo "✅ Firebase configuration injected successfully" 

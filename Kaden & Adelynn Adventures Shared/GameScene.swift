@@ -13,7 +13,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Game State
     private var gameState: GameState = .menu
     private var score: Int = 0
-    private var lives: Int = 25
+    private var lives: Int = 3  // Changed to match original game
     private var highScore: Int = 0
     private var level: Int = 1
     private var survivalTime: TimeInterval = 0
@@ -21,7 +21,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: - Player & Weapons
     private var player: SKSpriteNode!
-    private var currentWeapon: WeaponType = .laser
+    private var currentWeapon: WeaponType = .basic  // Changed to match original
     private var weaponLevel: Int = 1
     private var doubleShot: Bool = false
     private var shieldActive: Bool = false
@@ -95,75 +95,65 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         static let diamond: UInt32 = 0b1000000
     }
     
-    // MARK: - Weapon Types
+    // MARK: - Weapon Types (Updated to match original)
     enum WeaponType: CaseIterable {
-        case laser, missile, plasma, sonic, fire, ice, lightning, poison, void, cosmic
-        
-        var damage: Int {
-            switch self {
-            case .laser: return 1
-            case .missile: return 2
-            case .plasma: return 3
-            case .sonic: return 2
-            case .fire: return 4
-            case .ice: return 3
-            case .lightning: return 5
-            case .poison: return 2
-            case .void: return 6
-            case .cosmic: return 8
-            }
-        }
-        
-        var color: SKColor {
-            switch self {
-            case .laser: return .red
-            case .missile: return .orange
-            case .plasma: return .purple
-            case .sonic: return .blue
-            case .fire: return .red
-            case .ice: return .cyan
-            case .lightning: return .yellow
-            case .poison: return .green
-            case .void: return .black
-            case .cosmic: return .white
-            }
-        }
+        case basic, plasma, spread, laser, missile, lightning, ice, fire, energy, quantum, sonic
         
         var name: String {
             switch self {
-            case .laser: return "Laser"
-            case .missile: return "Missile"
-            case .plasma: return "Plasma"
-            case .sonic: return "Sonic"
-            case .fire: return "Fire"
-            case .ice: return "Ice"
-            case .lightning: return "Lightning"
-            case .poison: return "Poison"
-            case .void: return "Void"
-            case .cosmic: return "Cosmic"
+            case .basic: return "Basic Laser"
+            case .plasma: return "Plasma Cannon"
+            case .spread: return "Spread Shot"
+            case .laser: return "Laser Beam"
+            case .missile: return "Homing Missile"
+            case .lightning: return "Lightning Bolt"
+            case .ice: return "Ice Shard"
+            case .fire: return "Fireball"
+            case .energy: return "Energy Pulse"
+            case .quantum: return "Quantum Blaster"
+            case .sonic: return "Sonic Wave"
             }
         }
         
-        var fireRate: TimeInterval {
+        var damage: Int {
             switch self {
-            case .laser: return 0.2
-            case .missile: return 0.4
-            case .plasma: return 0.3
-            case .sonic: return 0.15
-            case .fire: return 0.25
-            case .ice: return 0.3
-            case .lightning: return 0.1
-            case .poison: return 0.35
-            case .void: return 0.5
-            case .cosmic: return 0.2
+            case .basic: return 1
+            case .plasma: return 2
+            case .spread: return 1
+            case .laser: return 2
+            case .missile: return 3
+            case .lightning: return 3
+            case .ice: return 2
+            case .fire: return 2
+            case .energy: return 2
+            case .quantum: return 4
+            case .sonic: return 1
+            }
+        }
+        
+        var color: UIColor {
+            switch self {
+            case .basic: return .yellow
+            case .plasma: return .cyan
+            case .spread: return .red
+            case .laser: return .magenta
+            case .missile: return .orange
+            case .lightning: return .yellow
+            case .ice: return .cyan
+            case .fire: return .red
+            case .energy: return .green
+            case .quantum: return .purple
+            case .sonic: return .systemPink
             }
         }
     }
     
+    // MARK: - Game State Enum
     enum GameState {
         case menu, playing, paused, gameOver
     }
     
+    // MARK: - Challenge System
     struct Challenge {
         let name: String
         let description: String
@@ -173,23 +163,29 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     enum ChallengeType {
-        case destroyEnemies, collectPowerups, surviveTime, scorePoints
+        case destroyEnemies, collectPowerups, surviveTime, consecutiveHits
     }
     
     // MARK: - Scene Setup
+    class func newGameScene() -> GameScene {
+        guard let scene = SKScene(fileNamed: "GameScene") as? GameScene else {
+            print("Failed to load GameScene.sks")
+            abort()
+        }
+        scene.scaleMode = .aspectFill
+        return scene
+    }
+    
     override func didMove(to view: SKView) {
-        setupPhysics()
+        physicsWorld.contactDelegate = self
+        physicsWorld.gravity = CGVector(dx: 0, dy: 0)
+        
         setupUI()
         setupStars()
-        loadHighScores()
         showMainMenu()
     }
     
-    private func setupPhysics() {
-        physicsWorld.gravity = CGVector(dx: 0, dy: 0)
-        physicsWorld.contactDelegate = self
-    }
-    
+    // MARK: - UI Setup
     private func setupUI() {
         // Score Label
         scoreLabel = SKLabelNode(fontNamed: "Arial-Bold")
@@ -202,7 +198,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Lives Label
         livesLabel = SKLabelNode(fontNamed: "Arial-Bold")
-        livesLabel.text = "Lives: 25"
+        livesLabel.text = "Lives: 3"
         livesLabel.fontSize = 24
         livesLabel.fontColor = .white
         livesLabel.position = CGPoint(x: 100, y: size.height - 80)
@@ -211,7 +207,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Weapon Label
         weaponLabel = SKLabelNode(fontNamed: "Arial-Bold")
-        weaponLabel.text = "Weapon: Laser"
+        weaponLabel.text = "Weapon: Basic Laser"
         weaponLabel.fontSize = 20
         weaponLabel.fontColor = .yellow
         weaponLabel.position = CGPoint(x: 100, y: size.height - 110)
@@ -303,7 +299,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private func startGame() {
         gameState = .playing
         score = 0
-        lives = 25
+        lives = 3  // Match original game
         level = 1
         survivalTime = 0
         startTime = Date().timeIntervalSince1970
@@ -318,7 +314,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         particles.removeAll()
         
         // Reset player
-        currentWeapon = .laser
+        currentWeapon = .basic  // Start with basic weapon
         weaponLevel = 1
         doubleShot = false
         shieldActive = false
@@ -357,6 +353,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     private func createPlayer() {
+        // Create a more detailed ship design
         player = SKSpriteNode(color: .blue, size: CGSize(width: 50, height: 40))
         player.position = CGPoint(x: size.width/2, y: size.height - 100)
         player.zPosition = 10
@@ -416,15 +413,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         survivalTime = currentTime - startTime
         
-        updateStars()
-        updatePlayer()
-        updateBullets()
-        updateEnemyBullets()
-        updateEnemies()
-        updatePowerups()
-        updateParticles()
-        updateTimers()
+        // Auto-shoot
+        if currentTime - lastShotTime >= shotCooldown {
+            shoot()
+            lastShotTime = currentTime
+        }
         
+        // Update power-ups
+        updatePowerUps(currentTime)
+        
+        // Spawn enemies and items
         spawnEnemies()
         spawnPowerups()
         spawnCollectibles()
@@ -433,47 +431,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         updateUI()
     }
     
-    private func updateStars() {
-        for star in stars {
-            star.position.y -= 0.5
-            if star.position.y < -10 {
-                star.position.y = size.height + 10
-                star.position.x = CGFloat.random(in: 0...size.width)
-            }
-        }
-    }
-    
-    private func updatePlayer() {
-        // Auto-shooting
-        let currentTime = Date().timeIntervalSince1970
-        if currentTime - lastShotTime >= shotCooldown {
-            shootBullet()
-            lastShotTime = currentTime
-        }
-        
-        // Shield effect
-        if shieldActive {
-            if shieldTimer <= 0 {
-                shieldActive = false
-                player.removeAction(forKey: "shield")
-            } else {
-                shieldTimer -= 1/60.0 // Assuming 60 FPS
-            }
-        }
-        
-        // Rapid fire effect
-        if rapidFireActive {
-            if rapidFireTimer <= 0 {
-                rapidFireActive = false
-                shotCooldown = WeaponType.laser.fireRate
-            } else {
-                rapidFireTimer -= 1/60.0
-                shotCooldown = 0.1
-            }
-        }
-    }
-    
-    private func shootBullet() {
+    // MARK: - Shooting
+    private func shoot() {
         let bullet = SKSpriteNode(color: currentWeapon.color, size: CGSize(width: 4, height: 8))
         bullet.position = CGPoint(x: player.position.x, y: player.position.y + player.size.height/2)
         bullet.zPosition = 5
@@ -492,96 +451,136 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let moveAction = SKAction.moveBy(x: 0, y: bulletSpeed, duration: 1.0)
         let removeAction = SKAction.removeFromParent()
         bullet.run(SKAction.sequence([moveAction, removeAction]))
+    }
+    
+    // MARK: - Enemy Spawning
+    private func spawnEnemies() {
+        let currentTime = Date().timeIntervalSince1970
+        if currentTime - lastEnemySpawn >= enemySpawnRate {
+            let enemy = SKSpriteNode(color: .red, size: CGSize(width: 30, height: 30))
+            enemy.position = CGPoint(x: CGFloat.random(in: 0...size.width), y: size.height + 30)
+            enemy.zPosition = 5
+            
+            // Physics body
+            enemy.physicsBody = SKPhysicsBody(rectangleOf: enemy.size)
+            enemy.physicsBody?.isDynamic = true
+            enemy.physicsBody?.categoryBitMask = PhysicsCategory.enemy
+            enemy.physicsBody?.contactTestBitMask = PhysicsCategory.bullet | PhysicsCategory.player
+            enemy.physicsBody?.collisionBitMask = PhysicsCategory.none
+            
+            enemies.append(enemy)
+            addChild(enemy)
+            
+            // Move enemy
+            let moveAction = SKAction.moveBy(x: 0, y: -enemySpeed, duration: 2.0)
+            let removeAction = SKAction.removeFromParent()
+            enemy.run(SKAction.sequence([moveAction, removeAction]))
+            
+            lastEnemySpawn = currentTime
+        }
+    }
+    
+    // MARK: - Power-up Spawning
+    private func spawnPowerups() {
+        let currentTime = Date().timeIntervalSince1970
+        if currentTime - lastPowerUpSpawn >= powerUpSpawnRate {
+            let powerUp = SKSpriteNode(color: .green, size: CGSize(width: 20, height: 20))
+            powerUp.position = CGPoint(x: CGFloat.random(in: 0...size.width), y: size.height + 20)
+            powerUp.zPosition = 5
+            
+            // Physics body
+            powerUp.physicsBody = SKPhysicsBody(rectangleOf: powerUp.size)
+            powerUp.physicsBody?.isDynamic = true
+            powerUp.physicsBody?.categoryBitMask = PhysicsCategory.powerUp
+            powerUp.physicsBody?.contactTestBitMask = PhysicsCategory.player
+            powerUp.physicsBody?.collisionBitMask = PhysicsCategory.none
+            
+            powerUps.append(powerUp)
+            addChild(powerUp)
+            
+            // Move power-up
+            let moveAction = SKAction.moveBy(x: 0, y: -powerUpSpeed, duration: 3.0)
+            let removeAction = SKAction.removeFromParent()
+            powerUp.run(SKAction.sequence([moveAction, removeAction]))
+            
+            lastPowerUpSpawn = currentTime
+        }
+    }
+    
+    // MARK: - Collectible Spawning
+    private func spawnCollectibles() {
+        let currentTime = Date().timeIntervalSince1970
         
-        // Double shot
-        if doubleShot {
-            let bullet2 = bullet.copy() as! SKSpriteNode
-            bullet2.position.x += 10
-            bullets.append(bullet2)
-            addChild(bullet2)
-            bullet2.run(SKAction.sequence([moveAction, removeAction]))
-        }
-    }
-    
-    private func updateBullets() {
-        bullets = bullets.filter { bullet in
-            if bullet.position.y > size.height + 10 {
-                bullet.removeFromParent()
-                return false
-            }
-            return true
-        }
-    }
-    
-    private func updateEnemyBullets() {
-        enemyBullets = enemyBullets.filter { bullet in
-            if bullet.position.y < -10 {
-                bullet.removeFromParent()
-                return false
-            }
-            return true
-        }
-    }
-    
-    private func updateEnemies() {
-        enemies = enemies.filter { enemy in
-            if enemy.position.y < -enemy.size.height {
-                enemy.removeFromParent()
-                return false
-            }
-            return true
+        // Spawn money
+        if currentTime - lastMoneySpawn >= moneySpawnRate {
+            let money = SKSpriteNode(color: .yellow, size: CGSize(width: 15, height: 15))
+            money.position = CGPoint(x: CGFloat.random(in: 0...size.width), y: size.height + 15)
+            money.zPosition = 5
+            
+            // Physics body
+            money.physicsBody = SKPhysicsBody(rectangleOf: money.size)
+            money.physicsBody?.isDynamic = true
+            money.physicsBody?.categoryBitMask = PhysicsCategory.money
+            money.physicsBody?.contactTestBitMask = PhysicsCategory.player
+            money.physicsBody?.collisionBitMask = PhysicsCategory.none
+            
+            self.money.append(money)
+            addChild(money)
+            
+            // Move money
+            let moveAction = SKAction.moveBy(x: 0, y: -powerUpSpeed, duration: 3.0)
+            let removeAction = SKAction.removeFromParent()
+            money.run(SKAction.sequence([moveAction, removeAction]))
+            
+            lastMoneySpawn = currentTime
         }
         
-        // Enemy shooting
-        for enemy in enemies {
-            if Int.random(in: 0...1000) < 2 { // 0.2% chance per frame
-                shootEnemyBullet(from: enemy)
-            }
+        // Spawn diamonds
+        if currentTime - lastDiamondSpawn >= diamondSpawnRate {
+            let diamond = SKSpriteNode(color: .cyan, size: CGSize(width: 12, height: 12))
+            diamond.position = CGPoint(x: CGFloat.random(in: 0...size.width), y: size.height + 12)
+            diamond.zPosition = 5
+            
+            // Physics body
+            diamond.physicsBody = SKPhysicsBody(rectangleOf: diamond.size)
+            diamond.physicsBody?.isDynamic = true
+            diamond.physicsBody?.categoryBitMask = PhysicsCategory.diamond
+            diamond.physicsBody?.contactTestBitMask = PhysicsCategory.player
+            diamond.physicsBody?.collisionBitMask = PhysicsCategory.none
+            
+            diamonds.append(diamond)
+            addChild(diamond)
+            
+            // Move diamond
+            let moveAction = SKAction.moveBy(x: 0, y: -powerUpSpeed, duration: 3.0)
+            let removeAction = SKAction.removeFromParent()
+            diamond.run(SKAction.sequence([moveAction, removeAction]))
+            
+            lastDiamondSpawn = currentTime
         }
     }
     
-    private func shootEnemyBullet(from enemy: SKSpriteNode) {
-        let bullet = SKSpriteNode(color: .red, size: CGSize(width: 3, height: 6))
-        bullet.position = CGPoint(x: enemy.position.x, y: enemy.position.y - enemy.size.height/2)
-        bullet.zPosition = 5
-        
-        bullet.physicsBody = SKPhysicsBody(rectangleOf: bullet.size)
-        bullet.physicsBody?.isDynamic = true
-        bullet.physicsBody?.categoryBitMask = PhysicsCategory.enemyBullet
-        bullet.physicsBody?.contactTestBitMask = PhysicsCategory.player
-        bullet.physicsBody?.collisionBitMask = PhysicsCategory.none
-        
-        enemyBullets.append(bullet)
-        addChild(bullet)
-        
-        let moveAction = SKAction.moveBy(x: 0, y: -bulletSpeed, duration: 1.0)
-        let removeAction = SKAction.removeFromParent()
-        bullet.run(SKAction.sequence([moveAction, removeAction]))
-    }
-    
-    private func updatePowerups() {
-        powerUps = powerUps.filter { powerUp in
-            if powerUp.position.y < -powerUp.size.height {
-                powerUp.removeFromParent()
-                return false
+    // MARK: - Power-up Updates
+    private func updatePowerUps(_ currentTime: TimeInterval) {
+        // Update shield
+        if shieldActive {
+            shieldTimer -= 1/60.0
+            if shieldTimer <= 0 {
+                shieldActive = false
             }
-            return true
         }
-    }
-    
-    private func updateParticles() {
-        particles = particles.filter { particle in
-            if particle.alpha <= 0 {
-                particle.removeFromParent()
-                return false
+        
+        // Update rapid fire
+        if rapidFireActive {
+            rapidFireTimer -= 1/60.0
+            if rapidFireTimer <= 0 {
+                rapidFireActive = false
+                shotCooldown = 0.2
             }
-            particle.alpha -= 0.02
-            return true
         }
-    }
-    
-    private func updateTimers() {
-        if scoreMultiplierTimer > 0 {
+        
+        // Update score multiplier
+        if scoreMultiplier > 1 {
             scoreMultiplierTimer -= 1/60.0
             if scoreMultiplierTimer <= 0 {
                 scoreMultiplier = 1
@@ -589,430 +588,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
     
-    // MARK: - Spawning
-    private func spawnEnemies() {
-        let currentTime = Date().timeIntervalSince1970
-        if currentTime - lastEnemySpawn >= enemySpawnRate {
-            spawnEnemy()
-            lastEnemySpawn = currentTime
-        }
-    }
-    
-    private func spawnEnemy() {
-        let enemy = SKSpriteNode(color: .red, size: CGSize(width: 40, height: 30))
-        enemy.position = CGPoint(x: CGFloat.random(in: enemy.size.width/2...size.width - enemy.size.width/2),
-                               y: size.height + enemy.size.height/2)
-        enemy.zPosition = 5
-        
-        enemy.physicsBody = SKPhysicsBody(rectangleOf: enemy.size)
-        enemy.physicsBody?.isDynamic = true
-        enemy.physicsBody?.categoryBitMask = PhysicsCategory.enemy
-        enemy.physicsBody?.contactTestBitMask = PhysicsCategory.bullet | PhysicsCategory.player
-        enemy.physicsBody?.collisionBitMask = PhysicsCategory.none
-        
-        enemies.append(enemy)
-        addChild(enemy)
-        
-        let moveAction = SKAction.moveBy(x: 0, y: -enemySpeed, duration: 3.0)
-        let removeAction = SKAction.removeFromParent()
-        enemy.run(SKAction.sequence([moveAction, removeAction]))
-    }
-    
-    private func spawnPowerups() {
-        let currentTime = Date().timeIntervalSince1970
-        if currentTime - lastPowerUpSpawn >= powerUpSpawnRate {
-            spawnPowerUp()
-            lastPowerUpSpawn = currentTime
-        }
-    }
-    
-    private func spawnPowerUp() {
-        let powerUpTypes = ["🚀", "❤️", "⚡", "🛡️", "💎"]
-        let randomType = powerUpTypes.randomElement() ?? "🚀"
-        
-        let powerUp = SKSpriteNode(color: .clear, size: CGSize(width: 30, height: 30))
-        powerUp.position = CGPoint(x: CGFloat.random(in: powerUp.size.width/2...size.width - powerUp.size.width/2),
-                                 y: size.height + powerUp.size.height/2)
-        powerUp.zPosition = 5
-        
-        // Add emoji label
-        let emojiLabel = SKLabelNode(text: randomType)
-        emojiLabel.fontSize = 20
-        emojiLabel.verticalAlignmentMode = .center
-        powerUp.addChild(emojiLabel)
-        
-        powerUp.physicsBody = SKPhysicsBody(rectangleOf: powerUp.size)
-        powerUp.physicsBody?.isDynamic = true
-        powerUp.physicsBody?.categoryBitMask = PhysicsCategory.powerUp
-        powerUp.physicsBody?.contactTestBitMask = PhysicsCategory.player
-        powerUp.physicsBody?.collisionBitMask = PhysicsCategory.none
-        
-        powerUps.append(powerUp)
-        addChild(powerUp)
-        
-        let moveAction = SKAction.moveBy(x: 0, y: -powerUpSpeed, duration: 4.0)
-        let removeAction = SKAction.removeFromParent()
-        powerUp.run(SKAction.sequence([moveAction, removeAction]))
-    }
-    
-    private func spawnCollectibles() {
-        let currentTime = Date().timeIntervalSince1970
-        
-        // Spawn money
-        if currentTime - lastMoneySpawn >= moneySpawnRate {
-            spawnMoney()
-            lastMoneySpawn = currentTime
-        }
-        
-        // Spawn diamonds
-        if currentTime - lastDiamondSpawn >= diamondSpawnRate {
-            spawnDiamond()
-            lastDiamondSpawn = currentTime
-        }
-    }
-    
-    private func spawnMoney() {
-        let money = SKSpriteNode(color: .yellow, size: CGSize(width: 15, height: 15))
-        money.position = CGPoint(x: CGFloat.random(in: money.size.width/2...size.width - money.size.width/2),
-                               y: size.height + money.size.height/2)
-        money.zPosition = 5
-        
-        money.physicsBody = SKPhysicsBody(rectangleOf: money.size)
-        money.physicsBody?.isDynamic = true
-        money.physicsBody?.categoryBitMask = PhysicsCategory.money
-        money.physicsBody?.contactTestBitMask = PhysicsCategory.player
-        money.physicsBody?.collisionBitMask = PhysicsCategory.none
-        
-        self.money.append(money)
-        addChild(money)
-        
-        let moveAction = SKAction.moveBy(x: 0, y: -powerUpSpeed, duration: 4.0)
-        let removeAction = SKAction.removeFromParent()
-        money.run(SKAction.sequence([moveAction, removeAction]))
-    }
-    
-    private func spawnDiamond() {
-        let diamond = SKSpriteNode(color: .cyan, size: CGSize(width: 20, height: 20))
-        diamond.position = CGPoint(x: CGFloat.random(in: diamond.size.width/2...size.width - diamond.size.width/2),
-                                 y: size.height + diamond.size.height/2)
-        diamond.zPosition = 5
-        
-        diamond.physicsBody = SKPhysicsBody(rectangleOf: diamond.size)
-        diamond.physicsBody?.isDynamic = true
-        diamond.physicsBody?.categoryBitMask = PhysicsCategory.diamond
-        diamond.physicsBody?.contactTestBitMask = PhysicsCategory.player
-        diamond.physicsBody?.collisionBitMask = PhysicsCategory.none
-        
-        diamonds.append(diamond)
-        addChild(diamond)
-        
-        let moveAction = SKAction.moveBy(x: 0, y: -powerUpSpeed, duration: 4.0)
-        let removeAction = SKAction.removeFromParent()
-        diamond.run(SKAction.sequence([moveAction, removeAction]))
-    }
-    
-    // MARK: - Collision Detection
-    func didBegin(_ contact: SKPhysicsContact) {
-        let collision = contact.bodyA.categoryBitMask | contact.bodyB.categoryBitMask
-        
-        if collision == PhysicsCategory.bullet | PhysicsCategory.enemy {
-            handleBulletEnemyCollision(contact)
-        } else if collision == PhysicsCategory.player | PhysicsCategory.enemy {
-            handlePlayerEnemyCollision(contact)
-        } else if collision == PhysicsCategory.player | PhysicsCategory.enemyBullet {
-            handlePlayerEnemyBulletCollision(contact)
-        } else if collision == PhysicsCategory.player | PhysicsCategory.powerUp {
-            handlePlayerPowerUpCollision(contact)
-        } else if collision == PhysicsCategory.player | PhysicsCategory.money {
-            handlePlayerMoneyCollision(contact)
-        } else if collision == PhysicsCategory.player | PhysicsCategory.diamond {
-            handlePlayerDiamondCollision(contact)
-        }
-    }
-    
-    private func handleBulletEnemyCollision(_ contact: SKPhysicsContact) {
-        let bullet = contact.bodyA.categoryBitMask == PhysicsCategory.bullet ? contact.bodyA.node : contact.bodyB.node
-        let enemy = contact.bodyA.categoryBitMask == PhysicsCategory.enemy ? contact.bodyA.node : contact.bodyB.node
-        
-        bullet?.removeFromParent()
-        enemy?.removeFromParent()
-        
-        // Remove from arrays
-        if let bullet = bullet as? SKSpriteNode {
-            bullets.removeAll { $0 == bullet }
-        }
-        if let enemy = enemy as? SKSpriteNode {
-            enemies.removeAll { $0 == enemy }
-        }
-        
-        // Create explosion
-        createExplosion(at: enemy?.position ?? CGPoint.zero)
-        
-        // Update score
-        score += 10 * scoreMultiplier
-        totalEnemiesDestroyed += 1
-        consecutiveHits += 1
-        maxConsecutiveHits = max(maxConsecutiveHits, consecutiveHits)
-        
-        // Check for weapon upgrade
-        if totalEnemiesDestroyed % 10 == 0 {
-            upgradeWeapon()
-        }
-    }
-    
-    private func handlePlayerEnemyCollision(_ contact: SKPhysicsContact) {
-        if !shieldActive {
-            lives -= 1
-            consecutiveHits = 0
-            
-            if lives <= 0 {
-                gameOver()
-            } else {
-                createExplosion(at: player.position)
-            }
-        }
-    }
-    
-    private func handlePlayerEnemyBulletCollision(_ contact: SKPhysicsContact) {
-        let bullet = contact.bodyA.categoryBitMask == PhysicsCategory.enemyBullet ? contact.bodyA.node : contact.bodyB.node
-        
-        bullet?.removeFromParent()
-        
-        if let bullet = bullet as? SKSpriteNode {
-            enemyBullets.removeAll { $0 == bullet }
-        }
-        
-        if !shieldActive {
-            lives -= 1
-            consecutiveHits = 0
-            
-            if lives <= 0 {
-                gameOver()
-            }
-        }
-    }
-    
-    private func handlePlayerPowerUpCollision(_ contact: SKPhysicsContact) {
-        let powerUp = contact.bodyA.categoryBitMask == PhysicsCategory.powerUp ? contact.bodyA.node : contact.bodyB.node
-        
-        powerUp?.removeFromParent()
-        
-        if let powerUp = powerUp as? SKSpriteNode {
-            powerUps.removeAll { $0 == powerUp }
-            
-            // Check power-up type based on emoji
-            if let emojiLabel = powerUp.children.first as? SKLabelNode {
-                switch emojiLabel.text {
-                case "🚀":
-                    upgradeWeapon()
-                case "❤️":
-                    lives = min(lives + 1, 25)
-                case "⚡":
-                    activateRapidFire()
-                case "🛡️":
-                    activateShield()
-                case "💎":
-                    activateDiamondPower()
-                default:
-                    break
-                }
-            }
-        }
-        
-        totalPowerupsCollected += 1
-    }
-    
-    private func handlePlayerMoneyCollision(_ contact: SKPhysicsContact) {
-        let money = contact.bodyA.categoryBitMask == PhysicsCategory.money ? contact.bodyA.node : contact.bodyB.node
-        
-        money?.removeFromParent()
-        
-        if let money = money as? SKSpriteNode {
-            self.money.removeAll { $0 == money }
-        }
-        
-        moneyCount += 1
-        score += 5
-    }
-    
-    private func handlePlayerDiamondCollision(_ contact: SKPhysicsContact) {
-        let diamond = contact.bodyA.categoryBitMask == PhysicsCategory.diamond ? contact.bodyA.node : contact.bodyB.node
-        
-        diamond?.removeFromParent()
-        
-        if let diamond = diamond as? SKSpriteNode {
-            diamonds.removeAll { $0 == diamond }
-        }
-        
-        diamondCount += 1
-        score += 20
-        bulletDamage += 1
-    }
-    
-    private func createExplosion(at position: CGPoint) {
-        for _ in 0..<10 {
-            let particle = SKSpriteNode(color: .red, size: CGSize(width: 2, height: 2))
-            particle.position = position
-            particle.zPosition = 15
-            
-            let randomX = CGFloat.random(in: -50...50)
-            let randomY = CGFloat.random(in: -50...50)
-            let moveAction = SKAction.moveBy(x: randomX, y: randomY, duration: 0.5)
-            let fadeAction = SKAction.fadeOut(withDuration: 0.5)
-            let groupAction = SKAction.group([moveAction, fadeAction])
-            let removeAction = SKAction.removeFromParent()
-            
-            particle.run(SKAction.sequence([groupAction, removeAction]))
-            particles.append(particle)
-            addChild(particle)
-        }
-    }
-    
-    // MARK: - Power-ups
-    private func upgradeWeapon() {
-        let weapons = WeaponType.allCases
-        if let currentIndex = weapons.firstIndex(of: currentWeapon) {
-            let nextIndex = (currentIndex + 1) % weapons.count
-            currentWeapon = weapons[nextIndex]
-            shotCooldown = currentWeapon.fireRate
-        }
-    }
-    
-    private func activateRapidFire() {
-        rapidFireActive = true
-        rapidFireTimer = 5.0 // 5 seconds
-        shotCooldown = 0.1
-    }
-    
-    private func activateShield() {
-        shieldActive = true
-        shieldTimer = 3.0 // 3 seconds
-        
-        // Visual shield effect
-        let shieldAction = SKAction.sequence([
-            SKAction.scale(to: 1.2, duration: 0.1),
-            SKAction.scale(to: 1.0, duration: 0.1)
-        ])
-        player.run(SKAction.repeatForever(shieldAction), withKey: "shield")
-    }
-    
-    private func activateDiamondPower() {
-        scoreMultiplier = 2
-        scoreMultiplierTimer = 10.0 // 10 seconds
-    }
-    
-    // MARK: - Challenge System
-    private func initializeChallenges() {
-        challenges = [
-            Challenge(name: "Enemy Hunter", description: "Destroy 20 enemies", target: 20, reward: 100, type: .destroyEnemies),
-            Challenge(name: "Power Collector", description: "Collect 5 power-ups", target: 5, reward: 150, type: .collectPowerups),
-            Challenge(name: "Survivor", description: "Survive for 2 minutes", target: 120, reward: 200, type: .surviveTime),
-            Challenge(name: "High Scorer", description: "Score 1000 points", target: 1000, reward: 300, type: .scorePoints)
-        ]
-    }
-    
-    private func startRandomChallenge() {
-        guard let challenge = challenges.randomElement() else { return }
-        currentChallenge = challenge
-        challengeProgress = 0
-        challengeTimer = 30.0 // 30 seconds to complete
-        
-        // Show challenge notification
-        showChallengeNotification(challenge)
-    }
-    
-    private func showChallengeNotification(_ challenge: Challenge) {
-        let notification = SKLabelNode(fontNamed: "Arial-Bold")
-        notification.text = "🎯 \(challenge.name): \(challenge.description)"
-        notification.fontSize = 18
-        notification.fontColor = .yellow
-        notification.position = CGPoint(x: size.width/2, y: size.height/2 + 50)
-        notification.zPosition = 200
-        addChild(notification)
-        
-        let fadeOut = SKAction.fadeOut(withDuration: 3.0)
-        let remove = SKAction.removeFromParent()
-        notification.run(SKAction.sequence([fadeOut, remove]))
-    }
-    
-    private func updateChallengeProgress(_ type: ChallengeType, _ value: Int) {
-        guard let challenge = currentChallenge else { return }
-        
-        switch type {
-        case .destroyEnemies:
-            if challenge.type == .destroyEnemies {
-                challengeProgress += 1
-            }
-        case .collectPowerups:
-            if challenge.type == .collectPowerups {
-                challengeProgress += 1
-            }
-        case .surviveTime:
-            if challenge.type == .surviveTime {
-                challengeProgress = Int(survivalTime)
-            }
-        case .scorePoints:
-            if challenge.type == .scorePoints {
-                challengeProgress = score
-            }
-        }
-        
-        if challengeProgress >= challenge.target {
-            completeChallenge()
-        }
-    }
-    
-    private func completeChallenge() {
-        guard let challenge = currentChallenge else { return }
-        
-        score += challenge.reward
-        
-        let completionLabel = SKLabelNode(fontNamed: "Arial-Bold")
-        completionLabel.text = "🎉 Challenge Complete! +\(challenge.reward) points"
-        completionLabel.fontSize = 20
-        completionLabel.fontColor = .green
-        completionLabel.position = CGPoint(x: size.width/2, y: size.height/2)
-        completionLabel.zPosition = 200
-        addChild(completionLabel)
-        
-        let fadeOut = SKAction.fadeOut(withDuration: 2.0)
-        let remove = SKAction.removeFromParent()
-        completionLabel.run(SKAction.sequence([fadeOut, remove]))
-        
-        currentChallenge = nil
-    }
-    
-    // MARK: - Difficulty Scaling
+    // MARK: - Difficulty Updates
     private func updateDifficulty() {
-        let timeElapsed = survivalTime
-        
-        // Increase enemy spawn rate
-        if timeElapsed > 30 && enemySpawnRate > 0.5 {
-            enemySpawnRate -= 0.1
-        }
-        
-        // Increase level
-        let newLevel = Int(timeElapsed / 60) + 1
+        // Increase difficulty based on score
+        let newLevel = (score / 1000) + 1
         if newLevel != level {
             level = newLevel
-            showLevelUpNotification()
+            enemySpawnRate = max(0.3, 1.0 - (Double(level) * 0.1))
         }
-    }
-    
-    private func showLevelUpNotification() {
-        let levelLabel = SKLabelNode(fontNamed: "Arial-Bold")
-        levelLabel.text = "🚀 Level \(level)!"
-        levelLabel.fontSize = 24
-        levelLabel.fontColor = .cyan
-        levelLabel.position = CGPoint(x: size.width/2, y: size.height/2)
-        levelLabel.zPosition = 200
-        addChild(levelLabel)
-        
-        let scaleUp = SKAction.scale(to: 1.5, duration: 0.3)
-        let scaleDown = SKAction.scale(to: 1.0, duration: 0.3)
-        let fadeOut = SKAction.fadeOut(withDuration: 1.0)
-        let remove = SKAction.removeFromParent()
-        levelLabel.run(SKAction.sequence([scaleUp, scaleDown, fadeOut, remove]))
     }
     
     // MARK: - UI Updates
@@ -1023,104 +606,224 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         levelLabel.text = "Level: \(level)"
     }
     
+    // MARK: - Challenge System
+    private func initializeChallenges() {
+        challenges = [
+            Challenge(name: "Destroy 10 Enemies", description: "Destroy 10 enemies in 30 seconds", target: 10, reward: 500, type: .destroyEnemies),
+            Challenge(name: "Collect 5 Power-ups", description: "Collect 5 power-ups in 45 seconds", target: 5, reward: 300, type: .collectPowerups),
+            Challenge(name: "Survive 60 Seconds", description: "Survive for 60 seconds", target: 60, reward: 400, type: .surviveTime),
+            Challenge(name: "5 Consecutive Hits", description: "Hit 5 enemies in a row", target: 5, reward: 200, type: .consecutiveHits)
+        ]
+    }
+    
+    private func startRandomChallenge() {
+        guard let challenge = challenges.randomElement() else { return }
+        currentChallenge = challenge
+        challengeProgress = 0
+        challengeTimer = 0
+        
+        // Show challenge notification
+        let challengeLabel = SKLabelNode(fontNamed: "Arial-Bold")
+        challengeLabel.text = "Challenge: \(challenge.name)"
+        challengeLabel.fontSize = 24
+        challengeLabel.fontColor = .yellow
+        challengeLabel.position = CGPoint(x: size.width/2, y: size.height/2)
+        challengeLabel.zPosition = 200
+        addChild(challengeLabel)
+        
+        // Remove after 3 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            challengeLabel.removeFromParent()
+        }
+    }
+    
+    // MARK: - Collision Detection
+    func didBegin(_ contact: SKPhysicsContact) {
+        let collision = contact.bodyA.categoryBitMask | contact.bodyB.categoryBitMask
+        
+        if collision == PhysicsCategory.bullet | PhysicsCategory.enemy {
+            // Bullet hit enemy
+            let bullet = contact.bodyA.categoryBitMask == PhysicsCategory.bullet ? contact.bodyA.node : contact.bodyB.node
+            let enemy = contact.bodyA.categoryBitMask == PhysicsCategory.enemy ? contact.bodyA.node : contact.bodyB.node
+            
+            bullet?.removeFromParent()
+            enemy?.removeFromParent()
+            
+            if let bulletNode = bullet as? SKSpriteNode {
+                bullets.removeAll { $0 == bulletNode }
+            }
+            if let enemyNode = enemy as? SKSpriteNode {
+                enemies.removeAll { $0 == enemyNode }
+            }
+            
+            score += 10 * scoreMultiplier
+            totalEnemiesDestroyed += 1
+            consecutiveHits += 1
+            maxConsecutiveHits = max(maxConsecutiveHits, consecutiveHits)
+            
+            // Check challenge progress
+            if let challenge = currentChallenge, challenge.type == .destroyEnemies {
+                challengeProgress += 1
+                if challengeProgress >= challenge.target {
+                    completeChallenge(challenge)
+                }
+            }
+        }
+        
+        if collision == PhysicsCategory.player | PhysicsCategory.enemy {
+            // Player hit enemy
+            let enemy = contact.bodyA.categoryBitMask == PhysicsCategory.enemy ? contact.bodyA.node : contact.bodyB.node
+            enemy?.removeFromParent()
+            
+            if let enemyNode = enemy as? SKSpriteNode {
+                enemies.removeAll { $0 == enemyNode }
+            }
+            
+            if !shieldActive {
+                lives -= 1
+                consecutiveHits = 0
+                
+                if lives <= 0 {
+                    gameOver()
+                }
+            }
+        }
+        
+        if collision == PhysicsCategory.player | PhysicsCategory.powerUp {
+            // Player collected power-up
+            let powerUp = contact.bodyA.categoryBitMask == PhysicsCategory.powerUp ? contact.bodyA.node : contact.bodyB.node
+            powerUp?.removeFromParent()
+            
+            if let powerUpNode = powerUp as? SKSpriteNode {
+                powerUps.removeAll { $0 == powerUpNode }
+            }
+            
+            activateRandomPowerUp()
+            totalPowerupsCollected += 1
+            
+            // Check challenge progress
+            if let challenge = currentChallenge, challenge.type == .collectPowerups {
+                challengeProgress += 1
+                if challengeProgress >= challenge.target {
+                    completeChallenge(challenge)
+                }
+            }
+        }
+        
+        if collision == PhysicsCategory.player | PhysicsCategory.money {
+            // Player collected money
+            let money = contact.bodyA.categoryBitMask == PhysicsCategory.money ? contact.bodyA.node : contact.bodyB.node
+            money?.removeFromParent()
+            
+            if let moneyNode = money as? SKSpriteNode {
+                self.money.removeAll { $0 == moneyNode }
+            }
+            
+            moneyCount += 1
+            score += 5
+        }
+        
+        if collision == PhysicsCategory.player | PhysicsCategory.diamond {
+            // Player collected diamond
+            let diamond = contact.bodyA.categoryBitMask == PhysicsCategory.diamond ? contact.bodyA.node : contact.bodyB.node
+            diamond?.removeFromParent()
+            
+            if let diamondNode = diamond as? SKSpriteNode {
+                diamonds.removeAll { $0 == diamondNode }
+            }
+            
+            diamondCount += 1
+            score += 20
+        }
+    }
+    
+    // MARK: - Power-up Activation
+    private func activateRandomPowerUp() {
+        let powerUpTypes = ["shield", "rapidFire", "weaponUpgrade", "scoreMultiplier"]
+        let randomType = powerUpTypes.randomElement() ?? "shield"
+        
+        switch randomType {
+        case "shield":
+            shieldActive = true
+            shieldTimer = 5.0
+        case "rapidFire":
+            rapidFireActive = true
+            rapidFireTimer = 3.0
+            shotCooldown = 0.05
+        case "weaponUpgrade":
+            if let currentIndex = WeaponType.allCases.firstIndex(of: currentWeapon) {
+                let nextIndex = min(currentIndex + 1, WeaponType.allCases.count - 1)
+                currentWeapon = WeaponType.allCases[nextIndex]
+            }
+        case "scoreMultiplier":
+            scoreMultiplier = 2
+            scoreMultiplierTimer = 10.0
+        default:
+            break
+        }
+    }
+    
+    // MARK: - Challenge Completion
+    private func completeChallenge(_ challenge: Challenge) {
+        score += challenge.reward
+        
+        let rewardLabel = SKLabelNode(fontNamed: "Arial-Bold")
+        rewardLabel.text = "Challenge Complete! +\(challenge.reward) points"
+        rewardLabel.fontSize = 20
+        rewardLabel.fontColor = .green
+        rewardLabel.position = CGPoint(x: size.width/2, y: size.height/2)
+        rewardLabel.zPosition = 200
+        addChild(rewardLabel)
+        
+        // Remove after 2 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            rewardLabel.removeFromParent()
+        }
+        
+        currentChallenge = nil
+    }
+    
     // MARK: - Game Over
     private func gameOver() {
         gameState = .gameOver
         
-        // Save high score
         if score > highScore {
             highScore = score
-            saveHighScores()
         }
         
         // Show game over screen
-        showGameOverScreen()
-    }
-    
-    private func showGameOverScreen() {
-        // Background overlay
-        let overlay = SKSpriteNode(color: UIColor.black.withAlphaComponent(0.8), size: size)
-        overlay.position = CGPoint(x: size.width/2, y: size.height/2)
-        overlay.zPosition = 150
-        addChild(overlay)
-        
-        // Game Over text
         let gameOverLabel = SKLabelNode(fontNamed: "Arial-Bold")
         gameOverLabel.text = "GAME OVER"
-        gameOverLabel.fontSize = 36
+        gameOverLabel.fontSize = 48
         gameOverLabel.fontColor = .red
-        gameOverLabel.position = CGPoint(x: size.width/2, y: size.height/2 + 100)
-        gameOverLabel.zPosition = 151
+        gameOverLabel.position = CGPoint(x: size.width/2, y: size.height/2 + 50)
+        gameOverLabel.zPosition = 200
         addChild(gameOverLabel)
         
-        // Final score
         let finalScoreLabel = SKLabelNode(fontNamed: "Arial")
         finalScoreLabel.text = "Final Score: \(score)"
         finalScoreLabel.fontSize = 24
         finalScoreLabel.fontColor = .white
-        finalScoreLabel.position = CGPoint(x: size.width/2, y: size.height/2 + 50)
-        finalScoreLabel.zPosition = 151
+        finalScoreLabel.position = CGPoint(x: size.width/2, y: size.height/2)
+        finalScoreLabel.zPosition = 200
         addChild(finalScoreLabel)
         
-        // High score
-        if score == highScore {
-            let highScoreLabel = SKLabelNode(fontNamed: "Arial")
-            highScoreLabel.text = "🏆 NEW HIGH SCORE! 🏆"
-            highScoreLabel.fontSize = 20
-            highScoreLabel.fontColor = .yellow
-            highScoreLabel.position = CGPoint(x: size.width/2, y: size.height/2 + 20)
-            highScoreLabel.zPosition = 151
-            addChild(highScoreLabel)
-        }
-        
-        // Stats
-        let statsLabel = SKLabelNode(fontNamed: "Arial")
-        statsLabel.text = "Enemies Destroyed: \(totalEnemiesDestroyed) • Power-ups: \(totalPowerupsCollected)"
-        statsLabel.fontSize = 16
-        statsLabel.fontColor = .gray
-        statsLabel.position = CGPoint(x: size.width/2, y: size.height/2 - 20)
-        statsLabel.zPosition = 151
-        addChild(statsLabel)
-        
-        // Restart button
         let restartButton = SKLabelNode(fontNamed: "Arial-Bold")
-        restartButton.text = "PLAY AGAIN"
-        restartButton.fontSize = 24
+        restartButton.text = "Play Again"
+        restartButton.fontSize = 28
         restartButton.fontColor = .green
-        restartButton.position = CGPoint(x: size.width/2, y: size.height/2 - 80)
+        restartButton.position = CGPoint(x: size.width/2, y: size.height/2 - 50)
         restartButton.name = "restartButton"
-        restartButton.zPosition = 151
+        restartButton.zPosition = 200
         addChild(restartButton)
         
-        // Menu button
         let menuButton = SKLabelNode(fontNamed: "Arial-Bold")
-        menuButton.text = "MAIN MENU"
-        menuButton.fontSize = 20
+        menuButton.text = "Main Menu"
+        menuButton.fontSize = 24
         menuButton.fontColor = .blue
-        menuButton.position = CGPoint(x: size.width/2, y: size.height/2 - 120)
+        menuButton.position = CGPoint(x: size.width/2, y: size.height/2 - 90)
         menuButton.name = "menuButton"
-        menuButton.zPosition = 151
+        menuButton.zPosition = 200
         addChild(menuButton)
-    }
-    
-    // MARK: - Data Persistence
-    private func loadHighScores() {
-        if let savedScore = UserDefaults.standard.object(forKey: "highScore") as? Int {
-            highScore = savedScore
-        }
-    }
-    
-    private func saveHighScores() {
-        UserDefaults.standard.set(highScore, forKey: "highScore")
-    }
-}
-
-// MARK: - Class Method for Scene Creation
-extension GameScene {
-    class func newGameScene() -> GameScene {
-        guard let scene = SKScene(fileNamed: "GameScene") as? GameScene else {
-            return GameScene(size: CGSize(width: 1000, height: 700))
-        }
-        return scene
     }
 }

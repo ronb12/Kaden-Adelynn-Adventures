@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Game Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #0a0a2a;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        
+        #gameContainer {
+            text-align: center;
+        }
+        
+        #gameCanvas {
+            border: 2px solid #333;
+            background: #000;
+            display: block;
+            margin: 20px auto;
+        }
+        
+        #debugInfo {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 600px;
+            border-radius: 10px;
+        }
+        
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 18px;
+        }
+        
+        button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <h1>🚀 Debug Game Test</h1>
+        <button id="startBtn">Start Game</button>
+        <button id="testBtn">Test Drawing</button>
+        <canvas id="gameCanvas" width="1000" height="700"></canvas>
+        <div id="debugInfo">
+            <h3>Debug Information:</h3>
+            <div id="debugOutput"></div>
+        </div>
+    </div>
+    
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const startBtn = document.getElementById('startBtn');
+        const testBtn = document.getElementById('testBtn');
+        const debugOutput = document.getElementById('debugOutput');
+        
+        let gameRunning = false;
+        let player = { x: 475, y: 600, width: 50, height: 40 };
+        let bullets = [];
+        let enemies = [];
+        let stars = [];
+        
+        function log(message) {
+            console.log(message);
+            debugOutput.innerHTML += '<div>' + message + '</div>';
+        }
+        
+        function testDrawing() {
+            log('Testing canvas drawing...');
+            
+            // Clear canvas
+            ctx.fillStyle = '#000033';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw a test rectangle
+            ctx.fillStyle = '#00ff00';
+            ctx.fillRect(100, 100, 100, 100);
+            
+            // Draw player
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            
+            log('Canvas drawing test completed');
+        }
+        
+        function startGame() {
+            log('Starting game...');
+            gameRunning = true;
+            
+            // Initialize stars
+            stars = [];
+            for (let i = 0; i < 50; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    speed: 0.5 + Math.random() * 1.5
+                });
+            }
+            
+            // Start game loop
+            gameLoop();
+            log('Game started successfully');
+        }
+        
+        function gameLoop() {
+            if (!gameRunning) {
+                log('Game not running, exiting loop');
+                return;
+            }
+            
+            // Clear canvas
+            ctx.fillStyle = '#000033';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw stars
+            ctx.fillStyle = 'white';
+            stars.forEach(star => {
+                ctx.fillRect(star.x, star.y, 1, 1);
+                star.y += star.speed;
+                if (star.y > canvas.height) {
+                    star.y = -1;
+                    star.x = Math.random() * canvas.width;
+                }
+            });
+            
+            // Draw player
+            ctx.fillStyle = '#00ff00';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            
+            // Spawn enemies
+            if (Math.random() < 0.02) {
+                enemies.push({
+                    x: Math.random() * (canvas.width - 40),
+                    y: -40,
+                    width: 40,
+                    height: 40,
+                    speed: 2
+                });
+            }
+            
+            // Update and draw enemies
+            enemies.forEach((enemy, index) => {
+                enemy.y += enemy.speed;
+                if (enemy.y > canvas.height) {
+                    enemies.splice(index, 1);
+                } else {
+                    ctx.fillStyle = '#ff0000';
+                    ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+                }
+            });
+            
+            // Draw bullets
+            bullets.forEach((bullet, index) => {
+                bullet.y -= bullet.speed;
+                if (bullet.y < -bullet.height) {
+                    bullets.splice(index, 1);
+                } else {
+                    ctx.fillStyle = '#ffff00';
+                    ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                }
+            });
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Event listeners
+        startBtn.addEventListener('click', () => {
+            log('Start button clicked');
+            startGame();
+        });
+        
+        testBtn.addEventListener('click', () => {
+            log('Test button clicked');
+            testDrawing();
+        });
+        
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'ArrowLeft') player.x -= 5;
+            if (e.code === 'ArrowRight') player.x += 5;
+            if (e.code === 'ArrowUp') player.y -= 5;
+            if (e.code === 'ArrowDown') player.y += 5;
+            if (e.code === 'Space') {
+                e.preventDefault();
+                bullets.push({
+                    x: player.x + player.width / 2 - 2,
+                    y: player.y,
+                    width: 4,
+                    height: 8,
+                    speed: 8
+                });
+            }
+            
+            // Keep player in bounds
+            player.x = Math.max(0, Math.min(player.x, canvas.width - player.width));
+            player.y = Math.max(0, Math.min(player.y, canvas.height - player.height));
+        });
+        
+        log('Debug game loaded successfully');
+        log('Canvas size: ' + canvas.width + 'x' + canvas.height);
+        log('Click "Test Drawing" to test canvas functionality');
+        log('Click "Start Game" to start the debug game');
+    </script>
+</body>
+</html> 
