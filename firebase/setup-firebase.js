@@ -3,13 +3,13 @@ const { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } = req
 
 // Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyC1b-JWvBRGti5LFKk7LqSS8p1QFbP_D88",
-    authDomain: "kaden---adelynn-adventures.firebaseapp.com",
-    projectId: "kaden---adelynn-adventures",
-    storageBucket: "kaden---adelynn-adventures.firebasestorage.app",
-    messagingSenderId: "265116401918",
-    appId: "1:265116401918:web:e1511695b92aeb05e0e5af",
-    measurementId: "G-W4Q02R318L"
+    apiKey: process.env.FIREBASE_API_KEY,
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.FIREBASE_APP_ID,
+    measurementId: process.env.FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
