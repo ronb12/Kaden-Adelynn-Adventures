@@ -330,7 +330,28 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        // Import Firebase
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js';
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC1b-JWvBRGti5LFKk7LqSS8p1QFbP_D88",
+            authDomain: "kaden---adelynn-adventures.firebaseapp.com",
+            projectId: "kaden---adelynn-adventures",
+            storageBucket: "kaden---adelynn-adventures.firebasestorage.app",
+            messagingSenderId: "265116401918",
+            appId: "1:265116401918:web:e1511695b92aeb05e0e5af",
+            measurementId: "G-W4Q02R318L"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+
         // Enhanced Game Engine
         class EnhancedSpaceShooter {
             constructor() {
@@ -969,15 +990,55 @@
                        obj1.y + obj1.height > obj2.y;
             }
             
-            gameOver() {
+            async gameOver() {
                 this.gameState = 'gameOver';
                 this.survivalTime = (Date.now() - this.startTime) / 1000;
                 
-                // Update high score
-                const highScore = localStorage.getItem('highScore') || 0;
-                if (this.score > highScore) {
+                try {
+                    // Save game stats to Firebase
+                    const gameStats = {
+                        score: this.score,
+                        survivalTime: Math.floor(this.survivalTime),
+                        enemiesDestroyed: this.enemiesDestroyed,
+                        maxCombo: this.maxCombo,
+                        powerupsCollected: this.powerupsCollected,
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    await addDoc(collection(db, 'gameStats'), gameStats);
+                    
+                    // Get high scores
+                    const highScoresQuery = query(
+                        collection(db, 'gameStats'),
+                        orderBy('score', 'desc'),
+                        limit(1)
+                    );
+                    
+                    const highScoresSnapshot = await getDocs(highScoresQuery);
+                    let highScore = 0;
+                    
+                    highScoresSnapshot.forEach((doc) => {
+                        highScore = doc.data().score;
+                    });
+                    
+                    // Update local high score if Firebase is unavailable
+                    const localHighScore = localStorage.getItem('highScore') || 0;
+                    if (this.score > localHighScore) {
+                        localStorage.setItem('highScore', this.score);
+                    }
+                    
+                    // Update display with the highest score from either source
+                    const displayHighScore = Math.max(highScore, localHighScore);
+                    document.getElementById('highScoreValue').textContent = displayHighScore;
+                    
+                } catch (error) {
+                    console.log('Firebase error:', error);
+                    // Fallback to localStorage
+                    const localHighScore = localStorage.getItem('highScore') || 0;
+                    if (this.score > localHighScore) {
                     localStorage.setItem('highScore', this.score);
                     document.getElementById('highScoreValue').textContent = this.score;
+                    }
                 }
                 
                 // Show game over screen
@@ -1368,9 +1429,46 @@ POWER-UPS:
 SURVIVE THE WAVES AND DEFEAT THE BOSSES!`);
         }
         
-        function showHighScores() {
-            const highScore = localStorage.getItem('highScore') || 0;
-            alert(`🏆 HIGH SCORES 🏆\n\nBest Score: ${highScore}\n\nKeep playing to beat your record!`);
+        async function showHighScores() {
+            try {
+                // Get top 5 high scores from Firebase
+                const highScoresQuery = query(
+                    collection(db, 'gameStats'),
+                    orderBy('score', 'desc'),
+                    limit(5)
+                );
+                
+                const highScoresSnapshot = await getDocs(highScoresQuery);
+                const scores = [];
+                
+                highScoresSnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    scores.push({
+                        score: data.score,
+                        date: new Date(data.timestamp).toLocaleDateString()
+                    });
+                });
+                
+                // Format high scores
+                let message = '🏆 HIGH SCORES 🏆\n\n';
+                if (scores.length > 0) {
+                    scores.forEach((score, index) => {
+                        message += `${index + 1}. ${score.score.toLocaleString()} (${score.date})\n`;
+                    });
+                } else {
+                    const localHighScore = localStorage.getItem('highScore') || 0;
+                    message += `Best Score: ${localHighScore}\n`;
+                }
+                
+                message += '\nKeep playing to beat the record! 🚀';
+                alert(message);
+                
+            } catch (error) {
+                console.log('Firebase error:', error);
+                // Fallback to localStorage
+                const localHighScore = localStorage.getItem('highScore') || 0;
+                alert(`🏆 HIGH SCORES 🏆\n\nBest Score: ${localHighScore}\n\nKeep playing to beat your record!`);
+            }
         }
         
         function toggleMusic() {
