@@ -1,0 +1,131 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "highScores",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "score",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "timestamp",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "highScores",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "userId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "score",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "gameStats",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "final_score",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "timestamp",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "gameStats",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "userId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "final_score",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "gameStats",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "weapon_used",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "final_score",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "gameStats",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ship_used",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "final_score",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "gameStats",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "enemies_destroyed",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "final_score",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "gameStats",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "survival_time",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "final_score",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "gameStats",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "consecutive_hits",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "final_score",
+          "order": "DESCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
