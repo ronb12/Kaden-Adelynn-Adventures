@@ -3,6 +3,7 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+package-lock.json
 
 # Firebase
 .firebase/
@@ -17,15 +18,23 @@ firebase-config.js
 .env.test.local
 .env.production.local
 
-# IDE
+# IDE and Editors
 .vscode/
 .idea/
 *.swp
 *.swo
+*.sublime-*
+.atom/
 
-# OS
+# OS Generated Files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+desktop.ini
 
 # Logs
 logs
@@ -39,6 +48,7 @@ pids
 
 # Coverage directory used by tools like istanbul
 coverage/
+*.lcov
 
 # nyc test coverage
 .nyc_output
@@ -55,5 +65,59 @@ jspm_packages/
 # Output of 'npm pack'
 *.tgz
 
-# Yarn Integrity file
-.yarn-integrity 
+# Yarn files
+.yarn-integrity
+.yarn/
+yarn.lock
+
+# Build outputs
+dist/
+build/
+.next/
+.nuxt/
+.cache/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Debug files
+debug/
+*.debug
+
+# Game specific
+saves/
+screenshots/
+replays/
+
+# Archive files
+*.zip
+*.rar
+*.7z
+*.tar.gz
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Security sensitive files
+secrets/
+credentials/
+keys/
+certificates/
+
+# Local development
+local/
+dev/
+.local
+
+# Performance profiling
+*.prof
+*.cpuprofile
+
+# Documentation build
+docs/build/
+docs/_site/ 

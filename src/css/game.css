@@ -1,0 +1,182 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Orbitron', monospace;
+    background: linear-gradient(135deg, #0a0a2a 0%, #1a1a3a 50%, #2a2a4a 100%);
+    color: #ffffff;
+    overflow: hidden;
+    user-select: none;
+}
+
+#gameContainer {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#gameCanvas {
+    border: 3px solid #00ffff;
+    border-radius: 10px;
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+    background: radial-gradient(circle at center, #000033 0%, #000011 100%);
+    max-width: 100vw;
+    max-height: 100vh;
+}
+
+#ui {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 100;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+}
+
+#ui div {
+    margin-bottom: 8px;
+    font-size: 18px;
+}
+
+#menu {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 200;
+    background: rgba(0, 0, 0, 0.9);
+    padding: 40px;
+    border-radius: 20px;
+    border: 2px solid #00ffff;
+    box-shadow: 0 0 50px rgba(0, 255, 255, 0.3);
+}
+
+#menu h1 {
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    background: linear-gradient(45deg, #00ffff, #ff00ff, #ffff00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+    from { filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.5)); }
+    to { filter: drop-shadow(0 0 20px rgba(255, 0, 255, 0.8)); }
+}
+
+.btn {
+    background: linear-gradient(45deg, #00ffff, #0080ff);
+    border: none;
+    padding: 15px 30px;
+    margin: 10px;
+    border-radius: 25px;
+    color: white;
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 255, 255, 0.5);
+    background: linear-gradient(45deg, #00ffff, #ff00ff);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+#gameOver {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 200;
+    background: rgba(0, 0, 0, 0.95);
+    padding: 40px;
+    border-radius: 20px;
+    border: 2px solid #ff0000;
+    box-shadow: 0 0 50px rgba(255, 0, 0, 0.3);
+    display: none;
+}
+
+#powerUpIndicator {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 15px;
+    border-radius: 10px;
+    border: 2px solid #00ff00;
+    min-width: 200px;
+}
+
+#comboIndicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 150;
+    font-size: 2em;
+    font-weight: 900;
+    text-shadow: 0 0 20px rgba(255, 255, 0, 1);
+    pointer-events: none;
+    opacity: 0;
+    transition: all 0.5s ease;
+}
+
+.shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+#audioControls {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 100;
+}
+
+.audio-btn {
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #00ffff;
+    color: #00ffff;
+    padding: 10px;
+    margin: 5px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.audio-btn:hover {
+    background: rgba(0, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+@media (max-width: 768px) {
+    #menu h1 { font-size: 1.8em; }
+    #ui { font-size: 14px; }
+    .btn { padding: 12px 24px; font-size: 14px; }
+}
