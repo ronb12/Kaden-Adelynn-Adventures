@@ -19,19 +19,50 @@ jobs:
       with:
         node-version: '18'
         
-    - name: Install dependencies
-      run: npm install
-      
-    - name: Configure Firebase with Secrets
+    - name: Check Required Secrets
+      env:
+        FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
       run: |
-        # Replace placeholder values with actual Firebase secrets
-        sed -i 's|"YOUR_API_KEY_HERE"|"${{ secrets.FIREBASE_API_KEY }}"|g' index.html
-        sed -i 's|"YOUR_PROJECT_ID.firebaseapp.com"|"${{ secrets.FIREBASE_AUTH_DOMAIN }}"|g' index.html
-        sed -i 's|"YOUR_PROJECT_ID"|"${{ secrets.FIREBASE_PROJECT_ID }}"|g' index.html
-        sed -i 's|"YOUR_PROJECT_ID.firebasestorage.app"|"${{ secrets.FIREBASE_STORAGE_BUCKET }}"|g' index.html
-        sed -i 's|"YOUR_SENDER_ID"|"${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}"|g' index.html
-        sed -i 's|"YOUR_APP_ID"|"${{ secrets.FIREBASE_APP_ID }}"|g' index.html
-        sed -i 's|"YOUR_MEASUREMENT_ID"|"${{ secrets.FIREBASE_MEASUREMENT_ID }}"|g' index.html
+        # Check if required Firebase secrets are configured
+        if [ -z "$FIREBASE_TOKEN" ]; then
+          echo "❌ FIREBASE_TOKEN secret is not configured"
+          echo "Please add FIREBASE_TOKEN to your repository secrets"
+          exit 1
+        fi
+        
+        if [ -z "$FIREBASE_PROJECT_ID" ]; then
+          echo "❌ FIREBASE_PROJECT_ID secret is not configured"
+          echo "Please add FIREBASE_PROJECT_ID to your repository secrets"
+          exit 1
+        fi
+        
+        echo "✅ All required Firebase secrets are configured"
+        
+    - name: Configure Firebase with Secrets
+      env:
+        FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+        FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+        FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+        FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+        FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+        FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+        FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
+      run: |
+        # Check if public/index.html exists
+        if [ ! -f "public/index.html" ]; then
+          echo "❌ public/index.html not found"
+          exit 1
+        fi
+        
+        # Replace hardcoded Firebase configuration with secrets in the public directory
+        sed -i 's|"AIzaSyC1b-JWvBRGti5LFKk7LqSS8p1QFbP_D88"|"'$FIREBASE_API_KEY'"|g' public/index.html
+        sed -i 's|"kaden---adelynn-adventures.firebaseapp.com"|"'$FIREBASE_AUTH_DOMAIN'"|g' public/index.html
+        sed -i 's|"kaden---adelynn-adventures"|"'$FIREBASE_PROJECT_ID'"|g' public/index.html
+        sed -i 's|"kaden---adelynn-adventures.firebasestorage.app"|"'$FIREBASE_STORAGE_BUCKET'"|g' public/index.html
+        sed -i 's|"265116401918"|"'$FIREBASE_MESSAGING_SENDER_ID'"|g' public/index.html
+        sed -i 's|"1:265116401918:web:e1511695b92aeb05e0e5af"|"'$FIREBASE_APP_ID'"|g' public/index.html
+        sed -i 's|"G-W4Q02R318L"|"'$FIREBASE_MEASUREMENT_ID'"|g' public/index.html
         
         echo "✅ Firebase configuration updated with secrets"
         
@@ -45,21 +76,24 @@ jobs:
         
     - name: Deploy to Firebase Hosting
       if: github.ref == 'refs/heads/main'
+      env:
+        FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
       run: |
         # Install Firebase CLI
         npm install -g firebase-tools
         
-        # Login to Firebase (using token from secrets)
-        firebase use ${{ secrets.FIREBASE_PROJECT_ID }}
+        # Initialize Firebase (this will use the firebase.json configuration)
+        firebase use "$FIREBASE_PROJECT_ID"
         
-        # Deploy to Firebase Hosting
-        firebase deploy --only hosting --token "${{ secrets.FIREBASE_TOKEN }}"
-      env:
-        FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        # Deploy to Firebase Hosting using token authentication
+        firebase deploy --only hosting --token "$FIREBASE_TOKEN" --project "$FIREBASE_PROJECT_ID"
         
     - name: Show Deployment Status
+      env:
+        FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
       run: |
         echo "🚀 Deployment completed!"
         echo "📊 GitHub Pages: https://ronb12.github.io/Kaden-Adelynn-Adventures/"
-        echo "🔥 Firebase Hosting: https://kaden---adelynn-adventures.web.app"
+        echo "🔥 Firebase Hosting: https://$FIREBASE_PROJECT_ID.web.app"
         echo "✅ Firebase configuration injected successfully" 

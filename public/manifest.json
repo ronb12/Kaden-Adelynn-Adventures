@@ -1,0 +1,26 @@
+{
+  "name": "Kaden & Adelynn Adventures",
+  "short_name": "Space Adventures",
+  "description": "Enhanced Space Shooter Game",
+  "start_url": "/",
+  "display": "fullscreen",
+  "background_color": "#0a0a2a",
+  "theme_color": "#4facfe",
+  "icons": [
+    {
+      "src": "assets/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icon-120x120.png",
+      "sizes": "120x120",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    }
+  ]
+}
