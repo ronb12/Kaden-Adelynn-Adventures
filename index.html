@@ -2358,6 +2358,50 @@
                 }
             }
             
+            getEnemyHealth(type) {
+                const healthMap = {
+                    basic: 15,
+                    fast: 20,
+                    tank: 40,
+                    shooter: 25,
+                    bomber: 30
+                };
+                return healthMap[type] || 15;
+            }
+            
+            getEnemySpeed(type) {
+                const speedMap = {
+                    basic: 2,
+                    fast: 3.5,
+                    tank: 1.2,
+                    shooter: 2.5,
+                    bomber: 2.8
+                };
+                return speedMap[type] || 2;
+            }
+            
+            getEnemyPoints(type) {
+                const pointsMap = {
+                    basic: 25,
+                    fast: 35,
+                    tank: 50,
+                    shooter: 40,
+                    bomber: 45
+                };
+                return pointsMap[type] || 25;
+            }
+            
+            getEnemyShotCooldown(type) {
+                const cooldownMap = {
+                    basic: 0, // Basic enemies don't shoot
+                    fast: 0, // Fast enemies don't shoot
+                    tank: 0, // Tank enemies don't shoot
+                    shooter: 1500, // Shooter enemies shoot every 1.5 seconds
+                    bomber: 2000 // Bomber enemies shoot every 2 seconds
+                };
+                return cooldownMap[type] || 0;
+            }
+            
             updateBullets() {
                 // Update player bullets
                 this.bullets.forEach((bullet, index) => {
