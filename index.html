@@ -2007,17 +2007,17 @@
                 // Screen shake
                 if (this.screenShake > 0) this.screenShake--;
                 
-                // Level progression - more challenging advancement
-                const newLevel = Math.floor(this.score / 5000) + 1; // Slower progression
+                // Level progression - realistic advancement
+                const newLevel = Math.floor(this.score / 15000) + 1; // Much slower progression
                 if (newLevel !== this.level && newLevel <= this.maxLevel) {
                     this.level = newLevel;
                     this.showCombo(`LEVEL ${this.level}! 🚀`, '#00ffff');
-                    this.player.health = Math.min(this.player.health + 15, 100); // Reduced health bonus
+                    this.player.health = Math.min(this.player.health + 10, 100); // Smaller health bonus
                     
-                    // Progressive difficulty scaling
-                    this.enemySpawnRate = Math.max(0.8, 2.5 - (this.level * 0.1)); // Faster spawning
-                    this.enemySpeedMultiplier = 1 + (this.level * 0.05); // Faster enemies
-                    this.enemyHealthMultiplier = 1 + (this.level * 0.1); // Tougher enemies
+                    // Realistic difficulty scaling
+                    this.enemySpawnRate = Math.max(1.2, 2.0 - (this.level * 0.05)); // Gradual spawn increase
+                    this.enemySpeedMultiplier = 1 + (this.level * 0.03); // Gradual speed increase
+                    this.enemyHealthMultiplier = 1 + (this.level * 0.05); // Gradual health increase
                     
                     // Check for boss level
                     if (this.level % 5 === 0) {
@@ -2379,7 +2379,7 @@
                             type: 'basic',
                             health: 15,
                             speed: 2,
-                            points: 100,
+                            points: 25,
                             color: '#ff0000',
                             pattern: 'straight'
                         },
@@ -2387,7 +2387,7 @@
                             type: 'fast',
                             health: 20,
                             speed: 3.5,
-                            points: 150,
+                            points: 35,
                             color: '#ff8800',
                             pattern: 'zigzag'
                         },
@@ -2395,7 +2395,7 @@
                             type: 'tank',
                             health: 40,
                             speed: 1.2,
-                            points: 250,
+                            points: 60,
                             color: '#800080',
                             pattern: 'straight'
                         },
@@ -2403,7 +2403,7 @@
                             type: 'shooter',
                             health: 25,
                             speed: 1.8,
-                            points: 300,
+                            points: 45,
                             color: '#ff4444',
                             pattern: 'hover'
                         },
@@ -2411,7 +2411,7 @@
                             type: 'bomber',
                             health: 35,
                             speed: 2.5,
-                            points: 400,
+                            points: 55,
                             color: '#ff00ff',
                             pattern: 'dive'
                         },
@@ -2419,7 +2419,7 @@
                             type: 'formation',
                             health: 18,
                             speed: 2.2,
-                            points: 180,
+                            points: 30,
                             color: '#00ff88',
                             pattern: 'formation'
                         },
@@ -2427,7 +2427,7 @@
                             type: 'stealth',
                             health: 12,
                             speed: 4.5,
-                            points: 350,
+                            points: 40,
                             color: '#888888',
                             pattern: 'zigzag'
                         },
@@ -2435,7 +2435,7 @@
                             type: 'heavy',
                             health: 60,
                             speed: 0.8,
-                            points: 500,
+                            points: 80,
                             color: '#8b0000',
                             pattern: 'straight'
                         },
@@ -2443,7 +2443,7 @@
                             type: 'sniper',
                             health: 15,
                             speed: 1.5,
-                            points: 400,
+                            points: 50,
                             color: '#ff1493',
                             pattern: 'hover'
                         },
@@ -2451,7 +2451,7 @@
                             type: 'swarm',
                             health: 8,
                             speed: 5.0,
-                            points: 200,
+                            points: 20,
                             color: '#32cd32',
                             pattern: 'dive'
                         },
@@ -2459,7 +2459,7 @@
                             type: 'elite',
                             health: 45,
                             speed: 2.8,
-                            points: 600,
+                            points: 75,
                             color: '#ffd700',
                             pattern: 'formation'
                         }
@@ -2758,10 +2758,10 @@
             }
             
             destroyEnemy(enemy, index) {
-                // Calculate score with combo multiplier
-                const baseScore = enemy.points || 100;
-                const comboMultiplier = 1 + (this.combo * 0.1); // 10% increase per combo
-                const levelBonus = this.level * 0.2; // 20% increase per level
+                // Calculate score with realistic multipliers
+                const baseScore = enemy.points || 50; // Reduced base score
+                const comboMultiplier = 1 + (this.combo * 0.05); // 5% increase per combo (reduced from 10%)
+                const levelBonus = this.level * 0.1; // 10% increase per level (reduced from 20%)
                 const finalScore = Math.floor(baseScore * comboMultiplier * (1 + levelBonus));
                 
                 this.score += finalScore;
@@ -2793,17 +2793,9 @@
                 this.screenShake = 10;
                 
                 // Power-up drop chance increases with combo
-                const dropChance = 0.15 + (this.combo * 0.02); // 2% increase per combo
+                const dropChance = 0.1 + (this.combo * 0.01); // 1% increase per combo (reduced from 2%)
                 if (Math.random() < dropChance) {
                     this.spawnPowerupAt(enemy.x, enemy.y);
-                }
-                
-                // Level up check - slower advancement
-                const newLevel = Math.floor(this.score / 3000) + 1;
-                if (newLevel !== this.level) {
-                    this.level = newLevel;
-                    this.showCombo(`LEVEL ${this.level}! 🚀`, '#00ffff');
-                    this.player.health = Math.min(this.player.health + 20, 100); // Health bonus on level up
                 }
                 
                 // Check achievements
@@ -2957,8 +2949,8 @@
                         break;
                         
                     case 'score':
-                        this.score += 500;
-                        this.showCombo(`${powerup.emoji} BONUS +500`, powerup.color);
+                        this.score += 100;
+                        this.showCombo(`${powerup.emoji} BONUS +100`, powerup.color);
                         break;
                         
                     case 'life':
@@ -2976,7 +2968,7 @@
                         // Clear all enemies on screen
                         this.enemies.forEach(enemy => {
                             this.createExplosion(enemy.x, enemy.y, enemy.color);
-                            this.score += enemy.points || 100;
+                            this.score += enemy.points || 25;
                         });
                         this.enemies = [];
                         this.showCombo(`${powerup.emoji} SCREEN CLEAR!`, powerup.color);
@@ -2989,13 +2981,13 @@
                         break;
                         
                     case 'diamond':
-                        this.score += 1000;
-                        this.showCombo(`${powerup.emoji} DIAMOND +1000!`, powerup.color);
+                        this.score += 200;
+                        this.showCombo(`${powerup.emoji} DIAMOND +200!`, powerup.color);
                         break;
                         
                     case 'money':
-                        this.score += 750;
-                        this.showCombo(`${powerup.emoji} MONEY +750!`, powerup.color);
+                        this.score += 150;
+                        this.showCombo(`${powerup.emoji} MONEY +150!`, powerup.color);
                         break;
                         
                     case 'missile':
@@ -3014,8 +3006,8 @@
                 // Triple health combination
                 if (types.filter(t => t === 'health').length >= 3) {
                     this.player.health = 100;
-                    this.score += 2000;
-                    this.showCombo('💚💚💚 TRIPLE HEALTH! +2000', '#00ff00');
+                    this.score += 300;
+                    this.showCombo('💚💚💚 TRIPLE HEALTH! +300', '#00ff00');
                     this.createMegaExplosion(this.player.x, this.player.y);
                     this.recentPowerups = [];
                     return;
@@ -3028,8 +3020,8 @@
                         timeLeft: 30000, // 30 seconds
                         type: 'ultimate'
                     };
-                    this.score += 3000;
-                    this.showCombo('🔫🔫🔫 ULTIMATE WEAPON! +3000', '#ff00ff');
+                    this.score += 400;
+                    this.showCombo('🔫🔫🔫 ULTIMATE WEAPON! +400', '#ff00ff');
                     this.createMegaExplosion(this.player.x, this.player.y);
                     this.recentPowerups = [];
                     return;
@@ -3038,8 +3030,8 @@
                 // Triple shield combination
                 if (types.filter(t => t === 'shield').length >= 3) {
                     this.player.shield = 900; // 15 seconds
-                    this.score += 1500;
-                    this.showCombo('🛡️🛡️🛡️ MEGA SHIELD! +1500', '#0080ff');
+                    this.score += 250;
+                    this.showCombo('🛡️🛡️🛡️ MEGA SHIELD! +250', '#0080ff');
                     this.createMegaExplosion(this.player.x, this.player.y);
                     this.recentPowerups = [];
                     return;
@@ -3054,8 +3046,8 @@
                         timeLeft: 20000,
                         type: 'plasma'
                     };
-                    this.score += 5000;
-                    this.showCombo('🌟 MEGA COMBO! +5000', '#ffff00');
+                    this.score += 600;
+                    this.showCombo('🌟 MEGA COMBO! +600', '#ffff00');
                     this.createMegaExplosion(this.player.x, this.player.y);
                     this.unlockAchievement('tripleCombo');
                     this.recentPowerups = [];
