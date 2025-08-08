@@ -2015,9 +2015,9 @@
                     this.player.health = Math.min(this.player.health + 10, 100); // Smaller health bonus
                     
                     // Realistic difficulty scaling
-                    this.enemySpawnRate = Math.max(1.2, 2.0 - (this.level * 0.05)); // Gradual spawn increase
-                    this.enemySpeedMultiplier = 1 + (this.level * 0.03); // Gradual speed increase
-                    this.enemyHealthMultiplier = 1 + (this.level * 0.05); // Gradual health increase
+                    this.enemySpawnRate = Math.max(1.5, 2.5 - (this.level * 0.03)); // More gradual spawn increase
+                    this.enemySpeedMultiplier = 1 + (this.level * 0.02); // More gradual speed increase
+                    this.enemyHealthMultiplier = 1 + (this.level * 0.03); // More gradual health increase
                     
                     // Check for boss level
                     if (this.level % 5 === 0) {
@@ -2236,7 +2236,7 @@
             applyEventEffect(effect) {
                 switch(effect) {
                     case 'storm':
-                        this.enemySpawnRate = 4.0; // Increased spawn rate
+                        this.enemySpawnRate = 2.0; // Reduced spawn rate (was 4.0)
                         break;
                     case 'overload':
                         // Handled in getWeaponCooldown()
@@ -2249,14 +2249,14 @@
                         this.enemies.forEach(enemy => {
                             const dx = this.canvas.width/2 - enemy.x;
                             const dy = this.canvas.height/2 - enemy.y;
-                            enemy.x += dx * 0.02;
-                            enemy.y += dy * 0.02;
+                            enemy.x += dx * 0.01; // Reduced pull strength (was 0.02)
+                            enemy.y += dy * 0.01;
                         });
                         break;
                     case 'slowmo':
                         // Slow down enemy movement
                         this.enemies.forEach(enemy => {
-                            enemy.speed *= 0.5;
+                            enemy.speed *= 0.7; // Less dramatic slow (was 0.5)
                         });
                         break;
                     case 'megascore':
@@ -2264,13 +2264,13 @@
                         break;
                     case 'invasion':
                         // Spawn extra enemies
-                        for (let i = 0; i < 10; i++) {
+                        for (let i = 0; i < 5; i++) { // Reduced from 10 to 5
                             this.spawnEnemy();
                         }
                         break;
                     case 'surge':
                         // Upgrade all weapons temporarily
-                        this.weaponLevel = Math.min(this.weaponLevel + 2, 5);
+                        this.weaponLevel = Math.min(this.weaponLevel + 1, 5); // Reduced from +2 to +1
                         break;
                 }
             }
@@ -2366,12 +2366,12 @@
             }
             
             spawnEnemies() {
-                // Limit to maximum 10 enemies on screen
-                if (this.enemies.length >= 10) return;
+                // Limit to maximum 8 enemies on screen (reduced from 10)
+                if (this.enemies.length >= 8) return;
                 
-                // Use dynamic spawn rate based on level difficulty
-                const spawnChance = 0.005 + (this.level * 0.001); // Increased spawn rate with level
-                const waveSize = Math.min(Math.floor(this.level / 8) + 1, 5); // More enemies per wave at higher levels
+                // Use balanced spawn rate based on level difficulty
+                const spawnChance = 0.003 + (this.level * 0.0005); // Reduced spawn rate
+                const waveSize = Math.min(Math.floor(this.level / 10) + 1, 3); // Smaller waves
                 
                 if (Math.random() < spawnChance) {
                     const enemyTypes = [
