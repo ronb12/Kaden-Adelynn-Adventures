@@ -9,6 +9,8 @@
     <link rel="icon" type="image/png" sizes="120x120" href="assets/icon-120x120.png">
     <link rel="icon" type="image/png" sizes="96x96" href="assets/icon-96x96.png">
     <meta name="theme-color" content="#0a0a2a">
+    <meta name="description" content="Dynamic space shooter with AI autoplay - Perfect for YouTube streaming with varied gameplay, random events, and endless entertainment">
+    <meta name="keywords" content="space shooter, AI gaming, YouTube streaming, dynamic gameplay, random events, endless entertainment">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
         
@@ -42,6 +44,52 @@
             background: radial-gradient(circle at center, #000033 0%, #000011 100%);
             max-width: 100vw;
             max-height: 100vh;
+        }
+        
+        /* Dynamic background animations */
+        @keyframes backgroundShift {
+            0% { background: radial-gradient(circle at center, #000033 0%, #000011 100%); }
+            25% { background: radial-gradient(circle at center, #1a0033 0%, #000011 100%); }
+            50% { background: radial-gradient(circle at center, #330033 0%, #000011 100%); }
+            75% { background: radial-gradient(circle at center, #330066 0%, #000011 100%); }
+            100% { background: radial-gradient(circle at center, #000033 0%, #000011 100%); }
+        }
+        
+        .dynamic-bg {
+            animation: backgroundShift 20s infinite;
+        }
+        
+        /* Random event notifications */
+        .event-notification {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 0, 0, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            z-index: 1000;
+            animation: eventPulse 2s ease-in-out;
+        }
+        
+        @keyframes eventPulse {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+        }
+        
+        /* Dynamic UI elements */
+        .dynamic-ui {
+            transition: all 0.3s ease;
+        }
+        
+        .dynamic-ui:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
         }
         
         @media (max-width: 768px) {
@@ -1450,10 +1498,60 @@
                     survival5min: { name: 'Survivor', description: 'Survive for 5 minutes', unlocked: false },
                     powerup50: { name: 'Collector', description: 'Collect 50 power-ups', unlocked: false },
                     bossKiller: { name: 'Boss Slayer', description: 'Defeat your first boss', unlocked: false },
-                    perfectHealth: { name: 'Perfect Health', description: 'Complete a level with full health', unlocked: false },
-                    tripleCombo: { name: 'Triple Threat', description: 'Get a triple power-up combination', unlocked: false },
-                    level25: { name: 'Veteran', description: 'Reach level 25', unlocked: false }
                 };
+                
+                // Dynamic content system to avoid YouTube repetitive content
+                this.dynamicEvents = {
+                    randomEvents: [
+                        { name: 'SPACE STORM', description: 'Increased enemy spawn rate!', duration: 10000, effect: 'storm' },
+                        { name: 'WEAPON OVERLOAD', description: 'All weapons fire faster!', duration: 8000, effect: 'overload' },
+                        { name: 'SHIELD BOOST', description: 'Temporary invincibility!', duration: 5000, effect: 'shield' },
+                        { name: 'GRAVITY WELL', description: 'Enemies pulled toward center!', duration: 12000, effect: 'gravity' },
+                        { name: 'TIME WARP', description: 'Everything moves in slow motion!', duration: 6000, effect: 'slowmo' },
+                        { name: 'MEGA SCORE', description: 'Double points for 30 seconds!', duration: 30000, effect: 'megascore' },
+                        { name: 'ENEMY INVASION', description: 'Massive enemy wave!', duration: 15000, effect: 'invasion' },
+                        { name: 'POWER SURGE', description: 'All weapons upgraded!', duration: 10000, effect: 'surge' }
+                    ],
+                    activeEvent: null,
+                    eventTimer: 0,
+                    lastEventTime: 0,
+                    eventInterval: 45000 // Random event every 45 seconds
+                };
+                
+                // Dynamic background system
+                this.backgroundVariations = [
+                    'default',
+                    'nebula',
+                    'asteroid_field',
+                    'space_station',
+                    'black_hole',
+                    'supernova',
+                    'wormhole',
+                    'cosmic_storm'
+                ];
+                this.currentBackground = 'default';
+                this.backgroundTimer = 0;
+                this.backgroundInterval = 30000; // Change background every 30 seconds
+                
+                // Dynamic enemy patterns
+                this.enemyPatterns = [
+                    'formation',
+                    'swarm',
+                    'spiral',
+                    'wave',
+                    'random',
+                    'sniper',
+                    'kamikaze',
+                    'stealth'
+                ];
+                this.currentPattern = 'formation';
+                this.patternTimer = 0;
+                this.patternInterval = 20000; // Change pattern every 20 seconds
+                
+                // Additional achievements
+                this.achievements.perfectHealth = { name: 'Perfect Health', description: 'Complete a level with full health', unlocked: false };
+                this.achievements.tripleCombo = { name: 'Triple Threat', description: 'Get a triple power-up combination', unlocked: false };
+                this.achievements.level25 = { name: 'Veteran', description: 'Reach level 25', unlocked: false };
                 
                 // Audio
                 this.sfxEnabled = true;
@@ -1834,6 +1932,9 @@
                 this.updateStars();
                 this.backgroundOffset += 0.5; // Parallax movement
                 
+                // Update dynamic content system to avoid YouTube repetitive content
+                this.updateDynamicEvents();
+                
                 // Spawn enemies and powerups
                 this.spawnEnemies();
                 this.spawnPowerups();
@@ -2000,6 +2101,150 @@
                     spread: 250,
                     laser: 100,
                     missile: 500
+                };
+                
+                // Dynamic event modifications
+                if (this.dynamicEvents.activeEvent && this.dynamicEvents.activeEvent.effect === 'overload') {
+                    return cooldowns[this.currentWeapon] * 0.5; // Faster firing during overload
+                }
+                
+                return cooldowns[this.currentWeapon] || 200;
+            }
+            
+            // Dynamic content system to avoid YouTube repetitive content
+            triggerRandomEvent() {
+                if (this.dynamicEvents.activeEvent) return; // Don't stack events
+                
+                const randomEvent = this.dynamicEvents.randomEvents[
+                    Math.floor(Math.random() * this.dynamicEvents.randomEvents.length)
+                ];
+                
+                this.dynamicEvents.activeEvent = {
+                    ...randomEvent,
+                    startTime: Date.now()
+                };
+                
+                // Show event notification
+                this.showEventNotification(randomEvent.name, randomEvent.description);
+                
+                console.log(`🎮 DYNAMIC EVENT: ${randomEvent.name} - ${randomEvent.description}`);
+            }
+            
+            showEventNotification(name, description) {
+                const notification = document.createElement('div');
+                notification.className = 'event-notification';
+                notification.innerHTML = `
+                    <div style="font-size: 28px; margin-bottom: 10px;">🎮 ${name}</div>
+                    <div style="font-size: 18px;">${description}</div>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                // Remove notification after animation
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 2000);
+            }
+            
+            updateDynamicEvents() {
+                const now = Date.now();
+                
+                // Check if it's time for a new random event
+                if (!this.dynamicEvents.activeEvent && 
+                    now - this.dynamicEvents.lastEventTime > this.dynamicEvents.eventInterval) {
+                    this.triggerRandomEvent();
+                    this.dynamicEvents.lastEventTime = now;
+                }
+                
+                // Update active event
+                if (this.dynamicEvents.activeEvent) {
+                    const elapsed = now - this.dynamicEvents.activeEvent.startTime;
+                    if (elapsed > this.dynamicEvents.activeEvent.duration) {
+                        this.endActiveEvent();
+                    } else {
+                        this.applyEventEffect(this.dynamicEvents.activeEvent.effect);
+                    }
+                }
+                
+                // Update dynamic backgrounds
+                this.updateDynamicBackground();
+                
+                // Update enemy patterns
+                this.updateEnemyPatterns();
+            }
+            
+            endActiveEvent() {
+                if (this.dynamicEvents.activeEvent) {
+                    console.log(`🎮 EVENT ENDED: ${this.dynamicEvents.activeEvent.name}`);
+                    this.dynamicEvents.activeEvent = null;
+                }
+            }
+            
+            applyEventEffect(effect) {
+                switch(effect) {
+                    case 'storm':
+                        this.enemySpawnRate = 4.0; // Increased spawn rate
+                        break;
+                    case 'overload':
+                        // Handled in getWeaponCooldown()
+                        break;
+                    case 'shield':
+                        this.player.invulnerable = 5000; // 5 seconds invincibility
+                        break;
+                    case 'gravity':
+                        // Pull enemies toward center
+                        this.enemies.forEach(enemy => {
+                            const dx = this.canvas.width/2 - enemy.x;
+                            const dy = this.canvas.height/2 - enemy.y;
+                            enemy.x += dx * 0.02;
+                            enemy.y += dy * 0.02;
+                        });
+                        break;
+                    case 'slowmo':
+                        // Slow down enemy movement
+                        this.enemies.forEach(enemy => {
+                            enemy.speed *= 0.5;
+                        });
+                        break;
+                    case 'megascore':
+                        // Double points (handled in scoring)
+                        break;
+                    case 'invasion':
+                        // Spawn extra enemies
+                        for (let i = 0; i < 10; i++) {
+                            this.spawnEnemy();
+                        }
+                        break;
+                    case 'surge':
+                        // Upgrade all weapons temporarily
+                        this.weaponLevel = Math.min(this.weaponLevel + 2, 5);
+                        break;
+                }
+            }
+            
+            updateDynamicBackground() {
+                const now = Date.now();
+                if (now - this.backgroundTimer > this.backgroundInterval) {
+                    this.currentBackground = this.backgroundVariations[
+                        Math.floor(Math.random() * this.backgroundVariations.length)
+                    ];
+                    this.backgroundTimer = now;
+                    console.log(`🎨 BACKGROUND CHANGED: ${this.currentBackground}`);
+                }
+            }
+            
+            updateEnemyPatterns() {
+                const now = Date.now();
+                if (now - this.patternTimer > this.patternInterval) {
+                    this.currentPattern = this.enemyPatterns[
+                        Math.floor(Math.random() * this.enemyPatterns.length)
+                    ];
+                    this.patternTimer = now;
+                    console.log(`🎯 PATTERN CHANGED: ${this.currentPattern}`);
+                }
+            }
                 };
                 return cooldowns[this.currentWeapon] || 200;
             }
@@ -3741,13 +3986,6 @@
             if (game && game.gameState === 'playing') {
                 game.gameState = 'paused';
                 document.getElementById('pauseOverlay').style.display = 'flex';
-            }
-        }
-        
-        function resumeGame() {
-            if (game && game.gameState === 'paused') {
-                game.gameState = 'playing';
-                document.getElementById('pauseOverlay').style.display = 'none';
             }
         }
         
