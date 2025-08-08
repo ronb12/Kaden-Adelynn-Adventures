@@ -2250,7 +2250,21 @@
                     console.log(`🎯 PATTERN CHANGED: ${this.currentPattern}`);
                 }
             }
+            
+            getWeaponCooldown() {
+                const cooldowns = {
+                    basic: 200,
+                    plasma: 300,
+                    spread: 250,
+                    laser: 100,
+                    missile: 500
                 };
+                
+                // Dynamic event modifications
+                if (this.dynamicEvents.activeEvent && this.dynamicEvents.activeEvent.effect === 'overload') {
+                    return cooldowns[this.currentWeapon] * 0.5; // Faster firing during overload
+                }
+                
                 return cooldowns[this.currentWeapon] || 200;
             }
             
