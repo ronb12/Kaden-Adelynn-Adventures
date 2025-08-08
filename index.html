@@ -2316,6 +2316,48 @@
                 return cooldowns[this.currentWeapon] || 200;
             }
             
+            spawnEnemy() {
+                const types = ['basic', 'fast', 'tank', 'shooter', 'bomber'];
+                const type = types[Math.floor(Math.random() * types.length)];
+                
+                const enemy = {
+                    x: Math.random() * (this.canvas.width - 100) + 50,
+                    y: -50,
+                    width: 40,
+                    height: 40,
+                    type: type,
+                    health: this.getEnemyHealth(type),
+                    maxHealth: this.getEnemyHealth(type),
+                    speed: this.getEnemySpeed(type),
+                    lastShot: 0,
+                    shotCooldown: this.getEnemyShotCooldown(type),
+                    points: this.getEnemyPoints(type)
+                };
+                
+                this.enemies.push(enemy);
+            }
+            
+            updateWeaponDisplay() {
+                const weaponNames = {
+                    basic: 'BASIC LASER',
+                    plasma: 'PLASMA CANNON',
+                    spread: 'SPREAD SHOT',
+                    laser: 'LASER BEAM',
+                    missile: 'HOMING MISSILE'
+                };
+                
+                const weaponElement = document.getElementById('currentWeapon');
+                if (weaponElement) {
+                    weaponElement.textContent = weaponNames[this.currentWeapon] || 'BASIC LASER';
+                }
+                
+                // Update cockpit weapon display
+                const cockpitWeapon = document.getElementById('cockpitWeapon');
+                if (cockpitWeapon) {
+                    cockpitWeapon.textContent = weaponNames[this.currentWeapon] || 'BASIC';
+                }
+            }
+            
             updateBullets() {
                 // Update player bullets
                 this.bullets.forEach((bullet, index) => {
