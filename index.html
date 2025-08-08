@@ -1304,7 +1304,7 @@
                 <button class="btn" onclick="showShipSelection()">CHOOSE SHIP</button>
                 <button class="btn" onclick="showAchievements()">🏆 ACHIEVEMENTS</button>
                 <button class="btn" onclick="showHighScores()">HIGH SCORES</button>
-                <button class="btn" onclick="enableAIMode()" style="background: linear-gradient(45deg, #ff6b6b, #4ecdc4);">🤖 AI AUTOPLAY MODE</button>
+                <button class="btn" onclick="enableAIMode()" style="background: linear-gradient(45deg, #ff6b6b, #4ecdc4); font-size: 18px; font-weight: bold; padding: 15px 20px; margin: 10px 0;">🤖 AI AUTOPLAY MODE</button>
             </div>
             
             <div class="stats-panel">
@@ -1390,6 +1390,11 @@
         
         <div id="audioControls">
             <button class="audio-btn" onclick="toggleSFX()" title="Toggle Sound Effects">🔊</button>
+        </div>
+        
+        <!-- Floating AI Control Button -->
+        <div id="aiControls" style="position: fixed; top: 20px; right: 20px; z-index: 1000; display: none;">
+            <button class="btn" onclick="enableAIMode()" style="background: linear-gradient(45deg, #ff6b6b, #4ecdc4); font-size: 16px; font-weight: bold; padding: 10px 15px; border-radius: 25px; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.5);">🤖 AI MODE</button>
         </div>
     </div>
 
