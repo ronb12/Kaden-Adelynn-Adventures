@@ -1348,8 +1348,10 @@
                 <button class="btn primary" onclick="showBriefing()">START MISSION</button>
                 <button class="btn" onclick="showInstructions()">INSTRUCTIONS</button>
                 <button class="btn" onclick="showShipSelection()">CHOOSE SHIP</button>
+                <button class="btn" onclick="showSkillTree()">🌳 SKILL TREE</button>
                 <button class="btn" onclick="showAchievements()">🏆 ACHIEVEMENTS</button>
                 <button class="btn" onclick="showHighScores()">HIGH SCORES</button>
+                <button class="btn" onclick="showHelp()">❓ HELP</button>
                 <button class="btn ai-btn" onclick="enableAIMode()">🤖 AI AUTOPLAY MODE</button>
             </div>
             
@@ -4096,96 +4098,83 @@
             alert(message);
         }
         
-        function showShipSelection() {
-            alert('🛸 CHOOSE YOUR SHIP 🛸\n\n1. STARFIGHTER - Balanced fighter\n2. INTERCEPTOR - Fast and agile\n3. DESTROYER - Heavy firepower\n4. STEALTH - Invisible to enemies\n5. ELITE - Premium ship\n\nPress 1-5 during gameplay to switch ships!');
-        }
-        
-        function showAchievements() {
-            const savedAchievements = JSON.parse(localStorage.getItem('achievements') || '{}');
-            let message = '🏆 ACHIEVEMENTS 🏆\n\n';
+        function showSkillTree() {
+            const skillTree = {
+                combat: {
+                    weaponMastery: { level: 0, maxLevel: 5, cost: 1, effect: 'Weapon damage +20% per level' },
+                    criticalStrike: { level: 0, maxLevel: 3, cost: 3, effect: '10% chance for 2x damage per level' },
+                    rapidFire: { level: 0, maxLevel: 3, cost: 2, effect: 'Fire rate +15% per level' },
+                    missileExpert: { level: 0, maxLevel: 3, cost: 2, effect: 'Missile damage +25% per level' }
+                },
+                defense: {
+                    shieldCapacity: { level: 0, maxLevel: 3, cost: 2, effect: 'Shield duration +50% per level' },
+                    healthBoost: { level: 0, maxLevel: 3, cost: 2, effect: 'Max health +25% per level' },
+                    armorPlating: { level: 0, maxLevel: 3, cost: 3, effect: 'Damage reduction +10% per level' },
+                    autoRepair: { level: 0, maxLevel: 3, cost: 4, effect: 'Health regeneration per level' }
+                },
+                utility: {
+                    powerupMagnet: { level: 0, maxLevel: 2, cost: 1, effect: 'Attract power-ups from distance' },
+                    comboMaster: { level: 0, maxLevel: 3, cost: 2, effect: 'Combo duration +30% per level' },
+                    scoreMultiplier: { level: 0, maxLevel: 3, cost: 3, effect: 'Score +15% per level' },
+                    survivalExpert: { level: 0, maxLevel: 2, cost: 2, effect: 'Extra lives +1 per level' }
+                }
+            };
             
-            const achievements = [
-                { key: 'firstKill', name: 'First Blood', description: 'Destroy your first enemy' },
-                { key: 'combo10', name: 'Combo Master', description: 'Achieve a 10x combo' },
-                { key: 'level10', name: 'Level Up', description: 'Reach level 10' },
-                { key: 'score10k', name: 'High Scorer', description: 'Score 10,000 points' },
-                { key: 'survival5min', name: 'Survivor', description: 'Survive for 5 minutes' },
-                { key: 'powerup50', name: 'Collector', description: 'Collect 50 power-ups' },
-                { key: 'bossKiller', name: 'Boss Slayer', description: 'Defeat your first boss' },
-                { key: 'perfectHealth', name: 'Perfect Health', description: 'Complete a level with full health' },
-                { key: 'tripleCombo', name: 'Triple Threat', description: 'Get a triple power-up combination' },
-                { key: 'level25', name: 'Veteran', description: 'Reach level 25' }
-            ];
-            
-            achievements.forEach(achievement => {
-                const unlocked = savedAchievements[achievement.key];
-                const status = unlocked ? '✅' : '❌';
-                message += `${status} ${achievement.name}\n`;
-                message += `   ${achievement.description}\n\n`;
+            let message = '🌳 SKILL TREE 🌳\n\n';
+            message += 'Combat Skills:\n';
+            Object.entries(skillTree.combat).forEach(([skill, data]) => {
+                message += `• ${skill}: ${data.effect} (Cost: ${data.cost})\n`;
             });
+            
+            message += '\nDefense Skills:\n';
+            Object.entries(skillTree.defense).forEach(([skill, data]) => {
+                message += `• ${skill}: ${data.effect} (Cost: ${data.cost})\n`;
+            });
+            
+            message += '\nUtility Skills:\n';
+            Object.entries(skillTree.utility).forEach(([skill, data]) => {
+                message += `• ${skill}: ${data.effect} (Cost: ${data.cost})\n`;
+            });
+            
+            message += '\n💡 Earn skill points by completing levels and achievements!';
             
             alert(message);
         }
         
-        function showInstructions() {
-            alert(`🚀 KADEN & ADELYNN ADVENTURES 🚀
+        function showHelp() {
+            alert(`❓ HELP & TROUBLESHOOTING ❓
 
-📖 STORY:
-The galaxy is under attack! Evil space pirates have stolen the Cosmic Diamond 💎 
-and are threatening to destroy the universe. Kaden & Adelynn must pilot their 
-advanced starship through waves of enemies to recover the diamond and save the galaxy!
-
-🎮 CONTROLS:
+🎮 GAME CONTROLS:
 • Arrow Keys / WASD - Move ship
-• Space - Fire weapon
-• Numbers 1-9 - Switch weapons
+• Space - Fire weapon (auto-fire enabled)
+• Numbers 1-5 - Switch weapons
 • ESC - Pause/Resume game
-• Auto-shooting enabled
+• P - Pause game
+• R - Resume game
 
-🛸 SHIPS:
-1 - Starfighter (Balanced)
-2 - Interceptor (Fast)
-3 - Destroyer (Heavy)
-4 - Stealth (Invisible)
-5 - Elite (Premium)
+🛸 SHIP CONTROLS:
+• 1-5 keys during gameplay - Switch ships
+• Each ship has different stats and abilities
 
-WEAPONS:
-1 - Basic Laser
-2 - Plasma Cannon  
-3 - Spread Shot
-4 - Laser Beam
-5 - Homing Missile
+🔧 TROUBLESHOOTING:
+• Game not loading? Refresh the page
+• Controls not working? Click on the game area first
+• Sound not playing? Click the 🔊 button
+• AI not working? Click the 🤖 AI button
 
-POWER-UPS:
-💚 Health - Restore health
-🛡️ Shield - Temporary protection  
-🔫 Weapon - Upgrade firepower
-⭐ Score - Bonus points
-❤️ Life - Extra life
-💎 Diamond - Big bonus points
-💰 Money - Medium bonus points
-🚀 Missile - Add missile ammo
+🎯 TIPS:
+• Use different weapons for different situations
+• Collect power-ups to boost your performance
+• Build combos for higher scores
+• Watch for boss battles every 5 levels
+• Use the cockpit view for immersive gameplay
 
-ENEMY TYPES:
-• Basic - Standard enemy
-• Fast - Quick moving
-• Tank - High health, slow
-• Shooter - Triple shot
-• Bomber - Spread shot
-• Formation - Group tactics
-• Stealth - Fast, weak
-• Heavy - Slow, powerful
-• Sniper - Precise shots
-• Swarm - Rapid fire
-• Elite - Dual shots
+📞 SUPPORT:
+• For technical issues, refresh the page
+• For gameplay questions, check the Instructions
+• For high scores, check the Leaderboard
 
-AUTO-DEFENSE:
-When enemies get close, your ship automatically fires 360° defense shots!
-
-COCKPIT VIEW:
-Toggle cockpit view from the pause menu for immersive gameplay!
-
-SURVIVE THE WAVES AND SAVE THE GALAXY! 🌟`);
+Good luck, pilot! 🚀`);
         }
         
         async function showHighScores() {
