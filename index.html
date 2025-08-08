@@ -75,86 +75,11 @@
         
         .playing #ui {
             display: flex; /* Show UI only during gameplay */
-            flex-direction: row;
             justify-content: space-between;
             align-items: center;
-            gap: 5px;
             flex-wrap: wrap;
+            gap: 0px;
         }
-        
-        .ui-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .ui-item {
-            background: rgba(0, 0, 0, 0.8);
-            border: 1px solid rgba(0, 255, 255, 0.3);
-            border-radius: 6px;
-            padding: 4px 8px;
-            text-align: center;
-            min-width: 60px;
-            flex: 1;
-        }
-        
-        .ui-label {
-            font-size: 10px;
-            color: rgba(0, 255, 255, 0.7);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 2px;
-        }
-        
-        .ui-value {
-            font-size: 14px;
-            font-weight: bold;
-            color: #ffffff;
-            text-shadow: 0 0 5px rgba(0, 255, 255, 0.8);
-        }
-        
-        .score-item {
-            border-color: rgba(255, 215, 0, 0.5);
-        }
-        
-        .score-item .ui-value {
-            color: #ffd700;
-        }
-        
-        .level-item {
-            border-color: rgba(0, 255, 0, 0.5);
-        }
-        
-        .level-item .ui-value {
-            color: #00ff00;
-        }
-        
-        .lives-item {
-            border-color: rgba(255, 0, 0, 0.5);
-        }
-        
-        .lives-item .ui-value {
-            color: #ff0000;
-        }
-        
-        .weapon-item {
-            border-color: rgba(255, 165, 0, 0.5);
-        }
-        
-        .weapon-item .ui-value {
-            color: #ffa500;
-        }
-        
-        .combo-item {
-            border-color: rgba(255, 0, 255, 0.5);
-        }
-        
-        .combo-item .ui-value {
-            color: #ff00ff;
-        }
-        
-
         
         #ui div {
             margin: 0;
@@ -169,21 +94,17 @@
                 left: 8px;
                 right: 8px;
                 padding: 4px 8px;
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: center;
             }
             
             .playing #ui {
-                flex-direction: row;
-                align-items: center;
-                gap: 8px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0px;
             }
             
             #ui div {
                 font-size: 13px;
                 margin: 0;
-                white-space: nowrap;
             }
         }
         
@@ -215,75 +136,6 @@
             
             #ui div {
                 font-size: 10px;
-            }
-        }
-        
-        /* Pause/Resume Button */
-        .pause-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            z-index: 100;
-            font-size: 20px;
-            transition: all 0.3s ease;
-            color: #ffffff;
-        }
-        
-        .pause-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.1);
-        }
-        
-        .pause-btn.active {
-            background: rgba(255, 255, 255, 0.3);
-            border-color: #ffffff;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
-        }
-        
-        /* Mobile Pause Button */
-        .mobile-pause-btn {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            z-index: 100;
-            font-size: 20px;
-            transition: all 0.3s ease;
-            color: #ffffff;
-        }
-        
-        .mobile-pause-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.1);
-        }
-        
-        .mobile-pause-btn.active {
-            background: rgba(255, 255, 255, 0.3);
-            border-color: #ffffff;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
-        }
-        
-        /* Show mobile pause button only on mobile devices */
-        @media (max-width: 768px) {
-            .mobile-pause-btn {
-                display: flex;
             }
         }
         
@@ -755,189 +607,6 @@
             }
         }
         
-        /* Skill Tree Styles */
-        #skillTreeOverlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        
-        #skillTreeMenu {
-            background: linear-gradient(135deg, 
-                rgba(26, 26, 46, 0.95) 0%, 
-                rgba(22, 33, 62, 0.95) 50%, 
-                rgba(15, 52, 96, 0.95) 100%);
-            padding: 30px;
-            border-radius: 20px;
-            border: 2px solid rgba(0, 255, 255, 0.3);
-            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
-            max-width: 800px;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        
-        .skill-category {
-            margin-bottom: 20px;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            border: 1px solid rgba(0, 255, 255, 0.2);
-        }
-        
-        .skill-category h3 {
-            color: #00ffff;
-            margin-bottom: 10px;
-            font-size: 1.2em;
-        }
-        
-        .skill-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            margin: 5px 0;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .skill-item:hover {
-            background: rgba(0, 255, 255, 0.2);
-            transform: translateX(5px);
-        }
-        
-        .skill-name {
-            font-weight: bold;
-            color: #ffffff;
-        }
-        
-        .skill-level {
-            color: #00ff00;
-            font-weight: bold;
-        }
-        
-        .skill-cost {
-            color: #ffff00;
-            font-size: 0.9em;
-        }
-        
-        .skill-tree-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(0, 255, 255, 0.3);
-        }
-        
-        .skill-points {
-            color: #00ff00;
-            font-weight: bold;
-            font-size: 1.1em;
-        }
-        
-        /* Cockpit View Styles */
-        #cockpitOverlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: none;
-            pointer-events: none;
-            z-index: 50;
-        }
-        
-        .cockpit-frame {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, 
-                rgba(0, 0, 0, 0.3) 0%, 
-                rgba(0, 0, 0, 0.1) 50%, 
-                rgba(0, 0, 0, 0.3) 100%);
-            border: 2px solid rgba(0, 255, 255, 0.5);
-            border-radius: 20px;
-            margin: 10px;
-        }
-        
-        .cockpit-hud {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 20px;
-            font-family: 'Courier New', monospace;
-            color: #00ffff;
-            text-shadow: 0 0 5px #00ffff;
-        }
-        
-        .hud-top, .hud-center, .hud-bottom {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .hud-item {
-            background: rgba(0, 0, 0, 0.7);
-            padding: 5px 10px;
-            border-radius: 5px;
-            border: 1px solid rgba(0, 255, 255, 0.3);
-            font-size: 12px;
-            font-weight: bold;
-        }
-        
-        .cockpit-crosshair {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-        }
-        
-        .crosshair-line {
-            position: absolute;
-            background: rgba(0, 255, 255, 0.8);
-            box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
-        }
-        
-        .crosshair-line.horizontal {
-            width: 60px;
-            height: 2px;
-            top: -1px;
-            left: -30px;
-        }
-        
-        .crosshair-line.vertical {
-            width: 2px;
-            height: 60px;
-            top: -30px;
-            left: -1px;
-        }
-        
-        .crosshair-dot {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: #ff0000;
-            border-radius: 50%;
-            top: -2px;
-            left: -2px;
-            box-shadow: 0 0 5px rgba(255, 0, 0, 0.8);
-        }
-        
         /* Professional Menu Styles */
         .menu-content {
             display: flex;
@@ -1241,7 +910,86 @@
             }
         }
         
-
+        /* Cockpit View Styles */
+        #cockpitOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            z-index: 150;
+            pointer-events: none;
+        }
+        
+        .cockpit-frame {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, 
+                rgba(0, 0, 0, 0.3) 0%, 
+                rgba(0, 20, 40, 0.3) 100%);
+            border: 3px solid rgba(0, 255, 255, 0.5);
+            box-shadow: inset 0 0 50px rgba(0, 255, 255, 0.2);
+        }
+        
+        .cockpit-hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+        }
+        
+        .hud-top {
+            display: flex;
+            justify-content: space-between;
+            color: #00ffff;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+        }
+        
+        .hud-bottom {
+            display: flex;
+            justify-content: space-between;
+            color: #00ffff;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+        }
+        
+        .hud-center {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .crosshair {
+            font-size: 3em;
+            color: #ff0000;
+            text-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+            animation: crosshairPulse 1s ease-in-out infinite;
+        }
+        
+        @keyframes crosshairPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+        
+        .radar, .targeting, .weapon-status, .shield-status {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: 1px solid rgba(0, 255, 255, 0.5);
+            font-size: 0.9em;
+        }
         
         .btn:hover::before {
             opacity: 0.5;
@@ -1463,74 +1211,7 @@
             transform: scale(1.1);
         }
         
-        /* Pause/Resume Button */
-        .pause-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            z-index: 100;
-            font-size: 20px;
-            transition: all 0.3s ease;
-            color: #ffffff;
-        }
-        
-        .pause-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.1);
-        }
-        
-        .pause-btn.active {
-            background: rgba(255, 255, 255, 0.3);
-            border-color: #ffffff;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
-        }
-        
-        /* Mobile Pause Button */
-        .mobile-pause-btn {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            z-index: 100;
-            font-size: 20px;
-            transition: all 0.3s ease;
-            color: #ffffff;
-        }
-        
-        .mobile-pause-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.1);
-        }
-        
-        .mobile-pause-btn.active {
-            background: rgba(255, 255, 255, 0.3);
-            border-color: #ffffff;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
-        }
-        
-        /* Show mobile pause button only on mobile devices */
-        @media (max-width: 768px) {
-            .mobile-pause-btn {
-                display: flex;
-            }
-        }
+
     </style>
 </head>
 <body>
@@ -1538,44 +1219,11 @@
         <canvas id="gameCanvas" width="1000" height="700"></canvas>
         
         <div id="ui">
-            <div class="ui-item score-item">
-                <div class="ui-label">SCORE</div>
-                <div id="score" class="ui-value">0</div>
-            </div>
-            <div class="ui-item level-item">
-                <div class="ui-label">LEVEL</div>
-                <div id="level" class="ui-value">1</div>
-            </div>
-            <div class="ui-item lives-item">
-                <div class="ui-label">LIVES</div>
-                <div id="lives" class="ui-value">3</div>
-            </div>
-            <div class="ui-item player-level-item">
-                <div class="ui-label">P.LVL</div>
-                <div id="playerLevel" class="ui-value">1</div>
-            </div>
-            <div class="ui-item exp-item">
-                <div class="ui-label">EXP</div>
-                <div id="experience" class="ui-value">0/50</div>
-            </div>
-            <div class="ui-item weapon-item">
-                <div class="ui-label">WEAPON</div>
-                <div id="weapon" class="ui-value">Basic</div>
-            </div>
-            <div class="ui-item combo-item">
-                <div class="ui-label">COMBO</div>
-                <div id="combo" class="ui-value">0x</div>
-            </div>
-        </div>
-        
-        <!-- Cockpit Toggle Button (Desktop & Mobile) -->
-        <div id="cockpitBtn" class="cockpit-btn">
-            <span>🛸</span>
-        </div>
-        
-        <!-- Mobile Cockpit Toggle Button -->
-        <div id="mobileCockpitBtn" class="mobile-cockpit-btn">
-            <span>🛸</span>
+            <div id="score">Score: 0</div>
+            <div id="lives">Lives: 3</div>
+            <div id="level">Level: 1</div>
+            <div id="weapon">Weapon: Basic Laser</div>
+            <div id="combo">Combo: 0x</div>
         </div>
         
         <div id="powerUpIndicator" style="display: none;">
@@ -1606,10 +1254,9 @@
                 <button class="btn primary" onclick="showBriefing()">START MISSION</button>
                 <button class="btn" onclick="showInstructions()">INSTRUCTIONS</button>
                 <button class="btn" onclick="showShipSelection()">CHOOSE SHIP</button>
-                <button class="btn" onclick="showSkillTree()">🌳 SKILL TREE</button>
                 <button class="btn" onclick="showAchievements()">🏆 ACHIEVEMENTS</button>
                 <button class="btn" onclick="showHighScores()">HIGH SCORES</button>
-                
+                <button class="btn" onclick="enableAIMode()" style="background: linear-gradient(45deg, #ff6b6b, #4ecdc4);">🤖 AI AUTOPLAY MODE</button>
             </div>
             
             <div class="stats-panel">
@@ -1668,7 +1315,9 @@
             <div id="pauseMenu">
                 <h2>⏸️ GAME PAUSED ⏸️</h2>
                 <button class="btn" onclick="resumeGame()">▶️ RESUME GAME</button>
-                <button class="btn" onclick="showSkillTree()">🌳 SKILL TREE</button>
+                <button class="btn" onclick="toggleCockpit()">🛸 TOGGLE COCKPIT</button>
+                <button class="btn" onclick="enableAIMode()">🤖 ENABLE AI AUTOPLAY</button>
+                <button class="btn" onclick="disableAIMode()">👤 DISABLE AI AUTOPLAY</button>
                 <button class="btn" onclick="showMenu()">🏠 MAIN MENU</button>
             </div>
         </div>
@@ -1677,98 +1326,23 @@
             <div class="cockpit-frame">
                 <div class="cockpit-hud">
                     <div class="hud-top">
-                        <div class="hud-item">WEAPON: <span id="cockpitWeapon">BASIC</span></div>
-                        <div class="hud-item">SHIELD: <span id="cockpitShield">ONLINE</span></div>
+                        <div class="radar">📡 RADAR</div>
+                        <div class="targeting">🎯 TARGETING</div>
                     </div>
                     <div class="hud-center">
-                        <div class="hud-item">TARGET: <span id="cockpitTarget">NONE</span></div>
-                        <div class="hud-item">RANGE: <span id="cockpitRange">CLEAR</span></div>
+                        <div class="crosshair">+</div>
                     </div>
                     <div class="hud-bottom">
-                        <div class="hud-item">STATUS: <span id="cockpitStatus">OPERATIONAL</span></div>
-                        <div class="hud-item">SYSTEMS: <span id="cockpitSystems">NOMINAL</span></div>
+                        <div class="weapon-status">🔫 WEAPON: <span id="cockpitWeapon">BASIC</span></div>
+                        <div class="shield-status">🛡️ SHIELD: <span id="cockpitShield">OFFLINE</span></div>
                     </div>
-                </div>
-                <div class="cockpit-crosshair">
-                    <div class="crosshair-line horizontal"></div>
-                    <div class="crosshair-line vertical"></div>
-                    <div class="crosshair-dot"></div>
                 </div>
             </div>
-        </div>
-        
-        <div id="skillTreeOverlay">
-            <div id="skillTreeMenu">
-                <h2>🌳 SKILL TREE 🌳</h2>
-                <div id="skillTreeContent">
-                    <div class="skill-category">
-                        <h3>⚔️ Combat Skills</h3>
-                        <div class="skill-item" onclick="upgradeSkill('weaponMastery')">
-                            <span class="skill-name">Weapon Mastery</span>
-                            <span class="skill-level" id="weaponMasteryLevel">0/5</span>
-                            <span class="skill-cost">Cost: 1 SP</span>
-                        </div>
-                        <div class="skill-item" onclick="upgradeSkill('criticalStrike')">
-                            <span class="skill-name">Critical Strike</span>
-                            <span class="skill-level" id="criticalStrikeLevel">0/3</span>
-                            <span class="skill-cost">Cost: 3 SP</span>
-                        </div>
-                    </div>
-                    <div class="skill-category">
-                        <h3>🚀 Movement Skills</h3>
-                        <div class="skill-item" onclick="upgradeSkill('speedEnhancement')">
-                            <span class="skill-name">Speed Enhancement</span>
-                            <span class="skill-level" id="speedEnhancementLevel">0/3</span>
-                            <span class="skill-cost">Cost: 1 SP</span>
-                        </div>
-                    </div>
-                    <div class="skill-category">
-                        <h3>🛡️ Defense Skills</h3>
-                        <div class="skill-item" onclick="upgradeSkill('shieldCapacity')">
-                            <span class="skill-name">Shield Capacity</span>
-                            <span class="skill-level" id="shieldCapacityLevel">0/3</span>
-                            <span class="skill-cost">Cost: 2 SP</span>
-                        </div>
-                        <div class="skill-item" onclick="upgradeSkill('healthBoost')">
-                            <span class="skill-name">Health Boost</span>
-                            <span class="skill-level" id="healthBoostLevel">0/3</span>
-                            <span class="skill-cost">Cost: 2 SP</span>
-                        </div>
-                    </div>
-                    <div class="skill-category">
-                        <h3>🚀 Special Skills</h3>
-                        <div class="skill-item" onclick="upgradeSkill('missileExpert')">
-                            <span class="skill-name">Missile Expert</span>
-                            <span class="skill-level" id="missileExpertLevel">0/3</span>
-                            <span class="skill-cost">Cost: 2 SP</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="skill-tree-footer">
-                    <div class="skill-points">Skill Points: <span id="skillPointsDisplay">0</span></div>
-                    <button class="btn" onclick="hideSkillTree()">CLOSE</button>
-                </div>
-            </div>
-        </div>
-        </div>
-        
-
-        
-        <!-- Pause/Resume Button (Desktop) -->
-        <div id="pauseBtn" class="pause-btn">
-            ⏸️
-        </div>
-        
-        <!-- Mobile Pause/Resume Button -->
-        <div id="mobilePauseBtn" class="mobile-pause-btn">
-            ⏸️
         </div>
         
         <div id="audioControls">
             <button class="audio-btn" onclick="toggleSFX()" title="Toggle Sound Effects">🔊</button>
         </div>
-        <button class="pause-btn" onclick="pauseGame()">⏸️</button>
-        <button class="mobile-pause-btn" onclick="pauseGame()">⏸️</button>
     </div>
 
     <!-- Firebase SDK -->
@@ -1818,7 +1392,7 @@
                 this.survivalTime = 0;
                 this.startTime = 0;
                 
-                // Enhanced player with multiple weapons and progression
+                // Enhanced player with multiple weapons
                 this.player = {
                     x: 475,
                     y: 600,
@@ -1836,19 +1410,7 @@
                         secondary: 'missile',
                         tertiary: 'plasma'
                     },
-                    lastAutoDefense: 0,
-                    // New progression system
-                    experience: 0,
-                    playerLevel: 1,
-                    skillPoints: 0,
-                    baseSpeed: 5,
-                    baseHealth: 100,
-                    criticalChance: 0,
-                    criticalMultiplier: 2,
-                    weaponMastery: 1,
-                    speedEnhancement: 1,
-                    shieldCapacity: 1,
-                    criticalStrike: 0
+                    lastAutoDefense: 0
                 };
                 
                 // Weapon system
@@ -1873,171 +1435,6 @@
                 this.boss = null;
                 this.cockpitMode = false;
                 this.maxLevel = 50;
-                
-                // Skill tree system
-                this.skillTree = {
-                    weaponMastery: { 
-                        name: "Weapon Mastery", 
-                        cost: 1, 
-                        maxLevel: 5,
-                        effect: "Weapon damage +20% per level",
-                        currentLevel: 0
-                    },
-                    speedEnhancement: { 
-                        name: "Speed Enhancement", 
-                        cost: 1, 
-                        maxLevel: 3,
-                        effect: "Movement speed +15% per level",
-                        currentLevel: 0
-                    },
-                    shieldCapacity: { 
-                        name: "Shield Capacity", 
-                        cost: 2, 
-                        maxLevel: 3,
-                        effect: "Shield duration +50% per level",
-                        currentLevel: 0
-                    },
-                    criticalStrike: { 
-                        name: "Critical Strike", 
-                        cost: 3, 
-                        maxLevel: 3,
-                        effect: "10% chance for 2x damage per level",
-                        currentLevel: 0
-                    },
-                    healthBoost: { 
-                        name: "Health Boost", 
-                        cost: 2, 
-                        maxLevel: 3,
-                        effect: "Max health +25 per level",
-                        currentLevel: 0
-                    },
-                    missileExpert: { 
-                        name: "Missile Expert", 
-                        cost: 2, 
-                        maxLevel: 3,
-                        effect: "Missile damage +30% per level",
-                        currentLevel: 0
-                    }
-                };
-                
-                // Boss system
-                this.bossTypes = {
-                    shieldBoss: { 
-                        name: "Shield Guardian", 
-                        health: 500, 
-                        maxHealth: 500,
-                        pattern: "shield_rotation",
-                        color: '#4B0082',
-                        size: 120,
-                        speed: 1.5,
-                        points: 2000
-                    },
-                    swarmBoss: { 
-                        name: "Swarm Lord", 
-                        health: 300, 
-                        maxHealth: 300,
-                        pattern: "minion_spawn",
-                        color: '#32CD32',
-                        size: 100,
-                        speed: 2.5,
-                        points: 1500
-                    },
-                    laserBoss: { 
-                        name: "Laser Master", 
-                        health: 400, 
-                        maxHealth: 400,
-                        pattern: "cross_laser",
-                        color: '#FF1493',
-                        size: 110,
-                        speed: 1.8,
-                        points: 1800
-                    }
-                };
-                
-                // Mission system
-                this.missions = [
-                    { 
-                        id: 'survival_300', 
-                        type: 'survival', 
-                        target: 300, 
-                        description: 'Survive for 300 seconds',
-                        reward: 'new_weapon',
-                        completed: false
-                    },
-                    { 
-                        id: 'precision_100', 
-                        type: 'precision', 
-                        target: 100, 
-                        description: 'Achieve 100% accuracy',
-                        reward: 'skill_point',
-                        completed: false
-                    },
-                    { 
-                        id: 'speed_run_10', 
-                        type: 'speed_run', 
-                        target: 10, 
-                        description: 'Reach level 10 in under 5 minutes',
-                        reward: 'bonus_lives',
-                        completed: false
-                    }
-                ];
-                
-                // Environmental hazards
-                this.hazards = [];
-                this.hazardTypes = {
-                    asteroid_field: { 
-                        type: "asteroid_field", 
-                        effect: "damage_on_contact",
-                        damage: 15,
-                        color: '#8B4513'
-                    },
-                    energy_storm: { 
-                        type: "energy_storm", 
-                        effect: "random_teleport",
-                        duration: 3000,
-                        color: '#00FFFF'
-                    },
-                    gravity_well: { 
-                        type: "gravity_well", 
-                        effect: "pull_towards_center",
-                        strength: 0.5,
-                        color: '#FF00FF'
-                    }
-                };
-                
-                // Weapon combination system
-                this.weaponCombos = {
-                    "plasma+laser": { 
-                        name: "Plasma Laser Beam", 
-                        damage: 50,
-                        cooldown: 1000,
-                        color: '#FF00FF'
-                    },
-                    "missile+spread": { 
-                        name: "Cluster Missiles", 
-                        damage: 40,
-                        cooldown: 1500,
-                        color: '#FF8800'
-                    },
-                    "ice+fire": { 
-                        name: "Steam Explosion", 
-                        damage: 60,
-                        cooldown: 2000,
-                        color: '#00FFFF'
-                    }
-                };
-                
-                // Co-op mode
-                this.coOpMode = false;
-                this.player2 = null;
-                
-                // Adaptive difficulty
-                this.adaptiveDifficulty = {
-                    playerHealthThreshold: 30,
-                    playerScoreThreshold: 10000,
-                    playerAccuracyThreshold: 50,
-                    currentDifficulty: 1
-                };
                 
                 // Difficulty scaling
                 this.enemySpawnRate = 2.5;
@@ -2078,48 +1475,169 @@
                 if (this.audioInitialized) return;
                 
                 try {
+                    // Create audio contexts for sound effects
                     this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
                     this.audioInitialized = true;
                     
-                    // Create sound effects
-                    this.sounds = {
-                        shoot: () => this.createSound(800, 0.1, 0.05),
-                        explosion: () => this.createSound(200, 0.3, 0.1),
-                        powerup: () => this.createSound(1200, 0.2, 0.1),
-                        combo: () => this.createSound(1000, 0.15, 0.05),
-                        levelUp: () => this.createSound(1500, 0.3, 0.2),
-                        achievement: () => this.createSound(2000, 0.4, 0.3),
-                        boss: () => this.createSound(300, 0.5, 0.3),
-                        missile: () => this.createSound(600, 0.2, 0.1)
+                    // Generate explosion sound
+                    this.sounds.explosion = () => {
+                        if (!this.sfxEnabled || !this.audioContext) return;
+                        const oscillator = this.audioContext.createOscillator();
+                        const gainNode = this.audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(this.audioContext.destination);
+                        
+                        oscillator.frequency.setValueAtTime(200, this.audioContext.currentTime);
+                        oscillator.frequency.exponentialRampToValueAtTime(50, this.audioContext.currentTime + 0.3);
+                        
+                        gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
+                        
+                        oscillator.start(this.audioContext.currentTime);
+                        oscillator.stop(this.audioContext.currentTime + 0.3);
                     };
+                    
+                    // Generate missile sound
+                    this.sounds.missile = () => {
+                        if (!this.sfxEnabled || !this.audioContext) return;
+                        const oscillator = this.audioContext.createOscillator();
+                        const gainNode = this.audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(this.audioContext.destination);
+                        
+                        oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime);
+                        oscillator.frequency.exponentialRampToValueAtTime(400, this.audioContext.currentTime + 0.1);
+                        
+                        gainNode.gain.setValueAtTime(0.2, this.audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.1);
+                        
+                        oscillator.start(this.audioContext.currentTime);
+                        oscillator.stop(this.audioContext.currentTime + 0.1);
+                    };
+                    
+                    // Generate power-up sound
+                    this.sounds.powerup = () => {
+                        if (!this.sfxEnabled || !this.audioContext) return;
+                        const oscillator = this.audioContext.createOscillator();
+                        const gainNode = this.audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(this.audioContext.destination);
+                        
+                        oscillator.frequency.setValueAtTime(400, this.audioContext.currentTime);
+                        oscillator.frequency.setValueAtTime(600, this.audioContext.currentTime + 0.1);
+                        oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime + 0.2);
+                        
+                        gainNode.gain.setValueAtTime(0.2, this.audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
+                        
+                        oscillator.start(this.audioContext.currentTime);
+                        oscillator.stop(this.audioContext.currentTime + 0.3);
+                    };
+                    
+                    // Generate combo sound
+                    this.sounds.combo = () => {
+                        if (!this.sfxEnabled || !this.audioContext) return;
+                        const oscillator = this.audioContext.createOscillator();
+                        const gainNode = this.audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(this.audioContext.destination);
+                        
+                        oscillator.frequency.setValueAtTime(600, this.audioContext.currentTime);
+                        oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime + 0.1);
+                        oscillator.frequency.setValueAtTime(1000, this.audioContext.currentTime + 0.2);
+                        
+                        gainNode.gain.setValueAtTime(0.15, this.audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
+                        
+                        oscillator.start(this.audioContext.currentTime);
+                        oscillator.stop(this.audioContext.currentTime + 0.3);
+                    };
+                    
+                    // Generate achievement sound
+                    this.sounds.achievement = () => {
+                        if (!this.sfxEnabled || !this.audioContext) return;
+                        const oscillator = this.audioContext.createOscillator();
+                        const gainNode = this.audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(this.audioContext.destination);
+                        
+                        oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime);
+                        oscillator.frequency.setValueAtTime(1000, this.audioContext.currentTime + 0.1);
+                        oscillator.frequency.setValueAtTime(1200, this.audioContext.currentTime + 0.2);
+                        oscillator.frequency.setValueAtTime(1400, this.audioContext.currentTime + 0.3);
+                        
+                        gainNode.gain.setValueAtTime(0.2, this.audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.4);
+                        
+                        oscillator.start(this.audioContext.currentTime);
+                        oscillator.stop(this.audioContext.currentTime + 0.4);
+                    };
+                    
+                    // Generate dynamic background music
+                    this.sounds.backgroundMusic = () => {
+                        if (!this.sfxEnabled || !this.audioContext) return;
+                        
+                        // Create multiple oscillators for rich sound
+                        const bassOsc = this.audioContext.createOscillator();
+                        const leadOsc = this.audioContext.createOscillator();
+                        const padOsc = this.audioContext.createOscillator();
+                        
+                        const bassGain = this.audioContext.createGain();
+                        const leadGain = this.audioContext.createGain();
+                        const padGain = this.audioContext.createGain();
+                        
+                        // Connect oscillators
+                        bassOsc.connect(bassGain);
+                        leadOsc.connect(leadGain);
+                        padOsc.connect(padGain);
+                        
+                        bassGain.connect(this.audioContext.destination);
+                        leadGain.connect(this.audioContext.destination);
+                        padGain.connect(this.audioContext.destination);
+                        
+                        // Bass line (lower frequency)
+                        bassOsc.frequency.setValueAtTime(110, this.audioContext.currentTime);
+                        bassOsc.frequency.setValueAtTime(220, this.audioContext.currentTime + 2);
+                        bassOsc.frequency.setValueAtTime(165, this.audioContext.currentTime + 4);
+                        
+                        // Lead melody (higher frequency)
+                        leadOsc.frequency.setValueAtTime(440, this.audioContext.currentTime);
+                        leadOsc.frequency.setValueAtTime(880, this.audioContext.currentTime + 1);
+                        leadOsc.frequency.setValueAtTime(660, this.audioContext.currentTime + 2);
+                        leadOsc.frequency.setValueAtTime(1100, this.audioContext.currentTime + 3);
+                        
+                        // Pad harmony (middle frequency)
+                        padOsc.frequency.setValueAtTime(220, this.audioContext.currentTime);
+                        padOsc.frequency.setValueAtTime(330, this.audioContext.currentTime + 1.5);
+                        padOsc.frequency.setValueAtTime(440, this.audioContext.currentTime + 3);
+                        
+                        // Volume control
+                        bassGain.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+                        leadGain.gain.setValueAtTime(0.05, this.audioContext.currentTime);
+                        padGain.gain.setValueAtTime(0.03, this.audioContext.currentTime);
+                        
+                        // Start oscillators
+                        bassOsc.start(this.audioContext.currentTime);
+                        leadOsc.start(this.audioContext.currentTime);
+                        padOsc.start(this.audioContext.currentTime);
+                        
+                        // Stop after 5 seconds
+                        bassOsc.stop(this.audioContext.currentTime + 5);
+                        leadOsc.stop(this.audioContext.currentTime + 5);
+                        padOsc.stop(this.audioContext.currentTime + 5);
+                    };
+                    
+                    // Background music (simple tone generator)
+                    this.startBackgroundMusic();
+                    
                 } catch (error) {
-                    console.log('Audio initialization failed:', error);
-                    this.sfxEnabled = false;
-                }
-            }
-            
-            createSound(frequency, duration, volume = 0.1) {
-                if (!this.sfxEnabled || !this.audioContext) return;
-                
-                try {
-                    const oscillator = this.audioContext.createOscillator();
-                    const gainNode = this.audioContext.createGain();
-                    
-                    oscillator.connect(gainNode);
-                    gainNode.connect(this.audioContext.destination);
-                    
-                    oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
-                    oscillator.type = 'square';
-                    
-                    gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
-                    gainNode.gain.linearRampToValueAtTime(volume, this.audioContext.currentTime + 0.01);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
-                    
-                    oscillator.start(this.audioContext.currentTime);
-                    oscillator.stop(this.audioContext.currentTime + duration);
-                    
-                } catch (error) {
-                    console.log('Sound creation failed:', error);
+                    console.log('Audio initialization error:', error);
+                    // Continue without audio
                 }
             }
             
@@ -2184,13 +1702,6 @@
                             this.currentWeapon = weapons[weaponIndex];
                             this.updateUI();
                         }
-                    }
-                    
-                    // Cockpit view toggle with 'C' key
-                    if (e.code === 'KeyC') {
-                        e.preventDefault();
-                        toggleCockpit();
-                        return;
                     }
                 });
                 
@@ -2317,9 +1828,7 @@
                 // Update game objects
                 this.updateBullets();
                 this.updateEnemies();
-                this.updateBoss();
                 this.updatePowerups();
-                this.updateHazards();
                 this.updateParticles();
                 this.updateExplosions();
                 this.updateStars();
@@ -2328,7 +1837,6 @@
                 // Spawn enemies and powerups
                 this.spawnEnemies();
                 this.spawnPowerups();
-                this.spawnHazards();
                 
                 // Update power-ups
                 if (this.weaponPowerUp.active) {
@@ -2416,67 +1924,38 @@
                 if (!this.player.autoDefense) return;
                 
                 const now = Date.now();
-                if (now - this.player.lastAutoDefense < 150) return; // Even faster cooldown
+                if (now - this.player.lastAutoDefense < 200) return; // Faster cooldown
                 
                 let enemiesNearby = false;
                 this.enemies.forEach(enemy => {
                     const dist = Math.hypot(enemy.x - this.player.x, enemy.y - this.player.y);
-                    if (dist < 250) { // Larger radius
+                    if (dist < 200) { // Increased radius
                         enemiesNearby = true;
-                        
-                        // Primary 360-degree defense ring (16 bullets)
-                        for (let i = 0; i < 16; i++) {
-                            const angle = (i * Math.PI * 2) / 16;
-                            const vx = Math.cos(angle) * 10; // Faster bullets
-                            const vy = Math.sin(angle) * 10;
+                        // Create enhanced 360-degree defense bullets
+                        for (let i = 0; i < 12; i++) { // More bullets
+                            const angle = (i * Math.PI * 2) / 12;
+                            const vx = Math.cos(angle) * 8; // Faster bullets
+                            const vy = Math.sin(angle) * 8;
                             this.createBullet(
                                 this.player.x + this.player.width/2, 
                                 this.player.y + this.player.height/2, 
-                                vx, vy, '#ff00ff', 15 // More damage
+                                vx, vy, '#ff00ff', 12 // More damage
                             );
                         }
                         
-                        // Secondary defense ring (8 bullets)
-                        for (let i = 0; i < 8; i++) {
-                            const angle = (i * Math.PI * 2) / 8;
-                            const vx = Math.cos(angle) * 6;
-                            const vy = Math.sin(angle) * 6;
-                            this.createBullet(
-                                this.player.x + this.player.width/2, 
-                                this.player.y + this.player.height/2, 
-                                vx, vy, '#00ffff', 8
-                            );
-                        }
-                        
-                        // Tertiary defense ring (4 bullets)
-                        for (let i = 0; i < 4; i++) {
-                            const angle = (i * Math.PI * 2) / 4;
+                        // Add secondary defense ring
+                        for (let i = 0; i < 6; i++) {
+                            const angle = (i * Math.PI * 2) / 6;
                             const vx = Math.cos(angle) * 4;
                             const vy = Math.sin(angle) * 4;
                             this.createBullet(
                                 this.player.x + this.player.width/2, 
                                 this.player.y + this.player.height/2, 
-                                vx, vy, '#ffff00', 5
+                                vx, vy, '#00ffff', 6
                             );
                         }
                         
-                        // Create defense particles
-                        for (let i = 0; i < 8; i++) {
-                            const angle = (i * Math.PI * 2) / 8;
-                            this.particles.push({
-                                x: this.player.x + this.player.width/2,
-                                y: this.player.y + this.player.height/2,
-                                vx: Math.cos(angle) * 3,
-                                vy: Math.sin(angle) * 3,
-                                color: '#ff00ff',
-                                life: 30,
-                                maxLife: 30,
-                                size: 2
-                            });
-                        }
-                        
                         this.player.lastAutoDefense = now;
-                        this.screenShake = 5; // Light screen shake
                         return;
                     }
                 });
@@ -2577,12 +2056,6 @@
             }
             
             spawnEnemies() {
-                // Check for boss spawn every 5 levels
-                if (this.level % 5 === 0 && !this.bossActive && this.enemies.length === 0) {
-                    this.spawnBoss();
-                    return;
-                }
-                
                 // Limit to maximum 10 enemies on screen
                 if (this.enemies.length >= 10) return;
                 
@@ -2876,15 +2349,8 @@
                     // Check collision with bullets
                     this.bullets.forEach((bullet, bulletIndex) => {
                         if (this.checkCollision(bullet, enemy)) {
-                            const damage = bullet.damage || 10;
-                            enemy.health -= damage;
+                            enemy.health -= bullet.damage;
                             this.bullets.splice(bulletIndex, 1);
-                            
-                            // Award half point for hitting enemy
-                            if (enemy.health > 0) {
-                                this.score += 0.5;
-                                this.showCombo('+0.5', '#ffff00');
-                            }
                             
                             if (enemy.health <= 0) {
                                 this.destroyEnemy(enemy, index);
@@ -2982,18 +2448,14 @@
             }
             
             destroyEnemy(enemy, index) {
-                // Very conservative scoring: 1 point per ship destroyed
-                const baseScore = 1; // Just 1 point per enemy
-                const comboMultiplier = 1 + (this.combo * 0.02); // 2% increase per combo
-                const levelBonus = this.level * 0.01; // 1% increase per level
+                // Calculate score with combo multiplier
+                const baseScore = enemy.points || 100;
+                const comboMultiplier = 1 + (this.combo * 0.1); // 10% increase per combo
+                const levelBonus = this.level * 0.2; // 20% increase per level
                 const finalScore = Math.floor(baseScore * comboMultiplier * (1 + levelBonus));
                 
                 this.score += finalScore;
                 this.enemiesDestroyed++;
-                
-                // Award experience for enemy destruction
-                this.player.experience += 10;
-                this.checkLevelUp();
                 
                 // Combo system with lock
                 if (this.comboLock > 0) {
@@ -3026,8 +2488,8 @@
                     this.spawnPowerupAt(enemy.x, enemy.y);
                 }
                 
-                // Level up check - much slower advancement
-                const newLevel = Math.floor(this.score / 8000) + 1; // Increased from 3000 to 8000
+                // Level up check - slower advancement
+                const newLevel = Math.floor(this.score / 3000) + 1;
                 if (newLevel !== this.level) {
                     this.level = newLevel;
                     this.showCombo(`LEVEL ${this.level}! 🚀`, '#00ffff');
@@ -3036,22 +2498,6 @@
                 
                 // Check achievements
                 this.checkAchievements();
-            }
-            
-            checkLevelUp() {
-                const experienceNeeded = this.player.playerLevel * 50;
-                if (this.player.experience >= experienceNeeded) {
-                    this.player.experience -= experienceNeeded;
-                    this.player.playerLevel++;
-                    this.player.skillPoints += 1;
-                    this.showCombo(`🎉 LEVEL UP! ${this.player.playerLevel}`, '#00ff00');
-                    this.sounds.levelUp();
-                    
-                    // Apply level bonuses
-                    this.player.maxHealth += 10;
-                    this.player.health = Math.min(this.player.maxHealth, this.player.health + 20);
-                    this.player.speed += 0.2;
-                }
             }
             
             checkAchievements() {
@@ -3113,243 +2559,6 @@
                 if (Math.random() < 0.005) {
                     this.spawnPowerupAt(Math.random() * (this.canvas.width - 30), -30);
                 }
-            }
-            
-            spawnHazards() {
-                // Spawn environmental hazards occasionally
-                if (Math.random() < 0.001) {
-                    const hazardKeys = Object.keys(this.hazardTypes);
-                    const hazardType = hazardKeys[Math.floor(Math.random() * hazardKeys.length)];
-                    const hazardConfig = this.hazardTypes[hazardType];
-                    
-                    const hazard = {
-                        ...hazardConfig,
-                        x: Math.random() * (this.canvas.width - 60),
-                        y: -60,
-                        width: 60,
-                        height: 60,
-                        active: true
-                    };
-                    
-                    this.hazards.push(hazard);
-                }
-            }
-            
-            updateHazards() {
-                this.hazards.forEach((hazard, index) => {
-                    hazard.y += 2;
-                    
-                    // Remove if off screen
-                    if (hazard.y > this.canvas.height) {
-                        this.hazards.splice(index, 1);
-                        return;
-                    }
-                    
-                    // Check collision with player
-                    if (this.checkCollision(hazard, this.player) && this.player.invulnerable === 0) {
-                        this.applyHazardEffect(hazard);
-                        this.hazards.splice(index, 1);
-                    }
-                });
-            }
-            
-            applyHazardEffect(hazard) {
-                switch (hazard.effect) {
-                    case 'damage_on_contact':
-                        this.damagePlayer(hazard.damage);
-                        this.showCombo(`💥 HAZARD DAMAGE! -${hazard.damage}`, '#ff0000');
-                        break;
-                    case 'random_teleport':
-                        this.player.x = Math.random() * (this.canvas.width - this.player.width);
-                        this.player.y = Math.random() * (this.canvas.height - this.player.height);
-                        this.showCombo(`🌀 TELEPORTED!`, '#00ffff');
-                        break;
-                    case 'pull_towards_center':
-                        const centerX = this.canvas.width / 2;
-                        const centerY = this.canvas.height / 2;
-                        const dx = centerX - this.player.x;
-                        const dy = centerY - this.player.y;
-                        this.player.x += dx * hazard.strength * 0.1;
-                        this.player.y += dy * hazard.strength * 0.1;
-                        this.showCombo(`🌪️ GRAVITY PULL!`, '#ff00ff');
-                        break;
-                }
-            }
-            
-            spawnBoss() {
-                const bossKeys = Object.keys(this.bossTypes);
-                const bossType = bossKeys[Math.floor(Math.random() * bossKeys.length)];
-                const bossConfig = this.bossTypes[bossType];
-                
-                this.boss = {
-                    ...bossConfig,
-                    x: this.canvas.width / 2 - bossConfig.size / 2,
-                    y: -bossConfig.size,
-                    width: bossConfig.size,
-                    height: bossConfig.size,
-                    phase: 0,
-                    lastAttack: 0,
-                    attackCooldown: 2000,
-                    patternTime: 0,
-                    minions: []
-                };
-                
-                this.bossActive = true;
-                this.showCombo(`🚨 BOSS: ${bossConfig.name} 🚨`, '#ff0000');
-                this.sounds.boss();
-            }
-            
-            updateBoss() {
-                if (!this.boss || !this.bossActive) return;
-                
-                const boss = this.boss;
-                boss.patternTime += 16.67; // ~60fps
-                
-                // Boss movement patterns
-                switch (boss.pattern) {
-                    case 'shield_rotation':
-                        boss.x = this.canvas.width / 2 - boss.size / 2 + Math.sin(boss.patternTime * 0.002) * 100;
-                        boss.y = 100 + Math.cos(boss.patternTime * 0.001) * 50;
-                        break;
-                    case 'minion_spawn':
-                        boss.x = this.canvas.width / 2 - boss.size / 2;
-                        boss.y = 150;
-                        if (boss.patternTime % 3000 < 16.67) {
-                            this.spawnBossMinion();
-                        }
-                        break;
-                    case 'cross_laser':
-                        boss.x = this.canvas.width / 2 - boss.size / 2;
-                        boss.y = 120;
-                        if (boss.patternTime % 2000 < 16.67) {
-                            this.bossCrossLaserAttack();
-                        }
-                        break;
-                }
-                
-                // Boss attacks
-                if (Date.now() - boss.lastAttack > boss.attackCooldown) {
-                    this.bossAttack();
-                    boss.lastAttack = Date.now();
-                }
-                
-                // Check collision with player bullets
-                this.bullets.forEach((bullet, index) => {
-                    if (this.checkCollision(bullet, boss)) {
-                        const damage = bullet.damage || 10;
-                        boss.health -= damage;
-                        this.createExplosion(bullet.x, bullet.y, bullet.color);
-                        this.bullets.splice(index, 1);
-                        
-                        if (boss.health <= 0) {
-                            this.defeatBoss();
-                        }
-                    }
-                });
-                
-                // Boss collision with player
-                if (this.checkCollision(boss, this.player) && this.player.invulnerable === 0) {
-                    this.damagePlayer(30);
-                }
-            }
-            
-            bossAttack() {
-                if (!this.boss) return;
-                
-                switch (this.boss.pattern) {
-                    case 'shield_rotation':
-                        // Rotating shield attack
-                        for (let i = 0; i < 8; i++) {
-                            const angle = (i * Math.PI / 4) + (this.boss.patternTime * 0.001);
-                            const bullet = {
-                                x: this.boss.x + this.boss.size / 2,
-                                y: this.boss.y + this.boss.size / 2,
-                                vx: Math.cos(angle) * 4,
-                                vy: Math.sin(angle) * 4,
-                                width: 8,
-                                height: 8,
-                                color: this.boss.color,
-                                damage: 15
-                            };
-                            this.enemyBullets.push(bullet);
-                        }
-                        break;
-                    case 'minion_spawn':
-                        // Spawn minions
-                        this.spawnBossMinion();
-                        break;
-                    case 'cross_laser':
-                        // Cross laser attack
-                        this.bossCrossLaserAttack();
-                        break;
-                }
-            }
-            
-            spawnBossMinion() {
-                const minion = {
-                    x: this.boss.x + Math.random() * this.boss.size,
-                    y: this.boss.y + this.boss.size,
-                    width: 30,
-                    height: 30,
-                    health: 20,
-                    speed: 3,
-                    color: '#32CD32',
-                    type: 'minion'
-                };
-                this.enemies.push(minion);
-            }
-            
-            bossCrossLaserAttack() {
-                // Horizontal laser
-                for (let x = 0; x < this.canvas.width; x += 20) {
-                    const bullet = {
-                        x: x,
-                        y: this.boss.y + this.boss.size / 2,
-                        vx: 0,
-                        vy: 6,
-                        width: 20,
-                        height: 4,
-                        color: '#FF1493',
-                        damage: 20
-                    };
-                    this.enemyBullets.push(bullet);
-                }
-                
-                // Vertical laser
-                for (let y = 0; y < this.canvas.height; y += 20) {
-                    const bullet = {
-                        x: this.boss.x + this.boss.size / 2,
-                        y: y,
-                        vx: 6,
-                        vy: 0,
-                        width: 4,
-                        height: 20,
-                        color: '#FF1493',
-                        damage: 20
-                    };
-                    this.enemyBullets.push(bullet);
-                }
-            }
-            
-            defeatBoss() {
-                if (!this.boss) return;
-                
-                this.score += this.boss.points;
-                this.showCombo(`🏆 BOSS DEFEATED! +${this.boss.points}`, '#ffd700');
-                this.createExplosion(this.boss.x + this.boss.size / 2, this.boss.y + this.boss.size / 2, this.boss.color);
-                this.sounds.explosion();
-                
-                // Award experience and skill points
-                this.player.experience += 100;
-                this.player.skillPoints += 2;
-                this.checkLevelUp();
-                
-                // Unlock boss killer achievement
-                this.unlockAchievement('bossKiller');
-                
-                this.boss = null;
-                this.bossActive = false;
-                this.level++;
             }
             
             spawnPowerupAt(x, y) {
@@ -3492,73 +2701,6 @@
                 
                 const types = this.recentPowerups.map(p => p.type);
                 
-                // Check for weapon combinations
-                const weaponCombo = this.checkWeaponCombination();
-                if (weaponCombo) {
-                    this.activateWeaponCombo(weaponCombo);
-                }
-                
-                // Check for triple power-up combinations
-                if (types.length >= 3) {
-                    const uniqueTypes = [...new Set(types)];
-                    if (uniqueTypes.length === 3) {
-                        this.activateTripleCombo(uniqueTypes);
-                    }
-                }
-            }
-            
-            checkWeaponCombination() {
-                const recentWeapons = this.recentPowerups
-                    .filter(p => ['plasma', 'laser', 'missile', 'spread', 'ice', 'fire'].includes(p.type))
-                    .map(p => p.type);
-                
-                if (recentWeapons.length >= 2) {
-                    const comboKey = `${recentWeapons[0]}+${recentWeapons[1]}`;
-                    if (this.weaponCombos[comboKey]) {
-                        return comboKey;
-                    }
-                }
-                return null;
-            }
-            
-            activateWeaponCombo(comboKey) {
-                const combo = this.weaponCombos[comboKey];
-                this.showCombo(`⚡ ${combo.name}!`, combo.color);
-                this.sounds.powerup();
-                
-                // Create special combo bullet
-                this.createComboBullet(combo);
-            }
-            
-            createComboBullet(combo) {
-                const bullet = {
-                    x: this.player.x + this.player.width / 2,
-                    y: this.player.y,
-                    vx: 0,
-                    vy: -12,
-                    width: 20,
-                    height: 20,
-                    color: combo.color,
-                    damage: combo.damage,
-                    trail: [],
-                    combo: true
-                };
-                this.bullets.push(bullet);
-            }
-            
-            activateTripleCombo(types) {
-                this.showCombo(`🔥 TRIPLE COMBO!`, '#ff6600');
-                this.unlockAchievement('tripleCombo');
-                
-                // Apply triple combo effects
-                this.player.health = Math.min(this.player.maxHealth, this.player.health + 50);
-                this.score += 1000;
-                this.combo += 5;
-                
-                // Temporary invincibility
-                this.player.invulnerable = 180; // 3 seconds at 60fps
-                
-                // Check for specific triple combinations
                 // Triple health combination
                 if (types.filter(t => t === 'health').length >= 3) {
                     this.player.health = 100;
@@ -3648,7 +2790,106 @@
                 }
             }
             
-            // Duplicate spawnBoss method removed - using the one defined above
+            spawnBoss() {
+                this.bossActive = true;
+                
+                const bossTypes = [
+                    {
+                        name: 'PIRATE CAPTAIN',
+                        health: 300 + this.level * 75,
+                        color: '#ff0000',
+                        pattern: 'horizontal',
+                        weapon: 'spread'
+                    },
+                    {
+                        name: 'STEALTH COMMANDER',
+                        health: 250 + this.level * 60,
+                        color: '#888888',
+                        pattern: 'zigzag',
+                        weapon: 'rapid'
+                    },
+                    {
+                        name: 'HEAVY DESTROYER',
+                        health: 500 + this.level * 100,
+                        color: '#8b0000',
+                        pattern: 'straight',
+                        weapon: 'heavy'
+                    },
+                    {
+                        name: 'ELITE SNIPER',
+                        health: 200 + this.level * 50,
+                        color: '#ff1493',
+                        pattern: 'hover',
+                        weapon: 'precise'
+                    },
+                    {
+                        name: 'SWARM QUEEN',
+                        health: 350 + this.level * 80,
+                        color: '#32cd32',
+                        pattern: 'formation',
+                        weapon: 'swarm'
+                    },
+                    {
+                        name: 'GOLDEN EMPEROR',
+                        health: 600 + this.level * 120,
+                        color: '#ffd700',
+                        pattern: 'complex',
+                        weapon: 'multi'
+                    },
+                    {
+                        name: 'COSMIC OVERLORD',
+                        health: 800 + this.level * 150,
+                        color: '#ff00ff',
+                        pattern: 'teleport',
+                        weapon: 'cosmic'
+                    },
+                    {
+                        name: 'DIAMOND KING',
+                        health: 1000 + this.level * 200,
+                        color: '#00ffff',
+                        pattern: 'ultimate',
+                        weapon: 'diamond'
+                    },
+                    {
+                        name: 'VOID MASTER',
+                        health: 1200 + this.level * 250,
+                        color: '#000000',
+                        pattern: 'void',
+                        weapon: 'void'
+                    },
+                    {
+                        name: 'GALAXY DESTROYER',
+                        health: 1500 + this.level * 300,
+                        color: '#ff0080',
+                        pattern: 'galaxy',
+                        weapon: 'galaxy'
+                    }
+                ];
+                
+                const bossIndex = Math.floor((this.level - 1) / 5) % bossTypes.length;
+                const bossType = bossTypes[bossIndex];
+                
+                this.boss = {
+                    x: this.canvas.width / 2 - 75,
+                    y: -150,
+                    width: 150,
+                    height: 100,
+                    health: bossType.health,
+                    maxHealth: bossType.health,
+                    speed: 1,
+                    direction: 1,
+                    lastShot: 0,
+                    phase: 1,
+                    name: bossType.name,
+                    color: bossType.color,
+                    pattern: bossType.pattern,
+                    weapon: bossType.weapon,
+                    isBoss: true
+                };
+                
+                this.enemies.push(this.boss);
+                this.showCombo(`${bossType.name} INCOMING!`, '#ff0000');
+            }
             
             createExplosion(x, y, color) {
                 // Enhanced explosion with multiple particle types
@@ -3853,205 +3094,6 @@
                 this.ctx.stroke();
             }
             
-            renderBomberBetty(x, y, w, h) {
-                // Bomber Betty - Green bomber with bombs
-                this.ctx.fillStyle = '#32CD32'; // Green
-                this.ctx.fillRect(x + 10, y + 15, 40, 30); // Body
-                
-                // Head
-                this.ctx.fillStyle = '#FFB6C1'; // Light pink skin
-                this.ctx.beginPath();
-                this.ctx.arc(x + 30, y + 12, 10, 0, Math.PI * 2);
-                this.ctx.fill();
-                
-                // Eyes (focused)
-                this.ctx.fillStyle = '#000000';
-                this.ctx.beginPath();
-                this.ctx.arc(x + 27, y + 10, 1.5, 0, Math.PI * 2);
-                this.ctx.arc(x + 33, y + 10, 1.5, 0, Math.PI * 2);
-                this.ctx.fill();
-                
-                // Bombs
-                this.ctx.fillStyle = '#8B4513'; // Brown bombs
-                this.ctx.beginPath();
-                this.ctx.arc(x + 20, y + 40, 4, 0, Math.PI * 2);
-                this.ctx.arc(x + 40, y + 40, 4, 0, Math.PI * 2);
-                this.ctx.fill();
-                
-                // Bomb fuses
-                this.ctx.strokeStyle = '#FFD700';
-                this.ctx.lineWidth = 2;
-                this.ctx.beginPath();
-                this.ctx.moveTo(x + 20, y + 36);
-                this.ctx.lineTo(x + 20, y + 32);
-                this.ctx.moveTo(x + 40, y + 36);
-                this.ctx.lineTo(x + 40, y + 32);
-                this.ctx.stroke();
-            }
-            
-            renderStealthShadow(x, y, w, h) {
-                // Stealth Shadow - Semi-transparent gray enemy
-                this.ctx.globalAlpha = 0.7;
-                this.ctx.fillStyle = '#888888'; // Gray
-                this.ctx.fillRect(x + 10, y + 15, 40, 30); // Body
-                
-                // Head
-                this.ctx.fillStyle = '#FFB6C1'; // Light pink skin
-                this.ctx.beginPath();
-                this.ctx.arc(x + 30, y + 12, 10, 0, Math.PI * 2);
-                this.ctx.fill();
-                
-                // Eyes (stealthy)
-                this.ctx.fillStyle = '#000000';
-                this.ctx.beginPath();
-                this.ctx.arc(x + 27, y + 10, 1, 0, Math.PI * 2);
-                this.ctx.arc(x + 33, y + 10, 1, 0, Math.PI * 2);
-                this.ctx.fill();
-                
-                // Stealth cloak
-                this.ctx.strokeStyle = '#444444';
-                this.ctx.lineWidth = 2;
-                this.ctx.setLineDash([5, 5]);
-                this.ctx.strokeRect(x + 8, y + 13, 44, 34);
-                this.ctx.setLineDash([]);
-                this.ctx.globalAlpha = 1;
-            }
-            
-            renderHeavyHank(x, y, w, h) {
-                // Heavy Hank - Dark red heavy enemy
-                this.ctx.fillStyle = '#8B0000'; // Dark red
-                this.ctx.fillRect(x + 5, y + 10, 50, 40); // Large body
-                
-                // Head
-                this.ctx.fillStyle = '#FFB6C1'; // Light pink skin
-                this.ctx.beginPath();
-                this.ctx.arc(x + 30, y + 8, 12, 0, Math.PI * 2);
-                this.ctx.fill();
-                
-                // Eyes (intense)
-                this.ctx.fillStyle = '#FF0000';
-                this.ctx.beginPath();
-                this.ctx.arc(x + 27, y + 10, 2, 0, Math.PI * 2);
-                this.ctx.arc(x + 33, y + 10, 2, 0, Math.PI * 2);
-                this.ctx.fill();
-                
-                // Heavy armor
-                this.ctx.strokeStyle = '#FF4444';
-                this.ctx.lineWidth = 4;
-                this.ctx.beginPath();
-                this.ctx.moveTo(x + 10, y + 20);
-                this.ctx.lineTo(x + 50, y + 20);
-                this.ctx.moveTo(x + 10, y + 30);
-                this.ctx.lineTo(x + 50, y + 30);
-                this.ctx.moveTo(x + 10, y + 40);
-                this.ctx.lineTo(x + 50, y + 40);
-                this.ctx.stroke();
-            }
-            
-            renderSniperSally(x, y, w, h) {
-                // Sniper Sally - Pink enemy with scope
-                this.ctx.fillStyle = '#FF1493'; // Pink
-                this.ctx.fillRect(x + 10, y + 15, 40, 30); // Body
-                
-                // Head
-                this.ctx.fillStyle = '#FFB6C1'; // Light pink skin
-                this.ctx.beginPath();
-                this.ctx.arc(x + 30, y + 12, 10, 0, Math.PI * 2);
-                this.ctx.fill();
-                
-                // Eyes (focused)
-                this.ctx.fillStyle = '#000000';
-                this.ctx.beginPath();
-                this.ctx.arc(x + 27, y + 10, 1, 0, Math.PI * 2);
-                this.ctx.arc(x + 33, y + 10, 1, 0, Math.PI * 2);
-                this.ctx.fill();
-                
-                // Sniper scope
-                this.ctx.strokeStyle = '#FFD700';
-                this.ctx.lineWidth = 3;
-                this.ctx.beginPath();
-                this.ctx.arc(x + 30, y + 15, 8, 0, Math.PI * 2);
-                this.ctx.stroke();
-                
-                // Crosshair
-                this.ctx.strokeStyle = '#FF0000';
-                this.ctx.lineWidth = 1;
-                this.ctx.beginPath();
-                this.ctx.moveTo(x + 30, y + 11);
-                this.ctx.lineTo(x + 30, y + 19);
-                this.ctx.moveTo(x + 26, y + 15);
-                this.ctx.lineTo(x + 34, y + 15);
-                this.ctx.stroke();
-            }
-            
-            renderSwarmScout(x, y, w, h) {
-                // Swarm Scout - Small green enemy
-                this.ctx.fillStyle = '#32CD32'; // Green
-                this.ctx.fillRect(x + 15, y + 20, 30, 20); // Small body
-                
-                // Head
-                this.ctx.fillStyle = '#FFB6C1'; // Light pink skin
-                this.ctx.beginPath();
-                this.ctx.arc(x + 30, y + 15, 8, 0, Math.PI * 2);
-                this.ctx.fill();
-                
-                // Eyes (alert)
-                this.ctx.fillStyle = '#00FF00';
-                this.ctx.beginPath();
-                this.ctx.arc(x + 27, y + 13, 1.5, 0, Math.PI * 2);
-                this.ctx.arc(x + 33, y + 13, 1.5, 0, Math.PI * 2);
-                this.ctx.fill();
-                
-                // Speed lines
-                this.ctx.strokeStyle = '#00FF00';
-                this.ctx.lineWidth = 2;
-                this.ctx.beginPath();
-                this.ctx.moveTo(x + 5, y + 25);
-                this.ctx.lineTo(x + 15, y + 25);
-                this.ctx.moveTo(x + 5, y + 30);
-                this.ctx.lineTo(x + 12, y + 30);
-                this.ctx.stroke();
-            }
-            
-            renderEliteEagle(x, y, w, h) {
-                // Elite Eagle - Golden elite enemy
-                this.ctx.fillStyle = '#FFD700'; // Gold
-                this.ctx.fillRect(x + 10, y + 15, 40, 30); // Body
-                
-                // Head
-                this.ctx.fillStyle = '#FFB6C1'; // Light pink skin
-                this.ctx.beginPath();
-                this.ctx.arc(x + 30, y + 12, 10, 0, Math.PI * 2);
-                this.ctx.fill();
-                
-                // Eyes (elite)
-                this.ctx.fillStyle = '#FFD700';
-                this.ctx.beginPath();
-                this.ctx.arc(x + 27, y + 10, 2, 0, Math.PI * 2);
-                this.ctx.arc(x + 33, y + 10, 2, 0, Math.PI * 2);
-                this.ctx.fill();
-                
-                // Elite insignia
-                this.ctx.strokeStyle = '#FF0000';
-                this.ctx.lineWidth = 2;
-                this.ctx.beginPath();
-                this.ctx.moveTo(x + 25, y + 35);
-                this.ctx.lineTo(x + 35, y + 35);
-                this.ctx.moveTo(x + 30, y + 30);
-                this.ctx.lineTo(x + 30, y + 40);
-                this.ctx.stroke();
-                
-                // Wings
-                this.ctx.strokeStyle = '#FFD700';
-                this.ctx.lineWidth = 3;
-                this.ctx.beginPath();
-                this.ctx.moveTo(x + 15, y + 25);
-                this.ctx.lineTo(x + 5, y + 20);
-                this.ctx.moveTo(x + 45, y + 25);
-                this.ctx.lineTo(x + 55, y + 20);
-                this.ctx.stroke();
-            }
-            
             renderShooterSam(x, y, w, h) {
                 // Shooter Sam - Red enemy with guns
                 this.ctx.fillStyle = '#FF0000'; // Red
@@ -4159,23 +3201,6 @@
                 document.getElementById('score').textContent = `Score: ${this.score}`;
                 document.getElementById('lives').textContent = `Lives: ${this.lives}`;
                 document.getElementById('level').textContent = `Level: ${this.level}`;
-                
-                // Add player level and experience display
-                const playerLevelElement = document.getElementById('playerLevel');
-                if (playerLevelElement) {
-                    playerLevelElement.textContent = `Player Level: ${this.player.playerLevel}`;
-                }
-                
-                const experienceElement = document.getElementById('experience');
-                if (experienceElement) {
-                    const expNeeded = this.player.playerLevel * 50;
-                    experienceElement.textContent = `EXP: ${this.player.experience}/${expNeeded}`;
-                }
-                
-                const skillPointsElement = document.getElementById('skillPoints');
-                if (skillPointsElement) {
-                    skillPointsElement.textContent = `Skill Points: ${this.player.skillPoints}`;
-                }
                 document.getElementById('weapon').textContent = `Weapon: ${this.currentWeapon.charAt(0).toUpperCase() + this.currentWeapon.slice(1)}`;
                 document.getElementById('combo').textContent = `Combo: ${this.combo}x`;
             }
@@ -4302,891 +3327,234 @@
             }
             
             renderPlayerJet(x, y, w, h) {
-                // Ultra-modern futuristic player ship design
-                this.ctx.save();
-                
-                // Main body - sleek delta-wing design
+                // Enhanced jet body - ultra-sleek fighter design
                 this.ctx.beginPath();
-                this.ctx.moveTo(x + w * 0.5, y + h * 0.95); // Sharp nose
-                this.ctx.lineTo(x + w * 0.85, y + h * 0.7); // Top wing edge
-                this.ctx.lineTo(x + w * 0.9, y + h * 0.4); // Top fuselage
-                this.ctx.lineTo(x + w * 0.7, y + h * 0.2); // Cockpit area
-                this.ctx.lineTo(x + w * 0.3, y + h * 0.2); // Cockpit area
-                this.ctx.lineTo(x + w * 0.1, y + h * 0.4); // Top fuselage
-                this.ctx.lineTo(x + w * 0.15, y + h * 0.7); // Top wing edge
+                this.ctx.moveTo(x + w/2, y + h); // Nose
+                this.ctx.lineTo(x + w * 0.85, y + h * 0.75); // Top wing
+                this.ctx.lineTo(x + w * 0.95, y + h * 0.45); // Top fuselage
+                this.ctx.lineTo(x + w * 0.75, y + h * 0.25); // Cockpit
+                this.ctx.lineTo(x + w * 0.25, y + h * 0.25); // Cockpit
+                this.ctx.lineTo(x + w * 0.05, y + h * 0.45); // Top fuselage
+                this.ctx.lineTo(x + w * 0.15, y + h * 0.75); // Top wing
                 this.ctx.closePath();
                 
-                // Advanced gradient with metallic effect
-                const bodyGradient = this.ctx.createLinearGradient(x, y, x + w, y + h);
-                bodyGradient.addColorStop(0, '#4facfe');
-                bodyGradient.addColorStop(0.2, '#00f2fe');
-                bodyGradient.addColorStop(0.4, '#667eea');
-                bodyGradient.addColorStop(0.6, '#764ba2');
-                bodyGradient.addColorStop(0.8, '#f093fb');
-                bodyGradient.addColorStop(1, '#f5576c');
-                this.ctx.fillStyle = bodyGradient;
+                // Enhanced jet body gradient with metallic effect
+                const jetGradient = this.ctx.createLinearGradient(x, y, x + w, y + h);
+                jetGradient.addColorStop(0, '#667eea');
+                jetGradient.addColorStop(0.3, '#764ba2');
+                jetGradient.addColorStop(0.5, '#f093fb');
+                jetGradient.addColorStop(0.7, '#f5576c');
+                jetGradient.addColorStop(1, '#4facfe');
+                this.ctx.fillStyle = jetGradient;
                 this.ctx.fill();
                 
-                // Energy shield outline
-                this.ctx.strokeStyle = '#00ffff';
-                this.ctx.lineWidth = 2;
+                // Enhanced outline with glow
+                this.ctx.strokeStyle = '#ffffff';
+                this.ctx.lineWidth = 3;
                 this.ctx.shadowColor = '#00ffff';
-                this.ctx.shadowBlur = 8;
+                this.ctx.shadowBlur = 10;
                 this.ctx.stroke();
                 this.ctx.shadowBlur = 0;
                 
-                // Advanced cockpit with holographic display
+                // Enhanced cockpit window with reflection
                 this.ctx.fillStyle = '#87ceeb';
                 this.ctx.beginPath();
-                this.ctx.ellipse(x + w * 0.5, y + h * 0.25, w * 0.2, h * 0.15, 0, 0, Math.PI * 2);
+                this.ctx.ellipse(x + w/2, y + h * 0.25, w * 0.18, h * 0.12, 0, 0, Math.PI * 2);
                 this.ctx.fill();
                 
-                // Cockpit reflection and glow
+                // Cockpit reflection
                 this.ctx.fillStyle = '#ffffff';
-                this.ctx.globalAlpha = 0.6;
                 this.ctx.beginPath();
-                this.ctx.ellipse(x + w * 0.45, y + h * 0.2, w * 0.08, h * 0.06, 0, 0, Math.PI * 2);
+                this.ctx.ellipse(x + w/2 - 2, y + h * 0.23, w * 0.08, h * 0.05, 0, 0, Math.PI * 2);
                 this.ctx.fill();
-                this.ctx.globalAlpha = 1;
                 
-                // Energy core
-                this.ctx.fillStyle = '#00ffff';
-                this.ctx.shadowColor = '#00ffff';
-                this.ctx.shadowBlur = 15;
-                this.ctx.beginPath();
-                this.ctx.arc(x + w * 0.5, y + h * 0.4, w * 0.08, 0, Math.PI * 2);
-                this.ctx.fill();
-                this.ctx.shadowBlur = 0;
-                
-                // Weapon systems - plasma cannons
-                this.ctx.fillStyle = '#ff6b6b';
-                this.ctx.shadowColor = '#ff6b6b';
-                this.ctx.shadowBlur = 10;
-                this.ctx.fillRect(x + w * 0.05, y + h * 0.3, w * 0.06, h * 0.2);
-                this.ctx.fillRect(x + w * 0.89, y + h * 0.3, w * 0.06, h * 0.2);
-                this.ctx.shadowBlur = 0;
-                
-                // Secondary weapons - missile pods
-                this.ctx.fillStyle = '#ffd700';
-                this.ctx.fillRect(x + w * 0.15, y + h * 0.15, w * 0.04, h * 0.12);
-                this.ctx.fillRect(x + w * 0.81, y + h * 0.15, w * 0.04, h * 0.12);
-                
-                // Engine exhaust with particle effects
-                this.ctx.fillStyle = '#ff4500';
-                this.ctx.shadowColor = '#ff4500';
-                this.ctx.shadowBlur = 12;
-                this.ctx.fillRect(x + w * 0.35, y + h * 0.05, w * 0.1, h * 0.15);
-                this.ctx.fillRect(x + w * 0.55, y + h * 0.05, w * 0.1, h * 0.15);
-                this.ctx.shadowBlur = 0;
-                
-                // Wing details with energy conduits
-                this.ctx.strokeStyle = '#00ffff';
-                this.ctx.lineWidth = 1;
-                this.ctx.beginPath();
-                this.ctx.moveTo(x + w * 0.2, y + h * 0.5);
-                this.ctx.lineTo(x + w * 0.8, y + h * 0.5);
-                this.ctx.stroke();
-                
-                // Shield indicators
-                if (this.player.shield > 0) {
-                    this.ctx.strokeStyle = '#00ff00';
-                    this.ctx.lineWidth = 3;
-                    this.ctx.shadowColor = '#00ff00';
-                    this.ctx.shadowBlur = 5;
+                // Enhanced wing details with multiple lines
+                this.ctx.strokeStyle = '#ffffff';
+                this.ctx.lineWidth = 2;
+                for (let i = 0; i < 3; i++) {
                     this.ctx.beginPath();
-                    this.ctx.arc(x + w * 0.5, y + h * 0.5, w * 0.6, 0, Math.PI * 2);
+                    this.ctx.moveTo(x + w * (0.2 + i * 0.1), y + h * (0.6 + i * 0.05));
+                    this.ctx.lineTo(x + w * (0.8 - i * 0.1), y + h * (0.6 + i * 0.05));
                     this.ctx.stroke();
-                    this.ctx.shadowBlur = 0;
                 }
                 
-                this.ctx.restore();
+                // Enhanced engine intakes with glow
+                this.ctx.fillStyle = '#333333';
+                this.ctx.shadowColor = '#ff0000';
+                this.ctx.shadowBlur = 5;
+                this.ctx.fillRect(x + w * 0.15, y + h * 0.5, w * 0.12, h * 0.25);
+                this.ctx.fillRect(x + w * 0.73, y + h * 0.5, w * 0.12, h * 0.25);
+                this.ctx.shadowBlur = 0;
+                
+                // Enhanced weapon pods with energy glow
+                this.ctx.fillStyle = '#666666';
+                this.ctx.shadowColor = '#00ff00';
+                this.ctx.shadowBlur = 8;
+                this.ctx.fillRect(x + w * 0.08, y + h * 0.3, w * 0.06, h * 0.18);
+                this.ctx.fillRect(x + w * 0.86, y + h * 0.3, w * 0.06, h * 0.18);
+                this.ctx.shadowBlur = 0;
+                
+                // Energy core glow
+                this.ctx.fillStyle = '#00ffff';
+                this.ctx.globalAlpha = 0.6;
+                this.ctx.beginPath();
+                this.ctx.arc(x + w/2, y + h * 0.4, w * 0.1, 0, Math.PI * 2);
+                this.ctx.fill();
+                this.ctx.globalAlpha = 1;
             }
             
-
-            
-            renderBasicJet(x, y, w, h, enemy) {
-                // Aggressive basic enemy fighter design
-                this.ctx.save();
-                
-                // Angular fuselage - menacing triangular shape
+            renderEnemyJet(x, y, w, h, enemy) {
+                // Enhanced enemy fighter jet design - ultra-aggressive
                 this.ctx.beginPath();
-                this.ctx.moveTo(x + w * 0.5, y + h * 0.9); // Sharp nose
-                this.ctx.lineTo(x + w * 0.8, y + h * 0.6); // Top wing
-                this.ctx.lineTo(x + w * 0.9, y + h * 0.3); // Top fuselage
-                this.ctx.lineTo(x + w * 0.6, y + h * 0.15); // Cockpit
-                this.ctx.lineTo(x + w * 0.4, y + h * 0.15); // Cockpit
-                this.ctx.lineTo(x + w * 0.1, y + h * 0.3); // Top fuselage
-                this.ctx.lineTo(x + w * 0.2, y + h * 0.6); // Top wing
+                this.ctx.moveTo(x + w/2, y + h); // Nose
+                this.ctx.lineTo(x + w * 0.85, y + h * 0.75); // Top wing
+                this.ctx.lineTo(x + w * 0.95, y + h * 0.45); // Top fuselage
+                this.ctx.lineTo(x + w * 0.75, y + h * 0.25); // Cockpit
+                this.ctx.lineTo(x + w * 0.25, y + h * 0.25); // Cockpit
+                this.ctx.lineTo(x + w * 0.05, y + h * 0.45); // Top fuselage
+                this.ctx.lineTo(x + w * 0.15, y + h * 0.75); // Top wing
                 this.ctx.closePath();
                 
-                // Dark gradient with evil glow
+                // Enhanced enemy jet gradient with metallic effect
                 const enemyGradient = this.ctx.createLinearGradient(x, y, x + w, y + h);
-                enemyGradient.addColorStop(0, '#8b0000');
-                enemyGradient.addColorStop(0.3, '#dc143c');
-                enemyGradient.addColorStop(0.6, '#ff0000');
-                enemyGradient.addColorStop(0.8, '#b22222');
-                enemyGradient.addColorStop(1, '#8b0000');
+                enemyGradient.addColorStop(0, '#ff6b6b');
+                enemyGradient.addColorStop(0.3, '#ee5a24');
+                enemyGradient.addColorStop(0.5, '#ff3838');
+                enemyGradient.addColorStop(0.7, '#c44569');
+                enemyGradient.addColorStop(1, '#ff0000');
                 this.ctx.fillStyle = enemyGradient;
                 this.ctx.fill();
                 
-                // Evil energy outline
-                this.ctx.strokeStyle = '#ff0000';
-                this.ctx.lineWidth = 2;
+                // Enhanced enemy outline with glow
+                this.ctx.strokeStyle = '#ffffff';
+                this.ctx.lineWidth = 3;
                 this.ctx.shadowColor = '#ff0000';
-                this.ctx.shadowBlur = 6;
+                this.ctx.shadowBlur = 8;
                 this.ctx.stroke();
                 this.ctx.shadowBlur = 0;
                 
-                // Dark cockpit with red glow
-                this.ctx.fillStyle = '#1a1a1a';
+                // Enhanced enemy cockpit with evil glow
+                this.ctx.fillStyle = '#222222';
                 this.ctx.shadowColor = '#ff0000';
-                this.ctx.shadowBlur = 8;
+                this.ctx.shadowBlur = 5;
                 this.ctx.beginPath();
-                this.ctx.ellipse(x + w * 0.5, y + h * 0.25, w * 0.15, h * 0.12, 0, 0, Math.PI * 2);
+                this.ctx.ellipse(x + w/2, y + h * 0.25, w * 0.18, h * 0.12, 0, 0, Math.PI * 2);
                 this.ctx.fill();
                 this.ctx.shadowBlur = 0;
                 
-                // Weapon pods
-                this.ctx.fillStyle = '#333333';
-                this.ctx.fillRect(x + w * 0.05, y + h * 0.2, w * 0.04, h * 0.15);
-                this.ctx.fillRect(x + w * 0.91, y + h * 0.2, w * 0.04, h * 0.15);
-                
-                // Engine exhaust
-                this.ctx.fillStyle = '#ff4500';
-                this.ctx.shadowColor = '#ff4500';
-                this.ctx.shadowBlur = 10;
-                this.ctx.fillRect(x + w * 0.3, y + h * 0.05, w * 0.08, h * 0.12);
-                this.ctx.fillRect(x + w * 0.62, y + h * 0.05, w * 0.08, h * 0.12);
-                this.ctx.shadowBlur = 0;
-                
-                this.ctx.restore();
-            }
-            
-            renderFastJet(x, y, w, h, enemy) {
-                // High-speed interceptor design
-                this.ctx.save();
-                
-                // Sleek aerodynamic fuselage
+                // Enemy cockpit reflection
+                this.ctx.fillStyle = '#ffffff';
                 this.ctx.beginPath();
-                this.ctx.moveTo(x + w * 0.5, y + h * 0.95); // Ultra-sharp nose
-                this.ctx.lineTo(x + w * 0.75, y + h * 0.5); // Top wing
-                this.ctx.lineTo(x + w * 0.85, y + h * 0.25); // Top fuselage
-                this.ctx.lineTo(x + w * 0.65, y + h * 0.1); // Cockpit
-                this.ctx.lineTo(x + w * 0.35, y + h * 0.1); // Cockpit
-                this.ctx.lineTo(x + w * 0.15, y + h * 0.25); // Top fuselage
-                this.ctx.lineTo(x + w * 0.25, y + h * 0.5); // Top wing
-                this.ctx.closePath();
-                
-                // Speed gradient with orange glow
-                const speedGradient = this.ctx.createLinearGradient(x, y, x + w, y + h);
-                speedGradient.addColorStop(0, '#ff4500');
-                speedGradient.addColorStop(0.3, '#ff6347');
-                speedGradient.addColorStop(0.6, '#ff8c00');
-                speedGradient.addColorStop(0.8, '#ffa500');
-                speedGradient.addColorStop(1, '#ff4500');
-                this.ctx.fillStyle = speedGradient;
+                this.ctx.ellipse(x + w/2 - 2, y + h * 0.23, w * 0.08, h * 0.05, 0, 0, Math.PI * 2);
                 this.ctx.fill();
                 
-                // Speed lines effect
-                this.ctx.strokeStyle = '#ff8c00';
-                this.ctx.lineWidth = 1;
-                this.ctx.shadowColor = '#ff8c00';
-                this.ctx.shadowBlur = 4;
+                // Enhanced enemy wing details
+                this.ctx.strokeStyle = '#ffffff';
+                this.ctx.lineWidth = 2;
                 for (let i = 0; i < 3; i++) {
                     this.ctx.beginPath();
-                    this.ctx.moveTo(x + w * (0.2 + i * 0.2), y + h * 0.3);
-                    this.ctx.lineTo(x + w * (0.1 + i * 0.2), y + h * 0.1);
+                    this.ctx.moveTo(x + w * (0.2 + i * 0.1), y + h * (0.6 + i * 0.05));
+                    this.ctx.lineTo(x + w * (0.8 - i * 0.1), y + h * (0.6 + i * 0.05));
                     this.ctx.stroke();
                 }
-                this.ctx.shadowBlur = 0;
                 
-                // Minimal cockpit
-                this.ctx.fillStyle = '#1a1a1a';
-                this.ctx.shadowColor = '#ff8c00';
-                this.ctx.shadowBlur = 6;
-                this.ctx.beginPath();
-                this.ctx.ellipse(x + w * 0.5, y + h * 0.2, w * 0.12, h * 0.08, 0, 0, Math.PI * 2);
-                this.ctx.fill();
-                this.ctx.shadowBlur = 0;
-                
-                // Twin engines
-                this.ctx.fillStyle = '#ff4500';
-                this.ctx.shadowColor = '#ff4500';
-                this.ctx.shadowBlur = 12;
-                this.ctx.fillRect(x + w * 0.25, y + h * 0.05, w * 0.06, h * 0.1);
-                this.ctx.fillRect(x + w * 0.69, y + h * 0.05, w * 0.06, h * 0.1);
-                this.ctx.shadowBlur = 0;
-                
-                this.ctx.restore();
-            }
-            
-            renderHeavyJet(x, y, w, h, enemy) {
-                // Heavy armored tank fighter design
-                this.ctx.save();
-                
-                // Massive armored fuselage
-                this.ctx.beginPath();
-                this.ctx.moveTo(x + w * 0.5, y + h * 0.9); // Armored nose
-                this.ctx.lineTo(x + w * 0.15, y + h * 0.7); // Top armor
-                this.ctx.lineTo(x + w * 0.02, y + h * 0.5); // Heavy tail
-                this.ctx.lineTo(x + w * 0.15, y + h * 0.3); // Bottom armor
-                this.ctx.lineTo(x + w * 0.5, y + h * 0.1); // Back to nose
-                this.ctx.closePath();
-                
-                // Heavy armor gradient
-                const armorGradient = this.ctx.createLinearGradient(x, y, x + w, y + h);
-                armorGradient.addColorStop(0, '#2f4f4f');
-                armorGradient.addColorStop(0.3, '#696969');
-                armorGradient.addColorStop(0.6, '#808080');
-                armorGradient.addColorStop(0.8, '#a9a9a9');
-                armorGradient.addColorStop(1, '#2f4f4f');
-                this.ctx.fillStyle = armorGradient;
-                this.ctx.fill();
-                
-                // Armor plating details
-                this.ctx.strokeStyle = '#1a1a1a';
-                this.ctx.lineWidth = 2;
-                this.ctx.beginPath();
-                this.ctx.moveTo(x + w * 0.2, y + h * 0.4);
-                this.ctx.lineTo(x + w * 0.8, y + h * 0.4);
-                this.ctx.moveTo(x + w * 0.2, y + h * 0.6);
-                this.ctx.lineTo(x + w * 0.8, y + h * 0.6);
-                this.ctx.stroke();
-                
-                // Massive wings with armor
-                this.ctx.fillStyle = '#696969';
-                this.ctx.fillRect(x + w * 0.05, y + h * 0.1, w * 0.9, h * 0.15);
-                this.ctx.fillRect(x + w * 0.05, y + h * 0.75, w * 0.9, h * 0.15);
-                
-                // Heavy weapon turrets
-                this.ctx.fillStyle = '#333333';
-                this.ctx.fillRect(x + w * 0.02, y + h * 0.2, w * 0.06, h * 0.2);
-                this.ctx.fillRect(x + w * 0.92, y + h * 0.2, w * 0.06, h * 0.2);
-                this.ctx.fillRect(x + w * 0.25, y + h * 0.15, w * 0.05, h * 0.15);
-                this.ctx.fillRect(x + w * 0.7, y + h * 0.15, w * 0.05, h * 0.15);
-                
-                // Reinforced cockpit
-                this.ctx.fillStyle = '#1a1a1a';
-                this.ctx.fillRect(x + w * 0.25, y + h * 0.25, w * 0.5, h * 0.5);
-                
-                // Armor plates around cockpit
-                this.ctx.fillStyle = '#444444';
-                this.ctx.fillRect(x + w * 0.2, y + h * 0.2, w * 0.6, h * 0.1);
-                this.ctx.fillRect(x + w * 0.2, y + h * 0.7, w * 0.6, h * 0.1);
-                
-                // Heavy engines
-                this.ctx.fillStyle = '#ff4500';
-                this.ctx.shadowColor = '#ff4500';
-                this.ctx.shadowBlur = 15;
-                this.ctx.fillRect(x + w * 0.15, y + h * 0.05, w * 0.12, h * 0.15);
-                this.ctx.fillRect(x + w * 0.73, y + h * 0.05, w * 0.12, h * 0.15);
-                this.ctx.shadowBlur = 0;
-                
-                this.ctx.restore();
-            }
-            
-            renderShooterJet(x, y, w, h, enemy) {
-                // Advanced weapons platform design
-                this.ctx.save();
-                
-                // Central weapons platform
-                this.ctx.beginPath();
-                this.ctx.moveTo(x + w * 0.5, y + h * 0.9); // Weapon nose
-                this.ctx.lineTo(x + w * 0.3, y + h * 0.7); // Top platform
-                this.ctx.lineTo(x + w * 0.1, y + h * 0.5); // Tail
-                this.ctx.lineTo(x + w * 0.3, y + h * 0.3); // Bottom platform
-                this.ctx.lineTo(x + w * 0.5, y + h * 0.1); // Back to nose
-                this.ctx.closePath();
-                
-                // Weapons platform gradient
-                const weaponGradient = this.ctx.createLinearGradient(x, y, x + w, y + h);
-                weaponGradient.addColorStop(0, '#8b0000');
-                weaponGradient.addColorStop(0.3, '#b22222');
-                weaponGradient.addColorStop(0.6, '#dc143c');
-                weaponGradient.addColorStop(0.8, '#ff0000');
-                weaponGradient.addColorStop(1, '#8b0000');
-                this.ctx.fillStyle = weaponGradient;
-                this.ctx.fill();
-                
-                // Multiple weapon systems
+                // Enhanced enemy engine intakes with glow
                 this.ctx.fillStyle = '#333333';
                 this.ctx.shadowColor = '#ff0000';
-                this.ctx.shadowBlur = 8;
-                
-                // Primary weapon pods
-                this.ctx.fillRect(x + w * 0.02, y + h * 0.1, w * 0.06, h * 0.8);
-                this.ctx.fillRect(x + w * 0.92, y + h * 0.1, w * 0.06, h * 0.8);
-                
-                // Secondary weapon turrets
-                this.ctx.fillRect(x + w * 0.15, y + h * 0.15, w * 0.04, h * 0.15);
-                this.ctx.fillRect(x + w * 0.81, y + h * 0.15, w * 0.04, h * 0.15);
-                this.ctx.fillRect(x + w * 0.35, y + h * 0.1, w * 0.03, h * 0.12);
-                this.ctx.fillRect(x + w * 0.62, y + h * 0.1, w * 0.03, h * 0.12);
-                
-                // Missile launchers
-                this.ctx.fillStyle = '#444444';
-                this.ctx.fillRect(x + w * 0.25, y + h * 0.2, w * 0.05, h * 0.1);
-                this.ctx.fillRect(x + w * 0.7, y + h * 0.2, w * 0.05, h * 0.1);
-                
+                this.ctx.shadowBlur = 5;
+                this.ctx.fillRect(x + w * 0.15, y + h * 0.5, w * 0.12, h * 0.25);
+                this.ctx.fillRect(x + w * 0.73, y + h * 0.5, w * 0.12, h * 0.25);
                 this.ctx.shadowBlur = 0;
                 
-                // Wings with weapon mounts
-                this.ctx.fillStyle = '#696969';
-                this.ctx.fillRect(x + w * 0.15, y + h * 0.2, w * 0.7, h * 0.1);
-                this.ctx.fillRect(x + w * 0.15, y + h * 0.7, w * 0.7, h * 0.1);
-                
-                // Weapon targeting system
-                this.ctx.fillStyle = '#1a1a1a';
+                // Enhanced enemy weapon systems with energy glow
+                this.ctx.fillStyle = '#555555';
                 this.ctx.shadowColor = '#ff0000';
                 this.ctx.shadowBlur = 10;
-                this.ctx.beginPath();
-                this.ctx.ellipse(x + w * 0.5, y + h * 0.35, w * 0.2, h * 0.15, 0, 0, Math.PI * 2);
-                this.ctx.fill();
+                this.ctx.fillRect(x + w * 0.08, y + h * 0.3, w * 0.06, h * 0.18);
+                this.ctx.fillRect(x + w * 0.86, y + h * 0.3, w * 0.06, h * 0.18);
                 this.ctx.shadowBlur = 0;
                 
-                // Targeting reticle
-                this.ctx.strokeStyle = '#ff0000';
-                this.ctx.lineWidth = 1;
-                this.ctx.beginPath();
-                this.ctx.moveTo(x + w * 0.4, y + h * 0.35);
-                this.ctx.lineTo(x + w * 0.6, y + h * 0.35);
-                this.ctx.moveTo(x + w * 0.5, y + h * 0.25);
-                this.ctx.lineTo(x + w * 0.5, y + h * 0.45);
-                this.ctx.stroke();
-                
-                // Energy core
-                this.ctx.fillStyle = '#ff0000';
-                this.ctx.shadowColor = '#ff0000';
-                this.ctx.shadowBlur = 12;
-                this.ctx.beginPath();
-                this.ctx.arc(x + w * 0.5, y + h * 0.5, w * 0.06, 0, Math.PI * 2);
-                this.ctx.fill();
-                this.ctx.shadowBlur = 0;
-                
-                this.ctx.restore();
-            }
-            
-            renderBomberJet(x, y, w, h, enemy) {
-                // Heavy bomber design with massive payload
-                this.ctx.save();
-                
-                // Large bomber fuselage
-                this.ctx.beginPath();
-                this.ctx.moveTo(x + w * 0.5, y + h * 0.9); // Bomber nose
-                this.ctx.lineTo(x + w * 0.15, y + h * 0.7); // Top fuselage
-                this.ctx.lineTo(x + w * 0.02, y + h * 0.5); // Tail
-                this.ctx.lineTo(x + w * 0.15, y + h * 0.3); // Bottom fuselage
-                this.ctx.lineTo(x + w * 0.5, y + h * 0.1); // Back to nose
-                this.ctx.closePath();
-                
-                // Bomber gradient
-                const bomberGradient = this.ctx.createLinearGradient(x, y, x + w, y + h);
-                bomberGradient.addColorStop(0, '#2f4f4f');
-                bomberGradient.addColorStop(0.3, '#556b2f');
-                bomberGradient.addColorStop(0.6, '#8b4513');
-                bomberGradient.addColorStop(0.8, '#a0522d');
-                bomberGradient.addColorStop(1, '#2f4f4f');
-                this.ctx.fillStyle = bomberGradient;
-                this.ctx.fill();
-                
-                // Massive bomb bay
-                this.ctx.fillStyle = '#1a1a1a';
-                this.ctx.fillRect(x + w * 0.25, y + h * 0.5, w * 0.5, h * 0.4);
-                
-                // Bomb bay doors
-                this.ctx.fillStyle = '#333333';
-                this.ctx.fillRect(x + w * 0.25, y + h * 0.45, w * 0.5, h * 0.05);
-                this.ctx.fillRect(x + w * 0.25, y + h * 0.9, w * 0.5, h * 0.05);
-                
-                // Bomb payload indicators
-                this.ctx.fillStyle = '#ff0000';
+                // Enhanced enemy missile launchers
+                this.ctx.fillStyle = '#444444';
                 this.ctx.shadowColor = '#ff0000';
                 this.ctx.shadowBlur = 8;
-                for (let i = 0; i < 4; i++) {
-                    this.ctx.fillRect(x + w * (0.3 + i * 0.1), y + h * 0.55, w * 0.06, h * 0.25);
-                }
+                this.ctx.fillRect(x + w * 0.35, y + h * 0.25, w * 0.04, h * 0.12);
+                this.ctx.fillRect(x + w * 0.61, y + h * 0.25, w * 0.04, h * 0.12);
                 this.ctx.shadowBlur = 0;
                 
-                // Massive wings for heavy payload
-                this.ctx.fillStyle = '#696969';
-                this.ctx.fillRect(x + w * 0.02, y + h * 0.1, w * 0.96, h * 0.18);
-                this.ctx.fillRect(x + w * 0.02, y + h * 0.72, w * 0.96, h * 0.18);
+                // Enemy energy core with evil glow
+                this.ctx.fillStyle = '#ff0000';
+                this.ctx.globalAlpha = 0.8;
+                this.ctx.shadowColor = '#ff0000';
+                this.ctx.shadowBlur = 15;
+                this.ctx.beginPath();
+                this.ctx.arc(x + w/2, y + h * 0.4, w * 0.1, 0, Math.PI * 2);
+                this.ctx.fill();
+                this.ctx.globalAlpha = 1;
+                this.ctx.shadowBlur = 0;
+            }
+            
+            renderBossJet(x, y, w, h, enemy) {
+                // Boss fighter jet - larger and more intimidating
+                this.ctx.beginPath();
+                this.ctx.moveTo(x + w/2, y + h); // Nose
+                this.ctx.lineTo(x + w * 0.85, y + h * 0.6); // Top wing
+                this.ctx.lineTo(x + w * 0.95, y + h * 0.3); // Top fuselage
+                this.ctx.lineTo(x + w * 0.8, y + h * 0.15); // Cockpit
+                this.ctx.lineTo(x + w * 0.2, y + h * 0.15); // Cockpit
+                this.ctx.lineTo(x + w * 0.05, y + h * 0.3); // Top fuselage
+                this.ctx.lineTo(x + w * 0.15, y + h * 0.6); // Top wing
+                this.ctx.closePath();
                 
-                // Wing reinforcements
-                this.ctx.strokeStyle = '#444444';
+                // Boss jet gradient - enemy color theme
+                const bossGradient = this.ctx.createLinearGradient(x, y, x + w, y + h);
+                bossGradient.addColorStop(0, enemy.color);
+                bossGradient.addColorStop(0.5, this.lightenColor(enemy.color, 0.3));
+                bossGradient.addColorStop(1, enemy.color);
+                this.ctx.fillStyle = bossGradient;
+                this.ctx.fill();
+                
+                // Boss jet outline
+                this.ctx.strokeStyle = this.lightenColor(enemy.color, 0.5);
+                this.ctx.lineWidth = 4;
+                this.ctx.stroke();
+                
+                // Boss cockpit
+                this.ctx.fillStyle = '#111111';
+                this.ctx.beginPath();
+                this.ctx.ellipse(x + w/2, y + h * 0.2, w * 0.15, h * 0.12, 0, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // Boss wing details
+                this.ctx.strokeStyle = this.lightenColor(enemy.color, 0.3);
                 this.ctx.lineWidth = 2;
                 this.ctx.beginPath();
-                this.ctx.moveTo(x + w * 0.1, y + h * 0.2);
-                this.ctx.lineTo(x + w * 0.9, y + h * 0.2);
-                this.ctx.moveTo(x + w * 0.1, y + h * 0.8);
-                this.ctx.lineTo(x + w * 0.9, y + h * 0.8);
-                this.ctx.stroke();
-                
-                // Defensive turrets
-                this.ctx.fillStyle = '#333333';
-                this.ctx.fillRect(x + w * 0.05, y + h * 0.3, w * 0.04, h * 0.15);
-                this.ctx.fillRect(x + w * 0.91, y + h * 0.3, w * 0.04, h * 0.15);
-                
-                // Cockpit with targeting systems
-                this.ctx.fillStyle = '#1a1a1a';
-                this.ctx.fillRect(x + w * 0.2, y + h * 0.2, w * 0.6, h * 0.25);
-                
-                // Targeting display
-                this.ctx.fillStyle = '#00ff00';
-                this.ctx.shadowColor = '#00ff00';
-                this.ctx.shadowBlur = 6;
-                this.ctx.beginPath();
-                this.ctx.ellipse(x + w * 0.5, y + h * 0.35, w * 0.15, h * 0.1, 0, 0, Math.PI * 2);
-                this.ctx.fill();
-                this.ctx.shadowBlur = 0;
-                
-                // Multiple engines for heavy load
-                this.ctx.fillStyle = '#ff4500';
-                this.ctx.shadowColor = '#ff4500';
-                this.ctx.shadowBlur = 15;
-                this.ctx.fillRect(x + w * 0.1, y + h * 0.05, w * 0.1, h * 0.15);
-                this.ctx.fillRect(x + w * 0.8, y + h * 0.05, w * 0.1, h * 0.15);
-                this.ctx.fillRect(x + w * 0.35, y + h * 0.05, w * 0.08, h * 0.12);
-                this.ctx.fillRect(x + w * 0.57, y + h * 0.05, w * 0.08, h * 0.12);
-                this.ctx.shadowBlur = 0;
-                
-                this.ctx.restore();
-            }
-            
-            renderStealthJet(x, y, w, h, enemy) {
-                // Advanced stealth fighter design
-                this.ctx.save();
-                
-                // Angular stealth fuselage
-                this.ctx.beginPath();
-                this.ctx.moveTo(x + w * 0.5, y + h * 0.95); // Sharp stealth nose
-                this.ctx.lineTo(x + w * 0.75, y + h * 0.5); // Top wing edge
-                this.ctx.lineTo(x + w * 0.85, y + h * 0.25); // Top fuselage
-                this.ctx.lineTo(x + w * 0.65, y + h * 0.1); // Cockpit
-                this.ctx.lineTo(x + w * 0.35, y + h * 0.1); // Cockpit
-                this.ctx.lineTo(x + w * 0.15, y + h * 0.25); // Top fuselage
-                this.ctx.lineTo(x + w * 0.25, y + h * 0.5); // Top wing edge
-                this.ctx.closePath();
-                
-                // Stealth coating gradient
-                const stealthGradient = this.ctx.createLinearGradient(x, y, x + w, y + h);
-                stealthGradient.addColorStop(0, '#1a1a1a');
-                stealthGradient.addColorStop(0.3, '#2d2d2d');
-                stealthGradient.addColorStop(0.6, '#404040');
-                stealthGradient.addColorStop(0.8, '#2d2d2d');
-                stealthGradient.addColorStop(1, '#1a1a1a');
-                this.ctx.fillStyle = stealthGradient;
-                this.ctx.fill();
-                
-                // Stealth coating pattern
-                this.ctx.strokeStyle = '#333333';
-                this.ctx.lineWidth = 1;
-                this.ctx.globalAlpha = 0.3;
-                for (let i = 0; i < 5; i++) {
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(x + w * (0.2 + i * 0.15), y + h * 0.3);
-                    this.ctx.lineTo(x + w * (0.1 + i * 0.15), y + h * 0.1);
-                    this.ctx.stroke();
-                }
-                this.ctx.globalAlpha = 1;
-                
-                // Angular stealth wings
-                this.ctx.fillStyle = '#2d2d2d';
-                this.ctx.fillRect(x + w * 0.2, y + h * 0.25, w * 0.6, h * 0.06);
-                this.ctx.fillRect(x + w * 0.2, y + h * 0.69, w * 0.6, h * 0.06);
-                
-                // Stealth cockpit with minimal signature
-                this.ctx.fillStyle = '#000000';
-                this.ctx.shadowColor = '#666666';
-                this.ctx.shadowBlur = 4;
-                this.ctx.beginPath();
-                this.ctx.ellipse(x + w * 0.5, y + h * 0.2, w * 0.12, h * 0.08, 0, 0, Math.PI * 2);
-                this.ctx.fill();
-                this.ctx.shadowBlur = 0;
-                
-                // Concealed weapon bays
-                this.ctx.fillStyle = '#1a1a1a';
-                this.ctx.fillRect(x + w * 0.05, y + h * 0.15, w * 0.04, h * 0.1);
-                this.ctx.fillRect(x + w * 0.91, y + h * 0.15, w * 0.04, h * 0.1);
-                
-                // Stealth engines with reduced signature
-                this.ctx.fillStyle = '#333333';
-                this.ctx.shadowColor = '#333333';
-                this.ctx.shadowBlur = 8;
-                this.ctx.fillRect(x + w * 0.3, y + h * 0.05, w * 0.08, h * 0.1);
-                this.ctx.fillRect(x + w * 0.62, y + h * 0.05, w * 0.08, h * 0.1);
-                this.ctx.shadowBlur = 0;
-                
-                // Stealth coating reflections
-                this.ctx.strokeStyle = '#666666';
-                this.ctx.lineWidth = 1;
-                this.ctx.globalAlpha = 0.2;
-                this.ctx.beginPath();
-                this.ctx.moveTo(x + w * 0.3, y + h * 0.4);
-                this.ctx.lineTo(x + w * 0.7, y + h * 0.4);
-                this.ctx.stroke();
-                this.ctx.globalAlpha = 1;
-                
-                this.ctx.restore();
-            }
-            
-            renderTankJet(x, y, w, h, enemy) {
-                // Ultra-heavy armored tank design
-                this.ctx.save();
-                
-                // Massive armored fuselage
-                this.ctx.beginPath();
-                this.ctx.moveTo(x + w * 0.5, y + h * 0.9); // Armored nose
-                this.ctx.lineTo(x + w * 0.1, y + h * 0.7); // Top armor
-                this.ctx.lineTo(x + w * 0.02, y + h * 0.5); // Heavy tail
-                this.ctx.lineTo(x + w * 0.1, y + h * 0.3); // Bottom armor
-                this.ctx.lineTo(x + w * 0.5, y + h * 0.1); // Back to nose
-                this.ctx.closePath();
-                
-                // Heavy armor gradient
-                const tankGradient = this.ctx.createLinearGradient(x, y, x + w, y + h);
-                tankGradient.addColorStop(0, '#1a1a1a');
-                tankGradient.addColorStop(0.3, '#2f4f4f');
-                tankGradient.addColorStop(0.6, '#696969');
-                tankGradient.addColorStop(0.8, '#808080');
-                tankGradient.addColorStop(1, '#1a1a1a');
-                this.ctx.fillStyle = tankGradient;
-                this.ctx.fill();
-                
-                // Multiple armor plates
-                this.ctx.strokeStyle = '#000000';
-                this.ctx.lineWidth = 3;
-                this.ctx.beginPath();
-                this.ctx.moveTo(x + w * 0.15, y + h * 0.3);
-                this.ctx.lineTo(x + w * 0.85, y + h * 0.3);
                 this.ctx.moveTo(x + w * 0.15, y + h * 0.5);
                 this.ctx.lineTo(x + w * 0.85, y + h * 0.5);
-                this.ctx.moveTo(x + w * 0.15, y + h * 0.7);
-                this.ctx.lineTo(x + w * 0.85, y + h * 0.7);
                 this.ctx.stroke();
                 
-                // Massive armored wings
-                this.ctx.fillStyle = '#2f4f4f';
-                this.ctx.fillRect(x + w * 0.02, y + h * 0.05, w * 0.96, h * 0.2);
-                this.ctx.fillRect(x + w * 0.02, y + h * 0.75, w * 0.96, h * 0.2);
+                // Boss engine intakes
+                this.ctx.fillStyle = '#222222';
+                this.ctx.fillRect(x + w * 0.1, y + h * 0.45, w * 0.12, h * 0.25);
+                this.ctx.fillRect(x + w * 0.78, y + h * 0.45, w * 0.12, h * 0.25);
                 
-                // Heavy weapon turrets
-                this.ctx.fillStyle = '#000000';
-                this.ctx.fillRect(x + w * 0.01, y + h * 0.2, w * 0.08, h * 0.25);
-                this.ctx.fillRect(x + w * 0.91, y + h * 0.2, w * 0.08, h * 0.25);
-                this.ctx.fillRect(x + w * 0.2, y + h * 0.1, w * 0.06, h * 0.2);
-                this.ctx.fillRect(x + w * 0.74, y + h * 0.1, w * 0.06, h * 0.2);
-                
-                // Secondary weapon systems
+                // Boss weapon systems
                 this.ctx.fillStyle = '#333333';
-                this.ctx.fillRect(x + w * 0.15, y + h * 0.15, w * 0.04, h * 0.15);
-                this.ctx.fillRect(x + w * 0.81, y + h * 0.15, w * 0.04, h * 0.15);
+                this.ctx.fillRect(x + w * 0.05, y + h * 0.25, w * 0.08, h * 0.18);
+                this.ctx.fillRect(x + w * 0.87, y + h * 0.25, w * 0.08, h * 0.18);
+                this.ctx.fillRect(x + w * 0.3, y + h * 0.3, w * 0.06, h * 0.15);
+                this.ctx.fillRect(x + w * 0.64, y + h * 0.3, w * 0.06, h * 0.15);
                 
-                // Reinforced cockpit with multiple layers
-                this.ctx.fillStyle = '#000000';
-                this.ctx.fillRect(x + w * 0.2, y + h * 0.2, w * 0.6, h * 0.6);
-                
-                // Armor plates around cockpit
+                // Boss missile launchers
                 this.ctx.fillStyle = '#444444';
-                this.ctx.fillRect(x + w * 0.15, y + h * 0.15, w * 0.7, h * 0.15);
-                this.ctx.fillRect(x + w * 0.15, y + h * 0.7, w * 0.7, h * 0.15);
+                this.ctx.fillRect(x + w * 0.25, y + h * 0.2, w * 0.05, h * 0.12);
+                this.ctx.fillRect(x + w * 0.7, y + h * 0.2, w * 0.05, h * 0.12);
                 
-                // Heavy engines with armor
-                this.ctx.fillStyle = '#ff4500';
-                this.ctx.shadowColor = '#ff4500';
-                this.ctx.shadowBlur = 20;
-                this.ctx.fillRect(x + w * 0.1, y + h * 0.02, w * 0.15, h * 0.18);
-                this.ctx.fillRect(x + w * 0.75, y + h * 0.02, w * 0.15, h * 0.18);
-                this.ctx.fillRect(x + w * 0.3, y + h * 0.02, w * 0.12, h * 0.15);
-                this.ctx.fillRect(x + w * 0.58, y + h * 0.02, w * 0.12, h * 0.15);
-                this.ctx.shadowBlur = 0;
-                
-                // Armor rivets
-                this.ctx.fillStyle = '#666666';
-                for (let i = 0; i < 6; i++) {
-                    this.ctx.beginPath();
-                    this.ctx.arc(x + w * (0.15 + i * 0.12), y + h * 0.4, 2, 0, Math.PI * 2);
-                    this.ctx.fill();
-                }
-                
-                this.ctx.restore();
-            }
-            
-            renderSniperJet(x, y, w, h, enemy) {
-                // Long-range sniper fighter design
-                this.ctx.save();
-                
-                // Extended sniper fuselage
-                this.ctx.beginPath();
-                this.ctx.moveTo(x + w * 0.5, y + h * 0.95); // Precision nose
-                this.ctx.lineTo(x + w * 0.3, y + h * 0.7); // Top fuselage
-                this.ctx.lineTo(x + w * 0.02, y + h * 0.5); // Extended tail
-                this.ctx.lineTo(x + w * 0.3, y + h * 0.3); // Bottom fuselage
-                this.ctx.lineTo(x + w * 0.5, y + h * 0.05); // Back to nose
-                this.ctx.closePath();
-                
-                // Sniper gradient
-                const sniperGradient = this.ctx.createLinearGradient(x, y, x + w, y + h);
-                sniperGradient.addColorStop(0, '#4b0082');
-                sniperGradient.addColorStop(0.3, '#8a2be2');
-                sniperGradient.addColorStop(0.6, '#9370db');
-                sniperGradient.addColorStop(0.8, '#8a2be2');
-                sniperGradient.addColorStop(1, '#4b0082');
-                this.ctx.fillStyle = sniperGradient;
-                this.ctx.fill();
-                
-                // Precision targeting scope
-                this.ctx.fillStyle = '#1a1a1a';
-                this.ctx.shadowColor = '#8a2be2';
-                this.ctx.shadowBlur = 10;
-                this.ctx.beginPath();
-                this.ctx.ellipse(x + w * 0.5, y + h * 0.3, w * 0.25, h * 0.2, 0, 0, Math.PI * 2);
-                this.ctx.fill();
-                this.ctx.shadowBlur = 0;
-                
-                // Targeting reticle
-                this.ctx.strokeStyle = '#8a2be2';
-                this.ctx.lineWidth = 2;
-                this.ctx.shadowColor = '#8a2be2';
-                this.ctx.shadowBlur = 6;
-                this.ctx.beginPath();
-                this.ctx.moveTo(x + w * 0.35, y + h * 0.3);
-                this.ctx.lineTo(x + w * 0.65, y + h * 0.3);
-                this.ctx.moveTo(x + w * 0.5, y + h * 0.2);
-                this.ctx.lineTo(x + w * 0.5, y + h * 0.4);
-                this.ctx.stroke();
-                this.ctx.shadowBlur = 0;
-                
-                // Long-range weapon barrel
-                this.ctx.fillStyle = '#333333';
-                this.ctx.fillRect(x + w * 0.45, y + h * 0.1, w * 0.1, h * 0.4);
-                
-                // Precision wings
-                this.ctx.fillStyle = '#8a2be2';
-                this.ctx.fillRect(x + w * 0.15, y + h * 0.2, w * 0.7, h * 0.08);
-                this.ctx.fillRect(x + w * 0.15, y + h * 0.72, w * 0.7, h * 0.08);
-                
-                // Secondary targeting systems
-                this.ctx.fillStyle = '#4b0082';
-                this.ctx.fillRect(x + w * 0.05, y + h * 0.25, w * 0.04, h * 0.1);
-                this.ctx.fillRect(x + w * 0.91, y + h * 0.25, w * 0.04, h * 0.1);
-                
-                // Energy core for long-range operations
-                this.ctx.fillStyle = '#8a2be2';
-                this.ctx.shadowColor = '#8a2be2';
-                this.ctx.shadowBlur = 15;
-                this.ctx.beginPath();
-                this.ctx.arc(x + w * 0.5, y + h * 0.6, w * 0.08, 0, Math.PI * 2);
-                this.ctx.fill();
-                this.ctx.shadowBlur = 0;
-                
-                // Precision engines
-                this.ctx.fillStyle = '#9370db';
-                this.ctx.shadowColor = '#9370db';
-                this.ctx.shadowBlur = 12;
-                this.ctx.fillRect(x + w * 0.35, y + h * 0.02, w * 0.08, h * 0.12);
-                this.ctx.fillRect(x + w * 0.57, y + h * 0.02, w * 0.08, h * 0.12);
-                this.ctx.shadowBlur = 0;
-                
-                // Range finder
-                this.ctx.strokeStyle = '#8a2be2';
-                this.ctx.lineWidth = 1;
-                this.ctx.beginPath();
-                this.ctx.moveTo(x + w * 0.2, y + h * 0.5);
-                this.ctx.lineTo(x + w * 0.8, y + h * 0.5);
-                this.ctx.stroke();
-                
-                this.ctx.restore();
-            }
-            
-            renderScoutJet(x, y, w, h, enemy) {
-                // Light reconnaissance scout design
-                this.ctx.save();
-                
-                // Compact scout fuselage
-                this.ctx.beginPath();
-                this.ctx.moveTo(x + w * 0.5, y + h * 0.9); // Scout nose
-                this.ctx.lineTo(x + w * 0.25, y + h * 0.6); // Top fuselage
-                this.ctx.lineTo(x + w * 0.1, y + h * 0.5); // Tail
-                this.ctx.lineTo(x + w * 0.25, y + h * 0.4); // Bottom fuselage
-                this.ctx.lineTo(x + w * 0.5, y + h * 0.1); // Back to nose
-                this.ctx.closePath();
-                
-                // Scout gradient
-                const scoutGradient = this.ctx.createLinearGradient(x, y, x + w, y + h);
-                scoutGradient.addColorStop(0, '#32cd32');
-                scoutGradient.addColorStop(0.3, '#228b22');
-                scoutGradient.addColorStop(0.6, '#006400');
-                scoutGradient.addColorStop(0.8, '#228b22');
-                scoutGradient.addColorStop(1, '#32cd32');
-                this.ctx.fillStyle = scoutGradient;
-                this.ctx.fill();
-                
-                // Reconnaissance sensors
-                this.ctx.fillStyle = '#00ff00';
-                this.ctx.shadowColor = '#00ff00';
-                this.ctx.shadowBlur = 8;
-                this.ctx.beginPath();
-                this.ctx.ellipse(x + w * 0.5, y + h * 0.3, w * 0.15, h * 0.12, 0, 0, Math.PI * 2);
-                this.ctx.fill();
-                this.ctx.shadowBlur = 0;
-                
-                // Sensor array
-                this.ctx.fillStyle = '#228b22';
-                this.ctx.fillRect(x + w * 0.05, y + h * 0.2, w * 0.04, h * 0.1);
-                this.ctx.fillRect(x + w * 0.91, y + h * 0.2, w * 0.04, h * 0.1);
-                this.ctx.fillRect(x + w * 0.35, y + h * 0.15, w * 0.03, h * 0.08);
-                this.ctx.fillRect(x + w * 0.62, y + h * 0.15, w * 0.03, h * 0.08);
-                
-                // Compact wings
-                this.ctx.fillStyle = '#228b22';
-                this.ctx.fillRect(x + w * 0.35, y + h * 0.35, w * 0.3, h * 0.06);
-                this.ctx.fillRect(x + w * 0.35, y + h * 0.59, w * 0.3, h * 0.06);
-                
-                // Data transmission antenna
-                this.ctx.fillStyle = '#00ff00';
-                this.ctx.fillRect(x + w * 0.48, y + h * 0.05, w * 0.04, h * 0.15);
-                
-                // Reconnaissance camera
-                this.ctx.fillStyle = '#1a1a1a';
-                this.ctx.shadowColor = '#00ff00';
-                this.ctx.shadowBlur = 6;
-                this.ctx.beginPath();
-                this.ctx.ellipse(x + w * 0.5, y + h * 0.4, w * 0.08, h * 0.06, 0, 0, Math.PI * 2);
-                this.ctx.fill();
-                this.ctx.shadowBlur = 0;
-                
-                // Light engines for stealth
-                this.ctx.fillStyle = '#32cd32';
-                this.ctx.shadowColor = '#32cd32';
-                this.ctx.shadowBlur = 10;
-                this.ctx.fillRect(x + w * 0.4, y + h * 0.05, w * 0.06, h * 0.08);
-                this.ctx.fillRect(x + w * 0.54, y + h * 0.05, w * 0.06, h * 0.08);
-                this.ctx.shadowBlur = 0;
-                
-                // Communication array
-                this.ctx.strokeStyle = '#00ff00';
-                this.ctx.lineWidth = 1;
-                this.ctx.beginPath();
-                this.ctx.moveTo(x + w * 0.3, y + h * 0.5);
-                this.ctx.lineTo(x + w * 0.7, y + h * 0.5);
-                this.ctx.stroke();
-                
-                this.ctx.restore();
-            }
-            
-            renderEliteJet(x, y, w, h, enemy) {
-                // Advanced elite fighter design
-                this.ctx.save();
-                
-                // Elite advanced fuselage
-                this.ctx.beginPath();
-                this.ctx.moveTo(x + w * 0.5, y + h * 0.95); // Elite nose
-                this.ctx.lineTo(x + w * 0.2, y + h * 0.7); // Top fuselage
-                this.ctx.lineTo(x + w * 0.05, y + h * 0.5); // Tail
-                this.ctx.lineTo(x + w * 0.2, y + h * 0.3); // Bottom fuselage
-                this.ctx.lineTo(x + w * 0.5, y + h * 0.05); // Back to nose
-                this.ctx.closePath();
-                
-                // Elite gradient with energy effects
-                const eliteGradient = this.ctx.createLinearGradient(x, y, x + w, y + h);
-                eliteGradient.addColorStop(0, '#ff1493');
-                eliteGradient.addColorStop(0.2, '#ff69b4');
-                eliteGradient.addColorStop(0.4, '#ff1493');
-                eliteGradient.addColorStop(0.6, '#c71585');
-                eliteGradient.addColorStop(0.8, '#ff1493');
-                eliteGradient.addColorStop(1, '#ff69b4');
-                this.ctx.fillStyle = eliteGradient;
-                this.ctx.fill();
-                
-                // Energy shield outline
-                this.ctx.strokeStyle = '#ff1493';
-                this.ctx.lineWidth = 3;
-                this.ctx.shadowColor = '#ff1493';
-                this.ctx.shadowBlur = 12;
-                this.ctx.stroke();
-                this.ctx.shadowBlur = 0;
-                
-                // Advanced weapon systems
-                this.ctx.fillStyle = '#333333';
-                this.ctx.shadowColor = '#ff1493';
-                this.ctx.shadowBlur = 10;
-                
-                // Primary energy weapons
-                this.ctx.fillRect(x + w * 0.02, y + h * 0.15, w * 0.06, h * 0.7);
-                this.ctx.fillRect(x + w * 0.92, y + h * 0.15, w * 0.06, h * 0.7);
-                
-                // Secondary plasma cannons
-                this.ctx.fillRect(x + w * 0.15, y + h * 0.1, w * 0.04, h * 0.2);
-                this.ctx.fillRect(x + w * 0.81, y + h * 0.1, w * 0.04, h * 0.2);
-                
-                // Energy missile launchers
-                this.ctx.fillStyle = '#ff1493';
-                this.ctx.fillRect(x + w * 0.25, y + h * 0.15, w * 0.05, h * 0.15);
-                this.ctx.fillRect(x + w * 0.7, y + h * 0.15, w * 0.05, h * 0.15);
-                
-                this.ctx.shadowBlur = 0;
-                
-                // Advanced wings with energy conduits
-                this.ctx.fillStyle = '#c71585';
-                this.ctx.fillRect(x + w * 0.1, y + h * 0.15, w * 0.8, h * 0.12);
-                this.ctx.fillRect(x + w * 0.1, y + h * 0.73, w * 0.8, h * 0.12);
-                
-                // Energy conduits
-                this.ctx.strokeStyle = '#ff1493';
-                this.ctx.lineWidth = 2;
-                this.ctx.shadowColor = '#ff1493';
-                this.ctx.shadowBlur = 8;
-                for (let i = 0; i < 4; i++) {
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(x + w * (0.2 + i * 0.15), y + h * 0.2);
-                    this.ctx.lineTo(x + w * (0.2 + i * 0.15), y + h * 0.8);
-                    this.ctx.stroke();
-                }
-                this.ctx.shadowBlur = 0;
-                
-                // Advanced energy core
-                this.ctx.fillStyle = '#00ffff';
-                this.ctx.shadowColor = '#00ffff';
-                this.ctx.shadowBlur = 20;
-                this.ctx.beginPath();
-                this.ctx.arc(x + w * 0.5, y + h * 0.5, w * 0.12, 0, Math.PI * 2);
-                this.ctx.fill();
-                this.ctx.shadowBlur = 0;
-                
-                // Energy core details
-                this.ctx.strokeStyle = '#00ffff';
-                this.ctx.lineWidth = 2;
-                this.ctx.beginPath();
-                this.ctx.arc(x + w * 0.5, y + h * 0.5, w * 0.08, 0, Math.PI * 2);
-                this.ctx.stroke();
-                
-                // Advanced cockpit with holographic display
-                this.ctx.fillStyle = '#1a1a1a';
-                this.ctx.shadowColor = '#ff1493';
-                this.ctx.shadowBlur = 10;
-                this.ctx.fillRect(x + w * 0.25, y + h * 0.25, w * 0.5, h * 0.5);
-                this.ctx.shadowBlur = 0;
-                
-                // Holographic targeting system
-                this.ctx.fillStyle = '#ff1493';
-                this.ctx.globalAlpha = 0.6;
-                this.ctx.beginPath();
-                this.ctx.ellipse(x + w * 0.5, y + h * 0.5, w * 0.15, h * 0.12, 0, 0, Math.PI * 2);
-                this.ctx.fill();
-                this.ctx.globalAlpha = 1;
-                
-                // Elite engines with energy exhaust
-                this.ctx.fillStyle = '#ff1493';
-                this.ctx.shadowColor = '#ff1493';
-                this.ctx.shadowBlur = 15;
-                this.ctx.fillRect(x + w * 0.15, y + h * 0.02, w * 0.12, h * 0.15);
-                this.ctx.fillRect(x + w * 0.73, y + h * 0.02, w * 0.12, h * 0.15);
-                this.ctx.fillRect(x + w * 0.35, y + h * 0.02, w * 0.08, h * 0.12);
-                this.ctx.fillRect(x + w * 0.57, y + h * 0.02, w * 0.08, h * 0.12);
-                this.ctx.shadowBlur = 0;
-                
-                this.ctx.restore();
+                // Boss name
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.font = 'bold 16px Orbitron';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText(enemy.name, x + w/2, y - 25);
             }
             
             renderBullet(bullet) {
@@ -5228,43 +3596,13 @@
                     this.ctx.fillRect(x, y - 10, w * (enemy.health / enemy.maxHealth), 4);
                 }
 
-                // Enemy ships based on type with different designs
+                // Enemy jet ships based on type
                 if (enemy.isBoss) {
                     // Boss jet - larger and more detailed
                     this.renderBossJet(x, y, w, h, enemy);
                 } else {
-                                    // All enemies are jet fighters with different designs
-                switch(enemy.type) {
-                    case 'fast':
-                        this.renderFastJet(x, y, w, h, enemy);
-                        break;
-                    case 'tank':
-                        this.renderHeavyJet(x, y, w, h, enemy);
-                        break;
-                    case 'shooter':
-                        this.renderShooterJet(x, y, w, h, enemy);
-                        break;
-                    case 'bomber':
-                        this.renderBomberJet(x, y, w, h, enemy);
-                        break;
-                    case 'stealth':
-                        this.renderStealthJet(x, y, w, h, enemy);
-                        break;
-                    case 'heavy':
-                        this.renderTankJet(x, y, w, h, enemy);
-                        break;
-                    case 'sniper':
-                        this.renderSniperJet(x, y, w, h, enemy);
-                        break;
-                    case 'swarm':
-                        this.renderScoutJet(x, y, w, h, enemy);
-                        break;
-                    case 'elite':
-                        this.renderEliteJet(x, y, w, h, enemy);
-                        break;
-                    default:
-                        this.renderBasicJet(x, y, w, h, enemy);
-                }
+                    // Regular enemy jets
+                    this.renderEnemyJet(x, y, w, h, enemy);
                 }
 
                 // Engine glow for all ships
@@ -5366,142 +3704,6 @@
                 this.ctx.font = '12px Orbitron';
                 this.ctx.fillText(`Health: ${this.player.health}/100`, 15, this.canvas.height - 15);
             }
-            
-            renderBossJet(x, y, w, h, enemy) {
-                // Massive boss battleship design
-                this.ctx.save();
-                
-                // Massive boss fuselage
-                this.ctx.beginPath();
-                this.ctx.moveTo(x + w * 0.5, y + h * 0.95); // Boss nose
-                this.ctx.lineTo(x + w * 0.02, y + h * 0.7); // Top fuselage
-                this.ctx.lineTo(x + w * 0.01, y + h * 0.5); // Tail
-                this.ctx.lineTo(x + w * 0.02, y + h * 0.3); // Bottom fuselage
-                this.ctx.lineTo(x + w * 0.5, y + h * 0.05); // Back to nose
-                this.ctx.closePath();
-                
-                // Boss gradient with menacing colors
-                const bossGradient = this.ctx.createLinearGradient(x, y, x + w, y + h);
-                bossGradient.addColorStop(0, '#8b0000');
-                bossGradient.addColorStop(0.2, '#dc143c');
-                bossGradient.addColorStop(0.4, '#ff0000');
-                bossGradient.addColorStop(0.6, '#b22222');
-                bossGradient.addColorStop(0.8, '#8b0000');
-                bossGradient.addColorStop(1, '#dc143c');
-                this.ctx.fillStyle = bossGradient;
-                this.ctx.fill();
-                
-                // Boss energy shield
-                this.ctx.strokeStyle = '#ff0000';
-                this.ctx.lineWidth = 4;
-                this.ctx.shadowColor = '#ff0000';
-                this.ctx.shadowBlur = 15;
-                this.ctx.stroke();
-                this.ctx.shadowBlur = 0;
-                
-                // Massive weapon systems
-                this.ctx.fillStyle = '#333333';
-                this.ctx.shadowColor = '#ff0000';
-                this.ctx.shadowBlur = 12;
-                
-                // Primary weapon arrays
-                this.ctx.fillRect(x + w * 0.01, y + h * 0.1, w * 0.08, h * 0.8);
-                this.ctx.fillRect(x + w * 0.91, y + h * 0.1, w * 0.08, h * 0.8);
-                
-                // Secondary weapon turrets
-                this.ctx.fillRect(x + w * 0.1, y + h * 0.05, w * 0.06, h * 0.25);
-                this.ctx.fillRect(x + w * 0.84, y + h * 0.05, w * 0.06, h * 0.25);
-                this.ctx.fillRect(x + w * 0.25, y + h * 0.05, w * 0.05, h * 0.2);
-                this.ctx.fillRect(x + w * 0.7, y + h * 0.05, w * 0.05, h * 0.2);
-                
-                // Missile launchers
-                this.ctx.fillStyle = '#444444';
-                this.ctx.fillRect(x + w * 0.15, y + h * 0.1, w * 0.04, h * 0.15);
-                this.ctx.fillRect(x + w * 0.81, y + h * 0.1, w * 0.04, h * 0.15);
-                this.ctx.fillRect(x + w * 0.35, y + h * 0.08, w * 0.03, h * 0.12);
-                this.ctx.fillRect(x + w * 0.62, y + h * 0.08, w * 0.03, h * 0.12);
-                
-                this.ctx.shadowBlur = 0;
-                
-                // Massive wings with weapon mounts
-                this.ctx.fillStyle = '#8b0000';
-                this.ctx.fillRect(x + w * 0.02, y + h * 0.05, w * 0.96, h * 0.2);
-                this.ctx.fillRect(x + w * 0.02, y + h * 0.75, w * 0.96, h * 0.2);
-                
-                // Wing weapon systems
-                this.ctx.fillStyle = '#333333';
-                for (let i = 0; i < 6; i++) {
-                    this.ctx.fillRect(x + w * (0.05 + i * 0.15), y + h * 0.1, w * 0.04, h * 0.1);
-                    this.ctx.fillRect(x + w * (0.05 + i * 0.15), y + h * 0.8, w * 0.04, h * 0.1);
-                }
-                
-                // Boss energy core
-                this.ctx.fillStyle = '#ff0000';
-                this.ctx.shadowColor = '#ff0000';
-                this.ctx.shadowBlur = 25;
-                this.ctx.beginPath();
-                this.ctx.arc(x + w * 0.5, y + h * 0.5, w * 0.15, 0, Math.PI * 2);
-                this.ctx.fill();
-                this.ctx.shadowBlur = 0;
-                
-                // Energy core details
-                this.ctx.strokeStyle = '#ff0000';
-                this.ctx.lineWidth = 3;
-                this.ctx.beginPath();
-                this.ctx.arc(x + w * 0.5, y + h * 0.5, w * 0.1, 0, Math.PI * 2);
-                this.ctx.stroke();
-                
-                // Boss command bridge
-                this.ctx.fillStyle = '#1a1a1a';
-                this.ctx.shadowColor = '#ff0000';
-                this.ctx.shadowBlur = 15;
-                this.ctx.fillRect(x + w * 0.15, y + h * 0.15, w * 0.7, h * 0.7);
-                this.ctx.shadowBlur = 0;
-                
-                // Command bridge windows
-                this.ctx.fillStyle = '#ff0000';
-                this.ctx.globalAlpha = 0.8;
-                this.ctx.beginPath();
-                this.ctx.ellipse(x + w * 0.5, y + h * 0.4, w * 0.2, h * 0.15, 0, 0, Math.PI * 2);
-                this.ctx.fill();
-                this.ctx.globalAlpha = 1;
-                
-                // Boss targeting systems
-                this.ctx.strokeStyle = '#ff0000';
-                this.ctx.lineWidth = 2;
-                this.ctx.shadowColor = '#ff0000';
-                this.ctx.shadowBlur = 8;
-                this.ctx.beginPath();
-                this.ctx.moveTo(x + w * 0.3, y + h * 0.4);
-                this.ctx.lineTo(x + w * 0.7, y + h * 0.4);
-                this.ctx.moveTo(x + w * 0.5, y + h * 0.25);
-                this.ctx.lineTo(x + w * 0.5, y + h * 0.55);
-                this.ctx.stroke();
-                this.ctx.shadowBlur = 0;
-                
-                // Multiple boss engines
-                this.ctx.fillStyle = '#ff4500';
-                this.ctx.shadowColor = '#ff4500';
-                this.ctx.shadowBlur = 20;
-                this.ctx.fillRect(x + w * 0.05, y + h * 0.02, w * 0.12, h * 0.18);
-                this.ctx.fillRect(x + w * 0.83, y + h * 0.02, w * 0.12, h * 0.18);
-                this.ctx.fillRect(x + w * 0.25, y + h * 0.02, w * 0.1, h * 0.15);
-                this.ctx.fillRect(x + w * 0.65, y + h * 0.02, w * 0.1, h * 0.15);
-                this.ctx.fillRect(x + w * 0.4, y + h * 0.02, w * 0.08, h * 0.12);
-                this.ctx.fillRect(x + w * 0.52, y + h * 0.02, w * 0.08, h * 0.12);
-                this.ctx.shadowBlur = 0;
-                
-                // Boss name display
-                this.ctx.fillStyle = '#ffffff';
-                this.ctx.font = 'bold 18px Orbitron';
-                this.ctx.textAlign = 'center';
-                this.ctx.shadowColor = '#ff0000';
-                this.ctx.shadowBlur = 10;
-                this.ctx.fillText(enemy.name || 'BOSS', x + w * 0.5, y - 30);
-                this.ctx.shadowBlur = 0;
-                
-                this.ctx.restore();
-            }
         }
         
         // Global functions
@@ -5523,17 +3725,6 @@
             }
             // Hide briefing overlay if it's showing
             document.getElementById('briefingOverlay').style.display = 'none';
-            
-            // Show pause buttons during gameplay
-            const pauseBtn = document.getElementById('pauseBtn');
-            const mobilePauseBtn = document.getElementById('mobilePauseBtn');
-            if (pauseBtn) {
-                pauseBtn.style.display = 'flex';
-            }
-            if (mobilePauseBtn) {
-                mobilePauseBtn.style.display = 'flex';
-            }
-            
             game.startGame();
         }
         
@@ -5542,94 +3733,8 @@
             document.getElementById('gameOver').style.display = 'none';
             document.getElementById('pauseOverlay').style.display = 'none';
             document.getElementById('briefingOverlay').style.display = 'none';
-            document.getElementById('skillTreeOverlay').style.display = 'none';
             document.getElementById('gameContainer').classList.remove('playing');
             if (game) game.gameState = 'menu';
-        }
-        
-        function showSkillTree() {
-            document.getElementById('skillTreeOverlay').style.display = 'flex';
-            updateSkillTreeDisplay();
-        }
-        
-        function hideSkillTree() {
-            document.getElementById('skillTreeOverlay').style.display = 'none';
-        }
-        
-        function updateSkillTreeDisplay() {
-            if (!game) return;
-            
-            // Update skill levels
-            Object.keys(game.skillTree).forEach(skillKey => {
-                const skill = game.skillTree[skillKey];
-                const levelElement = document.getElementById(`${skillKey}Level`);
-                if (levelElement) {
-                    levelElement.textContent = `${skill.currentLevel}/${skill.maxLevel}`;
-                }
-            });
-            
-            // Update skill points display
-            const skillPointsDisplay = document.getElementById('skillPointsDisplay');
-            if (skillPointsDisplay) {
-                skillPointsDisplay.textContent = game.player.skillPoints;
-            }
-        }
-        
-        function upgradeSkill(skillKey) {
-            if (!game) return;
-            
-            const skill = game.skillTree[skillKey];
-            if (!skill) return;
-            
-            if (skill.currentLevel >= skill.maxLevel) {
-                alert('Skill already at maximum level!');
-                return;
-            }
-            
-            if (game.player.skillPoints < skill.cost) {
-                alert('Not enough skill points!');
-                return;
-            }
-            
-            // Upgrade the skill
-            game.player.skillPoints -= skill.cost;
-            skill.currentLevel++;
-            
-            // Apply skill effects
-            applySkillEffects(skillKey, skill.currentLevel);
-            
-            // Update displays
-            updateSkillTreeDisplay();
-            game.updateUI();
-            
-            // Show upgrade message
-            game.showCombo(`🌳 ${skill.name} UPGRADED!`, '#00ff00');
-        }
-        
-        function applySkillEffects(skillKey, level) {
-            if (!game) return;
-            
-            switch (skillKey) {
-                case 'weaponMastery':
-                    game.player.weaponMastery = 1 + (level * 0.2); // 20% damage increase per level
-                    break;
-                case 'speedEnhancement':
-                    game.player.speed = game.player.baseSpeed + (level * 0.75); // 15% speed increase per level
-                    break;
-                case 'shieldCapacity':
-                    // Shield duration multiplier
-                    break;
-                case 'criticalStrike':
-                    game.player.criticalChance = level * 0.1; // 10% crit chance per level
-                    break;
-                case 'healthBoost':
-                    game.player.maxHealth = game.player.baseHealth + (level * 25);
-                    game.player.health = Math.min(game.player.health, game.player.maxHealth);
-                    break;
-                case 'missileExpert':
-                    // Missile damage multiplier
-                    break;
-            }
         }
         
         function pauseGame() {
@@ -5638,25 +3743,21 @@
                 document.getElementById('pauseOverlay').style.display = 'flex';
             }
         }
-
+        
+        function resumeGame() {
+            if (game && game.gameState === 'paused') {
+                game.gameState = 'playing';
+                document.getElementById('pauseOverlay').style.display = 'none';
+            }
+        }
+        
 
         
         function toggleCockpit() {
             if (game) {
                 game.cockpitMode = !game.cockpitMode;
                 const cockpitOverlay = document.getElementById('cockpitOverlay');
-                const mobileBtn = document.getElementById('mobileCockpitBtn');
-                const cockpitBtn = document.getElementById('cockpitBtn');
-                
                 cockpitOverlay.style.display = game.cockpitMode ? 'block' : 'none';
-                
-                // Update button states
-                if (mobileBtn) {
-                    mobileBtn.classList.toggle('active', game.cockpitMode);
-                }
-                if (cockpitBtn) {
-                    cockpitBtn.classList.toggle('active', game.cockpitMode);
-                }
                 
                 // Update cockpit HUD
                 if (game.cockpitMode) {
@@ -5664,24 +3765,6 @@
                 }
             }
         }
-        
-        // Add cockpit button event listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            const mobileCockpitBtn = document.getElementById('mobileCockpitBtn');
-            const cockpitBtn = document.getElementById('cockpitBtn');
-            
-            if (mobileCockpitBtn) {
-                mobileCockpitBtn.addEventListener('click', function() {
-                    toggleCockpit();
-                });
-            }
-            
-            if (cockpitBtn) {
-                cockpitBtn.addEventListener('click', function() {
-                    toggleCockpit();
-                });
-            }
-        });
         
         function updateCockpitHUD() {
             if (!game || !game.cockpitMode) return;
@@ -5762,8 +3845,6 @@ advanced starship through waves of enemies to recover the diamond and save the g
 • Space - Fire weapon
 • Numbers 1-9 - Switch weapons
 • ESC - Pause/Resume game
-• C - Toggle Cockpit View (Desktop)
-• 🛸 Button - Toggle Cockpit View (Mobile)
 • Auto-shooting enabled
 
 🛸 SHIPS:
@@ -5808,58 +3889,6 @@ When enemies get close, your ship automatically fires 360° defense shots!
 
 COCKPIT VIEW:
 Toggle cockpit view from the pause menu for immersive gameplay!
-
-SURVIVE THE WAVES AND SAVE THE GALAXY! 🌟`);
-        }
-        
-        function showHelp() {
-            alert(`🎮 KADEN & ADELYNN SPACE ADVENTURES - HELP 🎮
-
-CONTROLS:
-• Arrow Keys / WASD - Move ship
-• Spacebar / Mouse - Shoot
-• ESC - Pause/Resume
-• 1-9 - Switch weapons
-• P - Toggle pause menu
-
-WEAPONS:
-• Basic - Standard laser
-• Plasma - Fast energy bolts
-• Spread - Multiple projectiles
-• Laser - High damage beam
-• Missile - Guided missiles
-• Lightning - Chain lightning
-• Ice - Freezing projectiles
-• Fire - Burning damage
-• Energy - Pure energy blasts
-
-POWERUPS:
-• 🛡️ Shield - Temporary invincibility
-• ❤️ Health - Restore health
-• ⚡ Speed - Increased movement
-• 🔫 Weapon - Random weapon upgrade
-• 💥 Explosion - Area damage
-• 🎯 Precision - Improved accuracy
-
-ENEMY TYPES:
-• Basic - Standard fighters
-• Fast - Quick, agile jets
-• Tank - Heavy armored jets
-• Shooter - Weapon-equipped jets
-• Bomber - Bomb-carrying jets
-• Stealth - Angular stealth jets
-• Heavy - Reinforced tank jets
-• Sniper - Long-range jets
-• Scout - Small, fast jets
-• Elite - Advanced jets with energy cores
-
-GAMEPLAY TIPS:
-• Stay mobile to avoid enemy fire
-• Collect powerups for advantages
-• Use different weapons strategically
-• Watch for boss battles at milestone levels
-• Build combos for bonus points
-• Upgrade skills in the skill tree
 
 SURVIVE THE WAVES AND SAVE THE GALAXY! 🌟`);
         }
@@ -5916,38 +3945,78 @@ SURVIVE THE WAVES AND SAVE THE GALAXY! 🌟`);
             }
         }
         
-        // Pause/Resume button functionality
-        function togglePause() {
+        // AI Autoplay Mode for Streaming
+        let aiMode = false;
+        
+        function enableAIMode() {
+            aiMode = true;
             if (game) {
-                if (game.gameState === 'playing') {
-                    game.pauseGame();
-                    document.getElementById('pauseBtn').textContent = '▶️';
-                    document.getElementById('mobilePauseBtn').textContent = '▶️';
-                } else if (game.gameState === 'paused') {
-                    game.resumeGame();
-                    document.getElementById('pauseBtn').textContent = '⏸️';
-                    document.getElementById('mobilePauseBtn').textContent = '⏸️';
-                }
+                game.aiMode = true;
+                console.log('🤖 AI Mode Enabled - Perfect for YouTube streaming!');
+                alert('🤖 AI AUTOPLAY ENABLED!\n\nPerfect for YouTube streaming:\n• AI controls the player ship\n• Automatic combat decisions\n• Continuous gameplay\n• No human interaction needed\n\nGreat for background content!');
             }
         }
         
-        // Add pause button event listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            const pauseBtn = document.getElementById('pauseBtn');
-            const mobilePauseBtn = document.getElementById('mobilePauseBtn');
+        function disableAIMode() {
+            aiMode = false;
+            if (game) {
+                game.aiMode = false;
+                console.log('🤖 AI Mode Disabled');
+            }
+        }
+        
+        // Add AI control to game loop
+        function aiControl() {
+            if (!aiMode || !game || game.gameState !== 'playing') return;
             
-            if (pauseBtn) {
-                pauseBtn.addEventListener('click', function() {
-                    togglePause();
-                });
+            // Find closest enemy
+            let closestEnemy = null;
+            let closestDistance = Infinity;
+            
+            game.enemies.forEach(enemy => {
+                const distance = Math.sqrt(
+                    Math.pow(game.player.x - enemy.x, 2) + 
+                    Math.pow(game.player.y - enemy.y, 2)
+                );
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closestEnemy = enemy;
+                }
+            });
+            
+            // AI movement decision
+            if (closestEnemy) {
+                const dx = closestEnemy.x - game.player.x;
+                const dy = closestEnemy.y - game.player.y;
+                
+                // Move towards enemy if far, dodge if close
+                if (closestDistance > 200) {
+                    game.player.x += Math.sign(dx) * game.player.speed;
+                    game.player.y += Math.sign(dy) * game.player.speed;
+                } else {
+                    // Dodge pattern
+                    game.player.x += (Math.random() - 0.5) * game.player.speed * 2;
+                    game.player.y += (Math.random() - 0.5) * game.player.speed * 2;
+                }
+                
+                // Keep player in bounds
+                game.player.x = Math.max(50, Math.min(game.canvas.width - 50, game.player.x));
+                game.player.y = Math.max(50, Math.min(game.canvas.height - 50, game.player.y));
             }
             
-            if (mobilePauseBtn) {
-                mobilePauseBtn.addEventListener('click', function() {
-                    togglePause();
-                });
+            // AI weapon selection (random)
+            if (Math.random() < 0.05) { // 5% chance to switch weapons
+                const weapons = ['basic', 'plasma', 'spread', 'laser', 'missile'];
+                const randomWeapon = weapons[Math.floor(Math.random() * weapons.length)];
+                game.currentWeapon = randomWeapon;
+                game.updateWeaponDisplay();
             }
-        });
+            
+            // AI shooting
+            if (closestEnemy && closestDistance < 300) {
+                game.shoot();
+            }
+        }
         
         // Initialize game when page loads
         window.addEventListener('load', () => {
@@ -5957,6 +4026,9 @@ SURVIVE THE WAVES AND SAVE THE GALAXY! 🌟`);
             document.getElementById('gameOver').style.display = 'none';
             document.getElementById('pauseOverlay').style.display = 'none';
             document.getElementById('briefingOverlay').style.display = 'none';
+            
+            // Add AI control to game loop
+            setInterval(aiControl, 100); // AI decisions every 100ms
         });
     </script>
 </body>
