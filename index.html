@@ -92,6 +92,44 @@
             box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
         }
         
+        /* AI Button Styles */
+        .ai-btn {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4) !important;
+            font-size: 18px !important;
+            font-weight: bold !important;
+            padding: 15px 20px !important;
+            margin: 10px 0 !important;
+            border: 2px solid rgba(255, 255, 255, 0.3) !important;
+            border-radius: 12px !important;
+            color: white !important;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3) !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        .ai-btn:hover {
+            transform: translateY(-3px) !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3) !important;
+            background: linear-gradient(45deg, #ff5252, #3db8b8) !important;
+        }
+        
+        .ai-btn-floating {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4) !important;
+            font-size: 16px !important;
+            font-weight: bold !important;
+            padding: 10px 15px !important;
+            border-radius: 25px !important;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.5) !important;
+            border: 2px solid rgba(255, 255, 255, 0.3) !important;
+            color: white !important;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3) !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        .ai-btn-floating:hover {
+            transform: scale(1.1) !important;
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.7) !important;
+        }
+        
         @media (max-width: 768px) {
             #gameCanvas {
                 border-width: 2px;
@@ -127,6 +165,10 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 0px;
+        }
+        
+        .playing #aiControls {
+            display: block !important; /* Show AI controls during gameplay */
         }
         
         #ui div {
@@ -1304,7 +1346,7 @@
                 <button class="btn" onclick="showShipSelection()">CHOOSE SHIP</button>
                 <button class="btn" onclick="showAchievements()">🏆 ACHIEVEMENTS</button>
                 <button class="btn" onclick="showHighScores()">HIGH SCORES</button>
-                <button class="btn" onclick="enableAIMode()" style="background: linear-gradient(45deg, #ff6b6b, #4ecdc4); font-size: 18px; font-weight: bold; padding: 15px 20px; margin: 10px 0;">🤖 AI AUTOPLAY MODE</button>
+                <button class="btn ai-btn" onclick="enableAIMode()">🤖 AI AUTOPLAY MODE</button>
             </div>
             
             <div class="stats-panel">
@@ -1394,7 +1436,7 @@
         
         <!-- Floating AI Control Button -->
         <div id="aiControls" style="position: fixed; top: 20px; right: 20px; z-index: 1000; display: none;">
-            <button class="btn" onclick="enableAIMode()" style="background: linear-gradient(45deg, #ff6b6b, #4ecdc4); font-size: 16px; font-weight: bold; padding: 10px 15px; border-radius: 25px; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.5);">🤖 AI MODE</button>
+            <button class="btn ai-btn-floating" onclick="enableAIMode()">🤖 AI MODE</button>
         </div>
     </div>
 
