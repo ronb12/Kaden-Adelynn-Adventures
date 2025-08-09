@@ -897,10 +897,20 @@ class EnhancedSpaceShooter {
         }
         
         const containerRect = container.getBoundingClientRect();
+        const isMobile = window.innerWidth <= 768;
         
         // Set canvas size to fit container while maintaining aspect ratio
-        const maxWidth = Math.min(containerRect.width - 40, 1000);
-        const maxHeight = Math.min(containerRect.height - 40, 700);
+        let maxWidth, maxHeight;
+        
+        if (isMobile) {
+            // Mobile: prioritize height and use full width
+            maxWidth = Math.min(containerRect.width - 20, window.innerWidth - 20);
+            maxHeight = Math.min(containerRect.height - 20, window.innerHeight * 0.7);
+        } else {
+            // Desktop: use standard sizing
+            maxWidth = Math.min(containerRect.width - 40, 1000);
+            maxHeight = Math.min(containerRect.height - 40, 700);
+        }
         
         this.canvas.width = maxWidth;
         this.canvas.height = maxHeight;
@@ -909,7 +919,7 @@ class EnhancedSpaceShooter {
         this.player.x = this.canvas.width / 2 - this.player.width / 2;
         this.player.y = this.canvas.height - this.player.height - 20;
         
-        console.log(`Canvas resized to ${maxWidth}x${maxHeight}`);
+        console.log(`Canvas resized to ${maxWidth}x${maxHeight} (${isMobile ? 'mobile' : 'desktop'})`);
     }
     
     init() {
@@ -1051,8 +1061,8 @@ class EnhancedSpaceShooter {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             background: rgba(0, 0, 0, 0.9);
             display: flex;
             justify-content: center;
@@ -1073,45 +1083,59 @@ class EnhancedSpaceShooter {
             max-height: 80vh;
             overflow-y: auto;
             box-shadow: 0 0 50px rgba(0, 255, 136, 0.3);
+            position: relative;
+            z-index: 1001;
         `;
         
+        // Add mobile responsiveness to store content
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile) {
+            storeContent.style.cssText += `
+                padding: 20px;
+                max-width: 95%;
+                width: 95%;
+                max-height: 90vh;
+                margin: 10px;
+            `;
+        }
+        
         storeContent.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-                <h2 style="margin: 0; color: #00ff88;">🏪 Ship Store</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px;">
+                <h2 style="margin: 0; color: #00ff88; font-size: ${isMobile ? '1.5em' : '2em'};">🏪 Ship Store</h2>
                 <button onclick="game.closeStore()" style="
                     background: rgba(255, 255, 255, 0.1);
                     border: 2px solid rgba(255, 255, 255, 0.3);
                     border-radius: 50%;
-                    width: 40px;
-                    height: 40px;
+                    width: ${isMobile ? '35px' : '40px'};
+                    height: ${isMobile ? '35px' : '40px'};
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     cursor: pointer;
-                    font-size: 18px;
+                    font-size: ${isMobile ? '16px' : '18px'};
                     font-weight: bold;
                     color: white;
                 ">✕</button>
             </div>
-            <div style="margin-bottom: 20px; font-size: 1.2em; color: #00ff88;">
+            <div style="margin-bottom: 20px; font-size: ${isMobile ? '1em' : '1.2em'}; color: #00ff88;">
                 💰 Money: $${this.moneyCollected} | 💠 Diamonds: ${this.diamondsCollected}
             </div>
             <div style="
                 background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 204, 102, 0.1) 100%);
                 border: 2px solid rgba(0, 255, 136, 0.3);
                 border-radius: 15px;
-                padding: 15px 20px;
+                padding: ${isMobile ? '12px 15px' : '15px 20px'};
                 margin-bottom: 20px;
                 text-align: center;
             ">
-                <div style="color: #00ff88; font-weight: bold; font-size: 1.1em; margin-bottom: 5px;">
+                <div style="color: #00ff88; font-weight: bold; font-size: ${isMobile ? '1em' : '1.1em'}; margin-bottom: 5px;">
                     🎮 In-Game Currency Only
                 </div>
-                <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9em;">
+                <div style="color: rgba(255, 255, 255, 0.8); font-size: ${isMobile ? '0.8em' : '0.9em'};">
                     This store uses <strong>fake money earned by playing the game</strong>, not real money!
                 </div>
             </div>
-            <div id="storeItems" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+            <div id="storeItems" style="display: grid; grid-template-columns: ${isMobile ? '1fr' : 'repeat(auto-fit, minmax(250px, 1fr))'}; gap: ${isMobile ? '15px' : '20px'};">
                 ${this.generateStoreItems()}
             </div>
         `;
@@ -1133,6 +1157,7 @@ class EnhancedSpaceShooter {
 
     generateStoreItems() {
         let itemsHTML = '';
+        const isMobile = window.innerWidth <= 768;
         
         for (const shipType of this.availableShips) {
             if (!this.shipUnlocked[shipType]) {
@@ -1144,34 +1169,35 @@ class EnhancedSpaceShooter {
                         background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
                         border: 1px solid rgba(0, 255, 136, 0.2);
                         border-radius: 20px;
-                        padding: 25px;
+                        padding: ${isMobile ? '15px' : '25px'};
                         transition: all 0.3s ease;
                         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
                     ">
-                        <div style="display: flex; align-items: center; margin-bottom: 15px;">
-                            <div style="font-size: 2.5em; margin-right: 15px;">
+                        <div style="display: flex; align-items: center; margin-bottom: 15px; ${isMobile ? 'flex-direction: column; text-align: center;' : ''}">
+                            <div style="font-size: ${isMobile ? '2em' : '2.5em'}; ${isMobile ? 'margin-bottom: 10px;' : 'margin-right: 15px;'}">
                                 ${this.getShipIcon(shipType)}
                             </div>
                             <div>
-                                <h3 style="margin: 0; color: #00ff88; font-size: 1.5em;">${shipType.charAt(0).toUpperCase() + shipType.slice(1)}</h3>
-                                <p style="margin: 5px 0; color: rgba(255, 255, 255, 0.7); font-size: 0.9em;">${description}</p>
+                                <h3 style="margin: 0; color: #00ff88; font-size: ${isMobile ? '1.2em' : '1.5em'};">${shipType.charAt(0).toUpperCase() + shipType.slice(1)}</h3>
+                                <p style="margin: 5px 0; color: rgba(255, 255, 255, 0.7); font-size: ${isMobile ? '0.8em' : '0.9em'};">${description}</p>
                             </div>
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div style="color: #00ff88; font-weight: bold; font-size: 1.2em;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; ${isMobile ? 'flex-direction: column; gap: 10px;' : ''}">
+                            <div style="color: #00ff88; font-weight: bold; font-size: ${isMobile ? '1em' : '1.2em'};">
                                 💰 $${price}
                             </div>
                             <button onclick="game.buyShip('${shipType}')" style="
                                 background: linear-gradient(135deg, #00ff88, #00cc66);
                                 border: none;
-                                padding: 10px 20px;
+                                padding: ${isMobile ? '8px 15px' : '10px 20px'};
                                 border-radius: 25px;
                                 color: #000;
                                 font-weight: bold;
-                                font-size: 14px;
+                                font-size: ${isMobile ? '12px' : '14px'};
                                 cursor: pointer;
                                 transition: all 0.3s ease;
                                 box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+                                ${isMobile ? 'width: 100%;' : ''}
                             ">Buy Ship</button>
                         </div>
                     </div>
@@ -1185,11 +1211,11 @@ class EnhancedSpaceShooter {
                     background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
                     border: 1px solid rgba(0, 255, 136, 0.2);
                     border-radius: 20px;
-                    padding: 25px;
+                    padding: ${isMobile ? '15px' : '25px'};
                     text-align: center;
                 ">
-                    <h3 style="color: #00ff88; margin-bottom: 10px;">🎉 All Ships Unlocked!</h3>
-                    <p style="color: rgba(255, 255, 255, 0.7);">You've unlocked all available ships!</p>
+                    <h3 style="color: #00ff88; margin-bottom: 10px; font-size: ${isMobile ? '1.2em' : '1.5em'};">🎉 All Ships Unlocked!</h3>
+                    <p style="color: rgba(255, 255, 255, 0.7); font-size: ${isMobile ? '0.9em' : '1em'};">You've unlocked all available ships!</p>
                 </div>
             `;
         }
