@@ -22,12 +22,13 @@
             overflow: hidden;
             color: #ffffff;
             min-height: 100vh;
-            width: 100vw;
+            width: 100%;
+            position: relative;
         }
         
         #gameContainer {
             position: relative;
-            width: 100vw;
+            width: 100%;
             height: 100vh;
             display: flex;
             justify-content: center;
@@ -65,8 +66,10 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
             background: rgba(0, 0, 0, 0.9);
             display: flex;
             justify-content: center;
@@ -77,6 +80,17 @@
         /* Ensure menu is visible by default */
         #menu {
             display: flex !important;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
         }
         
         #gameOver, #pauseOverlay, #briefingOverlay {
@@ -96,6 +110,8 @@
             box-shadow: 0 0 50px rgba(0, 255, 255, 0.3);
             position: relative;
             z-index: 1001;
+            margin: auto;
+            transform: translateZ(0);
         }
         
         .btn {
