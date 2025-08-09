@@ -106,4 +106,6 @@ jobs:
     - name: Show Deployment Status
       run: |
         echo "🚀 Deployment completed!"
-      
+        echo "📊 GitHub Pages: https://ronb12.github.io/Kaden-Adelynn-Adventures/"
+        echo "🔥 Firebase Hosting: https://${{ secrets.FIREBASE_PROJECT_ID }}.web.app"
+        echo "✅ Firebase configuration injected successfully" 

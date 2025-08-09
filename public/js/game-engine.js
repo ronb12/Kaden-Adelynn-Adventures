@@ -197,7 +197,10 @@ class EnhancedSpaceShooter {
     }
     
     gameLoop() {
-        if (this.gameState !== 'playing') return;
+        if (this.gameState !== 'playing') {
+            console.log('Game loop stopped - gameState:', this.gameState);
+            return;
+        }
         
         // Update game
         this.update();
@@ -596,6 +599,16 @@ class EnhancedSpaceShooter {
         
         // Draw UI
         this.drawUI();
+        
+        // Debug: Draw a simple test rectangle to verify rendering is working
+        this.ctx.fillStyle = '#ff0000';
+        this.ctx.fillRect(10, 10, 50, 50);
+        
+        // Debug: Draw player position indicator
+        this.ctx.fillStyle = '#00ff00';
+        this.ctx.fillRect(this.player.x, this.player.y, this.player.width, this.player.height);
+        
+        console.log('Rendered frame - Player at:', this.player.x, this.player.y);
     }
     
     drawBackground() {
