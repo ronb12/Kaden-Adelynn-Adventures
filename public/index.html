@@ -102,6 +102,19 @@
         
         #gameOver, #pauseOverlay, #briefingOverlay {
             display: none !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: rgba(0, 0, 0, 0.9) !important;
+            z-index: 1000 !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
         
         .menu-content {
@@ -118,6 +131,7 @@
             position: relative;
             z-index: 1001;
             margin: auto;
+            transform: none;
         }
         
         .btn {
@@ -1154,9 +1168,9 @@
                     <div class="stat-item">
                         <div class="stat-label">Accuracy</div>
                         <div class="stat-value"><span id="pauseAccuracy">0</span>%</div>
-                    </div>
-                </div>
-                
+            </div>
+        </div>
+        
                 <div style="margin: 30px 0;">
                     <button class="btn" onclick="resumeGame()">▶️ Resume</button>
                     <button class="btn" onclick="saveGame()">💾 Save Game</button>
@@ -1217,7 +1231,7 @@
                                 </div>
                             </div>
                         </div>
-
+                        
                         <div class="briefing-card">
                             <div class="card-header">
                                 <div class="card-icon">💎</div>
@@ -1273,7 +1287,7 @@
                                 </div>
                             </div>
                         </div>
-
+                        
                         <div class="briefing-card">
                             <div class="card-header">
                                 <div class="card-icon">🚀</div>
@@ -1442,7 +1456,6 @@
                 </div>
             </div>
         </div>
-    </div>
 
     <!-- Scripts -->
     <script src="js/firebase-config.js"></script>
