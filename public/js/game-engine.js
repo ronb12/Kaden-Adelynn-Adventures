@@ -25,6 +25,10 @@ class EnhancedSpaceShooter {
         this.maxCombo = 0;
         this.enemiesDestroyed = 0;
         this.powerupsCollected = 0;
+        this.coinsCollected = 0;
+        this.gemsCollected = 0;
+        this.streak = 0;
+        this.maxStreak = 0;
         this.survivalTime = 0;
         this.startTime = 0;
         
@@ -77,6 +81,7 @@ class EnhancedSpaceShooter {
         this.bullets = [];
         this.enemies = [];
         this.powerups = [];
+        this.collectibles = []; // NEW: Separate collectibles array
         this.explosions = [];
         this.particles = [];
         
@@ -85,6 +90,8 @@ class EnhancedSpaceShooter {
         this.enemySpawnTimer = 0;
         this.powerupSpawnRate = 400; // Rarer powerups
         this.powerupSpawnTimer = 0;
+        this.collectibleSpawnRate = 300; // NEW: Collectible spawn rate
+        this.collectibleSpawnTimer = 0;
         this.levelUpThreshold = 2000; // Much harder to advance levels
         this.difficultyRamp = 1.5; // Steeper difficulty increase
         
@@ -102,11 +109,18 @@ class EnhancedSpaceShooter {
         this.comboDecayTime = 3000; // 3 seconds to maintain combo
         this.scoreMultiplier = 1;
         this.powerupChance = 0.05; // Rarer powerups
+        this.collectibleChance = 0.15; // NEW: Collectible chance
+        this.streakBonus = 1; // NEW: Streak bonus multiplier
         
         // Sound effects
         this.sounds = {};
         this.soundEnabled = true;
         this.initSounds();
+        
+        // Pause/Resume functionality
+        this.isPaused = false;
+        this.pauseTime = 0;
+        this.totalPauseTime = 0;
         
         // Initialize canvas
         this.resizeCanvas();
@@ -118,10 +132,25 @@ class EnhancedSpaceShooter {
         // Initialize touch controls
         this.initTouchControls();
         
+        // Initialize keyboard controls for pause/resume
+        this.initKeyboardControls();
+        
         // Initialize game
         this.init();
         
         console.log('Game engine initialized successfully');
+    }
+    
+    initKeyboardControls() {
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
+                if (this.gameState === 'playing') {
+                    this.pauseGame();
+                } else if (this.gameState === 'paused') {
+                    this.resumeGame();
+                }
+            }
+        });
     }
     
     initSounds() {
@@ -135,11 +164,49 @@ class EnhancedSpaceShooter {
             this.sounds.shoot = this.generateShootSound();
             this.sounds.powerup = this.generatePowerupSound();
             this.sounds.levelUp = this.generateLevelUpSound();
+            this.sounds.coin = this.generateCoinSound();
+            this.sounds.gem = this.generateGemSound();
             
         } catch (error) {
             console.log('Audio not supported, sounds will be disabled');
             this.soundEnabled = false;
         }
+    }
+    
+    generateCoinSound() {
+        if (!this.audioContext) return null;
+        
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(1200, this.audioContext.currentTime + 0.2);
+        
+        gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.2);
+        
+        return { oscillator, gainNode };
+    }
+    
+    generateGemSound() {
+        if (!this.audioContext) return null;
+        
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(600, this.audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(1500, this.audioContext.currentTime + 0.3);
+        
+        gainNode.gain.setValueAtTime(0.4, this.audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
+        
+        return { oscillator, gainNode };
     }
     
     generateMissileSound() {
@@ -359,12 +426,17 @@ class EnhancedSpaceShooter {
         this.maxCombo = 0;
         this.enemiesDestroyed = 0;
         this.powerupsCollected = 0;
+        this.coinsCollected = 0;
+        this.gemsCollected = 0;
+        this.streak = 0;
+        this.maxStreak = 0;
         this.survivalTime = 0;
         
         // Clear all game objects
         this.bullets = [];
         this.enemies = [];
         this.powerups = [];
+        this.collectibles = [];
         this.explosions = [];
         this.particles = [];
         
@@ -384,6 +456,7 @@ class EnhancedSpaceShooter {
         // Reset timers
         this.enemySpawnTimer = 0;
         this.powerupSpawnTimer = 0;
+        this.collectibleSpawnTimer = 0;
         
         // Update UI
         this.updateUI();
@@ -404,12 +477,17 @@ class EnhancedSpaceShooter {
         this.maxCombo = 0;
         this.enemiesDestroyed = 0;
         this.powerupsCollected = 0;
+        this.coinsCollected = 0;
+        this.gemsCollected = 0;
+        this.streak = 0;
+        this.maxStreak = 0;
         this.survivalTime = 0;
         
         // Clear all game objects
         this.bullets = [];
         this.enemies = [];
         this.powerups = [];
+        this.collectibles = [];
         this.explosions = [];
         this.particles = [];
         
@@ -429,6 +507,7 @@ class EnhancedSpaceShooter {
         // Reset timers
         this.enemySpawnTimer = 0;
         this.powerupSpawnTimer = 0;
+        this.collectibleSpawnTimer = 0;
         
         // Hide menu and show UI
         const menu = document.getElementById('menu');
@@ -455,16 +534,48 @@ class EnhancedSpaceShooter {
     pauseGame() {
         if (this.gameState === 'playing') {
             this.gameState = 'paused';
+            this.isPaused = true;
+            this.pauseTime = Date.now();
+            
+            // Show pause overlay
             const pauseOverlay = document.getElementById('pauseOverlay');
-            if (pauseOverlay) pauseOverlay.style.display = 'flex';
+            if (pauseOverlay) {
+                pauseOverlay.style.display = 'flex';
+                
+                // Update pause overlay content
+                const pauseContent = document.getElementById('pauseContent');
+                if (pauseContent) {
+                    pauseContent.innerHTML = `
+                        <h2>⏸️ Game Paused</h2>
+                        <p>Score: ${this.score}</p>
+                        <p>Level: ${this.level}</p>
+                        <p>Lives: ${this.lives}</p>
+                        <p>Combo: ${this.combo}</p>
+                        <p>Streak: ${this.streak}</p>
+                        <div style="margin: 20px 0;">
+                            <button class="btn" onclick="resumeGame()">▶️ Resume</button>
+                            <button class="btn" onclick="showMenu()">🏠 Main Menu</button>
+                        </div>
+                        <p style="font-size: 12px; opacity: 0.7;">Press ESC, P, or click Resume to continue</p>
+                    `;
+                }
+            }
         }
     }
     
     resumeGame() {
         if (this.gameState === 'paused') {
             this.gameState = 'playing';
+            this.isPaused = false;
+            this.totalPauseTime += Date.now() - this.pauseTime;
+            
+            // Hide pause overlay
             const pauseOverlay = document.getElementById('pauseOverlay');
-            if (pauseOverlay) pauseOverlay.style.display = 'none';
+            if (pauseOverlay) {
+                pauseOverlay.style.display = 'none';
+            }
+            
+            // Resume game loop
             this.gameLoop();
         }
     }
@@ -529,10 +640,12 @@ class EnhancedSpaceShooter {
         this.updatePowerups();
         this.updateExplosions();
         this.updateParticles();
+        this.updateCollectibles(); // NEW: Update collectibles
         
         // Spawn enemies and powerups
         this.spawnEnemies();
         this.spawnPowerups();
+        this.spawnCollectibles(); // NEW: Spawn collectibles
         
         // Check collisions
         this.checkCollisions();
@@ -831,6 +944,20 @@ class EnhancedSpaceShooter {
         }
     }
     
+    updateCollectibles() {
+        for (let i = this.collectibles.length - 1; i >= 0; i--) {
+            const collectible = this.collectibles[i];
+            
+            // Update position
+            collectible.y += collectible.speed;
+            
+            // Remove collectibles that are off screen
+            if (collectible.y > this.canvas.height) {
+                this.collectibles.splice(i, 1);
+            }
+        }
+    }
+    
     updateExplosions() {
         for (let i = this.explosions.length - 1; i >= 0; i--) {
             const explosion = this.explosions[i];
@@ -957,6 +1084,28 @@ class EnhancedSpaceShooter {
         }
     }
     
+    spawnCollectibles() {
+        this.collectibleSpawnTimer++;
+        
+        if (this.collectibleSpawnTimer >= this.collectibleSpawnRate) {
+            this.collectibleSpawnTimer = 0;
+            
+            const collectibleTypes = ['coin', 'gem'];
+            const type = collectibleTypes[Math.floor(Math.random() * collectibleTypes.length)];
+            
+            const collectible = {
+                x: Math.random() * (this.canvas.width - 20),
+                y: -20,
+                width: 20,
+                height: 20,
+                speed: 1.5,
+                type: type
+            };
+            
+            this.collectibles.push(collectible);
+        }
+    }
+    
     checkCollisions() {
         // Check bullet-enemy collisions
         for (let i = this.bullets.length - 1; i >= 0; i--) {
@@ -1047,6 +1196,15 @@ class EnhancedSpaceShooter {
             if (this.isColliding(this.player, powerup)) {
                 this.collectPowerup(powerup);
                 this.powerups.splice(i, 1);
+            }
+        }
+
+        // Check player-collectible collisions
+        for (let i = this.collectibles.length - 1; i >= 0; i--) {
+            const collectible = this.collectibles[i];
+            if (this.isColliding(this.player, collectible)) {
+                this.collectCollectible(collectible);
+                this.collectibles.splice(i, 1);
             }
         }
     }
@@ -1159,6 +1317,37 @@ class EnhancedSpaceShooter {
             });
         }
     }
+
+    collectCollectible(collectible) {
+        // Play collectible sound
+        this.playSound(collectible.type === 'coin' ? 'coin' : 'gem');
+
+        switch (collectible.type) {
+            case 'coin':
+                this.coinsCollected++;
+                this.score += 10 * this.streakBonus; // Small score for coins
+                this.showScorePopup(10 * this.streakBonus, 'coin');
+                break;
+            case 'gem':
+                this.gemsCollected++;
+                this.score += 50 * this.streakBonus; // Medium score for gems
+                this.showScorePopup(50 * this.streakBonus, 'gem');
+                break;
+        }
+
+        // Update streak bonus
+        this.streak++;
+        this.comboMultiplier = Math.min(10, 1 + (this.combo * 0.5) + (this.streak * 0.1)); // Increase combo multiplier with streak
+        this.comboTimer = this.comboDecayTime; // Reset combo timer
+
+        // Track collectible collection
+        if (typeof firebaseUtils !== 'undefined' && firebaseUtils.isAvailable()) {
+            firebaseUtils.trackEvent('collectible_collected', {
+                type: collectible.type,
+                timestamp: new Date().toISOString()
+            });
+        }
+    }
     
     unlockRandomWeapon() {
         const lockedWeapons = this.availableWeapons.filter(weapon => !this.weaponUnlocked[weapon]);
@@ -1237,6 +1426,7 @@ class EnhancedSpaceShooter {
         this.drawBullets();
         this.drawEnemies();
         this.drawPowerups();
+        this.drawCollectibles(); // NEW: Draw collectibles
         this.drawExplosions();
         this.drawParticles();
         
@@ -1289,7 +1479,7 @@ class EnhancedSpaceShooter {
     
     drawGradiusPlayer() {
         // Generate and draw Gradius-style ship
-        const gradiusCanvas = this.generateGradiusSprite('#00ffff');
+        const gradiusCanvas = this.generateGradiusSprite('#C0C0C0');
         this.ctx.drawImage(gradiusCanvas, this.player.x, this.player.y, this.player.width, this.player.height);
     }
     
@@ -1465,6 +1655,52 @@ class EnhancedSpaceShooter {
             this.ctx.fillRect(powerup.x, powerup.y, powerup.width, powerup.height);
         }
     }
+
+    drawCollectibles() {
+        for (const collectible of this.collectibles) {
+            // Add glow effect for collectibles
+            this.ctx.shadowColor = this.getCollectibleColor(collectible.type);
+            this.ctx.shadowBlur = 8;
+            
+            switch (collectible.type) {
+                case 'coin':
+                    // Draw coin as a circle with gold color
+                    this.ctx.fillStyle = '#FFD700';
+                    this.ctx.beginPath();
+                    this.ctx.arc(collectible.x + collectible.width/2, collectible.y + collectible.height/2, collectible.width/2, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    // Add coin shine effect
+                    this.ctx.globalAlpha = 0.7;
+                    this.ctx.fillStyle = '#FFFFFF';
+                    this.ctx.beginPath();
+                    this.ctx.arc(collectible.x + collectible.width/2 - 2, collectible.y + collectible.height/2 - 2, collectible.width/4, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    this.ctx.globalAlpha = 1.0;
+                    break;
+                    
+                case 'gem':
+                    // Draw gem as a diamond shape with silver color
+                    this.ctx.fillStyle = '#C0C0C0';
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(collectible.x + collectible.width/2, collectible.y);
+                    this.ctx.lineTo(collectible.x + collectible.width, collectible.y + collectible.height/2);
+                    this.ctx.lineTo(collectible.x + collectible.width/2, collectible.y + collectible.height);
+                    this.ctx.lineTo(collectible.x, collectible.y + collectible.height/2);
+                    this.ctx.closePath();
+                    this.ctx.fill();
+                    
+                    // Add gem shine effect
+                    this.ctx.globalAlpha = 0.8;
+                    this.ctx.fillStyle = '#FFFFFF';
+                    this.ctx.fillRect(collectible.x + collectible.width/3, collectible.y + collectible.height/3, collectible.width/3, collectible.height/3);
+                    this.ctx.globalAlpha = 1.0;
+                    break;
+            }
+            
+            this.ctx.shadowBlur = 0;
+        }
+    }
     
     drawExplosions() {
         for (const explosion of this.explosions) {
@@ -1507,6 +1743,38 @@ class EnhancedSpaceShooter {
             this.ctx.fillStyle = '#00ffff';
             this.ctx.fillRect(healthBarX, healthBarY + healthBarHeight + 5, (this.player.shield / 100) * healthBarWidth, healthBarHeight);
         }
+
+        // Draw score
+        const scoreElement = document.getElementById('score');
+        if (scoreElement) scoreElement.textContent = this.score;
+
+        // Draw lives
+        const livesElement = document.getElementById('lives');
+        if (livesElement) livesElement.textContent = this.lives;
+
+        // Draw level
+        const levelElement = document.getElementById('level');
+        if (levelElement) levelElement.textContent = this.level;
+
+        // Draw combo
+        const comboElement = document.getElementById('combo');
+        if (comboElement) comboElement.textContent = this.combo;
+
+        // Draw streak
+        const streakElement = document.getElementById('streak');
+        if (streakElement) streakElement.textContent = this.streak;
+
+        // Draw max streak
+        const maxStreakElement = document.getElementById('maxStreak');
+        if (maxStreakElement) maxStreakElement.textContent = this.maxStreak;
+
+        // Draw coins
+        const coinsElement = document.getElementById('coins');
+        if (coinsElement) coinsElement.textContent = this.coinsCollected;
+
+        // Draw gems
+        const gemsElement = document.getElementById('gems');
+        if (gemsElement) gemsElement.textContent = this.gemsCollected;
     }
     
     updateUI() {
@@ -1529,8 +1797,9 @@ class EnhancedSpaceShooter {
             survivalTime: this.survivalTime,
             enemiesDestroyed: this.enemiesDestroyed,
             powerupsCollected: this.powerupsCollected,
-            level: this.level,
-            combo: this.maxCombo,
+            coinsCollected: this.coinsCollected,
+            gemsCollected: this.gemsCollected,
+            streak: this.maxStreak,
             finalWeapon: this.currentWeapon,
             livesRemaining: this.lives
         };
@@ -1561,8 +1830,11 @@ class EnhancedSpaceShooter {
                 survival_time: this.survivalTime,
                 enemies_destroyed: this.enemiesDestroyed,
                 powerups_collected: this.powerupsCollected,
+                coins_collected: this.coinsCollected,
+                gems_collected: this.gemsCollected,
                 final_level: this.level,
-                max_combo: this.maxCombo
+                max_combo: this.maxCombo,
+                max_streak: this.maxStreak
             });
         } else {
             console.log('⚠️ Firebase not available, score saved locally only');
@@ -1603,28 +1875,37 @@ class EnhancedSpaceShooter {
     }
 
     // Generate Gradius-style ship sprite as fallback
-    generateGradiusSprite(color = '#00ffff') {
+    generateGradiusSprite(color = '#C0C0C0') {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = 64;
         canvas.height = 64;
         
-        // Gradius Vic Viper ship design
-        const shipColor = color;
-        const accentColor = '#ffffff';
-        const cockpitColor = '#87ceeb';
+        // Gradius Vic Viper ship design - SILVER METALLIC
+        const shipColor = color; // Silver color
+        const accentColor = '#E6E6FA'; // Light lavender for accents
+        const cockpitColor = '#87CEEB'; // Sky blue for cockpit
+        const engineColor = '#FF6600'; // Orange for engines
+        const cockpitDetailColor = '#000080'; // Navy blue for cockpit details
+        const metallicGradient = '#FFFFFF'; // White for metallic highlights
         
-        // Main body
+        // Main body - nose cone with metallic effect
         ctx.fillStyle = shipColor;
         ctx.beginPath();
-        // Nose cone
         ctx.moveTo(32, 8);
         ctx.lineTo(28, 16);
         ctx.lineTo(36, 16);
         ctx.closePath();
         ctx.fill();
         
-        // Main body
+        // Add metallic highlight to nose
+        ctx.fillStyle = metallicGradient;
+        ctx.globalAlpha = 0.6;
+        ctx.fillRect(31, 10, 2, 4);
+        ctx.globalAlpha = 1.0;
+        
+        // Main body - fuselage
+        ctx.fillStyle = shipColor;
         ctx.beginPath();
         ctx.moveTo(28, 16);
         ctx.lineTo(24, 32);
@@ -1639,10 +1920,16 @@ class EnhancedSpaceShooter {
         ctx.closePath();
         ctx.fill();
         
-        // Wings
+        // Add metallic highlights to body
+        ctx.fillStyle = metallicGradient;
+        ctx.globalAlpha = 0.4;
+        ctx.fillRect(30, 20, 4, 20);
+        ctx.globalAlpha = 1.0;
+        
+        // Wings with metallic effect
         ctx.fillStyle = shipColor;
-        ctx.beginPath();
         // Left wing
+        ctx.beginPath();
         ctx.moveTo(24, 32);
         ctx.lineTo(16, 40);
         ctx.lineTo(14, 48);
@@ -1661,24 +1948,34 @@ class EnhancedSpaceShooter {
         ctx.closePath();
         ctx.fill();
         
-        // Engine details
-        ctx.fillStyle = '#ff6600';
+        // Add metallic highlights to wings
+        ctx.fillStyle = metallicGradient;
+        ctx.globalAlpha = 0.3;
+        ctx.fillRect(18, 36, 4, 8);
+        ctx.fillRect(42, 36, 4, 8);
+        ctx.globalAlpha = 1.0;
+        
+        // Engine details with enhanced glow
+        ctx.fillStyle = engineColor;
+        ctx.shadowColor = engineColor;
+        ctx.shadowBlur = 8;
         ctx.fillRect(26, 44, 3, 8);
         ctx.fillRect(35, 44, 3, 8);
+        ctx.shadowBlur = 0;
         
-        // Cockpit
+        // Cockpit with enhanced detail
         ctx.fillStyle = cockpitColor;
         ctx.beginPath();
         ctx.ellipse(32, 28, 6, 4, 0, 0, Math.PI * 2);
         ctx.fill();
         
         // Cockpit details
-        ctx.fillStyle = '#000080';
+        ctx.fillStyle = cockpitDetailColor;
         ctx.beginPath();
         ctx.ellipse(32, 28, 3, 2, 0, 0, Math.PI * 2);
         ctx.fill();
         
-        // Ship details
+        // Ship details and accents
         ctx.fillStyle = accentColor;
         // Nose detail
         ctx.fillRect(31, 10, 2, 4);
@@ -1738,6 +2035,17 @@ class EnhancedSpaceShooter {
                 return '#ff0000';
             default:
                 return '#ffff00';
+        }
+    }
+
+    getCollectibleColor(collectibleType) {
+        switch (collectibleType) {
+            case 'coin':
+                return '#FFD700';
+            case 'gem':
+                return '#C0C0C0';
+            default:
+                return '#FFFFFF';
         }
     }
 }
