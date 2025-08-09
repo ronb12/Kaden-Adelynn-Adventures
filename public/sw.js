@@ -6,6 +6,7 @@ const urlsToCache = [
   '/js/game-engine.js',
   '/js/firebase-config.js',
   '/js/sprite-manager.js',
+  '/js/pwa-updates.js',
   '/manifest.json'
 ];
 
