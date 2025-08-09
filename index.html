@@ -1539,7 +1539,7 @@
                 
                 // Difficulty scaling
                 this.enemySpawnRate = 2.5;
-                this.enemySpeedMultiplier = 1;
+                this.enemySpeedMultiplier = 1 + (this.level * 0.08); // Faster enemies for better gameplay
                 this.enemyHealthMultiplier = 1;
                 
                 // Achievement system
@@ -1839,16 +1839,6 @@
                         }
                     }, 120000); // 2 minutes
                     
-                    // Play dynamic background music
-                    this.sounds.backgroundMusic();
-                    
-                    // Schedule next music loop
-                    setTimeout(() => {
-                        if (this.gameState === 'playing') {
-                            this.startBackgroundMusic();
-                        }
-                    }, 5000);
-                    
                 } catch (error) {
                     console.log('Background music error:', error);
                 }
@@ -2088,7 +2078,7 @@
                     
                     // Realistic difficulty scaling
                     this.enemySpawnRate = Math.max(1.5, 2.5 - (this.level * 0.03)); // More gradual spawn increase
-                    this.enemySpeedMultiplier = 1 + (this.level * 0.02); // More gradual speed increase
+                    this.enemySpeedMultiplier = 1 + (this.level * 0.08); // Faster enemies for better gameplay
                     this.enemyHealthMultiplier = 1 + (this.level * 0.03); // More gradual health increase
                     
                     // Check for boss level
@@ -4428,6 +4418,7 @@ Good luck, pilot! 🚀`);
             let enemiesOnScreen = [];
             let closestEnemy = null;
             let closestEnemyDistance = Infinity;
+            let dangerousEnemies = [];
             
             game.enemies.forEach(enemy => {
                 const distance = Math.sqrt(
@@ -4438,6 +4429,11 @@ Good luck, pilot! 🚀`);
                 // Check if enemy is on screen (not just spawned)
                 if (enemy.y > 0 && enemy.y < game.canvas.height) {
                     enemiesOnScreen.push(enemy);
+                    
+                    // Identify dangerous enemies (close to player)
+                    if (distance < 150) {
+                        dangerousEnemies.push(enemy);
+                    }
                 }
                 
                 if (distance < closestEnemyDistance) {
@@ -4446,66 +4442,66 @@ Good luck, pilot! 🚀`);
                 }
             });
             
-            // AI movement decision - Smart positioning
+            // AI movement decision - Advanced tactical positioning
             let targetX = game.player.x;
             let targetY = game.player.y;
-            let moveSpeed = game.player.speed * 3; // Slightly slower for better gameplay
+            let moveSpeed = game.player.speed * 3.5; // Balanced speed
             
-            if (closestPowerup && closestPowerupDistance < 300) {
-                // Move towards power-up
+            if (closestPowerup && closestPowerupDistance < 250) {
+                // Move towards power-up with urgency
                 const dx = closestPowerup.x - game.player.x;
                 const dy = closestPowerup.y - game.player.y;
-                targetX = game.player.x + (dx / closestPowerupDistance) * moveSpeed;
-                targetY = game.player.y + (dy / closestPowerupDistance) * moveSpeed;
+                targetX = game.player.x + (dx / closestPowerupDistance) * moveSpeed * 1.2;
+                targetY = game.player.y + (dy / closestPowerupDistance) * moveSpeed * 1.2;
+            } else if (dangerousEnemies.length > 0) {
+                // Emergency evasion from dangerous enemies
+                const avgDangerX = dangerousEnemies.reduce((sum, enemy) => sum + enemy.x, 0) / dangerousEnemies.length;
+                const avgDangerY = dangerousEnemies.reduce((sum, enemy) => sum + enemy.y, 0) / dangerousEnemies.length;
+                
+                // Move away from dangerous enemies
+                const escapeX = game.player.x - (avgDangerX - game.player.x) * 0.8;
+                const escapeY = game.player.y - (avgDangerY - game.player.y) * 0.8;
+                targetX = escapeX;
+                targetY = escapeY;
             } else if (enemiesOnScreen.length > 0) {
                 // Strategic positioning when enemies are on screen
                 const avgEnemyX = enemiesOnScreen.reduce((sum, enemy) => sum + enemy.x, 0) / enemiesOnScreen.length;
                 const avgEnemyY = enemiesOnScreen.reduce((sum, enemy) => sum + enemy.y, 0) / enemiesOnScreen.length;
                 
-                // Position player for optimal engagement
+                // Calculate optimal combat position
                 const idealX = game.canvas.width / 2;
-                const idealY = game.canvas.height * 0.7; // Stay in lower 70% of screen
+                const idealY = game.canvas.height * 0.75; // Stay in lower 75% of screen
                 
-                const dx = idealX - game.player.x;
+                // Adjust position based on enemy distribution
+                const enemySpread = Math.abs(avgEnemyX - idealX);
+                const adjustedX = idealX + (avgEnemyX - idealX) * 0.3;
+                
+                const dx = adjustedX - game.player.x;
                 const dy = idealY - game.player.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
-                if (distance > 30) {
+                if (distance > 20) {
                     targetX = game.player.x + (dx / distance) * moveSpeed;
                     targetY = game.player.y + (dy / distance) * moveSpeed;
                 }
-                
-                // Dodge if too close to enemies
-                enemiesOnScreen.forEach(enemy => {
-                    const enemyDistance = Math.sqrt(
-                        Math.pow(game.player.x - enemy.x, 2) + 
-                        Math.pow(game.player.y - enemy.y, 2)
-                    );
-                    if (enemyDistance < 100) {
-                        const dodgeX = game.player.x - (enemy.x - game.player.x) * 0.5;
-                        const dodgeY = game.player.y - (enemy.y - game.player.y) * 0.5;
-                        targetX = dodgeX;
-                        targetY = dodgeY;
-                    }
-                });
             } else if (closestEnemy) {
-                // Wait for enemies to get on screen
+                // Wait for enemies to get on screen with tactical positioning
                 const dx = closestEnemy.x - game.player.x;
                 const dy = closestEnemy.y - game.player.y;
                 
                 // Only engage if enemy is on screen or very close
-                if (closestEnemy.y > -50 && closestEnemyDistance > 120) {
-                    targetX = game.player.x + (dx / closestEnemyDistance) * moveSpeed * 0.5;
-                    targetY = game.player.y + (dy / closestEnemyDistance) * moveSpeed * 0.5;
+                if (closestEnemy.y > -30 && closestEnemyDistance > 100) {
+                    targetX = game.player.x + (dx / closestEnemyDistance) * moveSpeed * 0.6;
+                    targetY = game.player.y + (dy / closestEnemyDistance) * moveSpeed * 0.6;
                 } else {
                     // Patrol center while waiting
                     const centerX = game.canvas.width / 2;
-                    const centerY = game.canvas.height * 0.7;
+                    const centerY = game.canvas.height * 0.75;
                     const dx = centerX - game.player.x;
                     const dy = centerY - game.player.y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
                     
-                    if (distance > 50) {
+                    if (distance > 40) {
                         targetX = game.player.x + (dx / distance) * moveSpeed;
                         targetY = game.player.y + (dy / distance) * moveSpeed;
                     }
@@ -4513,12 +4509,12 @@ Good luck, pilot! 🚀`);
             } else {
                 // No enemies - patrol center area
                 const centerX = game.canvas.width / 2;
-                const centerY = game.canvas.height * 0.7;
+                const centerY = game.canvas.height * 0.75;
                 const dx = centerX - game.player.x;
                 const dy = centerY - game.player.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
-                if (distance > 50) {
+                if (distance > 40) {
                     targetX = game.player.x + (dx / distance) * moveSpeed;
                     targetY = game.player.y + (dy / distance) * moveSpeed;
                 }
@@ -4528,23 +4524,41 @@ Good luck, pilot! 🚀`);
             game.player.x = Math.max(50, Math.min(game.canvas.width - 50, targetX));
             game.player.y = Math.max(50, Math.min(game.canvas.height - 50, targetY));
             
-            // AI weapon selection (strategic)
-            if (Math.random() < 0.02) { // 2% chance to switch weapons
-                const weapons = ['basic', 'plasma', 'spread', 'laser', 'missile'];
-                const randomWeapon = weapons[Math.floor(Math.random() * weapons.length)];
-                game.currentWeapon = randomWeapon;
+            // Advanced AI weapon selection based on situation
+            if (Math.random() < 0.015) { // 1.5% chance to switch weapons
+                let selectedWeapon = 'basic';
+                
+                if (enemiesOnScreen.length > 3) {
+                    selectedWeapon = 'spread'; // Use spread for multiple enemies
+                } else if (dangerousEnemies.length > 0) {
+                    selectedWeapon = 'laser'; // Use laser for close threats
+                } else if (enemiesOnScreen.length === 1) {
+                    selectedWeapon = 'plasma'; // Use plasma for single targets
+                } else if (closestEnemy && closestEnemy.y < 0) {
+                    selectedWeapon = 'missile'; // Use missile for approaching enemies
+                } else {
+                    const weapons = ['basic', 'plasma', 'spread', 'laser', 'missile'];
+                    selectedWeapon = weapons[Math.floor(Math.random() * weapons.length)];
+                }
+                
+                game.currentWeapon = selectedWeapon;
                 game.updateWeaponDisplay();
             }
             
-            // AI shooting - strategic engagement
-            if (enemiesOnScreen.length > 0) {
-                // Shoot at enemies on screen
-                if (Math.random() < 0.8) { // 80% chance to shoot when enemies are on screen
+            // Advanced AI shooting - situational combat
+            if (dangerousEnemies.length > 0) {
+                // High priority shooting when in danger
+                if (Math.random() < 0.95) { // 95% chance to shoot when in danger
                     game.shoot();
                 }
-            } else if (closestEnemy && closestEnemy.y > -50) {
-                // Shoot at enemies that are about to enter screen
-                if (Math.random() < 0.3) { // 30% chance to shoot at approaching enemies
+            } else if (enemiesOnScreen.length > 0) {
+                // Normal engagement with enemies on screen
+                if (Math.random() < 0.85) { // 85% chance to shoot when enemies are on screen
+                    game.shoot();
+                }
+            } else if (closestEnemy && closestEnemy.y > -40) {
+                // Light engagement with approaching enemies
+                if (Math.random() < 0.4) { // 40% chance to shoot at approaching enemies
                     game.shoot();
                 }
             }
