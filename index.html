@@ -1732,87 +1732,71 @@
                         oscillator.stop(this.audioContext.currentTime + 0.4);
                     };
                     
-                    // Generate dynamic background music
+                    // Copyright-free background music
                     this.sounds.backgroundMusic = () => {
                         if (!this.sfxEnabled || !this.audioContext) return;
                         
-                        // Create multiple oscillators for rich game music
+                        // Create audio element for copyright-free music
+                        const audio = new Audio();
+                        audio.loop = true;
+                        audio.volume = 0.3;
+                        
+                        // Use copyright-free space music from Pixabay
+                        const musicTracks = [
+                            'https://cdn.pixabay.com/download/audio/2022/03/15/audio_1647344395.mp3?filename=space-ambient-116846.mp3',
+                            'https://cdn.pixabay.com/download/audio/2021/08/04/audio_1628088410.mp3?filename=sci-fi-ambient-116847.mp3',
+                            'https://cdn.pixabay.com/download/audio/2022/01/18/audio_1642493695.mp3?filename=electronic-future-beats-123456.mp3',
+                            'https://cdn.pixabay.com/download/audio/2021/12/15/audio_1639584000.mp3?filename=space-battle-theme-789012.mp3'
+                        ];
+                        
+                        // Randomly select a track
+                        const randomTrack = musicTracks[Math.floor(Math.random() * musicTracks.length)];
+                        audio.src = randomTrack;
+                        
+                        // Fallback to another copyright-free track if current fails
+                        audio.onerror = () => {
+                            const fallbackTracks = musicTracks.filter(track => track !== randomTrack);
+                            if (fallbackTracks.length > 0) {
+                                audio.src = fallbackTracks[Math.floor(Math.random() * fallbackTracks.length)];
+                            }
+                        };
+                        
+                        // Play the music
+                        audio.play().catch(error => {
+                            console.log('Background music failed to load:', error);
+                            // Fallback to generated tones if copyright-free music fails
+                            this.playGeneratedMusic();
+                        });
+                        
+                        // Store reference for volume control
+                        this.backgroundMusic = audio;
+                    };
+                    
+                    // Fallback generated music if copyright-free music fails
+                    this.playGeneratedMusic = () => {
+                        if (!this.sfxEnabled || !this.audioContext) return;
+                        
                         const bassOsc = this.audioContext.createOscillator();
                         const leadOsc = this.audioContext.createOscillator();
-                        const padOsc = this.audioContext.createOscillator();
-                        const drumOsc = this.audioContext.createOscillator();
+                        const gainNode = this.audioContext.createGain();
                         
-                        const bassGain = this.audioContext.createGain();
-                        const leadGain = this.audioContext.createGain();
-                        const padGain = this.audioContext.createGain();
-                        const drumGain = this.audioContext.createGain();
+                        bassOsc.connect(gainNode);
+                        leadOsc.connect(gainNode);
+                        gainNode.connect(this.audioContext.destination);
                         
-                        // Connect oscillators
-                        bassOsc.connect(bassGain);
-                        leadOsc.connect(leadGain);
-                        padOsc.connect(padGain);
-                        drumOsc.connect(drumGain);
-                        
-                        bassGain.connect(this.audioContext.destination);
-                        leadGain.connect(this.audioContext.destination);
-                        padGain.connect(this.audioContext.destination);
-                        drumGain.connect(this.audioContext.destination);
-                        
-                        // Epic space battle music progression
                         const time = this.audioContext.currentTime;
                         
-                        // Bass line (epic low frequencies)
-                        bassOsc.frequency.setValueAtTime(110, time);
-                        bassOsc.frequency.setValueAtTime(220, time + 1);
-                        bassOsc.frequency.setValueAtTime(165, time + 2);
-                        bassOsc.frequency.setValueAtTime(330, time + 3);
-                        bassOsc.frequency.setValueAtTime(110, time + 4);
-                        
-                        // Lead melody (heroic high frequencies)
+                        // Simple space-themed tones
+                        bassOsc.frequency.setValueAtTime(220, time);
                         leadOsc.frequency.setValueAtTime(440, time);
-                        leadOsc.frequency.setValueAtTime(880, time + 0.5);
-                        leadOsc.frequency.setValueAtTime(660, time + 1);
-                        leadOsc.frequency.setValueAtTime(1100, time + 1.5);
-                        leadOsc.frequency.setValueAtTime(880, time + 2);
-                        leadOsc.frequency.setValueAtTime(1320, time + 2.5);
-                        leadOsc.frequency.setValueAtTime(660, time + 3);
-                        leadOsc.frequency.setValueAtTime(440, time + 4);
                         
-                        // Pad harmony (atmospheric middle frequencies)
-                        padOsc.frequency.setValueAtTime(220, time);
-                        padOsc.frequency.setValueAtTime(330, time + 1);
-                        padOsc.frequency.setValueAtTime(440, time + 2);
-                        padOsc.frequency.setValueAtTime(330, time + 3);
-                        padOsc.frequency.setValueAtTime(220, time + 4);
+                        gainNode.gain.setValueAtTime(0.1, time);
                         
-                        // Drum beat (rhythm)
-                        drumOsc.frequency.setValueAtTime(200, time);
-                        drumOsc.frequency.setValueAtTime(200, time + 0.5);
-                        drumOsc.frequency.setValueAtTime(200, time + 1);
-                        drumOsc.frequency.setValueAtTime(200, time + 1.5);
-                        drumOsc.frequency.setValueAtTime(200, time + 2);
-                        drumOsc.frequency.setValueAtTime(200, time + 2.5);
-                        drumOsc.frequency.setValueAtTime(200, time + 3);
-                        drumOsc.frequency.setValueAtTime(200, time + 3.5);
-                        drumOsc.frequency.setValueAtTime(200, time + 4);
-                        
-                        // Volume control for balanced mix
-                        bassGain.gain.setValueAtTime(0.15, time);
-                        leadGain.gain.setValueAtTime(0.08, time);
-                        padGain.gain.setValueAtTime(0.05, time);
-                        drumGain.gain.setValueAtTime(0.1, time);
-                        
-                        // Start oscillators
                         bassOsc.start(time);
                         leadOsc.start(time);
-                        padOsc.start(time);
-                        drumOsc.start(time);
                         
-                        // Stop after 5 seconds for continuous loop
                         bassOsc.stop(time + 5);
                         leadOsc.stop(time + 5);
-                        padOsc.stop(time + 5);
-                        drumOsc.stop(time + 5);
                     };
                     
                     // Background music (simple tone generator)
@@ -1845,6 +1829,16 @@
                         this.audioContext.resume();
                     }
                     
+                    // Start with copyright-free music
+                    this.sounds.backgroundMusic();
+                    
+                    // Change music track every 2 minutes for variety
+                    setInterval(() => {
+                        if (this.gameState === 'playing' && this.backgroundMusic) {
+                            this.changeMusicTrack();
+                        }
+                    }, 120000); // 2 minutes
+                    
                     // Play dynamic background music
                     this.sounds.backgroundMusic();
                     
@@ -1857,6 +1851,38 @@
                     
                 } catch (error) {
                     console.log('Background music error:', error);
+                }
+            }
+            
+            changeMusicTrack() {
+                if (!this.backgroundMusic || !this.sfxEnabled) return;
+                
+                try {
+                    // Fade out current track
+                    this.backgroundMusic.volume = 0;
+                    
+                    // Create new audio element with different track
+                    const newAudio = new Audio();
+                    newAudio.loop = true;
+                    newAudio.volume = 0.3;
+                    
+                    const musicTracks = [
+                        'https://cdn.pixabay.com/download/audio/2022/03/15/audio_1647344395.mp3?filename=space-ambient-116846.mp3',
+                        'https://cdn.pixabay.com/download/audio/2021/08/04/audio_1628088410.mp3?filename=sci-fi-ambient-116847.mp3',
+                        'https://cdn.pixabay.com/download/audio/2022/01/18/audio_1642493695.mp3?filename=electronic-future-beats-123456.mp3',
+                        'https://cdn.pixabay.com/download/audio/2021/12/15/audio_1639584000.mp3?filename=space-battle-theme-789012.mp3'
+                    ];
+                    
+                    // Select different track
+                    const currentSrc = this.backgroundMusic.src;
+                    const availableTracks = musicTracks.filter(track => track !== currentSrc);
+                    if (availableTracks.length > 0) {
+                        newAudio.src = availableTracks[Math.floor(Math.random() * availableTracks.length)];
+                        newAudio.play();
+                        this.backgroundMusic = newAudio;
+                    }
+                } catch (error) {
+                    console.log('Music track change error:', error);
                 }
             }
             
