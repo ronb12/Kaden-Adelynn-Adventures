@@ -19,7 +19,7 @@ class EnhancedSpaceShooter {
         
         // Game stats
         this.score = 0;
-        this.lives = 3;
+        this.lives = 25; // Increased to 25 lives
         this.level = 1;
         this.combo = 0;
         this.maxCombo = 0;
@@ -49,11 +49,14 @@ class EnhancedSpaceShooter {
             lastAutoDefense: 0
         };
         
-        // Weapon system
+        // Enhanced weapon system
         this.currentWeapon = 'basic';
         this.weaponLevel = 1;
         this.lastShot = 0;
-        this.shotCooldown = 250;
+        this.shotCooldown = 100; // Reduced for rapid fire (was 250)
+        this.rapidFireEnabled = true;
+        this.rapidFireRate = 50; // Even faster rapid fire
+        this.lastRapidShot = 0;
         
         // Game objects
         this.bullets = [];
@@ -113,7 +116,7 @@ class EnhancedSpaceShooter {
         // Initialize game state
         this.gameState = 'menu';
         this.score = 0;
-        this.lives = 3;
+        this.lives = 25; // Start with 25 lives
         this.level = 1;
         this.combo = 0;
         this.maxCombo = 0;
@@ -139,6 +142,7 @@ class EnhancedSpaceShooter {
         this.currentWeapon = 'basic';
         this.weaponLevel = 1;
         this.lastShot = 0;
+        this.lastRapidShot = 0;
         
         // Reset timers
         this.enemySpawnTimer = 0;
@@ -147,7 +151,7 @@ class EnhancedSpaceShooter {
         // Update UI
         this.updateUI();
         
-        console.log('Game initialized');
+        console.log('Game initialized with 25 lives');
     }
     
     startGame() {
@@ -157,7 +161,7 @@ class EnhancedSpaceShooter {
         
         // Reset game stats for new game
         this.score = 0;
-        this.lives = 3;
+        this.lives = 25; // Start with 25 lives
         this.level = 1;
         this.combo = 0;
         this.maxCombo = 0;
@@ -183,6 +187,7 @@ class EnhancedSpaceShooter {
         this.currentWeapon = 'basic';
         this.weaponLevel = 1;
         this.lastShot = 0;
+        this.lastRapidShot = 0;
         
         // Reset timers
         this.enemySpawnTimer = 0;
@@ -207,7 +212,7 @@ class EnhancedSpaceShooter {
         
         // Start game loop
         this.gameLoop();
-        console.log('Game started successfully');
+        console.log('Game started successfully with 25 lives');
     }
     
     pauseGame() {
@@ -332,10 +337,23 @@ class EnhancedSpaceShooter {
     
     shoot() {
         const now = Date.now();
-        if (now - this.lastShot < this.shotCooldown) return;
         
-        this.lastShot = now;
-        
+        // Rapid fire mode
+        if (this.rapidFireEnabled && this.keys && this.keys[' ']) {
+            if (now - this.lastRapidShot > this.rapidFireRate) {
+                this.lastRapidShot = now;
+                this.createBullet();
+            }
+        } else {
+            // Single shot mode
+            if (now - this.lastShot > this.shotCooldown) {
+                this.lastShot = now;
+                this.createBullet();
+            }
+        }
+    }
+    
+    createBullet() {
         switch (this.currentWeapon) {
             case 'basic':
                 this.bullets.push({
@@ -399,6 +417,21 @@ class EnhancedSpaceShooter {
                     this.player.missiles--;
                 }
                 break;
+            case 'spread-shot':
+                // 5-way spread shot
+                for (let i = -2; i <= 2; i++) {
+                    this.bullets.push({
+                        x: this.player.x + this.player.width / 2 - 2,
+                        y: this.player.y,
+                        width: 4,
+                        height: 10,
+                        speed: 6,
+                        damage: 6,
+                        type: 'spread-shot',
+                        angle: i * 0.2
+                    });
+                }
+                break;
         }
     }
     
@@ -406,11 +439,16 @@ class EnhancedSpaceShooter {
         for (let i = this.bullets.length - 1; i >= 0; i--) {
             const bullet = this.bullets[i];
             
-            // Update position
-            bullet.y -= bullet.speed;
+            // Update position based on angle
+            if (bullet.angle) {
+                bullet.x += Math.sin(bullet.angle) * bullet.speed;
+                bullet.y -= Math.cos(bullet.angle) * bullet.speed;
+            } else {
+                bullet.y -= bullet.speed;
+            }
             
             // Remove bullets that are off screen
-            if (bullet.y + bullet.height < 0) {
+            if (bullet.y + bullet.height < 0 || bullet.x < 0 || bullet.x > this.canvas.width) {
                 this.bullets.splice(i, 1);
             }
         }
@@ -503,7 +541,7 @@ class EnhancedSpaceShooter {
         if (this.powerupSpawnTimer >= this.powerupSpawnRate) {
             this.powerupSpawnTimer = 0;
             
-            const powerupTypes = ['health', 'shield', 'weapon', 'missile'];
+            const powerupTypes = ['health', 'shield', 'weapon', 'missile', 'rapid-fire'];
             const type = powerupTypes[Math.floor(Math.random() * powerupTypes.length)];
             
             const powerup = {
@@ -610,7 +648,7 @@ class EnhancedSpaceShooter {
                 this.player.shield = Math.min(this.player.shield + 50, 100);
                 break;
             case 'weapon':
-                const weapons = ['basic', 'plasma', 'spread', 'laser', 'missile'];
+                const weapons = ['basic', 'plasma', 'spread', 'laser', 'missile', 'spread-shot'];
                 const newWeapon = weapons[Math.floor(Math.random() * weapons.length)];
                 this.currentWeapon = newWeapon;
                 
@@ -623,6 +661,10 @@ class EnhancedSpaceShooter {
                 break;
             case 'missile':
                 this.player.missiles += 5;
+                break;
+            case 'rapid-fire':
+                this.rapidFireEnabled = true;
+                this.rapidFireRate = Math.max(30, this.rapidFireRate - 10);
                 break;
         }
     }
@@ -784,6 +826,9 @@ class EnhancedSpaceShooter {
                     break;
                 case 'missile':
                     this.ctx.fillStyle = '#ff00ff';
+                    break;
+                case 'rapid-fire':
+                    this.ctx.fillStyle = '#ff6600';
                     break;
             }
             this.ctx.fillRect(powerup.x, powerup.y, powerup.width, powerup.height);

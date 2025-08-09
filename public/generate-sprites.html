@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sprite Generator</title>
+</head>
+<body>
+    <h1>Sprite Generator for Kaden & Adelynn Adventures</h1>
+    <p>This will generate sprite images for the game. Open the console to see progress.</p>
+    <div id="output"></div>
+    
+    <script>
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 64;
+        canvas.height = 64;
+        
+        function generateSprite(name, color, type) {
+            canvas.width = 64;
+            canvas.height = 64;
+            ctx.clearRect(0, 0, 64, 64);
+            
+            if (type === 'player') {
+                drawPlayerShip(ctx, color);
+            } else {
+                drawEnemyShip(ctx, color, name);
+            }
+            
+            const dataUrl = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = name + '.png';
+            link.href = dataUrl;
+            link.click();
+            
+            console.log(`Generated: ${name}.png`);
+        }
+        
+        function drawPlayerShip(ctx, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(32, 8);
+            ctx.lineTo(20, 48);
+            ctx.lineTo(28, 48);
+            ctx.lineTo(28, 56);
+            ctx.lineTo(36, 56);
+            ctx.lineTo(36, 48);
+            ctx.lineTo(44, 48);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Cockpit
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.ellipse(32, 32, 4, 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        function drawEnemyShip(ctx, color, type) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            
+            switch(type) {
+                case 'basic-enemy':
+                    ctx.moveTo(32, 56);
+                    ctx.lineTo(44, 16);
+                    ctx.lineTo(40, 16);
+                    ctx.lineTo(32, 48);
+                    ctx.lineTo(24, 48);
+                    ctx.lineTo(20, 16);
+                    ctx.lineTo(16, 16);
+                    ctx.closePath();
+                    break;
+                case 'fast-enemy':
+                    ctx.moveTo(32, 56);
+                    ctx.lineTo(40, 16);
+                    ctx.lineTo(36, 16);
+                    ctx.lineTo(32, 48);
+                    ctx.lineTo(28, 48);
+                    ctx.lineTo(24, 16);
+                    ctx.lineTo(20, 16);
+                    ctx.closePath();
+                    break;
+                case 'tank-enemy':
+                    ctx.moveTo(32, 56);
+                    ctx.lineTo(48, 16);
+                    ctx.lineTo(44, 16);
+                    ctx.lineTo(36, 48);
+                    ctx.lineTo(28, 48);
+                    ctx.lineTo(20, 16);
+                    ctx.lineTo(16, 16);
+                    ctx.closePath();
+                    break;
+                case 'boss-enemy':
+                    ctx.moveTo(32, 56);
+                    ctx.lineTo(56, 16);
+                    ctx.lineTo(52, 16);
+                    ctx.lineTo(40, 48);
+                    ctx.lineTo(24, 48);
+                    ctx.lineTo(12, 16);
+                    ctx.lineTo(8, 16);
+                    ctx.closePath();
+                    break;
+            }
+            
+            ctx.fill();
+            
+            // Enemy cockpit
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.ellipse(32, 32, 3, 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Generate all sprites
+        console.log('Starting sprite generation...');
+        
+        // Player sprites
+        generateSprite('fighter-01', '#00ffff', 'player');
+        generateSprite('fighter-02', '#00ff00', 'player');
+        generateSprite('fighter-03', '#ff00ff', 'player');
+        
+        // Enemy sprites
+        generateSprite('basic-enemy', '#ff0000', 'enemy');
+        generateSprite('fast-enemy', '#ff6600', 'enemy');
+        generateSprite('tank-enemy', '#660066', 'enemy');
+        generateSprite('boss-enemy', '#ff0066', 'enemy');
+        
+        console.log('All sprites generated successfully!');
+        document.getElementById('output').innerHTML = '<p>✅ All sprites generated! Check your downloads folder.</p>';
+    </script>
+</body>
+</html>
