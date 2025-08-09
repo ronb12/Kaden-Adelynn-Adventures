@@ -2325,8 +2325,8 @@
                         // Double points (handled in scoring)
                         break;
                     case 'invasion':
-                        // Spawn extra enemies
-                        for (let i = 0; i < 5; i++) { // Reduced from 10 to 5
+                        // Spawn extra enemies (reduced for performance)
+                        for (let i = 0; i < 2; i++) { // Reduced from 5 to 2
                             this.spawnEnemy();
                         }
                         break;
@@ -2514,209 +2514,80 @@
             }
             
             spawnEnemies() {
-                // Limit to maximum 10 enemies on screen (consistent throughout game)
-                if (this.enemies.length >= 10) return;
+                // Limit to maximum 8 enemies on screen (reduced for performance)
+                if (this.enemies.length >= 8) return;
                 
-                // Use consistent spawn rate throughout the game
-                const spawnChance = 0.005 + (this.level * 0.001); // Consistent spawn rate
-                const waveSize = Math.min(Math.floor(this.level / 8) + 1, 5); // Larger waves
+                // Use much lower spawn rate with controlled batches
+                const spawnChance = 0.002 + (this.level * 0.0003); // Much lower spawn rate
+                const batchSize = 2; // Always spawn 2 enemies at a time
                 
                 if (Math.random() < spawnChance) {
-                    const enemyTypes = [
-                        {
-                            type: 'basic',
-                            health: 15,
-                            speed: 2,
-                            points: 25,
-                            color: '#ff0000',
-                            pattern: 'straight'
-                        },
-                        {
-                            type: 'fast',
-                            health: 20,
-                            speed: 3.5,
-                            points: 35,
-                            color: '#ff8800',
-                            pattern: 'zigzag'
-                        },
-                        {
-                            type: 'tank',
-                            health: 40,
-                            speed: 1.2,
-                            points: 60,
-                            color: '#800080',
-                            pattern: 'straight'
-                        },
-                        {
-                            type: 'shooter',
-                            health: 25,
-                            speed: 1.8,
-                            points: 45,
-                            color: '#ff4444',
-                            pattern: 'hover'
-                        },
-                        {
-                            type: 'bomber',
-                            health: 35,
-                            speed: 2.5,
-                            points: 55,
-                            color: '#ff00ff',
-                            pattern: 'dive'
-                        },
-                        {
-                            type: 'formation',
-                            health: 18,
-                            speed: 2.2,
-                            points: 30,
-                            color: '#00ff88',
-                            pattern: 'formation'
-                        },
-                        {
-                            type: 'stealth',
-                            health: 12,
-                            speed: 4.5,
-                            points: 40,
-                            color: '#888888',
-                            pattern: 'zigzag'
-                        },
-                        {
-                            type: 'heavy',
-                            health: 60,
-                            speed: 0.8,
-                            points: 80,
-                            color: '#8b0000',
-                            pattern: 'straight'
-                        },
-                        {
-                            type: 'sniper',
-                            health: 15,
-                            speed: 1.5,
-                            points: 50,
-                            color: '#ff1493',
-                            pattern: 'hover'
-                        },
-                        {
-                            type: 'swarm',
-                            health: 8,
-                            speed: 5.0,
-                            points: 20,
-                            color: '#32cd32',
-                            pattern: 'dive'
-                        },
-                        {
-                            type: 'elite',
-                            health: 45,
-                            speed: 2.8,
-                            points: 75,
-                            color: '#ffd700',
-                            pattern: 'formation'
-                        }
-                    ];
-                    
-                    // Gradius-style formation spawning
-                    const formationType = Math.floor(Math.random() * 4);
-                    let enemiesToSpawn = Math.min(waveSize, 10 - this.enemies.length);
-                    
-                    switch(formationType) {
-                        case 0: // Horizontal line formation
-                            for (let i = 0; i < enemiesToSpawn; i++) {
-                                const typeConfig = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
-                                const spacing = this.canvas.width / (enemiesToSpawn + 1);
-                                
-                                const enemy = {
-                                    x: spacing * (i + 1) - 30,
-                                    y: -60 - (Math.random() * 50),
-                                    width: 60,
-                                    height: 60,
-                                    ...typeConfig,
-                                    speed: typeConfig.speed * this.enemySpeedMultiplier,
-                                    health: typeConfig.health * this.enemyHealthMultiplier,
-                                    maxHealth: typeConfig.health * this.enemyHealthMultiplier,
-                                    lastShot: 0,
-                                    patternOffset: Math.random() * Math.PI * 2,
-                                    patternTime: 0
-                                };
-                                
-                                this.enemies.push(enemy);
+                    // Spawn exactly 2 enemies in a batch
+                    for (let i = 0; i < batchSize && this.enemies.length < 8; i++) {
+                        const enemyTypes = [
+                            {
+                                type: 'basic',
+                                health: 15,
+                                speed: 2,
+                                points: 25,
+                                color: '#ff0000',
+                                pattern: 'straight'
+                            },
+                            {
+                                type: 'fast',
+                                health: 20,
+                                speed: 3.5,
+                                points: 35,
+                                color: '#ff8800',
+                                pattern: 'zigzag'
+                            },
+                            {
+                                type: 'tank',
+                                health: 40,
+                                speed: 1.2,
+                                points: 60,
+                                color: '#800080',
+                                pattern: 'straight'
+                            },
+                            {
+                                type: 'shooter',
+                                health: 25,
+                                speed: 1.8,
+                                points: 45,
+                                color: '#ff4444',
+                                pattern: 'hover'
+                            },
+                            {
+                                type: 'bomber',
+                                health: 35,
+                                speed: 2.5,
+                                points: 55,
+                                color: '#ff00ff',
+                                pattern: 'dive'
                             }
-                            break;
-                            
-                        case 1: // V-formation
-                            for (let i = 0; i < enemiesToSpawn; i++) {
-                                const typeConfig = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
-                                const centerX = this.canvas.width / 2;
-                                const angle = (i - (enemiesToSpawn - 1) / 2) * Math.PI / 6;
-                                const radius = 150;
-                                
-                                const enemy = {
-                                    x: centerX + Math.cos(angle) * radius - 30,
-                                    y: -60 - Math.sin(angle) * radius,
-                                    width: 60,
-                                    height: 60,
-                                    ...typeConfig,
-                                    speed: typeConfig.speed * this.enemySpeedMultiplier,
-                                    health: typeConfig.health * this.enemyHealthMultiplier,
-                                    maxHealth: typeConfig.health * this.enemyHealthMultiplier,
-                                    lastShot: 0,
-                                    patternOffset: Math.random() * Math.PI * 2,
-                                    patternTime: 0
-                                };
-                                
-                                this.enemies.push(enemy);
-                            }
-                            break;
-                            
-                        case 2: // Diamond formation
-                            const positions = [
-                                { x: this.canvas.width / 2, y: -60 },
-                                { x: this.canvas.width / 2 - 100, y: -80 },
-                                { x: this.canvas.width / 2 + 100, y: -80 },
-                                { x: this.canvas.width / 2, y: -100 }
-                            ];
-                            
-                            for (let i = 0; i < Math.min(enemiesToSpawn, positions.length); i++) {
-                                const typeConfig = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
-                                
-                                const enemy = {
-                                    x: positions[i].x - 30,
-                                    y: positions[i].y,
-                                    width: 60,
-                                    height: 60,
-                                    ...typeConfig,
-                                    speed: typeConfig.speed * this.enemySpeedMultiplier,
-                                    health: typeConfig.health * this.enemyHealthMultiplier,
-                                    maxHealth: typeConfig.health * this.enemyHealthMultiplier,
-                                    lastShot: 0,
-                                    patternOffset: Math.random() * Math.PI * 2,
-                                    patternTime: 0
-                                };
-                                
-                                this.enemies.push(enemy);
-                            }
-                            break;
-                            
-                        case 3: // Staggered formation
-                            for (let i = 0; i < enemiesToSpawn; i++) {
-                                const typeConfig = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
-                                const spacing = this.canvas.width / (enemiesToSpawn + 1);
-                                
-                                const enemy = {
-                                    x: spacing * (i + 1) - 30,
-                                    y: -60 - (i * 40), // Staggered vertically
-                                    width: 60,
-                                    height: 60,
-                                    ...typeConfig,
-                                    speed: typeConfig.speed * this.enemySpeedMultiplier,
-                                    health: typeConfig.health * this.enemyHealthMultiplier,
-                                    maxHealth: typeConfig.health * this.enemyHealthMultiplier,
-                                    lastShot: 0,
-                                    patternOffset: Math.random() * Math.PI * 2,
-                                    patternTime: 0
-                                };
-                                
-                                this.enemies.push(enemy);
-                            }
-                            break;
+                        ];
+                        
+                        // Select random enemy type
+                        const selectedType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+                        
+                        // Spawn enemy with slight offset for batch
+                        const enemy = {
+                            x: Math.random() * (this.canvas.width - 100) + 50 + (i * 20), // Offset for batch
+                            y: -50 - (i * 30), // Staggered entry
+                            width: 40,
+                            height: 40,
+                            type: selectedType.type,
+                            health: selectedType.health,
+                            maxHealth: selectedType.health,
+                            speed: selectedType.speed * this.enemySpeedMultiplier,
+                            lastShot: 0,
+                            shotCooldown: this.getEnemyShotCooldown(selectedType.type),
+                            points: selectedType.points,
+                            color: selectedType.color,
+                            pattern: selectedType.pattern
+                        };
+                        
+                        this.enemies.push(enemy);
                     }
                 }
             }
