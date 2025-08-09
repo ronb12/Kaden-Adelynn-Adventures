@@ -4339,51 +4339,88 @@ Good luck, pilot! 🚀`);
         function aiControl() {
             if (!aiMode || !game || game.gameState !== 'playing') return;
             
+            // Find closest power-up (priority)
+            let closestPowerup = null;
+            let closestPowerupDistance = Infinity;
+            
+            game.powerups.forEach(powerup => {
+                const distance = Math.sqrt(
+                    Math.pow(game.player.x - powerup.x, 2) + 
+                    Math.pow(game.player.y - powerup.y, 2)
+                );
+                if (distance < closestPowerupDistance) {
+                    closestPowerupDistance = distance;
+                    closestPowerup = powerup;
+                }
+            });
+            
             // Find closest enemy
             let closestEnemy = null;
-            let closestDistance = Infinity;
+            let closestEnemyDistance = Infinity;
             
             game.enemies.forEach(enemy => {
                 const distance = Math.sqrt(
                     Math.pow(game.player.x - enemy.x, 2) + 
                     Math.pow(game.player.y - enemy.y, 2)
                 );
-                if (distance < closestDistance) {
-                    closestDistance = distance;
+                if (distance < closestEnemyDistance) {
+                    closestEnemyDistance = distance;
                     closestEnemy = enemy;
                 }
             });
             
-            // AI movement decision
-            if (closestEnemy) {
+            // AI movement decision - Prioritize power-ups
+            let targetX = game.player.x;
+            let targetY = game.player.y;
+            let moveSpeed = game.player.speed * 2; // Faster movement
+            
+            if (closestPowerup && closestPowerupDistance < 400) {
+                // Move towards power-up
+                const dx = closestPowerup.x - game.player.x;
+                const dy = closestPowerup.y - game.player.y;
+                targetX = game.player.x + (dx / closestPowerupDistance) * moveSpeed;
+                targetY = game.player.y + (dy / closestPowerupDistance) * moveSpeed;
+            } else if (closestEnemy) {
                 const dx = closestEnemy.x - game.player.x;
                 const dy = closestEnemy.y - game.player.y;
                 
                 // Move towards enemy if far, dodge if close
-                if (closestDistance > 200) {
-                    game.player.x += Math.sign(dx) * game.player.speed;
-                    game.player.y += Math.sign(dy) * game.player.speed;
+                if (closestEnemyDistance > 150) {
+                    targetX = game.player.x + (dx / closestEnemyDistance) * moveSpeed;
+                    targetY = game.player.y + (dy / closestEnemyDistance) * moveSpeed;
                 } else {
-                    // Dodge pattern
-                    game.player.x += (Math.random() - 0.5) * game.player.speed * 2;
-                    game.player.y += (Math.random() - 0.5) * game.player.speed * 2;
+                    // Dodge pattern - move away from enemy
+                    targetX = game.player.x - (dx / closestEnemyDistance) * moveSpeed;
+                    targetY = game.player.y - (dy / closestEnemyDistance) * moveSpeed;
                 }
+            } else {
+                // No targets - patrol center area
+                const centerX = game.canvas.width / 2;
+                const centerY = game.canvas.height / 2;
+                const dx = centerX - game.player.x;
+                const dy = centerY - game.player.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
                 
-                // Keep player in bounds
-                game.player.x = Math.max(50, Math.min(game.canvas.width - 50, game.player.x));
-                game.player.y = Math.max(50, Math.min(game.canvas.height - 50, game.player.y));
+                if (distance > 50) {
+                    targetX = game.player.x + (dx / distance) * moveSpeed;
+                    targetY = game.player.y + (dy / distance) * moveSpeed;
+                }
             }
             
-            // AI weapon selection (random)
-            if (Math.random() < 0.05) { // 5% chance to switch weapons
+            // Apply movement with bounds checking
+            game.player.x = Math.max(50, Math.min(game.canvas.width - 50, targetX));
+            game.player.y = Math.max(50, Math.min(game.canvas.height - 50, targetY));
+            
+            // AI weapon selection (smart)
+            if (Math.random() < 0.03) { // 3% chance to switch weapons
                 const weapons = ['basic', 'plasma', 'spread', 'laser', 'missile'];
                 const randomWeapon = weapons[Math.floor(Math.random() * weapons.length)];
                 game.currentWeapon = randomWeapon;
                 game.updateWeaponDisplay();
             }
             
-            // AI shooting
-            if (closestEnemy && closestDistance < 300) {
+            // AI shooting - shoot at any enemy in range
+            if (closestEnemy && closestEnemyDistance < 400) {
                 game.shoot();
             }
         }
