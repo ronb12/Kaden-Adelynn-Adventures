@@ -72,11 +72,17 @@ class EnhancedSpaceShooter {
         this.explosions = [];
         this.particles = [];
         
-        // Game settings
-        this.enemySpawnRate = 60;
+        // Game settings - KID-FRIENDLY BALANCE
+        this.enemySpawnRate = 120; // Slower enemy spawning (was 60)
         this.enemySpawnTimer = 0;
-        this.powerupSpawnRate = 300;
+        this.powerupSpawnRate = 150; // More frequent powerups (was 300)
         this.powerupSpawnTimer = 0;
+        
+        // KID MODE: Bonus rewards for extended survival
+        this.bonusLifeTimer = 0;
+        this.bonusLifeInterval = 1800; // Give bonus life every 30 seconds (1800 frames at 60fps)
+        this.bonusShieldTimer = 0;
+        this.bonusShieldInterval = 900; // Give bonus shield every 15 seconds (900 frames at 60fps)
         
         // AI settings
         this.aiMode = false;
@@ -193,6 +199,10 @@ class EnhancedSpaceShooter {
         this.enemySpawnTimer = 0;
         this.powerupSpawnTimer = 0;
         
+        // Reset KID MODE bonus timers
+        this.bonusLifeTimer = 0;
+        this.bonusShieldTimer = 0;
+        
         // Hide menu and show UI
         document.getElementById('menu').style.display = 'none';
         document.getElementById('gameContainer').classList.add('playing');
@@ -277,6 +287,28 @@ class EnhancedSpaceShooter {
         
         // Check collisions
         this.checkCollisions();
+        
+        // KID MODE: Give bonus rewards for extended survival
+        this.bonusLifeTimer++;
+        this.bonusShieldTimer++;
+        
+        // Give bonus life every 30 seconds
+        if (this.bonusLifeTimer >= this.bonusLifeInterval) {
+            this.bonusLifeTimer = 0;
+            if (this.lives < 50) { // Cap at 50 lives
+                this.lives++;
+                console.log('🎁 KID MODE: Bonus life awarded! Lives:', this.lives);
+            }
+        }
+        
+        // Give bonus shield every 15 seconds
+        if (this.bonusShieldTimer >= this.bonusShieldInterval) {
+            this.bonusShieldTimer = 0;
+            if (this.player.shield < 100) { // Cap at 100 shield
+                this.player.shield = Math.min(100, this.player.shield + 30);
+                console.log('🛡️ KID MODE: Bonus shield awarded! Shield:', this.player.shield);
+            }
+        }
         
         // Update UI
         this.updateUI();
@@ -365,7 +397,7 @@ class EnhancedSpaceShooter {
                     width: 4,
                     height: 10,
                     speed: 8,
-                    damage: 10,
+                    damage: 20, // KID-FRIENDLY: Increased damage (was 10)
                     type: 'basic'
                 });
                 break;
@@ -575,9 +607,9 @@ class EnhancedSpaceShooter {
                 y: -60,
                 width: 60,
                 height: 60,
-                speed: type === 'fast' ? 4 : type === 'tank' ? 1 : 2,
-                health: type === 'tank' ? 100 : type === 'boss' ? 200 : 20,
-                maxHealth: type === 'tank' ? 100 : type === 'boss' ? 200 : 20,
+                speed: type === 'fast' ? 3 : type === 'tank' ? 1 : 2, // Slower fast enemies
+                health: type === 'tank' ? 50 : type === 'boss' ? 80 : 15, // Much easier to defeat
+                maxHealth: type === 'tank' ? 50 : type === 'boss' ? 80 : 15,
                 type: type
             };
             
@@ -591,12 +623,37 @@ class EnhancedSpaceShooter {
         if (this.powerupSpawnTimer >= this.powerupSpawnRate) {
             this.powerupSpawnTimer = 0;
             
-            const powerupTypes = [
-                'health', 'shield', 'weapon', 'missile', 'rapidRifle', 'ammo', 
-                'coin', 'gem', 'money', 'diamond', 'shotgun', 'flamethrower', 
-                'lightning', 'iceCannon', 'rapidFire'
+            // KID-FRIENDLY: Weighted powerup spawning - more helpful items!
+            const powerupWeights = [
+                { type: 'health', weight: 25 },      // 25% chance for health
+                { type: 'shield', weight: 20 },      // 20% chance for shield
+                { type: 'ammo', weight: 15 },        // 15% chance for ammo
+                { type: 'rapidFire', weight: 10 },   // 10% chance for rapid fire
+                { type: 'coin', weight: 8 },         // 8% chance for coin
+                { type: 'gem', weight: 6 },          // 6% chance for gem
+                { type: 'money', weight: 5 },        // 5% chance for money
+                { type: 'diamond', weight: 3 },      // 3% chance for diamond
+                { type: 'weapon', weight: 3 },       // 3% chance for weapon
+                { type: 'missile', weight: 2 },      // 2% chance for missile
+                { type: 'rapidRifle', weight: 1 },   // 1% chance for rapid rifle
+                { type: 'shotgun', weight: 1 },      // 1% chance for shotgun
+                { type: 'flamethrower', weight: 1 }, // 1% chance for flamethrower
+                { type: 'lightning', weight: 1 },    // 1% chance for lightning
+                { type: 'iceCannon', weight: 1 }     // 1% chance for ice cannon
             ];
-            const type = powerupTypes[Math.floor(Math.random() * powerupTypes.length)];
+            
+            // Select powerup based on weights
+            const totalWeight = powerupWeights.reduce((sum, item) => sum + item.weight, 0);
+            let random = Math.random() * totalWeight;
+            let type = 'health'; // Default to health
+            
+            for (const item of powerupWeights) {
+                random -= item.weight;
+                if (random <= 0) {
+                    type = item.type;
+                    break;
+                }
+            }
             
             const powerup = {
                 x: Math.random() * (this.canvas.width - 30),
@@ -658,8 +715,16 @@ class EnhancedSpaceShooter {
                 const enemy = this.enemies[i];
                 
                 if (this.isColliding(this.player, enemy)) {
-                    this.lives--;
-                    this.player.invulnerable = 120; // 2 seconds at 60fps
+                    // KID-FRIENDLY: Much less punishing collision damage
+                    // Only lose life if no shield, and reduce invulnerability time
+                    if (this.player.shield <= 0) {
+                        this.lives--;
+                        this.player.invulnerable = 90; // 1.5 seconds at 60fps (was 2 seconds)
+                    } else {
+                        // Shield absorbs the hit
+                        this.player.shield = Math.max(0, this.player.shield - 20);
+                        this.player.invulnerable = 60; // 1 second at 60fps
+                    }
                     this.combo = 0;
                     
                     // Create explosion
@@ -1109,6 +1174,19 @@ class EnhancedSpaceShooter {
         this.ctx.font = 'bold 24px Arial';
         this.ctx.textAlign = 'center';
         this.ctx.fillText(`Score: ${this.score}`, this.canvas.width / 2, 30);
+        
+        // KID MODE: Show bonus reward countdown
+        this.ctx.fillStyle = '#00ff00';
+        this.ctx.font = 'bold 14px Arial';
+        this.ctx.textAlign = 'left';
+        this.ctx.fillText(`🎁 Bonus Life in: ${Math.ceil((this.bonusLifeInterval - this.bonusLifeTimer) / 60)}s`, 10, this.canvas.height - 40);
+        this.ctx.fillText(`🛡️ Bonus Shield in: ${Math.ceil((this.bonusShieldInterval - this.bonusShieldTimer) / 60)}s`, 10, this.canvas.height - 20);
+        
+        // KID MODE: Show special mode indicator
+        this.ctx.fillStyle = '#ff69b4';
+        this.ctx.font = 'bold 18px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText(`🌟 KID MODE 🌟`, this.canvas.width / 2, 60);
     }
     
     updateUI() {
