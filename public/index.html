@@ -4,980 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>🚀 Kaden & Adelynn Adventures - Enhanced Space Shooter</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles-consolidated.css?v=2.0">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="manifest.json?v=2.0">
     <meta name="theme-color" content="#4facfe">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Space Adventures">
-    <style>
-        /* Professional styling for enhanced UI */
-        body {
-            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            color: #ffffff;
-            min-height: 100vh;
-            width: 100%;
-            position: relative;
-        }
-        
-        #gameContainer {
-            position: relative;
-            width: 100%;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
-        
-        #gameCanvas {
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 15px;
-            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
-            background: linear-gradient(135deg, #000033 0%, #000066 100%);
-        }
-        
-        #ui {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 20px;
-            border-radius: 15px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            min-width: 200px;
-        }
-        
-        #ui div {
-            margin: 5px 0;
-            font-size: 14px;
-            font-weight: bold;
-            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-        }
-        
-        #menu, #gameOver, #pauseOverlay, #briefingOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        
-        /* Reset any conflicting styles */
-        #menu * {
-            box-sizing: border-box;
-        }
-        
-        #menu {
-            display: flex !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            background: rgba(0, 0, 0, 0.9) !important;
-            z-index: 1000 !important;
-            align-items: center !important;
-            justify-content: center !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            overflow: hidden;
-        }
-        
-        #gameOver, #pauseOverlay, #briefingOverlay {
-            display: none !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            background: rgba(0, 0, 0, 0.9) !important;
-            z-index: 1000 !important;
-            align-items: center !important;
-            justify-content: center !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-        
-        .menu-content {
-            background: linear-gradient(135deg, rgba(26, 26, 46, 0.95) 0%, rgba(22, 33, 62, 0.95) 50%, rgba(15, 52, 96, 0.95) 100%);
-            padding: 40px;
-            border-radius: 25px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            text-align: center;
-            max-width: 800px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 0 50px rgba(0, 255, 255, 0.3);
-            position: relative;
-            z-index: 1001;
-            margin: auto;
-            transform: none;
-        }
-        
-        .btn {
-            background: linear-gradient(135deg, #00ff88, #00cc66);
-            border: none;
-            padding: 15px 30px;
-            margin: 10px;
-            border-radius: 25px;
-            color: #000;
-            font-weight: bold;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 255, 136, 0.5);
-            background: linear-gradient(135deg, #00ff99, #00dd77);
-        }
-        
-        .btn:active {
-            transform: translateY(0);
-        }
-        
-        h1 {
-            font-size: 3em;
-            margin-bottom: 20px;
-            background: linear-gradient(135deg, #00ff88, #00cc66, #0099ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
-        }
-        
-        h2 {
-            font-size: 2.5em;
-            margin-bottom: 15px;
-            color: #00ff88;
-        }
-        
-        .event-notification {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, #00ff88, #00cc66);
-            padding: 20px 40px;
-            border-radius: 15px;
-            color: #000;
-            font-weight: bold;
-            font-size: 24px;
-            text-align: center;
-            z-index: 2000;
-            box-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
-            animation: notificationPop 0.5s ease-out;
-        }
-        
-        @keyframes notificationPop {
-            0% { transform: translate(-50%, -50%) scale(0); }
-            50% { transform: translate(-50%, -50%) scale(1.1); }
-            100% { transform: translate(-50%, -50%) scale(1); }
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-        }
-        
-        .stat-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .stat-label {
-            font-size: 12px;
-            opacity: 0.7;
-            margin-bottom: 5px;
-        }
-        
-        .stat-value {
-            font-size: 18px;
-            font-weight: bold;
-            color: #00ff88;
-        }
-
-        /* Professional Briefing Styles */
-        .briefing-content {
-            max-width: 1200px;
-            width: 95%;
-            max-height: 90vh;
-            padding: 0;
-            background: linear-gradient(135deg, rgba(26, 26, 46, 0.98) 0%, rgba(22, 33, 62, 0.98) 50%, rgba(15, 52, 96, 0.98) 100%);
-            border: 2px solid rgba(0, 255, 136, 0.3);
-            box-shadow: 0 0 50px rgba(0, 255, 136, 0.3);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .briefing-header {
-            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 204, 102, 0.1) 100%);
-            padding: 30px 40px;
-            border-bottom: 2px solid rgba(0, 255, 136, 0.3);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: relative;
-        }
-        
-        .briefing-title h1 {
-            font-size: 2.5em;
-            margin: 0;
-            background: linear-gradient(135deg, #00ff88, #00cc66, #0099ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
-        }
-        
-        .briefing-subtitle {
-            font-size: 1.2em;
-            color: rgba(255, 255, 255, 0.7);
-            margin-top: 5px;
-        }
-        
-        .briefing-close {
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 18px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-        
-        .briefing-close:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.1);
-        }
-        
-        .briefing-body {
-            flex: 1;
-            padding: 40px;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(0, 255, 136, 0.5) rgba(255, 255, 255, 0.1);
-        }
-        
-        .briefing-body::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        .briefing-body::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-        }
-        
-        .briefing-body::-webkit-scrollbar-thumb {
-            background: rgba(0, 255, 136, 0.5);
-            border-radius: 4px;
-        }
-        
-        .briefing-section {
-            margin-bottom: 40px;
-        }
-        
-        .section-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-            padding: 15px 20px;
-            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 204, 102, 0.1) 100%);
-            border-radius: 15px;
-            border-left: 4px solid #00ff88;
-        }
-        
-        .section-icon {
-            font-size: 2em;
-            margin-right: 15px;
-        }
-        
-        .section-header h3 {
-            margin: 0;
-            font-size: 1.8em;
-            color: #00ff88;
-        }
-        
-        .mission-objective {
-            font-size: 1.3em;
-            line-height: 1.6;
-            padding: 20px;
-            background: rgba(0, 255, 136, 0.05);
-            border-radius: 15px;
-            border: 1px solid rgba(0, 255, 136, 0.2);
-        }
-        
-        .briefing-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin: 30px 0;
-        }
-        
-        .briefing-card {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-            border: 1px solid rgba(0, 255, 136, 0.2);
-            border-radius: 20px;
-            padding: 25px;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
-        
-        .briefing-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 255, 136, 0.3);
-            border-color: rgba(0, 255, 136, 0.4);
-        }
-        
-        .card-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid rgba(0, 255, 136, 0.2);
-        }
-        
-        .card-icon {
-            font-size: 2em;
-            margin-right: 15px;
-        }
-        
-        .card-header h4 {
-            margin: 0;
-            font-size: 1.5em;
-            color: #00ff88;
-        }
-        
-        .control-group {
-            margin-bottom: 20px;
-        }
-        
-        .control-group h5 {
-            color: #00ff88;
-            margin-bottom: 10px;
-            font-size: 1.2em;
-        }
-        
-        .control-list {
-            list-style: none;
-            padding: 0;
-        }
-        
-        .control-list li {
-            display: flex;
-            align-items: center;
-            margin: 8px 0;
-            padding: 8px 12px;
-            background: rgba(0, 255, 136, 0.05);
-            border-radius: 8px;
-        }
-        
-        .key {
-            background: linear-gradient(135deg, #00ff88, #00cc66);
-            color: #000;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-weight: bold;
-            margin-right: 10px;
-            font-size: 0.9em;
-            min-width: 60px;
-            text-align: center;
-        }
-        
-        .collectible-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 15px;
-        }
-        
-        .collectible-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            padding: 15px 10px;
-            background: rgba(0, 255, 136, 0.05);
-            border-radius: 12px;
-            border: 1px solid rgba(0, 255, 136, 0.2);
-            transition: all 0.3s ease;
-        }
-        
-        .collectible-item:hover {
-            transform: scale(1.05);
-            background: rgba(0, 255, 136, 0.1);
-        }
-        
-        .collectible-icon {
-            font-size: 2em;
-            margin-bottom: 8px;
-        }
-        
-        .collectible-name {
-            font-weight: bold;
-            color: #00ff88;
-            margin-bottom: 5px;
-        }
-        
-        .collectible-desc {
-            font-size: 0.9em;
-            color: rgba(255, 255, 255, 0.7);
-        }
-        
-        .ship-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-        
-        .ship-item {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            background: rgba(0, 255, 136, 0.05);
-            border-radius: 12px;
-            border: 1px solid rgba(0, 255, 136, 0.2);
-            transition: all 0.3s ease;
-        }
-        
-        .ship-item:hover {
-            transform: translateX(5px);
-            background: rgba(0, 255, 136, 0.1);
-        }
-        
-        .ship-icon {
-            font-size: 2.5em;
-            margin-right: 15px;
-        }
-        
-        .ship-info h5 {
-            margin: 0 0 5px 0;
-            color: #00ff88;
-            font-size: 1.2em;
-        }
-        
-        .ship-desc {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.9em;
-        }
-        
-        .achievement-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-        }
-        
-        .achievement-item {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            border-radius: 12px;
-            border: 2px solid;
-            transition: all 0.3s ease;
-        }
-        
-        .achievement-item.bronze {
-            background: linear-gradient(135deg, rgba(205, 127, 50, 0.1) 0%, rgba(205, 127, 50, 0.05) 100%);
-            border-color: #cd7f32;
-        }
-        
-        .achievement-item.silver {
-            background: linear-gradient(135deg, rgba(192, 192, 192, 0.1) 0%, rgba(192, 192, 192, 0.05) 100%);
-            border-color: #c0c0c0;
-        }
-        
-        .achievement-item.gold {
-            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.05) 100%);
-            border-color: #ffd700;
-        }
-        
-        .achievement-item:hover {
-            transform: scale(1.05);
-        }
-        
-        .achievement-icon {
-            font-size: 2em;
-            margin-right: 15px;
-        }
-        
-        .achievement-info h5 {
-            margin: 0 0 5px 0;
-            color: #00ff88;
-            font-size: 1.2em;
-        }
-        
-        .achievement-desc {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.9em;
-        }
-        
-        .progression-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-        
-        .progression-item {
-            display: flex;
-            align-items: center;
-            padding: 20px;
-            background: rgba(0, 255, 136, 0.05);
-            border-radius: 15px;
-            border: 1px solid rgba(0, 255, 136, 0.2);
-            transition: all 0.3s ease;
-        }
-        
-        .progression-item:hover {
-            transform: translateY(-3px);
-            background: rgba(0, 255, 136, 0.1);
-        }
-        
-        .progression-icon {
-            font-size: 2.5em;
-            margin-right: 20px;
-        }
-        
-        .progression-info h5 {
-            margin: 0 0 8px 0;
-            color: #00ff88;
-            font-size: 1.3em;
-        }
-        
-        .progression-info span {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 1em;
-        }
-        
-        .update-features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 15px;
-        }
-        
-        .update-item {
-            display: flex;
-            align-items: center;
-            padding: 15px 20px;
-            background: rgba(0, 255, 136, 0.05);
-            border-radius: 12px;
-            border: 1px solid rgba(0, 255, 136, 0.2);
-            transition: all 0.3s ease;
-        }
-        
-        .update-item:hover {
-            background: rgba(0, 255, 136, 0.1);
-            transform: translateX(5px);
-        }
-        
-        .update-icon {
-            font-size: 1.5em;
-            margin-right: 15px;
-        }
-        
-        .briefing-footer {
-            padding: 30px 40px;
-            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 204, 102, 0.1) 100%);
-            border-top: 2px solid rgba(0, 255, 136, 0.3);
-            text-align: center;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #00ff88, #00cc66);
-            border: none;
-            padding: 20px 40px;
-            border-radius: 50px;
-            color: #000;
-            font-weight: bold;
-            font-size: 1.2em;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            min-width: 200px;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0, 255, 136, 0.5);
-            background: linear-gradient(135deg, #00ff99, #00dd77);
-        }
-        
-        .btn-icon {
-            font-size: 1.5em;
-        }
-        
-        .btn-text {
-            font-weight: bold;
-        }
-        
-        @media (max-width: 768px) {
-            /* Mobile-specific body and container adjustments */
-            body {
-                font-size: 14px;
-            }
-            
-            #gameContainer {
-                padding: 10px;
-            }
-            
-            #gameCanvas {
-                width: 100%;
-                height: auto;
-                max-width: 100vw;
-                max-height: 70vh;
-                border-width: 2px;
-            }
-            
-            /* Mobile UI adjustments */
-            #ui {
-                top: 10px;
-                left: 10px;
-                padding: 15px;
-                min-width: 150px;
-                max-width: 200px;
-            }
-            
-            #ui div {
-                font-size: 12px;
-            }
-            
-            /* Mobile menu adjustments */
-            .menu-content {
-                padding: 20px;
-                max-width: 95%;
-                width: 95%;
-                max-height: 90vh;
-                margin: 10px;
-            }
-            
-            h1 {
-                font-size: 2em;
-                margin-bottom: 15px;
-            }
-            
-            h2 {
-                font-size: 1.8em;
-                margin-bottom: 10px;
-            }
-            
-            .btn {
-                padding: 12px 20px;
-                margin: 8px;
-                font-size: 14px;
-                min-width: 120px;
-            }
-            
-            /* Mobile stats grid */
-            .stats-grid {
-                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-                gap: 10px;
-                margin: 15px 0;
-            }
-            
-            .stat-item {
-                padding: 8px;
-            }
-            
-            .stat-label {
-                font-size: 11px;
-            }
-            
-            .stat-value {
-                font-size: 14px;
-            }
-            
-            /* Mobile briefing adjustments */
-            .briefing-content {
-                width: 98%;
-                max-height: 95vh;
-            }
-            
-            .briefing-header {
-                padding: 20px;
-                flex-direction: column;
-                gap: 15px;
-            }
-            
-            .briefing-title h1 {
-                font-size: 2em;
-            }
-            
-            .briefing-body {
-                padding: 20px;
-            }
-            
-            .briefing-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .collectible-grid {
-                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            }
-            
-            .ship-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .achievement-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .progression-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .update-features {
-                grid-template-columns: 1fr;
-            }
-            
-            /* Mobile card adjustments */
-            .briefing-card {
-                padding: 15px;
-            }
-            
-            .card-header h4 {
-                font-size: 1.3em;
-            }
-            
-            .card-icon {
-                font-size: 1.5em;
-            }
-            
-            /* Mobile control adjustments */
-            .control-list li {
-                padding: 6px 8px;
-                font-size: 12px;
-            }
-            
-            .key {
-                padding: 3px 6px;
-                font-size: 0.8em;
-                min-width: 50px;
-            }
-            
-            /* Mobile collectible adjustments */
-            .collectible-item {
-                padding: 10px 8px;
-            }
-            
-            .collectible-icon {
-                font-size: 1.5em;
-            }
-            
-            .collectible-name {
-                font-size: 0.9em;
-            }
-            
-            .collectible-desc {
-                font-size: 0.8em;
-            }
-            
-            /* Mobile ship adjustments */
-            .ship-item {
-                padding: 12px;
-            }
-            
-            .ship-icon {
-                font-size: 2em;
-            }
-            
-            .ship-info h5 {
-                font-size: 1.1em;
-            }
-            
-            .ship-desc {
-                font-size: 0.8em;
-            }
-            
-            /* Mobile achievement adjustments */
-            .achievement-item {
-                padding: 12px;
-            }
-            
-            .achievement-icon {
-                font-size: 1.5em;
-            }
-            
-            .achievement-info h5 {
-                font-size: 1.1em;
-            }
-            
-            .achievement-desc {
-                font-size: 0.8em;
-            }
-            
-            /* Mobile progression adjustments */
-            .progression-item {
-                padding: 15px;
-            }
-            
-            .progression-icon {
-                font-size: 2em;
-            }
-            
-            .progression-info h5 {
-                font-size: 1.2em;
-            }
-            
-            .progression-info span {
-                font-size: 0.9em;
-            }
-            
-            /* Mobile update adjustments */
-            .update-item {
-                padding: 12px 15px;
-            }
-            
-            .update-icon {
-                font-size: 1.3em;
-            }
-            
-            /* Mobile section adjustments */
-            .section-header {
-                padding: 12px 15px;
-            }
-            
-            .section-header h3 {
-                font-size: 1.5em;
-            }
-            
-            .section-icon {
-                font-size: 1.5em;
-            }
-            
-            /* Mobile mission objective adjustments */
-            .mission-objective {
-                font-size: 1.1em;
-                padding: 15px;
-            }
-            
-            /* Mobile button adjustments */
-            .btn-primary {
-                padding: 15px 30px;
-                font-size: 1.1em;
-                min-width: 150px;
-            }
-            
-            /* Mobile briefing footer adjustments */
-            .briefing-footer {
-                padding: 20px;
-            }
-            
-            /* Mobile close button adjustments */
-            .briefing-close {
-                width: 35px;
-                height: 35px;
-                font-size: 16px;
-            }
-            
-            /* Mobile notification adjustments */
-            .event-notification {
-                padding: 15px 25px;
-                font-size: 18px;
-                max-width: 90%;
-            }
-        }
-        
-        /* Extra small mobile devices */
-        @media (max-width: 480px) {
-            .menu-content {
-                padding: 15px;
-                margin: 5px;
-            }
-            
-            h1 {
-                font-size: 1.8em;
-            }
-            
-            h2 {
-                font-size: 1.5em;
-            }
-            
-            .btn {
-                padding: 10px 15px;
-                font-size: 12px;
-                margin: 5px;
-            }
-            
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 8px;
-            }
-            
-            .stat-item {
-                padding: 8px;
-            }
-            
-            .stat-label {
-                font-size: 10px;
-            }
-            
-            .stat-value {
-                font-size: 12px;
-            }
-            
-            #ui {
-                padding: 10px;
-                min-width: 120px;
-            }
-            
-            #ui div {
-                font-size: 11px;
-            }
-        }
-        
-        /* Landscape mobile devices */
-        @media (max-width: 768px) and (orientation: landscape) {
-            .menu-content {
-                max-height: 85vh;
-                padding: 15px;
-            }
-            
-            .briefing-content {
-                max-height: 90vh;
-            }
-            
-            .briefing-body {
-                padding: 15px;
-            }
-            
-            .stats-grid {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-    </style>
 </head>
 <body>
     <div id="gameContainer">
@@ -1027,8 +61,26 @@
             </div>
         </div>
         
+        <!-- Mobile Touch Controls -->
+        <div id="mobileControls" class="mobile-controls">
+            <div class="control-group">
+                <div class="weapon-buttons">
+                    <button class="weapon-btn" data-weapon="basic" onclick="switchWeapon('basic')">🔫</button>
+                    <button class="weapon-btn" data-weapon="plasma" onclick="switchWeapon('plasma')">⚡</button>
+                    <button class="weapon-btn" data-weapon="spread" onclick="switchWeapon('spread')">💥</button>
+                    <button class="weapon-btn" data-weapon="laser" onclick="switchWeapon('laser')">🔥</button>
+                    <button class="weapon-btn" data-weapon="missile" onclick="switchWeapon('missile')">🚀</button>
+                    <button class="weapon-btn" data-weapon="rapidRifle" onclick="switchWeapon('rapidRifle')">🔫</button>
+                </div>
+            </div>
+            <div class="control-group">
+                <button class="control-btn pause-btn" onclick="togglePause()">⏸️</button>
+                <button class="control-btn menu-btn" onclick="showMenu()">🏠</button>
+            </div>
+        </div>
+        
         <!-- Enhanced Main Menu -->
-        <div id="menu">
+        <div id="menu" style="display: flex;">
             <div class="menu-content">
                 <h1>🚀 Kaden & Adelynn Adventures</h1>
                 <p style="font-size: 1.2em; margin-bottom: 30px; opacity: 0.8;">Enhanced Space Shooter Edition</p>
@@ -1075,7 +127,7 @@
         </div>
         
         <!-- Enhanced Game Over Overlay -->
-        <div id="gameOver">
+        <div id="gameOver" style="display: none;">
             <div class="menu-content">
                 <h2>Game Over</h2>
                 <div class="stats-grid">
@@ -1141,7 +193,7 @@
         </div>
         
         <!-- Enhanced Pause Overlay -->
-        <div id="pauseOverlay">
+        <div id="pauseOverlay" style="display: none;">
             <div class="menu-content">
                 <h2>⏸️ Game Paused</h2>
                 <div class="stats-grid">
@@ -1182,7 +234,7 @@
         </div>
         
         <!-- Enhanced Professional Briefing Overlay -->
-        <div id="briefingOverlay">
+        <div id="briefingOverlay" style="display: none;">
             <div class="menu-content briefing-content">
                 <div class="briefing-header">
                     <div class="briefing-title">
@@ -1456,12 +508,97 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Enhanced Ship Store Overlay -->
+        <div id="storeOverlay" style="display: none;">
+            <div class="menu-content store-content">
+                <div class="store-header">
+                    <div class="store-title">
+                        <h1>🏪 SHIP STORE</h1>
+                        <div class="store-subtitle">Purchase New Ship Designs</div>
+                    </div>
+                    <div class="store-close" onclick="closeStore()">✕</div>
+                </div>
+                
+                <div class="store-body">
+                    <div class="store-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">💰 Money</div>
+                            <div class="stat-value">$<span id="storeMoney">0</span></div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Current Ship</div>
+                            <div class="stat-value"><span id="currentShip">Starfighter</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="ship-grid">
+                        <div class="ship-card" onclick="buyShip('starfighter')">
+                            <div class="ship-icon">🚀</div>
+                            <div class="ship-name">Starfighter</div>
+                            <div class="ship-price">FREE</div>
+                            <div class="ship-stats">
+                                <span>Speed: ⭐⭐⭐</span>
+                                <span>Firepower: ⭐⭐⭐</span>
+                                <span>Defense: ⭐⭐</span>
+                            </div>
+                        </div>
+                        
+                        <div class="ship-card" onclick="buyShip('interceptor')">
+                            <div class="ship-icon">⚡</div>
+                            <div class="ship-name">Interceptor</div>
+                            <div class="ship-price">$1000</div>
+                            <div class="ship-stats">
+                                <span>Speed: ⭐⭐⭐⭐⭐</span>
+                                <span>Firepower: ⭐⭐⭐⭐</span>
+                                <span>Defense: ⭐⭐</span>
+                            </div>
+                        </div>
+                        
+                        <div class="ship-card" onclick="buyShip('destroyer')">
+                            <div class="ship-icon">🛡️</div>
+                            <div class="ship-name">Destroyer</div>
+                            <div class="ship-price">$2500</div>
+                            <div class="ship-stats">
+                                <span>Speed: ⭐⭐</span>
+                                <span>Firepower: ⭐⭐⭐⭐⭐</span>
+                                <span>Defense: ⭐⭐⭐⭐⭐</span>
+                            </div>
+                        </div>
+                        
+                        <div class="ship-card" onclick="buyShip('stealth')">
+                            <div class="ship-icon">👻</div>
+                            <div class="ship-name">Stealth</div>
+                            <div class="ship-price">$5000</div>
+                            <div class="ship-stats">
+                                <span>Speed: ⭐⭐⭐⭐</span>
+                                <span>Firepower: ⭐⭐⭐</span>
+                                <span>Defense: ⭐⭐⭐</span>
+                                <span>Special: Invisibility</span>
+                            </div>
+                        </div>
+                        
+                        <div class="ship-card" onclick="buyShip('elite')">
+                            <div class="ship-icon">👑</div>
+                            <div class="ship-name">Elite</div>
+                            <div class="ship-price">$10000</div>
+                            <div class="ship-stats">
+                                <span>Speed: ⭐⭐⭐⭐⭐</span>
+                                <span>Firepower: ⭐⭐⭐⭐⭐</span>
+                                <span>Defense: ⭐⭐⭐⭐⭐</span>
+                                <span>Special: All Abilities</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     <!-- Scripts -->
-    <script src="js/firebase-config.js"></script>
-    <script src="js/sprite-manager.js"></script>
-    <script src="js/game-engine.js"></script>
-    <script src="js/pwa-updates.js"></script>
+            <script src="js/firebase-config.js?v=2.0"></script>
+        <script src="js/sprite-manager.js?v=2.0"></script>
+        <script src="js/game-engine.js?v=2.0"></script>
+        <script src="js/pwa-updates.js?v=2.0"></script>
     
     <script>
         // Global game instance
@@ -1493,6 +630,11 @@
             if (!game) {
                 console.log('Creating new game instance');
                 game = new EnhancedSpaceShooter();
+            }
+            // Don't reinitialize if game is already playing
+            if (game.gameState === 'playing') {
+                console.log('Game already running, resuming...');
+                return;
             }
             game.keys = keys;
             game.startGame();
@@ -1542,29 +684,33 @@
             document.getElementById('gameOver').style.display = 'none';
             document.getElementById('pauseOverlay').style.display = 'none';
             document.getElementById('briefingOverlay').style.display = 'none';
-            document.getElementById('menu').style.display = 'flex';
+            
+            // Reset and show main menu with proper positioning
+            const menu = document.getElementById('menu');
+            if (menu) {
+                menu.style.display = 'flex';
+                menu.style.position = 'fixed';
+                menu.style.top = '0';
+                menu.style.left = '0';
+                menu.style.right = '0';
+                menu.style.bottom = '0';
+                menu.style.width = '100%';
+                menu.style.height = '100%';
+                menu.style.background = 'rgba(0, 0, 0, 0.9)';
+                menu.style.zIndex = '1000';
+                menu.style.alignItems = 'center';
+                menu.style.justifyContent = 'center';
+                menu.style.margin = '0';
+                menu.style.padding = '20px';
+                menu.style.overflow = 'auto';
+            }
+            
             if (game) {
                 game.gameState = 'menu';
             }
         }
         
-        function openStore() {
-            if (game) {
-                game.openStore();
-            }
-        }
-        
-        function closeStore() {
-            if (game) {
-                game.closeStore();
-            }
-        }
-        
-        function buyShip(shipType) {
-            if (game) {
-                game.buyShip(shipType);
-            }
-        }
+
         
         function showBriefing() {
             document.getElementById('menu').style.display = 'none';
@@ -1573,7 +719,7 @@
         
         function hideBriefing() {
             document.getElementById('briefingOverlay').style.display = 'none';
-            document.getElementById('menu').style.display = 'flex';
+            showMenu(); // Use the showMenu function to ensure proper positioning
         }
         
         function showHighScores() {
@@ -1595,23 +741,254 @@
             }
         }
         
+        function showHighScores() {
+            if (game) {
+                game.showHighScores();
+            } else {
+                alert('High scores coming soon!');
+            }
+        }
+        
+        function saveGame() {
+            if (game) {
+                game.saveGame();
+                alert('Game saved successfully!');
+            } else {
+                alert('No game to save!');
+            }
+        }
+        
+        function restartGame() {
+            if (game) {
+                game.gameState = 'playing';
+                game.lives = 25;
+                game.score = 0;
+                game.level = 1;
+                game.combo = 0;
+                game.enemies = [];
+                game.bullets = [];
+                game.powerups = [];
+                game.explosions = [];
+                game.particles = [];
+                game.player.health = game.player.maxHealth;
+                game.player.shield = 0;
+                game.player.invulnerable = 0;
+                game.startGame();
+            } else {
+                startGame();
+            }
+        }
+        
+        function resumeGame() {
+            if (game) {
+                game.resumeGame();
+            } else {
+                alert('No game to resume!');
+            }
+        }
+        
+        function showMenu() {
+            if (game) {
+                game.gameState = 'menu';
+                game.pauseGame();
+            }
+            
+            document.getElementById('gameContainer').classList.remove('playing');
+            document.getElementById('menu').style.display = 'flex';
+            document.getElementById('gameOver').style.display = 'none';
+            document.getElementById('pauseOverlay').style.display = 'none';
+            document.getElementById('briefingOverlay').style.display = 'none';
+            document.getElementById('storeOverlay').style.display = 'none';
+        }
+        
+        function showBriefing() {
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('briefingOverlay').style.display = 'flex';
+        }
+        
+        function hideBriefing() {
+            document.getElementById('briefingOverlay').style.display = 'none';
+            showMenu();
+        }
+        
+        function showGameOver() {
+            if (game) {
+                document.getElementById('gameContainer').classList.remove('playing');
+                document.getElementById('gameOver').style.display = 'flex';
+                document.getElementById('finalScore').textContent = game.score;
+                document.getElementById('finalLevel').textContent = game.level;
+                document.getElementById('finalLives').textContent = game.lives;
+                document.getElementById('finalCombo').textContent = game.maxCombo || 0;
+                document.getElementById('finalTime').textContent = Math.floor(game.survivalTime / 60);
+            }
+        }
+        
+        function showPause() {
+            if (game) {
+                game.pauseGame();
+                document.getElementById('pauseOverlay').style.display = 'flex';
+            }
+        }
+        
+        function hidePause() {
+            document.getElementById('pauseOverlay').style.display = 'none';
+            if (game) {
+                game.resumeGame();
+            }
+        }
+        
+        function togglePause() {
+            if (game) {
+                if (game.gameState === 'playing') {
+                    game.pauseGame();
+                    document.getElementById('pauseOverlay').style.display = 'flex';
+                } else if (game.gameState === 'paused') {
+                    game.resumeGame();
+                    document.getElementById('pauseOverlay').style.display = 'none';
+                }
+            }
+        }
+        
+        function switchWeapon(weaponType) {
+            if (game && game.gameState === 'playing') {
+                game.currentWeapon = weaponType;
+                
+                // Update active weapon button
+                document.querySelectorAll('.weapon-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelector(`[data-weapon="${weaponType}"]`).classList.add('active');
+                
+                console.log(`🔫 Switched to weapon: ${weaponType}`);
+            }
+        }
+        
+        function openStore() {
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('storeOverlay').style.display = 'flex';
+            
+            // Update store display with current game data
+            if (game) {
+                document.getElementById('storeMoney').textContent = game.money || 0;
+                document.getElementById('currentShip').textContent = game.currentShipType || 'Starfighter';
+            }
+        }
+        
+
+        
+        // Enhanced store functions
+        function openStore() {
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('storeOverlay').style.display = 'flex';
+            
+            // Update store display with current game data
+            if (game) {
+                document.getElementById('storeMoney').textContent = game.money || 0;
+                document.getElementById('currentShip').textContent = game.currentShipType || 'Starfighter';
+            }
+        }
+        
+        function closeStore() {
+            document.getElementById('storeOverlay').style.display = 'none';
+            showMenu();
+        }
+        
+        function buyShip(shipType) {
+            if (!game) return;
+            
+            const shipPrices = {
+                'starfighter': 0,
+                'interceptor': 1000,
+                'destroyer': 2500,
+                'stealth': 5000,
+                'elite': 10000
+            };
+            
+            const price = shipPrices[shipType];
+            const currentMoney = game.money || 0;
+            
+            if (currentMoney >= price) {
+                game.buyShip(shipType);
+                alert(`Congratulations! You've purchased the ${shipType}!`);
+                closeStore();
+            } else {
+                alert(`You need $${price} to buy the ${shipType}. You have $${currentMoney}.`);
+            }
+        }
+        
+        // Touch controls for mobile
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let isTouching = false;
+        
+        function initTouchControls() {
+            const canvas = document.getElementById('gameCanvas');
+            if (!canvas) return;
+            
+            // Touch start
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                touchStartX = touch.clientX;
+                touchStartY = touch.clientY;
+                isTouching = true;
+                
+                // Auto-shoot on touch
+                if (game && game.gameState === 'playing') {
+                    game.shoot();
+                }
+            });
+            
+            // Touch move
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (!isTouching || !game || game.gameState !== 'playing') return;
+                
+                const touch = e.touches[0];
+                const deltaX = touch.clientX - touchStartX;
+                const deltaY = touch.clientY - touchStartY;
+                
+                // Move player based on touch movement
+                const moveSpeed = 5;
+                game.player.x += deltaX * moveSpeed * 0.01;
+                game.player.y += deltaY * moveSpeed * 0.01;
+                
+                // Keep player within bounds
+                game.player.x = Math.max(0, Math.min(game.canvas.width - game.player.width, game.player.x));
+                game.player.y = Math.max(0, Math.min(game.canvas.height - game.player.height, game.player.y));
+                
+                touchStartX = touch.clientX;
+                touchStartY = touch.clientY;
+            });
+            
+            // Touch end
+            canvas.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                isTouching = false;
+            });
+            
+            // Prevent default touch behaviors
+            canvas.addEventListener('touchcancel', (e) => e.preventDefault());
+        }
+        
         // Initialize game when page loads
         document.addEventListener('DOMContentLoaded', () => {
             console.log('Page loaded, initializing game...');
             
-            // Ensure menu is visible and properly positioned
-            const menu = document.getElementById('menu');
+            // Ensure all overlays are properly hidden initially
             const gameOver = document.getElementById('gameOver');
             const pauseOverlay = document.getElementById('pauseOverlay');
             const briefingOverlay = document.getElementById('briefingOverlay');
             
-            // Hide all overlays first
+            // Force hide all overlays
             if (gameOver) gameOver.style.display = 'none';
             if (pauseOverlay) pauseOverlay.style.display = 'none';
             if (briefingOverlay) briefingOverlay.style.display = 'none';
             
-            // Show and position menu
+            // Ensure main menu is visible and properly positioned
+            const menu = document.getElementById('menu');
             if (menu) {
+                // Reset any inline styles and apply proper positioning
                 menu.style.display = 'flex';
                 menu.style.position = 'fixed';
                 menu.style.top = '0';
@@ -1625,19 +1002,22 @@
                 menu.style.alignItems = 'center';
                 menu.style.justifyContent = 'center';
                 menu.style.margin = '0';
-                menu.style.padding = '0';
-                menu.style.overflow = 'hidden';
-                console.log('Menu displayed and positioned');
+                menu.style.padding = '20px';
+                menu.style.overflow = 'auto';
+                console.log('✅ Main menu displayed and properly positioned');
             }
             
-            // Check if canvas is available
+            // Check if canvas is available and prepare for game
             const canvas = document.getElementById('gameCanvas');
             if (canvas) {
-                console.log('Canvas and context available, creating game...');
-                game = new EnhancedSpaceShooter();
-                console.log('Game initialization complete');
+                console.log('🎮 Canvas and context available, ready for game...');
+                console.log('✅ Game preparation complete');
+                
+                // Initialize touch controls for mobile
+                initTouchControls();
+                console.log('📱 Touch controls initialized');
             } else {
-                console.error('Canvas not found!');
+                console.error('❌ Canvas not found!');
             }
         });
     </script>

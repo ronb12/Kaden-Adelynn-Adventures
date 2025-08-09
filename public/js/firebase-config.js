@@ -86,32 +86,3 @@ const firebaseUtils = {
             return;
         }
         
-        try {
-            const docRef = await db.collection('highScores').add({
-                ...scoreData,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            console.log('✅ High score saved to Firebase with ID:', docRef.id);
-        } catch (error) {
-            console.error('❌ Error saving high score:', error);
-        }
-    },
-    
-    // Track game event
-    trackEvent(eventName, eventData = {}) {
-        if (!this.isAvailable()) {
-            console.log('⚠️ Firebase not available, skipping event tracking');
-            return;
-        }
-        
-        try {
-            analytics.logEvent(eventName, eventData);
-            console.log('✅ Event tracked:', eventName, eventData);
-        } catch (error) {
-            console.error('❌ Error tracking event:', error);
-        }
-    }
-};
-
-// Export for use in other modules
-window.firebaseUtils = firebaseUtils;

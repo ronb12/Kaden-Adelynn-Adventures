@@ -26,6 +26,7 @@ class SpriteManager {
             'weapon-missile': '🚀',
             'weapon-plasma': '💫',
             'weapon-spread': '🎯',
+            'weapon-rapidRifle': '🔫',
             
             // Effects (using emoji as fallback)
             'effect-explosion': '💥',

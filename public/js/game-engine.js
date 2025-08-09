@@ -2,46 +2,24 @@
 class EnhancedSpaceShooter {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
-        if (!this.canvas) {
-            console.error('Canvas not found!');
-            return;
-        }
         this.ctx = this.canvas.getContext('2d');
-        if (!this.ctx) {
-            console.error('Could not get 2D context!');
-            return;
-        }
         this.gameState = 'menu';
         
         // Initialize sprite manager
         this.spriteManager = new SpriteManager();
-        this.useSprites = true;
         
-        // Game stats with enhanced tracking
+        // Game stats
         this.score = 0;
         this.lives = 25;
         this.level = 1;
-        this.maxLevel = 50;
         this.combo = 0;
         this.maxCombo = 0;
         this.enemiesDestroyed = 0;
-        this.enemiesSpawned = 0;
-        this.shotsFired = 0;
-        this.shotsHit = 0;
-        this.accuracy = 0;
         this.powerupsCollected = 0;
-        this.coinsCollected = 0;
-        this.gemsCollected = 0;
-        this.moneyCollected = 0;
-        this.diamondsCollected = 0;
-        this.streak = 0;
-        this.maxStreak = 0;
         this.survivalTime = 0;
         this.startTime = 0;
-        this.bossDefeated = 0;
-        this.challengesCompleted = 0;
         
-        // Enhanced player with multiple ships
+        // Enhanced player with multiple weapons
         this.player = {
             x: 475,
             y: 600,
@@ -59,867 +37,90 @@ class EnhancedSpaceShooter {
                 secondary: 'missile',
                 tertiary: 'plasma'
             },
-            lastAutoDefense: 0,
-            shipType: 'gradius',
-            shipLevel: 1
+            lastAutoDefense: 0
         };
         
         // Enhanced weapon system
         this.currentWeapon = 'basic';
         this.weaponLevel = 1;
         this.lastShot = 0;
-        this.shotCooldown = 100;
-        this.rapidFireEnabled = true;
-        this.rapidFireRate = 50;
-        this.lastRapidShot = 0;
-        
-        // Weapons
-        this.availableWeapons = ['basic', 'plasma', 'spread', 'laser', 'missile', 'spread-shot', 'railgun', 'flamethrower', 'thunder', 'nuclear'];
-        this.weaponUnlocked = {
-            'basic': true,
-            'plasma': false,
-            'spread': false,
-            'laser': false,
-            'missile': false,
-            'spread-shot': false,
-            'railgun': false,
-            'flamethrower': false,
-            'thunder': false,
-            'nuclear': false
+        this.shotCooldown = 250;
+        this.rapidFireMode = false;
+        this.rapidFireTimer = 0;
+        this.rapidFireCooldown = 50; // Faster than normal shots
+        this.weaponAmmo = {
+            basic: Infinity,
+            plasma: 50,
+            spread: 30,
+            laser: 25,
+            missile: 10,
+            rapidRifle: 100
         };
         
-        // Ship designs
-        this.availableShips = ['gradius', 'interceptor', 'destroyer', 'battleship', 'stealth'];
-        this.shipUnlocked = {
-            'gradius': true,
-            'interceptor': false,
-            'destroyer': false,
-            'battleship': false,
-            'stealth': false
-        };
-        this.shipPrices = {
-            'interceptor': 1000,
-            'destroyer': 2500,
-            'battleship': 5000,
-            'stealth': 10000
-        };
+        // Ship type and economy
+        this.currentShipType = 'starfighter';
+        this.money = 0;
         
         // Game objects
         this.bullets = [];
         this.enemies = [];
-        this.bosses = [];
         this.powerups = [];
-        this.collectibles = [];
         this.explosions = [];
         this.particles = [];
         
-        // Level and boss system
-        this.enemiesPerLevel = 10; // Enemies needed to advance level
-        this.enemiesDestroyedThisLevel = 0;
-        this.boss = null;
-        this.bossSpawned = false;
-        this.bossHealth = 0;
-        this.maxBossHealth = 0;
-        this.bossDefeatedThisLevel = false;
-        
         // Game settings
-        this.enemySpawnRate = 90;
+        this.enemySpawnRate = 60;
         this.enemySpawnTimer = 0;
-        this.powerupSpawnRate = 400;
+        this.powerupSpawnRate = 300;
         this.powerupSpawnTimer = 0;
-        this.collectibleSpawnRate = 300;
-        this.collectibleSpawnTimer = 0;
-        this.levelUpThreshold = 10; // Enemies destroyed per level
-        this.difficultyRamp = 1.5;
         
-        // Mobile touch controls
-        this.touchStartX = 0;
-        this.touchStartY = 0;
-        this.touchActive = false;
-        this.lastTouchX = 0;
-        this.lastTouchY = 0;
-        this.autoShoot = true;
-        this.isShooting = false;
-        
-        // Addictiveness features
-        this.comboMultiplier = 1;
-        this.comboTimer = 0;
-        this.comboDecayTime = 3000;
-        this.scoreMultiplier = 1;
-        this.powerupChance = 0.05;
-        this.collectibleChance = 0.15;
-        this.streakBonus = 1;
-        
-        // Sound effects
-        this.sounds = {};
-        this.soundEnabled = true;
-        this.initSounds();
-        
-        // Pause/Resume functionality
-        this.isPaused = false;
-        this.pauseTime = 0;
-        this.totalPauseTime = 0;
-        
-        // Medal system
-        this.medals = {
-            bronze: { score: 5000, icon: '🥉' },
-            silver: { score: 15000, icon: '🥈' },
-            gold: { score: 30000, icon: '🥇' }
-        };
-        
-        // Store system
-        this.storeOpen = false;
-        
-        // Save/Load system
-        this.saveData = null;
-        this.autoSaveInterval = null;
-        
-        // Challenges system
-        this.challenges = [
-            { id: 'accuracy', name: 'Sharpshooter', description: 'Achieve 90% accuracy', target: 0.9, completed: false },
-            { id: 'combo', name: 'Combo Master', description: 'Get a 50x combo', target: 50, completed: false },
-            { id: 'survival', name: 'Survivor', description: 'Survive 10 minutes', target: 600, completed: false },
-            { id: 'boss', name: 'Boss Hunter', description: 'Defeat 5 bosses', target: 5, completed: false },
-            { id: 'score', name: 'High Scorer', description: 'Score 100,000 points', target: 100000, completed: false }
-        ];
+        // AI settings
+        this.aiMode = false;
+        this.aiDifficulty = 'normal';
         
         // Initialize canvas
         this.resizeCanvas();
         window.addEventListener('resize', () => this.resizeCanvas());
         
-        // Initialize sprites
-        this.initSprites();
+        // Initialize input system
+        this.keys = {};
+        this.initInput();
         
-        // Initialize touch controls
-        this.initTouchControls();
-        
-        // Initialize keyboard controls
-        this.initKeyboardControls();
+        // Load sprites
+        this.spriteManager.loadSprites();
         
         // Initialize game
         this.init();
-        
-        console.log('Game engine initialized successfully');
-    }
-    
-    initSounds() {
-        try {
-            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            
-            // Generate sound effects
-            this.sounds.missile = this.generateMissileSound();
-            this.sounds.explosion = this.generateExplosionSound();
-            this.sounds.shoot = this.generateShootSound();
-            this.sounds.powerup = this.generatePowerupSound();
-            this.sounds.levelUp = this.generateLevelUpSound();
-            this.sounds.coin = this.generateCoinSound();
-            this.sounds.gem = this.generateGemSound();
-            this.sounds.money = this.generateMoneySound();
-            this.sounds.diamond = this.generateDiamondSound();
-            this.sounds.boss = this.generateBossSound();
-            this.sounds.bossDefeat = this.generateBossDefeatSound();
-            
-        } catch (error) {
-            console.log('Audio not supported, sounds will be disabled');
-            this.soundEnabled = false;
-        }
-    }
-    
-    generateBossSound() {
-        if (!this.audioContext) return null;
-        
-        const oscillator = this.audioContext.createOscillator();
-        const gainNode = this.audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(this.audioContext.destination);
-        
-        oscillator.frequency.setValueAtTime(100, this.audioContext.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(200, this.audioContext.currentTime + 0.5);
-        
-        gainNode.gain.setValueAtTime(0.4, this.audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.5);
-        
-        return { oscillator, gainNode };
-    }
-    
-    generateBossDefeatSound() {
-        if (!this.audioContext) return null;
-        
-        const oscillator = this.audioContext.createOscillator();
-        const gainNode = this.audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(this.audioContext.destination);
-        
-        oscillator.frequency.setValueAtTime(200, this.audioContext.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(800, this.audioContext.currentTime + 0.8);
-        
-        gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.8);
-        
-        return { oscillator, gainNode };
-    }
-    
-    updateDifficulty() {
-        // Level advancement based on enemies destroyed
-        if (this.enemiesDestroyedThisLevel >= this.enemiesPerLevel) {
-            this.levelUp();
-        }
-    }
-    
-    levelUp() {
-        this.level++;
-        this.enemiesDestroyedThisLevel = 0;
-        this.bossDefeatedThisLevel = false;
-        
-        // Spawn boss every 5 levels
-        if (this.level % 5 === 0) {
-            this.spawnBoss();
-        }
-        
-        // Increase difficulty
-        this.enemySpawnRate = Math.max(15, 90 - (this.level * 8));
-        this.powerupChance = Math.min(0.2, 0.05 + (this.level * 0.01));
-        this.enemyHealthMultiplier = 1 + (this.level * 0.3);
-        this.enemySpeedMultiplier = 1 + (this.level * 0.15);
-        
-        // Show level up notification
-        this.showLevelUpNotification();
-        
-        // Play level up sound
-        this.playSound('levelUp');
-        
-        // Auto-save after level up
-        this.saveGame();
-    }
-    
-    spawnBoss() {
-        if (this.bossSpawned) return;
-        
-        const bossTypes = [
-            'cyber-dragon', 'void-walker', 'star-destroyer', 'nebula-beast', 'quantum-leviathan',
-            'time-warper', 'gravity-shifter', 'plasma-phantom', 'crystal-giant', 'dark-void',
-            'lightning-lord', 'frost-king', 'fire-demon', 'earth-shaper', 'wind-walker',
-            'shadow-master', 'light-bringer', 'chaos-bringer', 'order-keeper', 'balance-maintainer',
-            'void-crawler', 'star-eater', 'nebula-dweller', 'quantum-bender', 'time-shifter',
-            'gravity-puller', 'plasma-fist', 'crystal-binder', 'dark-master', 'lightning-fist',
-            'frost-finger', 'fire-hand', 'earth-mover', 'wind-blower', 'shadow-caster',
-            'light-ray', 'chaos-fist', 'order-hand', 'balance-scale', 'void-king',
-            'star-prince', 'nebula-queen', 'quantum-king', 'time-queen', 'gravity-king',
-            'plasma-queen', 'crystal-king', 'dark-queen', 'lightning-king', 'frost-queen'
-        ];
-        
-        const bossType = bossTypes[Math.min(this.level - 1, bossTypes.length - 1)];
-        const bossHealth = 500 + (this.level * 100);
-        const bossSpeed = 1 + (this.level * 0.1);
-        
-        this.boss = {
-            x: this.canvas.width / 2 - 75,
-            y: -150,
-            width: 150,
-            height: 150,
-            speed: bossSpeed,
-            health: bossHealth,
-            maxHealth: bossHealth,
-            type: bossType,
-            phase: 1,
-            attackPattern: 0,
-            lastAttack: 0,
-            attackCooldown: 2000
-        };
-        
-        this.maxBossHealth = bossHealth;
-        this.bossSpawned = true;
-        
-        // Play boss sound
-        this.playSound('boss');
-        
-        // Show boss notification
-        this.showBossNotification(bossType);
-    }
-    
-    showBossNotification(bossType) {
-        const notification = document.createElement('div');
-        notification.className = 'event-notification';
-        notification.innerHTML = `👹 BOSS BATTLE!<br><small>${bossType.toUpperCase()}</small>`;
-        notification.style.background = 'linear-gradient(135deg, #ff0000, #800000)';
-        notification.style.color = '#fff';
-        notification.style.fontWeight = 'bold';
-        notification.style.fontSize = '32px';
-        
-        document.getElementById('gameContainer').appendChild(notification);
-        
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 4000);
-    }
-    
-    updateBoss() {
-        if (!this.boss || this.bossHealth <= 0) return;
-        
-        // Move boss down
-        if (this.boss.y < 50) {
-            this.boss.y += 1;
-        }
-        
-        // Boss attack patterns
-        const now = Date.now();
-        if (now - this.boss.lastAttack > this.boss.attackCooldown) {
-            this.bossAttack();
-            this.boss.lastAttack = now;
-        }
-    }
-    
-    bossAttack() {
-        // Different attack patterns based on boss type and phase
-        const attackPatterns = [
-            this.spreadAttack.bind(this),
-            this.circleAttack.bind(this),
-            this.laserAttack.bind(this),
-            this.missileAttack.bind(this),
-            this.orbitalAttack.bind(this)
-        ];
-        
-        const pattern = attackPatterns[this.boss.attackPattern % attackPatterns.length];
-        pattern();
-        
-        this.boss.attackPattern++;
-    }
-    
-    spreadAttack() {
-        for (let i = -2; i <= 2; i++) {
-            this.enemies.push({
-                x: this.boss.x + this.boss.width / 2 - 15,
-                y: this.boss.y + this.boss.height,
-                width: 30,
-                height: 30,
-                speed: 3,
-                health: 50,
-                maxHealth: 50,
-                type: 'boss-minion',
-                angle: i * 0.5
-            });
-        }
-    }
-    
-    circleAttack() {
-        for (let i = 0; i < 8; i++) {
-            const angle = (i * Math.PI * 2) / 8;
-            this.enemies.push({
-                x: this.boss.x + this.boss.width / 2 - 15,
-                y: this.boss.y + this.boss.height,
-                width: 20,
-                height: 20,
-                speed: 2,
-                health: 30,
-                maxHealth: 30,
-                type: 'boss-projectile',
-                angle: angle
-            });
-        }
-    }
-    
-    laserAttack() {
-        // Create laser beam
-        this.bullets.push({
-            x: this.boss.x + this.boss.width / 2 - 1,
-            y: this.boss.y + this.boss.height,
-            width: 2,
-            height: this.canvas.height,
-            speed: 8,
-            damage: 40,
-            type: 'boss-laser',
-            isBossBullet: true
-        });
-    }
-    
-    missileAttack() {
-        for (let i = 0; i < 3; i++) {
-            this.bullets.push({
-                x: this.boss.x + (i - 1) * 30,
-                y: this.boss.y + this.boss.height,
-                width: 8,
-                height: 16,
-                speed: 4,
-                damage: 30,
-                type: 'boss-missile',
-                isBossBullet: true,
-                angle: Math.PI / 2
-            });
-        }
-    }
-    
-    orbitalAttack() {
-        // Create orbital projectiles
-        for (let i = 0; i < 4; i++) {
-            const angle = (i * Math.PI * 2) / 4 + Date.now() * 0.001;
-            this.enemies.push({
-                x: this.boss.x + this.boss.width / 2 + Math.cos(angle) * 100,
-                y: this.boss.y + this.boss.height / 2 + Math.sin(angle) * 100,
-                width: 25,
-                height: 25,
-                speed: 1.5,
-                health: 40,
-                maxHealth: 40,
-                type: 'boss-orbital',
-                orbitAngle: angle,
-                orbitRadius: 100,
-                orbitCenter: { x: this.boss.x + this.boss.width / 2, y: this.boss.y + this.boss.height / 2 }
-            });
-        }
-    }
-    
-    saveGame() {
-        const saveData = {
-            score: this.score,
-            level: this.level,
-            lives: this.lives,
-            enemiesDestroyed: this.enemiesDestroyed,
-            enemiesDestroyedThisLevel: this.enemiesDestroyedThisLevel,
-            bossDefeated: this.bossDefeated,
-            challengesCompleted: this.challengesCompleted,
-            coinsCollected: this.coinsCollected,
-            gemsCollected: this.gemsCollected,
-            moneyCollected: this.moneyCollected,
-            diamondsCollected: this.diamondsCollected,
-            streak: this.streak,
-            maxStreak: this.maxStreak,
-            accuracy: this.accuracy,
-            shotsFired: this.shotsFired,
-            shotsHit: this.shotsHit,
-            weaponUnlocked: this.weaponUnlocked,
-            shipUnlocked: this.shipUnlocked,
-            currentWeapon: this.currentWeapon,
-            playerShipType: this.player.shipType,
-            timestamp: new Date().toISOString()
-        };
-        
-        // Save to localStorage
-        localStorage.setItem('spaceShooterSave', JSON.stringify(saveData));
-        
-        // Save to Firebase if available
-        if (typeof firebaseUtils !== 'undefined' && firebaseUtils.isAvailable()) {
-            firebaseUtils.saveGameProgress(saveData).then(() => {
-                console.log('Game progress saved to Firebase');
-            }).catch(error => {
-                console.error('Failed to save game progress:', error);
-            });
-        }
-    }
-    
-    loadGame() {
-        // Try to load from localStorage first
-        const savedData = localStorage.getItem('spaceShooterSave');
-        if (savedData) {
-            try {
-                const data = JSON.parse(savedData);
-                this.score = data.score || 0;
-                this.level = data.level || 1;
-                this.lives = data.lives || 25;
-                this.enemiesDestroyed = data.enemiesDestroyed || 0;
-                this.enemiesDestroyedThisLevel = data.enemiesDestroyedThisLevel || 0;
-                this.bossDefeated = data.bossDefeated || 0;
-                this.challengesCompleted = data.challengesCompleted || 0;
-                this.coinsCollected = data.coinsCollected || 0;
-                this.gemsCollected = data.gemsCollected || 0;
-                this.moneyCollected = data.moneyCollected || 0;
-                this.diamondsCollected = data.diamondsCollected || 0;
-                this.streak = data.streak || 0;
-                this.maxStreak = data.maxStreak || 0;
-                this.accuracy = data.accuracy || 0;
-                this.shotsFired = data.shotsFired || 0;
-                this.shotsHit = data.shotsHit || 0;
-                
-                if (data.weaponUnlocked) {
-                    this.weaponUnlocked = { ...this.weaponUnlocked, ...data.weaponUnlocked };
-                }
-                
-                if (data.shipUnlocked) {
-                    this.shipUnlocked = { ...this.shipUnlocked, ...data.shipUnlocked };
-                }
-                
-                this.currentWeapon = data.currentWeapon || 'basic';
-                this.player.shipType = data.playerShipType || 'gradius';
-                
-                console.log('Game loaded successfully');
-                return true;
-            } catch (error) {
-                console.error('Failed to parse save data:', error);
-            }
-        }
-        
-        // Try to load from Firebase if localStorage failed
-        if (typeof firebaseUtils !== 'undefined' && firebaseUtils.isAvailable()) {
-            firebaseUtils.loadGameProgress().then((data) => {
-                if (data) {
-                    this.score = data.score || 0;
-                    this.level = data.level || 1;
-                    this.lives = data.lives || 25;
-                    // ... load other data
-                    console.log('Game loaded from Firebase');
-                }
-            }).catch(error => {
-                console.error('Failed to load from Firebase:', error);
-            });
-        }
-        
-        return false;
-    }
-    
-    drawCollectibles() {
-        for (const collectible of this.collectibles) {
-            // Add glow effect for collectibles
-            this.ctx.shadowColor = this.getCollectibleColor(collectible.type);
-            this.ctx.shadowBlur = 8;
-            
-            switch (collectible.type) {
-                case 'coin':
-                    // Draw coin as emoji
-                    this.ctx.font = `${collectible.height}px Arial`;
-                    this.ctx.textAlign = 'center';
-                    this.ctx.textBaseline = 'middle';
-                    this.ctx.fillText('🪙', collectible.x + collectible.width/2, collectible.y + collectible.height/2);
-                    break;
-                    
-                case 'gem':
-                    // Draw gem as emoji
-                    this.ctx.font = `${collectible.height}px Arial`;
-                    this.ctx.textAlign = 'center';
-                    this.ctx.textBaseline = 'middle';
-                    this.ctx.fillText('💎', collectible.x + collectible.width/2, collectible.y + collectible.height/2);
-                    break;
-                    
-                case 'money':
-                    // Draw money as emoji
-                    this.ctx.font = `${collectible.height}px Arial`;
-                    this.ctx.textAlign = 'center';
-                    this.ctx.textBaseline = 'middle';
-                    this.ctx.fillText('💰', collectible.x + collectible.width/2, collectible.y + collectible.height/2);
-                    break;
-                    
-                case 'diamond':
-                    // Draw diamond as emoji
-                    this.ctx.font = `${collectible.height}px Arial`;
-                    this.ctx.textAlign = 'center';
-                    this.ctx.textBaseline = 'middle';
-                    this.ctx.fillText('💠', collectible.x + collectible.width/2, collectible.y + collectible.height/2);
-                    break;
-            }
-            
-            this.ctx.shadowBlur = 0;
-        }
-    }
-    
-    updateComboAndScore(enemyType) {
-        // Update combo
-        this.combo++;
-        this.comboTimer = this.comboDecayTime;
-        
-        // Update accuracy
-        this.shotsHit++;
-        this.accuracy = this.shotsFired > 0 ? this.shotsHit / this.shotsFired : 0;
-        
-        // Calculate score based on enemy type and combo
-        let baseScore = 10;
-        switch (enemyType) {
-            case 'basic':
-                baseScore = 10;
-                break;
-            case 'fast':
-                baseScore = 25;
-                break;
-            case 'tank':
-                baseScore = 50;
-                break;
-            case 'boss':
-                baseScore = 200;
-                break;
-            case 'boss-minion':
-                baseScore = 75;
-                break;
-            case 'boss-projectile':
-                baseScore = 30;
-                break;
-            case 'boss-orbital':
-                baseScore = 60;
-                break;
-        }
-        
-        // Apply combo multiplier
-        this.comboMultiplier = Math.min(10, 1 + (this.combo * 0.5));
-        const finalScore = Math.floor(baseScore * this.comboMultiplier * this.scoreMultiplier);
-        
-        this.score += finalScore;
-        this.enemiesDestroyed++;
-        this.enemiesDestroyedThisLevel++;
-        
-        // Show score popup
-        this.showScorePopup(finalScore, enemyType);
-        
-        // Update max combo
-        if (this.combo > this.maxCombo) {
-            this.maxCombo = this.combo;
-        }
-        
-        // Check challenges
-        this.checkChallenges();
-    }
-    
-    checkChallenges() {
-        // Check accuracy challenge
-        if (this.accuracy >= 0.9 && !this.challenges.find(c => c.id === 'accuracy').completed) {
-            this.challenges.find(c => c.id === 'accuracy').completed = true;
-            this.showChallengeNotification('Sharpshooter', 'Achieve 90% accuracy');
-        }
-        
-        // Check combo challenge
-        if (this.combo >= 50 && !this.challenges.find(c => c.id === 'combo').completed) {
-            this.challenges.find(c => c.id === 'combo').completed = true;
-            this.showChallengeNotification('Combo Master', 'Get a 50x combo');
-        }
-        
-        // Check survival challenge
-        if (this.survivalTime >= 600 && !this.challenges.find(c => c.id === 'survival').completed) {
-            this.challenges.find(c => c.id === 'survival').completed = true;
-            this.showChallengeNotification('Survivor', 'Survive 10 minutes');
-        }
-        
-        // Check boss challenge
-        if (this.bossDefeated >= 5 && !this.challenges.find(c => c.id === 'boss').completed) {
-            this.challenges.find(c => c.id === 'boss').completed = true;
-            this.showChallengeNotification('Boss Hunter', 'Defeat 5 bosses');
-        }
-        
-        // Check score challenge
-        if (this.score >= 100000 && !this.challenges.find(c => c.id === 'score').completed) {
-            this.challenges.find(c => c.id === 'score').completed = true;
-            this.showChallengeNotification('High Scorer', 'Score 100,000 points');
-        }
-    }
-    
-    showChallengeNotification(challengeName, description) {
-        const notification = document.createElement('div');
-        notification.className = 'event-notification';
-        notification.innerHTML = `🏆 CHALLENGE COMPLETED!<br><small>${challengeName}: ${description}</small>`;
-        notification.style.background = 'linear-gradient(135deg, #FFD700, #FFA500)';
-        notification.style.color = '#000';
-        notification.style.fontWeight = 'bold';
-        notification.style.fontSize = '24px';
-        
-        document.getElementById('gameContainer').appendChild(notification);
-        
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 4000);
-    }
-    
-    shoot() {
-        const now = Date.now();
-        
-        // Track shots fired for accuracy
-        this.shotsFired++;
-        
-        // Rapid fire mode
-        if (this.rapidFireEnabled && (this.keys && this.keys[' '] || this.isShooting)) {
-            if (now - this.lastRapidShot > this.rapidFireRate) {
-                this.lastRapidShot = now;
-                this.createBullet();
-            }
-        } else {
-            // Single shot mode
-            if (now - this.lastShot > this.shotCooldown) {
-                this.lastShot = now;
-                this.createBullet();
-            }
-        }
-    }
-    
-    update() {
-        if (this.gameState !== 'playing') return;
-        
-        // Update survival time
-        this.survivalTime = Math.floor((Date.now() - this.startTime) / 1000);
-        
-        // Update combo timer
-        if (this.comboTimer > 0) {
-            this.comboTimer -= 16; // Assuming 60fps
-            if (this.comboTimer <= 0) {
-                this.combo = 0;
-                this.comboMultiplier = 1;
-            }
-        }
-        
-        // Update player
-        this.updatePlayer();
-        
-        // Update game objects
-        this.updateBullets();
-        this.updateEnemies();
-        this.updateBoss();
-        this.updatePowerups();
-        this.updateExplosions();
-        this.updateParticles();
-        this.updateCollectibles();
-        
-        // Spawn enemies and powerups
-        this.spawnEnemies();
-        this.spawnPowerups();
-        this.spawnCollectibles();
-        
-        // Check collisions
-        this.checkCollisions();
-        
-        // Update difficulty based on enemies destroyed
-        this.updateDifficulty();
-        
-        // Update UI
-        this.updateUI();
-        
-        // Auto-save every 30 seconds
-        if (this.survivalTime % 30 === 0 && this.survivalTime > 0) {
-            this.saveGame();
-        }
-    }
-    
-    updateUI() {
-        const scoreElement = document.getElementById('score');
-        const livesElement = document.getElementById('lives');
-        const levelElement = document.getElementById('level');
-        const comboElement = document.getElementById('combo');
-        const streakElement = document.getElementById('streak');
-        const accuracyElement = document.getElementById('accuracy');
-        const coinsElement = document.getElementById('coins');
-        const gemsElement = document.getElementById('gems');
-        const moneyElement = document.getElementById('money');
-        const diamondsElement = document.getElementById('diamonds');
-        
-        if (scoreElement) scoreElement.textContent = this.score.toLocaleString();
-        if (livesElement) livesElement.textContent = this.lives;
-        if (levelElement) levelElement.textContent = `${this.level}/50`;
-        if (comboElement) comboElement.textContent = this.combo;
-        if (streakElement) streakElement.textContent = this.streak;
-        if (accuracyElement) accuracyElement.textContent = Math.round(this.accuracy * 100);
-        if (coinsElement) coinsElement.textContent = this.coinsCollected;
-        if (gemsElement) gemsElement.textContent = this.gemsCollected;
-        if (moneyElement) moneyElement.textContent = this.moneyCollected.toLocaleString();
-        if (diamondsElement) diamondsElement.textContent = this.diamondsCollected;
-    }
-    
-    initKeyboardControls() {
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
-                if (this.gameState === 'playing') {
-                    this.pauseGame();
-                } else if (this.gameState === 'paused') {
-                    this.resumeGame();
-                }
-            }
-        });
-    }
-    
-    initTouchControls() {
-        // Touch start
-        this.canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            const touch = e.touches[0];
-            const rect = this.canvas.getBoundingClientRect();
-            this.touchStartX = touch.clientX - rect.left;
-            this.touchStartY = touch.clientY - rect.top;
-            this.touchActive = true;
-            this.isShooting = true; // Start shooting when touch begins
-            this.lastTouchX = this.touchStartX;
-            this.lastTouchY = this.touchStartY;
-            
-            // Move player to touch position
-            this.movePlayerToTouch(this.touchStartX, this.touchStartY);
-        });
-        
-        // Touch move
-        this.canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            if (!this.touchActive) return;
-            
-            const touch = e.touches[0];
-            const rect = this.canvas.getBoundingClientRect();
-            const touchX = touch.clientX - rect.left;
-            const touchY = touch.clientY - rect.top;
-            
-            // Move player to touch position
-            this.movePlayerToTouch(touchX, touchY);
-            
-            this.lastTouchX = touchX;
-            this.lastTouchY = touchY;
-        });
-        
-        // Touch end
-        this.canvas.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            this.touchActive = false;
-            this.isShooting = false; // Stop shooting when touch ends
-        });
-    }
-    
-    movePlayerToTouch(touchX, touchY) {
-        if (this.gameState !== 'playing') return;
-        
-        // Convert touch coordinates to canvas coordinates
-        const scaleX = this.canvas.width / this.canvas.offsetWidth;
-        const scaleY = this.canvas.height / this.canvas.offsetHeight;
-        
-        const canvasX = touchX * scaleX;
-        const canvasY = touchY * scaleY;
-        
-        // Move player to touch position with smooth interpolation
-        const targetX = Math.max(0, Math.min(canvasX - this.player.width / 2, this.canvas.width - this.player.width));
-        const targetY = Math.max(0, Math.min(canvasY - this.player.height / 2, this.canvas.height - this.player.height));
-        
-        // Smooth movement
-        const moveSpeed = 0.3;
-        this.player.x += (targetX - this.player.x) * moveSpeed;
-        this.player.y += (targetY - this.player.y) * moveSpeed;
-    }
-    
-    initSprites() {
-        console.log('🎨 Initializing sprites...');
-        this.spriteManager.loadSprites();
     }
     
     resizeCanvas() {
         const container = document.getElementById('gameContainer');
-        if (!container) {
-            console.error('Game container not found!');
-            return;
-        }
-        
         const containerRect = container.getBoundingClientRect();
-        const isMobile = window.innerWidth <= 768;
         
         // Set canvas size to fit container while maintaining aspect ratio
-        let maxWidth, maxHeight;
+        const maxWidth = Math.min(containerRect.width - 40, 1000);
+        const maxHeight = Math.min(containerRect.height - 40, 700);
         
-        if (isMobile) {
-            // Mobile: prioritize height and use full width
-            maxWidth = Math.min(containerRect.width - 20, window.innerWidth - 20);
-            maxHeight = Math.min(containerRect.height - 20, window.innerHeight * 0.7);
-        } else {
-            // Desktop: use standard sizing
-            maxWidth = Math.min(containerRect.width - 40, 1000);
-            maxHeight = Math.min(containerRect.height - 40, 700);
-        }
-        
-        this.canvas.width = maxWidth;
-        this.canvas.height = maxHeight;
+        // Round to whole numbers to avoid decimal issues
+        this.canvas.width = Math.round(maxWidth);
+        this.canvas.height = Math.round(maxHeight);
         
         // Update player position to center of canvas
         this.player.x = this.canvas.width / 2 - this.player.width / 2;
         this.player.y = this.canvas.height - this.player.height - 20;
         
-        console.log(`Canvas resized to ${maxWidth}x${maxHeight} (${isMobile ? 'mobile' : 'desktop'})`);
+        console.log(`Canvas resized to ${this.canvas.width}x${this.canvas.height}`);
+    }
+    
+    initInput() {
+        // Keyboard event listeners
+        document.addEventListener('keydown', (e) => {
+            this.keys[e.key] = true;
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            this.keys[e.key] = false;
+        });
     }
     
     init() {
@@ -931,25 +132,13 @@ class EnhancedSpaceShooter {
         this.combo = 0;
         this.maxCombo = 0;
         this.enemiesDestroyed = 0;
-        this.enemiesDestroyedThisLevel = 0;
-        this.shotsFired = 0;
-        this.shotsHit = 0;
-        this.accuracy = 0;
         this.powerupsCollected = 0;
-        this.coinsCollected = 0;
-        this.gemsCollected = 0;
-        this.moneyCollected = 0;
-        this.diamondsCollected = 0;
-        this.streak = 0;
-        this.maxStreak = 0;
         this.survivalTime = 0;
         
         // Clear all game objects
         this.bullets = [];
         this.enemies = [];
-        this.bosses = [];
         this.powerups = [];
-        this.collectibles = [];
         this.explosions = [];
         this.particles = [];
         
@@ -964,58 +153,85 @@ class EnhancedSpaceShooter {
         this.currentWeapon = 'basic';
         this.weaponLevel = 1;
         this.lastShot = 0;
-        this.lastRapidShot = 0;
         
         // Reset timers
         this.enemySpawnTimer = 0;
         this.powerupSpawnTimer = 0;
-        this.collectibleSpawnTimer = 0;
-        
-        // Reset boss
-        this.boss = null;
-        this.bossSpawned = false;
-        this.bossHealth = 0;
-        this.maxBossHealth = 0;
-        this.bossDefeatedThisLevel = false;
         
         // Update UI
         this.updateUI();
-        
-        console.log('Game initialized with 25 lives');
     }
     
     startGame() {
-        console.log('Starting game...');
+        console.log('🎮 Game starting, current state:', this.gameState);
         this.gameState = 'playing';
         this.startTime = Date.now();
         
-        // Reset game stats for new game
-        this.init();
+        // Don't call init() here as it resets the game state to 'menu'
+        // this.init();
+        
+        // Ensure player is positioned correctly for the game
+        this.player.x = this.canvas.width / 2 - this.player.width / 2;
+        this.player.y = this.canvas.height - this.player.height - 20;
+        this.player.health = this.player.maxHealth;
+        this.player.shield = 0;
+        this.player.invulnerable = 0;
+        this.lives = 25; // Ensure 25 lives
+        
+        // Reset game objects for new game
+        this.bullets = [];
+        this.enemies = [];
+        this.powerups = [];
+        this.explosions = [];
+        this.particles = [];
+        
+        // Reset timers
+        this.enemySpawnTimer = 0;
+        this.powerupSpawnTimer = 0;
         
         // Hide menu and show UI
-        const menu = document.getElementById('menu');
-        if (menu) menu.style.display = 'none';
+        document.getElementById('menu').style.display = 'none';
+        document.getElementById('gameContainer').classList.add('playing');
         
-        const gameContainer = document.getElementById('gameContainer');
-        if (gameContainer) gameContainer.classList.add('playing');
+        console.log('🎮 Game state set to playing, starting game loop...');
+        console.log('🎮 Player positioned at:', this.player.x, this.player.y);
         
-        // Update UI
-        this.updateUI();
-        
-        // Track game start event
-        if (typeof firebaseUtils !== 'undefined' && firebaseUtils.isAvailable()) {
-            firebaseUtils.trackEvent('game_started', {
-                timestamp: new Date().toISOString()
-            });
-        }
+        // Initialize touch controls
+        this.initTouchControls();
         
         // Start game loop
         this.gameLoop();
-        console.log('Game started successfully with 25 lives');
+    }
+    
+    pauseGame() {
+        if (this.gameState === 'playing') {
+            this.gameState = 'paused';
+            document.getElementById('pauseOverlay').style.display = 'flex';
+        }
+    }
+    
+    resumeGame() {
+        if (this.gameState === 'paused') {
+            this.gameState = 'playing';
+            document.getElementById('pauseOverlay').style.display = 'none';
+            this.gameLoop();
+        }
+    }
+    
+    gameOver() {
+        this.gameState = 'gameOver';
+        document.getElementById('gameContainer').classList.remove('playing');
+        document.getElementById('gameOver').style.display = 'flex';
+        
+        // Save high score
+        this.saveHighScore();
     }
     
     gameLoop() {
-        if (this.gameState !== 'playing') return;
+        if (this.gameState !== 'playing') {
+            console.log('🔄 Game loop stopped, state:', this.gameState);
+            return;
+        }
         
         // Update game
         this.update();
@@ -1025,6 +241,460 @@ class EnhancedSpaceShooter {
         
         // Continue loop
         requestAnimationFrame(() => this.gameLoop());
+    }
+    
+    update() {
+        // Update survival time
+        this.survivalTime = Math.floor((Date.now() - this.startTime) / 1000);
+        
+        // Update player
+        this.updatePlayer();
+        
+        // Update bullets
+        this.updateBullets();
+        
+        // Update enemies
+        this.updateEnemies();
+        
+        // Update powerups
+        this.updatePowerups();
+        
+        // Update explosions
+        this.updateExplosions();
+        
+        // Update particles
+        this.updateParticles();
+        
+        // Spawn enemies
+        this.spawnEnemies();
+        
+        // Spawn powerups
+        this.spawnPowerups();
+        
+        // Check collisions
+        this.checkCollisions();
+        
+        // Update UI
+        this.updateUI();
+        
+        // Debug: Log game state every 60 frames (once per second at 60fps)
+        if (this.survivalTime % 60 === 0) {
+            console.log('🔄 Game update - State:', this.gameState, 'Lives:', this.lives, 'Score:', this.score);
+        }
+    }
+    
+    updatePlayer() {
+        // Debug keys object
+        if (!this.keys) {
+            console.log('⚠️ No keys object available');
+            return;
+        }
+        
+        // Handle player movement
+        if (this.keys['ArrowLeft'] && this.player.x > 0) {
+            this.player.x -= this.player.speed;
+        }
+        if (this.keys['ArrowRight'] && this.player.x < this.canvas.width - this.player.width) {
+            this.player.x += this.player.speed;
+        }
+        if (this.keys['ArrowUp'] && this.player.y > 0) {
+            this.player.y -= this.player.speed;
+        }
+        if (this.keys['ArrowDown'] && this.player.y < this.canvas.height - this.player.height) {
+            this.player.y += this.player.speed;
+        }
+        
+        // Handle shooting
+        if (this.keys[' '] && Date.now() - this.lastShot > this.shotCooldown) {
+            this.shoot();
+        }
+        
+        // Weapon switching with number keys
+        if (this.keys['1']) this.currentWeapon = 'basic';
+        if (this.keys['2']) this.currentWeapon = 'plasma';
+        if (this.keys['3']) this.currentWeapon = 'spread';
+        if (this.keys['4']) this.currentWeapon = 'laser';
+        if (this.keys['5']) this.currentWeapon = 'missile';
+        if (this.keys['6']) this.currentWeapon = 'rapidRifle';
+        
+        // Update invulnerability
+        if (this.player.invulnerable > 0) {
+            this.player.invulnerable--;
+        }
+        
+        // Update auto defense
+        if (this.player.autoDefense && Date.now() - this.player.lastAutoDefense > 5000) {
+            this.player.shield = Math.min(this.player.shield + 20, 100);
+            this.player.lastAutoDefense = Date.now();
+        }
+    }
+    
+    shoot() {
+        const now = Date.now();
+        
+        // Check ammo for current weapon
+        if (this.weaponAmmo[this.currentWeapon] <= 0) {
+            // Switch to basic weapon if out of ammo
+            this.currentWeapon = 'basic';
+            return;
+        }
+        
+        // Handle rapid fire mode
+        if (this.rapidFireMode && this.currentWeapon === 'rapidRifle') {
+            if (now - this.rapidFireTimer < this.rapidFireCooldown) return;
+            this.rapidFireTimer = now;
+        } else {
+            if (now - this.lastShot < this.shotCooldown) return;
+            this.lastShot = now;
+        }
+        
+        // Consume ammo (except for basic weapon)
+        if (this.currentWeapon !== 'basic') {
+            this.weaponAmmo[this.currentWeapon]--;
+        }
+        
+        switch (this.currentWeapon) {
+            case 'basic':
+                this.bullets.push({
+                    x: this.player.x + this.player.width / 2 - 2,
+                    y: this.player.y,
+                    width: 4,
+                    height: 10,
+                    speed: 8,
+                    damage: 10,
+                    type: 'basic'
+                });
+                break;
+            case 'plasma':
+                this.bullets.push({
+                    x: this.player.x + this.player.width / 2 - 4,
+                    y: this.player.y,
+                    width: 8,
+                    height: 15,
+                    speed: 6,
+                    damage: 25,
+                    type: 'plasma'
+                });
+                break;
+            case 'spread':
+                for (let i = -1; i <= 1; i++) {
+                    this.bullets.push({
+                        x: this.player.x + this.player.width / 2 - 2 + i * 10,
+                        y: this.player.y,
+                        width: 4,
+                        height: 10,
+                        speed: 7,
+                        damage: 8,
+                        type: 'spread',
+                        angle: i * 0.3
+                    });
+                }
+                break;
+            case 'laser':
+                this.bullets.push({
+                    x: this.player.x + this.player.width / 2 - 1,
+                    y: this.player.y,
+                    width: 2,
+                    height: this.canvas.height,
+                    speed: 12,
+                    damage: 15,
+                    type: 'laser'
+                });
+                break;
+            case 'missile':
+                this.bullets.push({
+                    x: this.player.x + this.player.width / 2 - 3,
+                    y: this.player.y,
+                    width: 6,
+                    height: 12,
+                    speed: 5,
+                    damage: 40,
+                    type: 'missile',
+                    homing: true
+                });
+                break;
+            case 'rapidRifle':
+                // Rapid rifle fires multiple small bullets
+                for (let i = 0; i < 3; i++) {
+                    this.bullets.push({
+                        x: this.player.x + this.player.width / 2 - 1 + (i - 1) * 3,
+                        y: this.player.y,
+                        width: 2,
+                        height: 8,
+                        speed: 10,
+                        damage: 5,
+                        type: 'rapidRifle',
+                        spread: i
+                    });
+                }
+                break;
+        }
+    }
+    
+    updateBullets() {
+        for (let i = this.bullets.length - 1; i >= 0; i--) {
+            const bullet = this.bullets[i];
+            
+            // Update position
+            bullet.y -= bullet.speed;
+            
+            // Remove bullets that are off screen
+            if (bullet.y + bullet.height < 0) {
+                this.bullets.splice(i, 1);
+            }
+        }
+    }
+    
+    updateEnemies() {
+        for (let i = this.enemies.length - 1; i >= 0; i--) {
+            const enemy = this.enemies[i];
+            
+            // Update position
+            enemy.y += enemy.speed;
+            
+            // Remove enemies that are off screen
+            if (enemy.y > this.canvas.height) {
+                this.enemies.splice(i, 1);
+                this.lives--;
+                if (this.lives <= 0) {
+                    this.gameOver();
+                }
+            }
+        }
+    }
+    
+    updatePowerups() {
+        for (let i = this.powerups.length - 1; i >= 0; i--) {
+            const powerup = this.powerups[i];
+            
+            // Update position
+            powerup.y += powerup.speed;
+            
+            // Remove powerups that are off screen
+            if (powerup.y > this.canvas.height) {
+                this.powerups.splice(i, 1);
+            }
+        }
+    }
+    
+    updateExplosions() {
+        for (let i = this.explosions.length - 1; i >= 0; i--) {
+            const explosion = this.explosions[i];
+            explosion.frame++;
+            
+            if (explosion.frame >= explosion.maxFrames) {
+                this.explosions.splice(i, 1);
+            }
+        }
+    }
+    
+    updateParticles() {
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            const particle = this.particles[i];
+            
+            particle.x += particle.vx;
+            particle.y += particle.vy;
+            particle.life--;
+            
+            if (particle.life <= 0) {
+                this.particles.splice(i, 1);
+            }
+        }
+    }
+    
+    spawnEnemies() {
+        this.enemySpawnTimer++;
+        
+        if (this.enemySpawnTimer >= this.enemySpawnRate) {
+            this.enemySpawnTimer = 0;
+            
+            const enemyTypes = ['basic', 'fast', 'tank', 'boss'];
+            const type = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+            
+            const enemy = {
+                x: Math.random() * (this.canvas.width - 60),
+                y: -60,
+                width: 60,
+                height: 60,
+                speed: type === 'fast' ? 4 : type === 'tank' ? 1 : 2,
+                health: type === 'tank' ? 100 : type === 'boss' ? 200 : 20,
+                maxHealth: type === 'tank' ? 100 : type === 'boss' ? 200 : 20,
+                type: type
+            };
+            
+            this.enemies.push(enemy);
+        }
+    }
+    
+    spawnPowerups() {
+        this.powerupSpawnTimer++;
+        
+        if (this.powerupSpawnTimer >= this.powerupSpawnRate) {
+            this.powerupSpawnTimer = 0;
+            
+            const powerupTypes = ['health', 'shield', 'weapon', 'missile', 'rapidRifle', 'ammo', 'coin', 'gem', 'money', 'diamond'];
+            const type = powerupTypes[Math.floor(Math.random() * powerupTypes.length)];
+            
+            const powerup = {
+                x: Math.random() * (this.canvas.width - 30),
+                y: -30,
+                width: 30,
+                height: 30,
+                speed: 2,
+                type: type
+            };
+            
+            this.powerups.push(powerup);
+        }
+    }
+    
+    checkCollisions() {
+        // Check bullet-enemy collisions
+        for (let i = this.bullets.length - 1; i >= 0; i--) {
+            const bullet = this.bullets[i];
+            
+            for (let j = this.enemies.length - 1; j >= 0; j--) {
+                const enemy = this.enemies[j];
+                
+                if (this.isColliding(bullet, enemy)) {
+                    // Damage enemy
+                    enemy.health -= bullet.damage;
+                    
+                    // Remove bullet
+                    this.bullets.splice(i, 1);
+                    
+                    // Check if enemy is destroyed
+                    if (enemy.health <= 0) {
+                        this.enemies.splice(j, 1);
+                        this.score += enemy.type === 'boss' ? 500 : enemy.type === 'tank' ? 200 : 100;
+                        this.enemiesDestroyed++;
+                        this.combo++;
+                        this.maxCombo = Math.max(this.maxCombo, this.combo);
+                        
+                        // Add money based on enemy type
+                        if (enemy.type === 'boss') {
+                            this.money += 100;
+                        } else if (enemy.type === 'tank') {
+                            this.money += 25;
+                        } else {
+                            this.money += 10;
+                        }
+                        
+                        // Create explosion
+                        this.createExplosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
+                    }
+                    
+                    break;
+                }
+            }
+        }
+        
+        // Check player-enemy collisions
+        if (this.player.invulnerable === 0) {
+            for (let i = this.enemies.length - 1; i >= 0; i--) {
+                const enemy = this.enemies[i];
+                
+                if (this.isColliding(this.player, enemy)) {
+                    this.lives--;
+                    this.player.invulnerable = 120; // 2 seconds at 60fps
+                    this.combo = 0;
+                    
+                    // Create explosion
+                    this.createExplosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
+                    
+                    // Remove enemy
+                    this.enemies.splice(i, 1);
+                    
+                    if (this.lives <= 0) {
+                        this.gameOver();
+                    }
+                }
+            }
+        }
+        
+        // Check player-powerup collisions
+        for (let i = this.powerups.length - 1; i >= 0; i--) {
+            const powerup = this.powerups[i];
+            
+            if (this.isColliding(this.player, powerup)) {
+                this.collectPowerup(powerup);
+                this.powerups.splice(i, 1);
+            }
+        }
+    }
+    
+    isColliding(rect1, rect2) {
+        return rect1.x < rect2.x + rect2.width &&
+               rect1.x + rect1.width > rect2.x &&
+               rect1.y < rect2.y + rect2.height &&
+               rect1.y + rect1.height > rect2.y;
+    }
+    
+    collectPowerup(powerup) {
+        this.powerupsCollected++;
+        
+        switch (powerup.type) {
+            case 'health':
+                this.player.health = Math.min(this.player.health + 30, this.player.maxHealth);
+                break;
+            case 'shield':
+                this.player.shield = Math.min(this.player.shield + 50, 100);
+                break;
+            case 'weapon':
+                const weapons = ['basic', 'plasma', 'spread', 'laser', 'missile', 'rapidRifle'];
+                this.currentWeapon = weapons[Math.floor(Math.random() * weapons.length)];
+                break;
+            case 'missile':
+                this.player.missiles += 5;
+                break;
+            case 'rapidRifle':
+                this.currentWeapon = 'rapidRifle';
+                this.rapidFireMode = true;
+                this.weaponAmmo.rapidRifle += 50;
+                break;
+            case 'ammo':
+                // Refill all weapon ammo
+                for (const weapon in this.weaponAmmo) {
+                    if (weapon !== 'basic') {
+                        this.weaponAmmo[weapon] += 25;
+                    }
+                }
+                break;
+            case 'coin':
+                this.money += 5;
+                break;
+            case 'gem':
+                this.money += 25;
+                break;
+            case 'money':
+                this.money += 50;
+                break;
+            case 'diamond':
+                this.money += 100;
+                break;
+        }
+    }
+    
+    createExplosion(x, y) {
+        this.explosions.push({
+            x: x - 25,
+            y: y - 25,
+            width: 50,
+            height: 50,
+            frame: 0,
+            maxFrames: 8
+        });
+        
+        // Create particles
+        for (let i = 0; i < 10; i++) {
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: (Math.random() - 0.5) * 10,
+                vy: (Math.random() - 0.5) * 10,
+                life: 30
+            });
+        }
     }
     
     render() {
@@ -1038,272 +708,493 @@ class EnhancedSpaceShooter {
         this.drawPlayer();
         this.drawBullets();
         this.drawEnemies();
-        this.drawBoss();
         this.drawPowerups();
-        this.drawCollectibles();
         this.drawExplosions();
         this.drawParticles();
         
         // Draw UI
         this.drawUI();
-    }
-
-    // Store functionality
-    openStore() {
-        if (this.gameState === 'playing') {
-            this.gameState = 'paused';
-        }
         
-        // Create store overlay
-        const storeOverlay = document.createElement('div');
-        storeOverlay.id = 'storeOverlay';
-        storeOverlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        `;
-        
-        const storeContent = document.createElement('div');
-        storeContent.className = 'menu-content';
-        storeContent.style.cssText = `
-            background: linear-gradient(135deg, rgba(26, 26, 46, 0.98) 0%, rgba(22, 33, 62, 0.98) 100%);
-            padding: 40px;
-            border-radius: 25px;
-            border: 2px solid rgba(0, 255, 136, 0.3);
-            text-align: center;
-            max-width: 800px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 0 50px rgba(0, 255, 136, 0.3);
-            position: relative;
-            z-index: 1001;
-        `;
-        
-        // Add mobile responsiveness to store content
-        const isMobile = window.innerWidth <= 768;
-        if (isMobile) {
-            storeContent.style.cssText += `
-                padding: 20px;
-                max-width: 95%;
-                width: 95%;
-                max-height: 90vh;
-                margin: 10px;
-            `;
-        }
-        
-        storeContent.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px;">
-                <h2 style="margin: 0; color: #00ff88; font-size: ${isMobile ? '1.5em' : '2em'};">🏪 Ship Store</h2>
-                <button onclick="game.closeStore()" style="
-                    background: rgba(255, 255, 255, 0.1);
-                    border: 2px solid rgba(255, 255, 255, 0.3);
-                    border-radius: 50%;
-                    width: ${isMobile ? '35px' : '40px'};
-                    height: ${isMobile ? '35px' : '40px'};
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                    font-size: ${isMobile ? '16px' : '18px'};
-                    font-weight: bold;
-                    color: white;
-                ">✕</button>
-            </div>
-            <div style="margin-bottom: 20px; font-size: ${isMobile ? '1em' : '1.2em'}; color: #00ff88;">
-                💰 Money: $${this.moneyCollected} | 💠 Diamonds: ${this.diamondsCollected}
-            </div>
-            <div style="
-                background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 204, 102, 0.1) 100%);
-                border: 2px solid rgba(0, 255, 136, 0.3);
-                border-radius: 15px;
-                padding: ${isMobile ? '12px 15px' : '15px 20px'};
-                margin-bottom: 20px;
-                text-align: center;
-            ">
-                <div style="color: #00ff88; font-weight: bold; font-size: ${isMobile ? '1em' : '1.1em'}; margin-bottom: 5px;">
-                    🎮 In-Game Currency Only
-                </div>
-                <div style="color: rgba(255, 255, 255, 0.8); font-size: ${isMobile ? '0.8em' : '0.9em'};">
-                    This store uses <strong>fake money earned by playing the game</strong>, not real money!
-                </div>
-            </div>
-            <div id="storeItems" style="display: grid; grid-template-columns: ${isMobile ? '1fr' : 'repeat(auto-fit, minmax(250px, 1fr))'}; gap: ${isMobile ? '15px' : '20px'};">
-                ${this.generateStoreItems()}
-            </div>
-        `;
-        
-        storeOverlay.appendChild(storeContent);
-        document.body.appendChild(storeOverlay);
-    }
-
-    closeStore() {
-        const storeOverlay = document.getElementById('storeOverlay');
-        if (storeOverlay) {
-            storeOverlay.remove();
-        }
-        
-        if (this.gameState === 'paused') {
-            this.gameState = 'playing';
+        // Debug: Log render calls
+        if (this.survivalTime % 60 === 0) {
+            console.log('🎨 Game render - Canvas size:', this.canvas.width, 'x', this.canvas.height);
+            console.log('🎨 Player position:', this.player.x, this.player.y, 'Size:', this.player.width, 'x', this.player.height);
+            console.log('🎨 Enemies count:', this.enemies.length, 'Bullets count:', this.bullets.length);
         }
     }
-
-    generateStoreItems() {
-        let itemsHTML = '';
-        const isMobile = window.innerWidth <= 768;
-        
-        for (const shipType of this.availableShips) {
-            if (!this.shipUnlocked[shipType]) {
-                const price = this.shipPrices[shipType] || 100;
-                const description = this.getShipDescription(shipType);
-                
-                itemsHTML += `
-                    <div style="
-                        background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-                        border: 1px solid rgba(0, 255, 136, 0.2);
-                        border-radius: 20px;
-                        padding: ${isMobile ? '15px' : '25px'};
-                        transition: all 0.3s ease;
-                        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-                    ">
-                        <div style="display: flex; align-items: center; margin-bottom: 15px; ${isMobile ? 'flex-direction: column; text-align: center;' : ''}">
-                            <div style="font-size: ${isMobile ? '2em' : '2.5em'}; ${isMobile ? 'margin-bottom: 10px;' : 'margin-right: 15px;'}">
-                                ${this.getShipIcon(shipType)}
-                            </div>
-                            <div>
-                                <h3 style="margin: 0; color: #00ff88; font-size: ${isMobile ? '1.2em' : '1.5em'};">${shipType.charAt(0).toUpperCase() + shipType.slice(1)}</h3>
-                                <p style="margin: 5px 0; color: rgba(255, 255, 255, 0.7); font-size: ${isMobile ? '0.8em' : '0.9em'};">${description}</p>
-                            </div>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; ${isMobile ? 'flex-direction: column; gap: 10px;' : ''}">
-                            <div style="color: #00ff88; font-weight: bold; font-size: ${isMobile ? '1em' : '1.2em'};">
-                                💰 $${price}
-                            </div>
-                            <button onclick="game.buyShip('${shipType}')" style="
-                                background: linear-gradient(135deg, #00ff88, #00cc66);
-                                border: none;
-                                padding: ${isMobile ? '8px 15px' : '10px 20px'};
-                                border-radius: 25px;
-                                color: #000;
-                                font-weight: bold;
-                                font-size: ${isMobile ? '12px' : '14px'};
-                                cursor: pointer;
-                                transition: all 0.3s ease;
-                                box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
-                                ${isMobile ? 'width: 100%;' : ''}
-                            ">Buy Ship</button>
-                        </div>
-                    </div>
-                `;
-            }
+    
+    drawBackground() {
+        // Debug: Log background drawing
+        if (this.survivalTime % 60 === 0) {
+            console.log('🎨 Drawing background, canvas size:', this.canvas.width, 'x', this.canvas.height);
         }
         
-        if (itemsHTML === '') {
-            itemsHTML = `
-                <div style="
-                    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-                    border: 1px solid rgba(0, 255, 136, 0.2);
-                    border-radius: 20px;
-                    padding: ${isMobile ? '15px' : '25px'};
-                    text-align: center;
-                ">
-                    <h3 style="color: #00ff88; margin-bottom: 10px; font-size: ${isMobile ? '1.2em' : '1.5em'};">🎉 All Ships Unlocked!</h3>
-                    <p style="color: rgba(255, 255, 255, 0.7); font-size: ${isMobile ? '0.9em' : '1em'};">You've unlocked all available ships!</p>
-                </div>
-            `;
+        // Draw starfield
+        this.ctx.fillStyle = '#000033';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Draw stars
+        this.ctx.fillStyle = '#ffffff';
+        for (let i = 0; i < 100; i++) {
+            const x = (i * 37) % this.canvas.width;
+            const y = (i * 73 + Date.now() * 0.01) % this.canvas.height;
+            this.ctx.fillRect(x, y, 1, 1);
+        }
+    }
+    
+    drawPlayer() {
+        if (this.player.invulnerable > 0 && Math.floor(this.player.invulnerable / 10) % 2) {
+            return; // Blink when invulnerable
         }
         
-        return itemsHTML;
-    }
-
-    getShipDescription(shipType) {
-        const descriptions = {
-            'gradius': 'Balanced starter ship with good all-around stats',
-            'interceptor': 'Fast and agile fighter with enhanced damage',
-            'destroyer': 'Heavy damage dealer, slower but powerful',
-            'battleship': 'Massive ship with multiple weapons',
-            'stealth': 'Sleek and dark with stealth capabilities'
-        };
-        return descriptions[shipType] || 'Unknown ship type';
-    }
-
-    getShipIcon(shipType) {
-        const icons = {
-            'gradius': '🛸',
-            'interceptor': '🚀',
-            'destroyer': '🛰️',
-            'battleship': '⚔️',
-            'stealth': '🕶️'
-        };
-        return icons[shipType] || '🚀';
-    }
-
-    buyShip(shipType) {
-        const price = this.shipPrices[shipType] || 100;
+        // Debug: Log player drawing
+        if (this.survivalTime % 60 === 0) {
+            console.log('🎨 Drawing player at:', this.player.x, this.player.y, 'Size:', this.player.width, 'x', this.player.height);
+        }
         
-        if (this.moneyCollected >= price) {
-            this.moneyCollected -= price;
-            this.shipUnlocked[shipType] = true;
-            this.player.shipType = shipType;
-            
-            // Show purchase notification
-            this.showPurchaseNotification(shipType);
-            
-            // Update store display
-            const storeItems = document.getElementById('storeItems');
-            if (storeItems) {
-                storeItems.innerHTML = this.generateStoreItems();
-            }
-            
-            // Update UI
-            this.updateUI();
-            
-            console.log(`Ship ${shipType} purchased successfully!`);
+        // Use sprite if available, fallback to colored rectangle
+        if (this.spriteManager && this.spriteManager.isSpriteLoaded('player-fighter')) {
+            this.spriteManager.drawSprite(this.ctx, 'player-fighter', this.player.x, this.player.y, this.player.width, this.player.height);
         } else {
-            alert('Not enough money to purchase this ship!');
+            // Fallback to colored rectangle
+            this.ctx.fillStyle = '#00ffff';
+            this.ctx.fillRect(this.player.x, this.player.y, this.player.width, this.player.height);
+        }
+        
+        // Draw shield
+        if (this.player.shield > 0) {
+            this.ctx.strokeStyle = '#00ffff';
+            this.ctx.lineWidth = 2;
+            this.ctx.beginPath();
+            this.ctx.arc(this.player.x + this.player.width / 2, this.player.y + this.player.height / 2, 
+                        this.player.width / 2 + 10, 0, Math.PI * 2);
+            this.ctx.stroke();
         }
     }
-
-    showPurchaseNotification(shipType) {
-        const notification = document.createElement('div');
-        notification.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, #00ff88, #00cc66);
-            color: #000;
-            padding: 20px 40px;
-            border-radius: 15px;
-            font-weight: bold;
-            font-size: 24px;
-            text-align: center;
-            z-index: 2000;
-            box-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
-            animation: notificationPop 0.5s ease-out;
-        `;
-        
-        notification.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 1.5em;">🎉</span>
-                <span>Ship ${shipType.charAt(0).toUpperCase() + shipType.slice(1)} purchased!</span>
-            </div>
-        `;
-
-        document.body.appendChild(notification);
-
-        // Remove after 3 seconds
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
+    
+    drawBullets() {
+        for (const bullet of this.bullets) {
+            // Different colors and effects for different bullet types
+            switch (bullet.type) {
+                case 'basic':
+                    this.ctx.fillStyle = '#ffff00';
+                    this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                    break;
+                case 'plasma':
+                    this.ctx.fillStyle = '#ff00ff';
+                    this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                    // Add plasma glow
+                    this.ctx.shadowColor = '#ff00ff';
+                    this.ctx.shadowBlur = 5;
+                    this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                    this.ctx.shadowBlur = 0;
+                    break;
+                case 'spread':
+                    this.ctx.fillStyle = '#00ffff';
+                    this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                    break;
+                case 'laser':
+                    this.ctx.fillStyle = '#ff0000';
+                    this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                    // Add laser glow
+                    this.ctx.shadowColor = '#ff0000';
+                    this.ctx.shadowBlur = 8;
+                    this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                    this.ctx.shadowBlur = 0;
+                    break;
+                case 'missile':
+                    this.ctx.fillStyle = '#ff6600';
+                    this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                    break;
+                case 'rapidRifle':
+                    this.ctx.fillStyle = '#ffaa00';
+                    this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                    break;
             }
-        }, 3000);
+        }
+    }
+    
+    drawEnemies() {
+        for (const enemy of this.enemies) {
+            // Use sprite if available, fallback to colored rectangle
+            let spriteName = '';
+            let fallbackColor = '#ff0000';
+            
+            switch (enemy.type) {
+                case 'basic':
+                    spriteName = 'enemy-basic';
+                    fallbackColor = '#ff0000';
+                    break;
+                case 'fast':
+                    spriteName = 'enemy-fast';
+                    fallbackColor = '#ff6600';
+                    break;
+                case 'tank':
+                    spriteName = 'enemy-tank';
+                    fallbackColor = '#660066';
+                    break;
+                case 'boss':
+                    spriteName = 'enemy-boss';
+                    fallbackColor = '#ff0066';
+                    break;
+            }
+            
+            if (this.spriteManager && this.spriteManager.isSpriteLoaded(spriteName)) {
+                this.spriteManager.drawSprite(this.ctx, spriteName, enemy.x, enemy.y, enemy.width, enemy.height);
+            } else {
+                // Fallback to colored rectangle
+                this.ctx.fillStyle = fallbackColor;
+                this.ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+            }
+        }
+    }
+    
+    drawPowerups() {
+        for (const powerup of this.powerups) {
+            // Use emojis for all powerups
+            let emoji = '';
+            let color = '#ffffff';
+            
+            switch (powerup.type) {
+                case 'health':
+                    emoji = '❤️';
+                    color = '#ff0000';
+                    break;
+                case 'shield':
+                    emoji = '🛡️';
+                    color = '#00ffff';
+                    break;
+                case 'weapon':
+                    emoji = '⚡';
+                    color = '#ffff00';
+                    break;
+                case 'missile':
+                    emoji = '🚀';
+                    color = '#ff00ff';
+                    break;
+                case 'rapidRifle':
+                    emoji = '🔫';
+                    color = '#ff6600';
+                    break;
+                case 'ammo':
+                    emoji = '📦';
+                    color = '#00ff00';
+                    break;
+                case 'coin':
+                    emoji = '🪙';
+                    color = '#ffd700';
+                    break;
+                case 'gem':
+                    emoji = '💎';
+                    color = '#ff69b4';
+                    break;
+                case 'money':
+                    emoji = '💰';
+                    color = '#32cd32';
+                    break;
+                case 'diamond':
+                    emoji = '💠';
+                    color = '#00bfff';
+                    break;
+            }
+            
+            // Draw emoji
+            this.ctx.font = '24px Arial';
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            this.ctx.fillText(emoji, powerup.x + powerup.width / 2, powerup.y + powerup.height / 2);
+            
+            // Draw glow effect
+            this.ctx.shadowColor = color;
+            this.ctx.shadowBlur = 10;
+            this.ctx.fillText(emoji, powerup.x + powerup.width / 2, powerup.y + powerup.height / 2);
+            this.ctx.shadowBlur = 0;
+        }
+    }
+    
+    drawExplosions() {
+        for (const explosion of this.explosions) {
+            const alpha = 1 - (explosion.frame / explosion.maxFrames);
+            this.ctx.fillStyle = `rgba(255, 255, 0, ${alpha})`;
+            this.ctx.fillRect(explosion.x, explosion.y, explosion.width, explosion.height);
+        }
+    }
+    
+    drawParticles() {
+        this.ctx.fillStyle = '#ffff00';
+        for (const particle of this.particles) {
+            this.ctx.fillRect(particle.x, particle.y, 2, 2);
+        }
+    }
+    
+    drawUI() {
+        // Draw health bar
+        const healthBarWidth = 200;
+        const healthBarHeight = 20;
+        const healthBarX = 10;
+        const healthBarY = 10;
+        
+        this.ctx.fillStyle = '#333333';
+        this.ctx.fillRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
+        
+        this.ctx.fillStyle = '#00ff00';
+        this.ctx.fillRect(healthBarX, healthBarY, (this.player.health / this.player.maxHealth) * healthBarWidth, healthBarHeight);
+        
+        // Draw shield bar
+        if (this.player.shield > 0) {
+            this.ctx.fillStyle = '#00ffff';
+            this.ctx.fillRect(healthBarX, healthBarY + healthBarHeight + 5, (this.player.shield / 100) * healthBarWidth, healthBarHeight);
+        }
+        
+        // Draw weapon info
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.font = '14px Arial';
+        this.ctx.textAlign = 'left';
+        this.ctx.textBaseline = 'top';
+        
+        const weaponY = healthBarY + healthBarHeight * 2 + 15;
+        this.ctx.fillText(`Weapon: ${this.currentWeapon}`, healthBarX, weaponY);
+        
+        // Show ammo for current weapon (if not basic)
+        if (this.currentWeapon !== 'basic') {
+            this.ctx.fillText(`Ammo: ${this.weaponAmmo[this.currentWeapon]}`, healthBarX, weaponY + 20);
+        }
+        
+        // Show rapid fire status
+        if (this.rapidFireMode) {
+            this.ctx.fillStyle = '#ffaa00';
+            this.ctx.fillText('RAPID FIRE!', healthBarX + 250, weaponY);
+        }
+    }
+    
+    updateUI() {
+        const scoreElement = document.getElementById('score');
+        const livesElement = document.getElementById('lives');
+        const levelElement = document.getElementById('level');
+        const comboElement = document.getElementById('combo');
+        const moneyElement = document.getElementById('money');
+        const coinsElement = document.getElementById('coins');
+        const gemsElement = document.getElementById('gems');
+        const diamondsElement = document.getElementById('diamonds');
+        
+        if (scoreElement) scoreElement.textContent = this.score;
+        if (livesElement) livesElement.textContent = this.lives;
+        if (levelElement) levelElement.textContent = this.level;
+        if (comboElement) comboElement.textContent = this.combo;
+        if (moneyElement) moneyElement.textContent = this.money;
+        
+        // Calculate other currency types from money
+        const coins = Math.floor(this.money / 5);
+        const gems = Math.floor(this.money / 25);
+        const diamonds = Math.floor(this.money / 100);
+        
+        if (coinsElement) coinsElement.textContent = coins;
+        if (gemsElement) gemsElement.textContent = gems;
+        if (diamondsElement) diamondsElement.textContent = diamonds;
+    }
+    
+    saveHighScore() {
+        // Save to localStorage
+        const highScores = JSON.parse(localStorage.getItem('highScores') || '[]');
+        highScores.push({
+            score: this.score,
+            date: new Date().toISOString(),
+            survivalTime: this.survivalTime,
+            enemiesDestroyed: this.enemiesDestroyed,
+            powerupsCollected: this.powerupsCollected
+        });
+        
+        // Sort by score (highest first)
+        highScores.sort((a, b) => b.score - a.score);
+        
+        // Keep only top 10
+        highScores.splice(10);
+        
+        localStorage.setItem('highScores', JSON.stringify(highScores));
+    }
+    
+    getPlayerSpriteName() {
+        const spriteMap = {
+            "starfighter": "player-fighter",
+            "interceptor": "player-interceptor",
+            "destroyer": "player-destroyer",
+            "stealth": "player-fighter",
+            "elite": "player-interceptor"
+        };
+        return spriteMap[this.currentShipType] || "player-fighter";
+    }
+    
+    // Store and game management methods
+    openStore() {
+        console.log('🏪 Opening ship store...');
+        // TODO: Implement store UI
+        alert('Ship store coming soon!');
+    }
+    
+    closeStore() {
+        console.log('🏪 Closing ship store...');
+        // TODO: Implement store close
+    }
+    
+    buyShip(shipType) {
+        console.log('🛒 Buying ship:', shipType);
+        
+        const shipPrices = {
+            'starfighter': 0,
+            'interceptor': 1000,
+            'destroyer': 2500,
+            'stealth': 5000,
+            'elite': 10000
+        };
+        
+        const price = shipPrices[shipType];
+        
+        if (this.money >= price) {
+            this.money -= price;
+            this.currentShipType = shipType;
+            
+            // Apply ship bonuses
+            switch (shipType) {
+                case 'interceptor':
+                    this.player.speed = 8;
+                    this.player.maxHealth = 80;
+                    break;
+                case 'destroyer':
+                    this.player.speed = 3;
+                    this.player.maxHealth = 150;
+                    this.player.shield = 50;
+                    break;
+                case 'stealth':
+                    this.player.speed = 6;
+                    this.player.maxHealth = 100;
+                    // Stealth ability could be implemented here
+                    break;
+                case 'elite':
+                    this.player.speed = 7;
+                    this.player.maxHealth = 200;
+                    this.player.shield = 100;
+                    break;
+                default:
+                    this.player.speed = 5;
+                    this.player.maxHealth = 100;
+                    this.player.shield = 0;
+            }
+            
+            this.player.health = this.player.maxHealth;
+            console.log(`✅ Ship ${shipType} purchased for $${price}!`);
+            return true;
+        } else {
+            console.log(`❌ Not enough money! Need $${price}, have $${this.money}`);
+            return false;
+        }
+    }
+    
+    loadGame() {
+        console.log('📂 Loading saved game...');
+        // TODO: Implement game loading
+        return false; // No saved game for now
+    }
+    
+    saveGame() {
+        console.log('💾 Saving game...');
+        // TODO: Implement game saving
+        const gameData = {
+            score: this.score,
+            lives: this.lives,
+            level: this.level,
+            money: this.money,
+            currentShipType: this.currentShipType,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('savedGame', JSON.stringify(gameData));
+        console.log('✅ Game saved to localStorage');
+    }
+    
+    loadGame() {
+        console.log('📂 Loading saved game...');
+        const savedGame = localStorage.getItem('savedGame');
+        
+        if (savedGame) {
+            try {
+                const gameData = JSON.parse(savedGame);
+                this.score = gameData.score || 0;
+                this.lives = gameData.lives || 25;
+                this.level = gameData.level || 1;
+                this.money = gameData.money || 0;
+                this.currentShipType = gameData.currentShipType || 'starfighter';
+                
+                // Apply ship bonuses
+                this.buyShip(this.currentShipType);
+                
+                console.log('✅ Game loaded from localStorage');
+                return true;
+            } catch (error) {
+                console.error('❌ Error loading game:', error);
+                return false;
+            }
+        }
+        
+        console.log('❌ No saved game found');
+        return false;
+    }
+    
+    showHighScores() {
+        console.log('🏆 Showing high scores...');
+        // TODO: Implement high score display
+        alert('High scores coming soon!');
+    }
+    
+    checkForGameUpdates() {
+        console.log('🔄 Checking for game updates...');
+        // TODO: Implement update checking
+        alert('Update system coming soon!');
+    }
+    
+    initTouchControls() {
+        console.log('📱 Initializing touch controls...');
+        const canvas = this.canvas;
+        
+        // Touch start
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (this.gameState !== 'playing') return;
+            
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            
+            // Convert to canvas coordinates
+            const canvasX = (x / rect.width) * canvas.width;
+            const canvasY = (y / rect.height) * canvas.height;
+            
+            // Move player to touch position
+            this.player.x = Math.max(0, Math.min(canvas.width - this.player.width, canvasX - this.player.width / 2));
+            this.player.y = Math.max(0, Math.min(canvas.height - this.player.height, canvasY - this.player.height / 2));
+            
+            // Auto-shoot on touch
+            this.shoot();
+        });
+        
+        // Touch move
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (this.gameState !== 'playing') return;
+            
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            
+            // Convert to canvas coordinates
+            const canvasX = (x / rect.width) * canvas.width;
+            const canvasY = (y / rect.height) * canvas.height;
+            
+            // Move player to touch position
+            this.player.x = Math.max(0, Math.min(canvas.width - this.player.width, canvasX - this.player.width / 2));
+            this.player.y = Math.max(0, Math.min(canvas.height - this.player.height, canvasY - this.player.height / 2));
+        });
+        
+        console.log('✅ Touch controls initialized');
     }
 }

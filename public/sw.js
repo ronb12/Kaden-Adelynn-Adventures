@@ -1,8 +1,8 @@
-const CACHE_NAME = 'space-adventures-v1.0.0';
+const CACHE_NAME = 'space-adventures-v2.0.0';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/css/styles.css',
+  '/css/styles-consolidated.css',
   '/js/game-engine.js',
   '/js/firebase-config.js',
   '/js/sprite-manager.js',
