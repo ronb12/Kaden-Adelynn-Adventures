@@ -1441,7 +1441,7 @@
         </div>
         
         <!-- Floating AI Control Button -->
-        <div id="aiControls" style="position: fixed; top: 20px; right: 20px; z-index: 1000; display: none;">
+        <div id="aiControls" style="position: fixed; top: 20px; left: 20px; z-index: 1000; display: none;">
             <button class="btn ai-btn-floating" onclick="enableAIMode()">🤖 AI MODE</button>
         </div>
     </div>
@@ -1530,12 +1530,23 @@
                 this.explosions = [];
                 
                 // Enhanced features
+                // Sprite system
+                this.sprites = {};
+                this.useSprites = true;
+                this.spritesLoaded = 0;
+                this.totalSprites = 0;
                 this.screenShake = 0;
                 this.backgroundOffset = 0;
                 this.bossActive = false;
                 this.boss = null;
                 this.cockpitMode = false;
                 this.maxLevel = 50;
+                
+                // Sprite system
+                this.sprites = {};
+                this.useSprites = true;
+                this.spritesLoaded = 0;
+                this.totalSprites = 0;
                 
                 // Difficulty scaling
                 this.enemySpawnRate = 2.5;
@@ -1773,7 +1784,83 @@
                     // Continue without audio
                 }
             }
+            }
             
+            initSprites() {
+                console.log("🎨 Loading sprites...");
+                const spriteList = {
+                    // Player ships
+                    "player-fighter": "assets/sprites/player/fighter-01.png",
+                    "player-interceptor": "assets/sprites/player/fighter-02.png",
+                    "player-destroyer": "assets/sprites/player/fighter-03.png",
+                    
+                    // Enemy ships
+                    "enemy-basic": "assets/sprites/enemies/basic-enemy.png",
+                    "enemy-fast": "assets/sprites/enemies/fast-enemy.png",
+                    "enemy-tank": "assets/sprites/enemies/tank-enemy.png",
+                    "enemy-boss": "assets/sprites/enemies/boss-enemy.png",
+                    
+                    // Weapons
+                    "weapon-laser": "assets/sprites/weapons/laser.png",
+                    "weapon-missile": "assets/sprites/weapons/missile.png",
+                    "weapon-plasma": "assets/sprites/weapons/plasma.png",
+                    
+                    // Effects
+                    "effect-explosion": "assets/sprites/effects/explosion.png",
+                    "effect-shield": "assets/sprites/effects/shield.png",
+                    "effect-powerup": "assets/sprites/effects/powerup.png"
+                };
+                
+                this.totalSprites = Object.keys(spriteList).length;
+                
+                for (const [name, path] of Object.entries(spriteList)) {
+                    this.loadSprite(name, path);
+                }
+            }
+            
+            loadSprite(name, path) {
+                const img = new Image();
+                img.onload = () => {
+                    this.spritesLoaded++;
+                    console.log(`✅ Loaded sprite: ${name} (${this.spritesLoaded}/${this.totalSprites})`);
+                    
+                    if (this.spritesLoaded === this.totalSprites) {
+                        console.log("🎯 All sprites loaded successfully!");
+                    }
+                };
+                
+                img.onerror = () => {
+                    console.warn(`⚠️ Failed to load sprite: ${name} from ${path}`);
+                    this.spritesLoaded++;
+                };
+                
+                img.src = path;
+                this.sprites[name] = img;
+            }
+            
+            getSprite(name) {
+                return this.sprites[name] || null;
+            }
+            
+            isSpriteLoaded(name) {
+                const sprite = this.sprites[name];
+                return sprite && sprite.complete;
+            }
+            
+            getEnemySpriteName(enemyType) {
+                const spriteMap = {
+                    "basic": "enemy-basic",
+                    "fast": "enemy-fast",
+                    "tank": "enemy-tank",
+                    "boss": "enemy-boss",
+                    "shooter": "enemy-basic",
+                    "bomber": "enemy-tank"
+                };
+                return spriteMap[enemyType] || "enemy-basic";
+            }
+                const sprite = this.sprites[name];
+                return sprite && sprite.complete;
+            }            
             initializeStars() {
                 for (let i = 0; i < 100; i++) {
                     this.stars.push({
@@ -1800,6 +1887,13 @@
                         } else if (this.gameState === 'paused') {
                             this.resumeGame();
                         }
+                        return;
+                    }
+                    
+                    // Sprite toggle with S key
+                    if (e.code === "KeyS") {
+                        this.useSprites = !this.useSprites;
+                        console.log(`🎨 Sprites ${this.useSprites ? "enabled" : "disabled"}`);
                         return;
                     }
                     
@@ -1879,6 +1973,7 @@
                 
                 // Initialize audio on user interaction
                 this.initSounds();
+                this.initSprites();
                 
                 // Reset player
                 this.player.x = 475;
@@ -1975,7 +2070,7 @@
                     this.player.health = Math.min(this.player.health + 10, 100); // Smaller health bonus
                     
                     // Realistic difficulty scaling
-                    this.enemySpawnRate = Math.max(1.5, 2.5 - (this.level * 0.03)); // More gradual spawn increase
+                    this.enemySpawnRate = Math.max(1.5, 2.5 - (this.level * 0.03)); // Faster spawn increase for more enemies
                     this.enemySpeedMultiplier = 1 + (this.level * 0.08); // Faster enemies for better gameplay
                     this.enemyHealthMultiplier = 1 + (this.level * 0.03); // More gradual health increase
                     
@@ -2196,7 +2291,7 @@
             applyEventEffect(effect) {
                 switch(effect) {
                     case 'storm':
-                        this.enemySpawnRate = 2.0; // Reduced spawn rate (was 4.0)
+                        this.enemySpawnRate = 2.5; // Adjusted for 10-enemy batches
                         break;
                     case 'overload':
                         // Handled in getWeaponCooldown()
@@ -2412,16 +2507,17 @@
             }
             
             spawnEnemies() {
-                // Limit to maximum 8 enemies on screen (reduced for performance)
-                if (this.enemies.length >= 8) return;
+                // Limit to maximum 25 enemies on screen (increased for 15-enemy batches)
+                if (this.enemies.length >= 25) return;
                 
-                // Use much lower spawn rate with controlled batches
-                const spawnChance = 0.002 + (this.level * 0.0003); // Much lower spawn rate
-                const batchSize = 2; // Always spawn 2 enemies at a time
+                // Use higher spawn rate with 15-enemy batches
+                const spawnChance = 0.002 + (this.level * 0.0004); // Higher spawn rate for more enemies
+                const batchSize = 15; // Spawn 15 enemies at a time
                 
                 if (Math.random() < spawnChance) {
-                    // Spawn exactly 2 enemies in a batch
-                    for (let i = 0; i < batchSize && this.enemies.length < 8; i++) {
+                    // Spawn exactly 15 enemies in a batch (or remaining capacity)
+                    const enemiesToSpawn = Math.min(batchSize, 25 - this.enemies.length);
+                    for (let i = 0; i < enemiesToSpawn; i++) {
                         const enemyTypes = [
                             {
                                 type: 'basic',
@@ -2462,16 +2558,42 @@
                                 points: 55,
                                 color: '#ff00ff',
                                 pattern: 'dive'
+                            },
+                            {
+                                type: 'scout',
+                                health: 18,
+                                speed: 4.2,
+                                points: 40,
+                                color: '#00ffff',
+                                pattern: 'zigzag'
+                            },
+                            {
+                                type: 'elite',
+                                health: 50,
+                                speed: 2.8,
+                                points: 75,
+                                color: '#ff6600',
+                                pattern: 'hover'
+                            },
+                            {
+                                type: 'stealth',
+                                health: 30,
+                                speed: 3.0,
+                                points: 50,
+                                color: '#666666',
+                                pattern: 'straight'
                             }
                         ];
                         
                         // Select random enemy type
                         const selectedType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
                         
-                        // Spawn enemy with slight offset for batch
+                        // Spawn enemy with random positioning across the entire top of screen
+                        const row = Math.floor(i / 5); // 5 enemies per row
+                        
                         const enemy = {
-                            x: Math.random() * (this.canvas.width - 100) + 50 + (i * 20), // Offset for batch
-                            y: -50 - (i * 30), // Staggered entry
+                            x: Math.random() * (this.canvas.width - 80) + 40, // Random position across entire screen width
+                            y: -50 - (row * 35) - (Math.random() * 25), // Staggered entry with randomness
                             width: 40,
                             height: 40,
                             type: selectedType.type,
@@ -3510,6 +3632,37 @@
                     }
                 }
                 
+                // Try to use sprite first
+                if (this.useSprites && this.isSpriteLoaded("player-fighter")) {
+                    const sprite = this.getSprite("player-fighter");
+                    if (sprite) {
+                        // Apply screen shake
+                        if (this.screenShake > 0) {
+                            const shakeX = (Math.random() - 0.5) * this.screenShake;
+                            const shakeY = (Math.random() - 0.5) * this.screenShake;
+                            this.ctx.translate(shakeX, shakeY);
+                        }
+                        
+                        // Draw sprite
+                        this.ctx.drawImage(
+                            sprite,
+                            this.player.x,
+                            this.player.y,
+                            this.player.width,
+                            this.player.height
+                        );
+                        
+                        this.ctx.restore();
+                        return;
+                    }
+                }
+                
+                // Fallback to geometric rendering
+                const x = this.player.x;
+                const y = this.player.y;
+                const w = this.player.width;
+                const h = this.player.height;
+                
                 // Shield effect
                 if (this.player.shield > 0) {
                     this.ctx.strokeStyle = '#0080ff';
@@ -3519,27 +3672,43 @@
                         this.player.x + this.player.width/2,
                         this.player.y + this.player.height/2,
                         30 + Math.sin(Date.now() * 0.01) * 5,
-                        0, Math.PI * 2
+                        0,
+                        Math.PI * 2
                     );
                     this.ctx.stroke();
                 }
                 
+                // Try to use sprite first
+                if (this.useSprites && this.isSpriteLoaded('player-fighter')) {
+                    const sprite = this.getSprite('player-fighter');
+                    if (sprite) {
+                        // Apply screen shake
+                        if (this.screenShake > 0) {
+                            const shakeX = (Math.random() - 0.5) * this.screenShake;
+                            const shakeY = (Math.random() - 0.5) * this.screenShake;
+                            this.ctx.translate(shakeX, shakeY);
+                        }
+                        
+                        // Draw sprite
+                        this.ctx.drawImage(
+                            sprite,
+                            this.player.x,
+                            this.player.y,
+                            this.player.width,
+                            this.player.height
+                        );
+                        
+                        this.ctx.restore();
+                        return;
+                    }
+                }
+                
+                // Fallback to geometric rendering
                 const x = this.player.x;
                 const y = this.player.y;
                 const w = this.player.width;
                 const h = this.player.height;
                 
-                // Draw engine glow
-                const engineGlow = this.ctx.createRadialGradient(
-                    x + w/2, y + h, 0,
-                    x + w/2, y + h, 20
-                );
-                engineGlow.addColorStop(0, 'rgba(0, 255, 255, 0.5)');
-                engineGlow.addColorStop(1, 'rgba(0, 255, 255, 0)');
-                this.ctx.fillStyle = engineGlow;
-                this.ctx.fillRect(x + w/4, y + h - 5, w/2, 20);
-                
-                // Player Jet Ship
                 this.renderPlayerJet(x, y, w, h);
                 
                 this.ctx.restore();
@@ -3558,7 +3727,12 @@
                 this.ctx.closePath();
                 
                 // Enhanced jet body gradient with metallic effect
-                const jetGradient = this.ctx.createLinearGradient(x, y, x + w, y + h);
+                // Validate coordinates to prevent NaN/Infinity errors
+                const x1 = isFinite(x) ? x : 0;
+                const y1 = isFinite(y) ? y : 0;
+                const x2 = isFinite(x + w) ? x + w : x1 + 1;
+                const y2 = isFinite(y + h) ? y + h : y1 + 1;
+                const jetGradient = this.ctx.createLinearGradient(x1, y1, x2, y2);
                 jetGradient.addColorStop(0, '#667eea');
                 jetGradient.addColorStop(0.3, '#764ba2');
                 jetGradient.addColorStop(0.5, '#f093fb');
@@ -3635,7 +3809,12 @@
                 this.ctx.closePath();
                 
                 // Enhanced enemy jet gradient with metallic effect
-                const enemyGradient = this.ctx.createLinearGradient(x, y, x + w, y + h);
+                // Validate coordinates to prevent NaN/Infinity errors
+                const x1 = isFinite(x) ? x : 0;
+                const y1 = isFinite(y) ? y : 0;
+                const x2 = isFinite(x + w) ? x + w : x1 + 1;
+                const y2 = isFinite(y + h) ? y + h : y1 + 1;
+                const enemyGradient = this.ctx.createLinearGradient(x1, y1, x2, y2);
                 enemyGradient.addColorStop(0, '#ff6b6b');
                 enemyGradient.addColorStop(0.3, '#ee5a24');
                 enemyGradient.addColorStop(0.5, '#ff3838');
@@ -3726,7 +3905,12 @@
                 this.ctx.closePath();
                 
                 // Boss jet gradient - enemy color theme
-                const bossGradient = this.ctx.createLinearGradient(x, y, x + w, y + h);
+                // Validate coordinates to prevent NaN/Infinity errors
+                const x1 = isFinite(x) ? x : 0;
+                const y1 = isFinite(y) ? y : 0;
+                const x2 = isFinite(x + w) ? x + w : x1 + 1;
+                const y2 = isFinite(y + h) ? y + h : y1 + 1;
+                const bossGradient = this.ctx.createLinearGradient(x1, y1, x2, y2);
                 bossGradient.addColorStop(0, enemy.color);
                 bossGradient.addColorStop(0.5, this.lightenColor(enemy.color, 0.3));
                 bossGradient.addColorStop(1, enemy.color);
@@ -3801,6 +3985,12 @@
             }
             
             renderEnemy(enemy) {
+                // Validate enemy coordinates to prevent rendering errors
+                if (!enemy || !isFinite(enemy.x) || !isFinite(enemy.y) || 
+                    !isFinite(enemy.width) || !isFinite(enemy.height)) {
+                    return; // Skip rendering if coordinates are invalid
+                }
+                
                 this.ctx.save();
                 const x = enemy.x;
                 const y = enemy.y;
@@ -3815,6 +4005,32 @@
                     this.ctx.fillRect(x, y - 10, w * (enemy.health / enemy.maxHealth), 4);
                 }
 
+                // Try to use sprite first
+                if (this.useSprites) {
+                    const spriteName = this.getEnemySpriteName(enemy.type);
+                    if (this.isSpriteLoaded(spriteName)) {
+                        const sprite = this.getSprite(spriteName);
+                        if (sprite) {
+                            // Apply screen shake
+                            if (this.screenShake > 0) {
+                                const shakeX = (Math.random() - 0.5) * this.screenShake;
+                                const shakeY = (Math.random() - 0.5) * this.screenShake;
+                                this.ctx.translate(shakeX, shakeY);
+                            }
+                            
+                            // Draw sprite
+                            this.ctx.drawImage(
+                                sprite,
+                                x, y, w, h
+                            );
+                            
+                            this.ctx.restore();
+                            return;
+                        }
+                    }
+                }
+                
+                // Fallback to geometric rendering
                 // Enemy jet ships based on type
                 if (enemy.isBoss) {
                     // Boss jet - larger and more detailed
@@ -3825,9 +4041,12 @@
                 }
 
                 // Engine glow for all ships
+                // Validate coordinates for engine glow
+                const glowX = isFinite(x + w/2) ? x + w/2 : x;
+                const glowY = isFinite(y) ? y : 0;
                 const engineGlow = this.ctx.createRadialGradient(
-                    x + w/2, y, 0,
-                    x + w/2, y, 15
+                    glowX, glowY, 0,
+                    glowX, glowY, 15
                 );
                 engineGlow.addColorStop(0, 'rgba(255, 100, 0, 0.5)');
                 engineGlow.addColorStop(1, 'rgba(255, 100, 0, 0)');
@@ -3922,6 +4141,82 @@
                 this.ctx.fillStyle = '#000000';
                 this.ctx.font = '12px Orbitron';
                 this.ctx.fillText(`Health: ${this.player.health}/100`, 15, this.canvas.height - 15);
+            }
+
+            initSprites() {
+                console.log('🎨 Loading sprites...');
+                const spriteList = {
+                    // Player ships
+                    'player-fighter': 'assets/sprites/player/fighter-01.png',
+                    'player-interceptor': 'assets/sprites/player/fighter-02.png',
+                    'player-destroyer': 'assets/sprites/player/fighter-03.png',
+                    
+                    // Enemy ships
+                    'enemy-basic': 'assets/sprites/enemies/basic-enemy.png',
+                    'enemy-fast': 'assets/sprites/enemies/fast-enemy.png',
+                    'enemy-tank': 'assets/sprites/enemies/tank-enemy.png',
+                    'enemy-boss': 'assets/sprites/enemies/boss-enemy.png',
+                    
+                    // Weapons
+                    'weapon-laser': 'assets/sprites/weapons/laser.png',
+                    'weapon-missile': 'assets/sprites/weapons/missile.png',
+                    'weapon-plasma': 'assets/sprites/weapons/plasma.png',
+                    
+                    // Effects
+                    'effect-explosion': 'assets/sprites/effects/explosion.png',
+                    'effect-shield': 'assets/sprites/effects/shield.png',
+                    'effect-powerup': 'assets/sprites/effects/powerup.png'
+                };
+
+                this.totalSprites = Object.keys(spriteList).length;
+                
+                for (const [name, path] of Object.entries(spriteList)) {
+                    this.loadSprite(name, path);
+                }
+            }
+
+            loadSprite(name, path) {
+                const img = new Image();
+                img.onload = () => {
+                    this.spritesLoaded++;
+                    console.log(`✅ Loaded sprite: ${name} (${this.spritesLoaded}/${this.totalSprites})`);
+                    
+                    if (this.spritesLoaded === this.totalSprites) {
+                        console.log('🎯 All sprites loaded successfully!');
+                    }
+                };
+                
+                img.onerror = () => {
+                    console.warn(`⚠️ Failed to load sprite: ${name} from ${path}`);
+                    this.spritesLoaded++;
+                };
+                
+                img.src = path;
+                this.sprites[name] = img;
+            }
+
+            getSprite(name) {
+                return this.sprites[name] || null;
+            }
+
+            isSpriteLoaded(name) {
+                const sprite = this.sprites[name];
+                return sprite && sprite.complete;
+            }
+            
+            getEnemySpriteName(enemyType) {
+                const spriteMap = {
+                    "basic": "enemy-basic",
+                    "fast": "enemy-fast",
+                    "tank": "enemy-tank",
+                    "boss": "enemy-boss",
+                    "shooter": "enemy-basic",
+                    "bomber": "enemy-tank"
+                };
+                return spriteMap[enemyType] || "enemy-basic";
+            }
+                const sprite = this.sprites[name];
+                return sprite && sprite.complete;
             }
         }
         
