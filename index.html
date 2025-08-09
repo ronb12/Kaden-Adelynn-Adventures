@@ -4424,7 +4424,8 @@ Good luck, pilot! 🚀`);
                 }
             });
             
-            // Find closest enemy
+            // Find enemies on screen and closest enemy
+            let enemiesOnScreen = [];
             let closestEnemy = null;
             let closestEnemyDistance = Infinity;
             
@@ -4433,40 +4434,86 @@ Good luck, pilot! 🚀`);
                     Math.pow(game.player.x - enemy.x, 2) + 
                     Math.pow(game.player.y - enemy.y, 2)
                 );
+                
+                // Check if enemy is on screen (not just spawned)
+                if (enemy.y > 0 && enemy.y < game.canvas.height) {
+                    enemiesOnScreen.push(enemy);
+                }
+                
                 if (distance < closestEnemyDistance) {
                     closestEnemyDistance = distance;
                     closestEnemy = enemy;
                 }
             });
             
-            // AI movement decision - Prioritize power-ups
+            // AI movement decision - Smart positioning
             let targetX = game.player.x;
             let targetY = game.player.y;
-            let moveSpeed = game.player.speed * 4; // Much faster movement for better collection
+            let moveSpeed = game.player.speed * 3; // Slightly slower for better gameplay
             
-            if (closestPowerup && closestPowerupDistance < 400) {
+            if (closestPowerup && closestPowerupDistance < 300) {
                 // Move towards power-up
                 const dx = closestPowerup.x - game.player.x;
                 const dy = closestPowerup.y - game.player.y;
                 targetX = game.player.x + (dx / closestPowerupDistance) * moveSpeed;
                 targetY = game.player.y + (dy / closestPowerupDistance) * moveSpeed;
+            } else if (enemiesOnScreen.length > 0) {
+                // Strategic positioning when enemies are on screen
+                const avgEnemyX = enemiesOnScreen.reduce((sum, enemy) => sum + enemy.x, 0) / enemiesOnScreen.length;
+                const avgEnemyY = enemiesOnScreen.reduce((sum, enemy) => sum + enemy.y, 0) / enemiesOnScreen.length;
+                
+                // Position player for optimal engagement
+                const idealX = game.canvas.width / 2;
+                const idealY = game.canvas.height * 0.7; // Stay in lower 70% of screen
+                
+                const dx = idealX - game.player.x;
+                const dy = idealY - game.player.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 30) {
+                    targetX = game.player.x + (dx / distance) * moveSpeed;
+                    targetY = game.player.y + (dy / distance) * moveSpeed;
+                }
+                
+                // Dodge if too close to enemies
+                enemiesOnScreen.forEach(enemy => {
+                    const enemyDistance = Math.sqrt(
+                        Math.pow(game.player.x - enemy.x, 2) + 
+                        Math.pow(game.player.y - enemy.y, 2)
+                    );
+                    if (enemyDistance < 100) {
+                        const dodgeX = game.player.x - (enemy.x - game.player.x) * 0.5;
+                        const dodgeY = game.player.y - (enemy.y - game.player.y) * 0.5;
+                        targetX = dodgeX;
+                        targetY = dodgeY;
+                    }
+                });
             } else if (closestEnemy) {
+                // Wait for enemies to get on screen
                 const dx = closestEnemy.x - game.player.x;
                 const dy = closestEnemy.y - game.player.y;
                 
-                // Move towards enemy if far, dodge if close
-                if (closestEnemyDistance > 150) {
-                    targetX = game.player.x + (dx / closestEnemyDistance) * moveSpeed;
-                    targetY = game.player.y + (dy / closestEnemyDistance) * moveSpeed;
+                // Only engage if enemy is on screen or very close
+                if (closestEnemy.y > -50 && closestEnemyDistance > 120) {
+                    targetX = game.player.x + (dx / closestEnemyDistance) * moveSpeed * 0.5;
+                    targetY = game.player.y + (dy / closestEnemyDistance) * moveSpeed * 0.5;
                 } else {
-                    // Dodge pattern - move away from enemy
-                    targetX = game.player.x - (dx / closestEnemyDistance) * moveSpeed;
-                    targetY = game.player.y - (dy / closestEnemyDistance) * moveSpeed;
+                    // Patrol center while waiting
+                    const centerX = game.canvas.width / 2;
+                    const centerY = game.canvas.height * 0.7;
+                    const dx = centerX - game.player.x;
+                    const dy = centerY - game.player.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance > 50) {
+                        targetX = game.player.x + (dx / distance) * moveSpeed;
+                        targetY = game.player.y + (dy / distance) * moveSpeed;
+                    }
                 }
             } else {
-                // No targets - patrol center area
+                // No enemies - patrol center area
                 const centerX = game.canvas.width / 2;
-                const centerY = game.canvas.height / 2;
+                const centerY = game.canvas.height * 0.7;
                 const dx = centerX - game.player.x;
                 const dy = centerY - game.player.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
@@ -4481,17 +4528,25 @@ Good luck, pilot! 🚀`);
             game.player.x = Math.max(50, Math.min(game.canvas.width - 50, targetX));
             game.player.y = Math.max(50, Math.min(game.canvas.height - 50, targetY));
             
-            // AI weapon selection (smart)
-            if (Math.random() < 0.03) { // 3% chance to switch weapons
+            // AI weapon selection (strategic)
+            if (Math.random() < 0.02) { // 2% chance to switch weapons
                 const weapons = ['basic', 'plasma', 'spread', 'laser', 'missile'];
                 const randomWeapon = weapons[Math.floor(Math.random() * weapons.length)];
                 game.currentWeapon = randomWeapon;
                 game.updateWeaponDisplay();
             }
             
-            // AI shooting - shoot at any enemy in range
-            if (closestEnemy && closestEnemyDistance < 400) {
-                game.shoot();
+            // AI shooting - strategic engagement
+            if (enemiesOnScreen.length > 0) {
+                // Shoot at enemies on screen
+                if (Math.random() < 0.8) { // 80% chance to shoot when enemies are on screen
+                    game.shoot();
+                }
+            } else if (closestEnemy && closestEnemy.y > -50) {
+                // Shoot at enemies that are about to enter screen
+                if (Math.random() < 0.3) { // 30% chance to shoot at approaching enemies
+                    game.shoot();
+                }
             }
         }
         
