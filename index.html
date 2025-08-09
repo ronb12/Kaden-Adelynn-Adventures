@@ -4143,61 +4143,6 @@
                 this.ctx.fillText(`Health: ${this.player.health}/100`, 15, this.canvas.height - 15);
             }
 
-            initSprites() {
-                console.log('🎨 Loading sprites...');
-                const spriteList = {
-                    // Player ships
-                    'player-fighter': 'assets/sprites/player/fighter-01.png',
-                    'player-interceptor': 'assets/sprites/player/fighter-02.png',
-                    'player-destroyer': 'assets/sprites/player/fighter-03.png',
-                    
-                    // Enemy ships
-                    'enemy-basic': 'assets/sprites/enemies/basic-enemy.png',
-                    'enemy-fast': 'assets/sprites/enemies/fast-enemy.png',
-                    'enemy-tank': 'assets/sprites/enemies/tank-enemy.png',
-                    'enemy-boss': 'assets/sprites/enemies/boss-enemy.png',
-                    
-                    // Weapons
-                    'weapon-laser': 'assets/sprites/weapons/laser.png',
-                    'weapon-missile': 'assets/sprites/weapons/missile.png',
-                    'weapon-plasma': 'assets/sprites/weapons/plasma.png',
-                    
-                    // Effects
-                    'effect-explosion': 'assets/sprites/effects/explosion.png',
-                    'effect-shield': 'assets/sprites/effects/shield.png',
-                    'effect-powerup': 'assets/sprites/effects/powerup.png'
-                };
-
-                this.totalSprites = Object.keys(spriteList).length;
-                
-                for (const [name, path] of Object.entries(spriteList)) {
-                    this.loadSprite(name, path);
-                }
-            }
-
-            loadSprite(name, path) {
-                const img = new Image();
-                img.onload = () => {
-                    this.spritesLoaded++;
-                    console.log(`✅ Loaded sprite: ${name} (${this.spritesLoaded}/${this.totalSprites})`);
-                    
-                    if (this.spritesLoaded === this.totalSprites) {
-                        console.log('🎯 All sprites loaded successfully!');
-                    }
-                };
-                
-                img.onerror = () => {
-                    console.warn(`⚠️ Failed to load sprite: ${name} from ${path}`);
-                    this.spritesLoaded++;
-                };
-                
-                img.src = path;
-                this.sprites[name] = img;
-            }
-
-            getSprite(name) {
-                return this.sprites[name] || null;
-            }
 
             isSpriteLoaded(name) {
                 const sprite = this.sprites[name];
