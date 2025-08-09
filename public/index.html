@@ -77,7 +77,11 @@
             z-index: 1000;
         }
         
-        /* Ensure menu is visible by default */
+        /* Reset any conflicting styles */
+        #menu * {
+            box-sizing: border-box;
+        }
+        
         #menu {
             display: flex !important;
             position: fixed !important;
@@ -97,7 +101,7 @@
         }
         
         #gameOver, #pauseOverlay, #briefingOverlay {
-            display: none;
+            display: none !important;
         }
         
         .menu-content {
@@ -114,8 +118,6 @@
             position: relative;
             z-index: 1001;
             margin: auto;
-            transform: translateZ(0);
-            display: block;
         }
         
         .btn {
@@ -1586,6 +1588,16 @@
             
             // Ensure menu is visible and properly positioned
             const menu = document.getElementById('menu');
+            const gameOver = document.getElementById('gameOver');
+            const pauseOverlay = document.getElementById('pauseOverlay');
+            const briefingOverlay = document.getElementById('briefingOverlay');
+            
+            // Hide all overlays first
+            if (gameOver) gameOver.style.display = 'none';
+            if (pauseOverlay) pauseOverlay.style.display = 'none';
+            if (briefingOverlay) briefingOverlay.style.display = 'none';
+            
+            // Show and position menu
             if (menu) {
                 menu.style.display = 'flex';
                 menu.style.position = 'fixed';
