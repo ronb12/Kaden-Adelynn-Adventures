@@ -1096,6 +1096,21 @@ class EnhancedSpaceShooter {
             <div style="margin-bottom: 20px; font-size: 1.2em; color: #00ff88;">
                 💰 Money: $${this.moneyCollected} | 💠 Diamonds: ${this.diamondsCollected}
             </div>
+            <div style="
+                background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 204, 102, 0.1) 100%);
+                border: 2px solid rgba(0, 255, 136, 0.3);
+                border-radius: 15px;
+                padding: 15px 20px;
+                margin-bottom: 20px;
+                text-align: center;
+            ">
+                <div style="color: #00ff88; font-weight: bold; font-size: 1.1em; margin-bottom: 5px;">
+                    🎮 In-Game Currency Only
+                </div>
+                <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9em;">
+                    This store uses <strong>fake money earned by playing the game</strong>, not real money!
+                </div>
+            </div>
             <div id="storeItems" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
                 ${this.generateStoreItems()}
             </div>
