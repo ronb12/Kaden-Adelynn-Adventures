@@ -8,6 +8,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4facfe">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Space Adventures">
@@ -169,6 +170,471 @@
             font-size: 18px;
             font-weight: bold;
             color: #00ff88;
+        }
+
+        /* Professional Briefing Styles */
+        .briefing-content {
+            max-width: 1200px;
+            width: 95%;
+            max-height: 90vh;
+            padding: 0;
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.98) 0%, rgba(22, 33, 62, 0.98) 50%, rgba(15, 52, 96, 0.98) 100%);
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            box-shadow: 0 0 50px rgba(0, 255, 136, 0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .briefing-header {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 204, 102, 0.1) 100%);
+            padding: 30px 40px;
+            border-bottom: 2px solid rgba(0, 255, 136, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+        
+        .briefing-title h1 {
+            font-size: 2.5em;
+            margin: 0;
+            background: linear-gradient(135deg, #00ff88, #00cc66, #0099ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+        
+        .briefing-subtitle {
+            font-size: 1.2em;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 5px;
+        }
+        
+        .briefing-close {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .briefing-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+        
+        .briefing-body {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0, 255, 136, 0.5) rgba(255, 255, 255, 0.1);
+        }
+        
+        .briefing-body::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .briefing-body::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        
+        .briefing-body::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 136, 0.5);
+            border-radius: 4px;
+        }
+        
+        .briefing-section {
+            margin-bottom: 40px;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 204, 102, 0.1) 100%);
+            border-radius: 15px;
+            border-left: 4px solid #00ff88;
+        }
+        
+        .section-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+        
+        .section-header h3 {
+            margin: 0;
+            font-size: 1.8em;
+            color: #00ff88;
+        }
+        
+        .mission-objective {
+            font-size: 1.3em;
+            line-height: 1.6;
+            padding: 20px;
+            background: rgba(0, 255, 136, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+        }
+        
+        .briefing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+        
+        .briefing-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 20px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .briefing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 255, 136, 0.3);
+            border-color: rgba(0, 255, 136, 0.4);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(0, 255, 136, 0.2);
+        }
+        
+        .card-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+        
+        .card-header h4 {
+            margin: 0;
+            font-size: 1.5em;
+            color: #00ff88;
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+        }
+        
+        .control-group h5 {
+            color: #00ff88;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        .control-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .control-list li {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            padding: 8px 12px;
+            background: rgba(0, 255, 136, 0.05);
+            border-radius: 8px;
+        }
+        
+        .key {
+            background: linear-gradient(135deg, #00ff88, #00cc66);
+            color: #000;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 0.9em;
+            min-width: 60px;
+            text-align: center;
+        }
+        
+        .collectible-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+        }
+        
+        .collectible-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 15px 10px;
+            background: rgba(0, 255, 136, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .collectible-item:hover {
+            transform: scale(1.05);
+            background: rgba(0, 255, 136, 0.1);
+        }
+        
+        .collectible-icon {
+            font-size: 2em;
+            margin-bottom: 8px;
+        }
+        
+        .collectible-name {
+            font-weight: bold;
+            color: #00ff88;
+            margin-bottom: 5px;
+        }
+        
+        .collectible-desc {
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .ship-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .ship-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: rgba(0, 255, 136, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .ship-item:hover {
+            transform: translateX(5px);
+            background: rgba(0, 255, 136, 0.1);
+        }
+        
+        .ship-icon {
+            font-size: 2.5em;
+            margin-right: 15px;
+        }
+        
+        .ship-info h5 {
+            margin: 0 0 5px 0;
+            color: #00ff88;
+            font-size: 1.2em;
+        }
+        
+        .ship-desc {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9em;
+        }
+        
+        .achievement-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .achievement-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid;
+            transition: all 0.3s ease;
+        }
+        
+        .achievement-item.bronze {
+            background: linear-gradient(135deg, rgba(205, 127, 50, 0.1) 0%, rgba(205, 127, 50, 0.05) 100%);
+            border-color: #cd7f32;
+        }
+        
+        .achievement-item.silver {
+            background: linear-gradient(135deg, rgba(192, 192, 192, 0.1) 0%, rgba(192, 192, 192, 0.05) 100%);
+            border-color: #c0c0c0;
+        }
+        
+        .achievement-item.gold {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.05) 100%);
+            border-color: #ffd700;
+        }
+        
+        .achievement-item:hover {
+            transform: scale(1.05);
+        }
+        
+        .achievement-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+        
+        .achievement-info h5 {
+            margin: 0 0 5px 0;
+            color: #00ff88;
+            font-size: 1.2em;
+        }
+        
+        .achievement-desc {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9em;
+        }
+        
+        .progression-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .progression-item {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            background: rgba(0, 255, 136, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .progression-item:hover {
+            transform: translateY(-3px);
+            background: rgba(0, 255, 136, 0.1);
+        }
+        
+        .progression-icon {
+            font-size: 2.5em;
+            margin-right: 20px;
+        }
+        
+        .progression-info h5 {
+            margin: 0 0 8px 0;
+            color: #00ff88;
+            font-size: 1.3em;
+        }
+        
+        .progression-info span {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1em;
+        }
+        
+        .update-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        
+        .update-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(0, 255, 136, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .update-item:hover {
+            background: rgba(0, 255, 136, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .update-icon {
+            font-size: 1.5em;
+            margin-right: 15px;
+        }
+        
+        .briefing-footer {
+            padding: 30px 40px;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 204, 102, 0.1) 100%);
+            border-top: 2px solid rgba(0, 255, 136, 0.3);
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #00ff88, #00cc66);
+            border: none;
+            padding: 20px 40px;
+            border-radius: 50px;
+            color: #000;
+            font-weight: bold;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-width: 200px;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 255, 136, 0.5);
+            background: linear-gradient(135deg, #00ff99, #00dd77);
+        }
+        
+        .btn-icon {
+            font-size: 1.5em;
+        }
+        
+        .btn-text {
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .briefing-content {
+                width: 98%;
+                max-height: 95vh;
+            }
+            
+            .briefing-header {
+                padding: 20px;
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .briefing-title h1 {
+                font-size: 2em;
+            }
+            
+            .briefing-body {
+                padding: 20px;
+            }
+            
+            .briefing-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .collectible-grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            }
+            
+            .ship-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .achievement-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .progression-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .update-features {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -374,76 +840,279 @@
             </div>
         </div>
         
-        <!-- Enhanced Briefing Overlay -->
+        <!-- Enhanced Professional Briefing Overlay -->
         <div id="briefingOverlay">
-            <div class="menu-content">
-                <h2>📋 Mission Briefing</h2>
-                <div style="text-align: left; max-width: 600px; margin: 0 auto;">
-                    <h3>🎯 Objective</h3>
-                    <p>Defend against waves of enemy ships and survive through 50 levels! Defeat bosses every 5 levels to progress!</p>
-                    
-                    <h3>🎮 Controls</h3>
-                    <p><strong>Desktop:</strong></p>
-                    <ul>
-                        <li>Arrow Keys: Move ship</li>
-                        <li>Spacebar: Shoot</li>
-                        <li>ESC/P: Pause/Resume</li>
-                    </ul>
-                    <p><strong>Mobile:</strong></p>
-                    <ul>
-                        <li>Touch and drag: Move ship</li>
-                        <li>Auto-shoot: Enabled (shoots while touching)</li>
-                        <li>Touch anywhere: Shoot continuously</li>
-                    </ul>
-                    
-                    <h3>💎 Collectibles</h3>
-                    <ul>
-                        <li>🟢 Health: Restore health</li>
-                        <li>🔵 Shield: Temporary shield</li>
-                        <li>🟡 Weapon: Upgrade weapon</li>
-                        <li>🟣 Missile: Powerful missiles</li>
-                        <li>🟠 Rapid-fire: Faster shooting</li>
-                        <li>🪙 Coins: Small score bonus</li>
-                        <li>💎 Gems: Large score bonus</li>
-                        <li>💰 Money: Used to buy ships</li>
-                        <li>💠 Diamonds: Premium currency</li>
-                    </ul>
-                    
-                    <h3>🚀 Ships</h3>
-                    <ul>
-                        <li>Gradius: Balanced starter ship</li>
-                        <li>Interceptor: Fast and agile</li>
-                        <li>Destroyer: Heavy and powerful</li>
-                        <li>Battleship: Massive with multiple weapons</li>
-                        <li>Stealth: Sleek and dark</li>
-                    </ul>
-                    
-                    <h3>🏆 Medals</h3>
-                    <ul>
-                        <li>🥉 Bronze: 5,000+ points</li>
-                        <li>🥈 Silver: 15,000+ points</li>
-                        <li>🥇 Gold: 30,000+ points</li>
-                    </ul>
-                    
-                    <h3>🎯 Scoring & Progression</h3>
-                    <ul>
-                        <li>Level advancement: Based on enemies destroyed (10 enemies per level)</li>
-                        <li>Boss battles: Every 5 levels</li>
-                        <li>Combo system: Chain kills for bonus points</li>
-                        <li>Streak system: Collect items to build streaks</li>
-                        <li>Accuracy tracking: Precision shooting bonus</li>
-                        <li>25 Lives: Extended gameplay</li>
-                    </ul>
-                    
-                    <h3>🔄 Auto-Updates</h3>
-                    <ul>
-                        <li>Automatic update checking every 30 minutes</li>
-                        <li>Instant notifications when updates are available</li>
-                        <li>One-click update application</li>
-                        <li>Background update processing</li>
-                    </ul>
+            <div class="menu-content briefing-content">
+                <div class="briefing-header">
+                    <div class="briefing-title">
+                        <h1>📋 MISSION BRIEFING</h1>
+                        <div class="briefing-subtitle">Enhanced Space Shooter Edition v1.0.0</div>
+                    </div>
+                    <div class="briefing-close" onclick="hideBriefing()">✕</div>
                 </div>
-                <button class="btn" onclick="hideBriefing()">🚀 Let's Play!</button>
+                
+                <div class="briefing-body">
+                    <div class="briefing-section">
+                        <div class="section-header">
+                            <div class="section-icon">🎯</div>
+                            <h3>Mission Objective</h3>
+                        </div>
+                        <div class="section-content">
+                            <p class="mission-objective">
+                                Defend against waves of enemy ships and survive through <strong>50 epic levels</strong>! 
+                                Defeat powerful bosses every 5 levels to progress through the galaxy!
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="briefing-grid">
+                        <div class="briefing-card">
+                            <div class="card-header">
+                                <div class="card-icon">🎮</div>
+                                <h4>Controls</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="control-group">
+                                    <h5>Desktop</h5>
+                                    <ul class="control-list">
+                                        <li><span class="key">↑↓←→</span> Move ship</li>
+                                        <li><span class="key">SPACE</span> Shoot</li>
+                                        <li><span class="key">ESC/P</span> Pause/Resume</li>
+                                    </ul>
+                                </div>
+                                <div class="control-group">
+                                    <h5>Mobile</h5>
+                                    <ul class="control-list">
+                                        <li><span class="key">👆</span> Touch & drag to move</li>
+                                        <li><span class="key">⚡</span> Auto-shoot enabled</li>
+                                        <li><span class="key">🎯</span> Touch anywhere to shoot</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="briefing-card">
+                            <div class="card-header">
+                                <div class="card-icon">💎</div>
+                                <h4>Collectibles</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="collectible-grid">
+                                    <div class="collectible-item">
+                                        <span class="collectible-icon health">🟢</span>
+                                        <span class="collectible-name">Health</span>
+                                        <span class="collectible-desc">Restore health</span>
+                                    </div>
+                                    <div class="collectible-item">
+                                        <span class="collectible-icon shield">🔵</span>
+                                        <span class="collectible-name">Shield</span>
+                                        <span class="collectible-desc">Temporary shield</span>
+                                    </div>
+                                    <div class="collectible-item">
+                                        <span class="collectible-icon weapon">🟡</span>
+                                        <span class="collectible-name">Weapon</span>
+                                        <span class="collectible-desc">Upgrade weapon</span>
+                                    </div>
+                                    <div class="collectible-item">
+                                        <span class="collectible-icon missile">🟣</span>
+                                        <span class="collectible-name">Missile</span>
+                                        <span class="collectible-desc">Powerful missiles</span>
+                                    </div>
+                                    <div class="collectible-item">
+                                        <span class="collectible-icon rapid">🟠</span>
+                                        <span class="collectible-name">Rapid-fire</span>
+                                        <span class="collectible-desc">Faster shooting</span>
+                                    </div>
+                                    <div class="collectible-item">
+                                        <span class="collectible-icon coin">🪙</span>
+                                        <span class="collectible-name">Coins</span>
+                                        <span class="collectible-desc">Score bonus</span>
+                                    </div>
+                                    <div class="collectible-item">
+                                        <span class="collectible-icon gem">💎</span>
+                                        <span class="collectible-name">Gems</span>
+                                        <span class="collectible-desc">Large bonus</span>
+                                    </div>
+                                    <div class="collectible-item">
+                                        <span class="collectible-icon money">💰</span>
+                                        <span class="collectible-name">Money</span>
+                                        <span class="collectible-desc">Buy ships</span>
+                                    </div>
+                                    <div class="collectible-item">
+                                        <span class="collectible-icon diamond">💠</span>
+                                        <span class="collectible-name">Diamonds</span>
+                                        <span class="collectible-desc">Premium currency</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="briefing-card">
+                            <div class="card-header">
+                                <div class="card-icon">🚀</div>
+                                <h4>Ship Fleet</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="ship-grid">
+                                    <div class="ship-item">
+                                        <div class="ship-icon">🛸</div>
+                                        <div class="ship-info">
+                                            <h5>Gradius</h5>
+                                            <span class="ship-desc">Balanced starter ship</span>
+                                        </div>
+                                    </div>
+                                    <div class="ship-item">
+                                        <div class="ship-icon">🚀</div>
+                                        <div class="ship-info">
+                                            <h5>Interceptor</h5>
+                                            <span class="ship-desc">Fast and agile</span>
+                                        </div>
+                                    </div>
+                                    <div class="ship-item">
+                                        <div class="ship-icon">🛰️</div>
+                                        <div class="ship-info">
+                                            <h5>Destroyer</h5>
+                                            <span class="ship-desc">Heavy and powerful</span>
+                                        </div>
+                                    </div>
+                                    <div class="ship-item">
+                                        <div class="ship-icon">⚔️</div>
+                                        <div class="ship-info">
+                                            <h5>Battleship</h5>
+                                            <span class="ship-desc">Massive with multiple weapons</span>
+                                        </div>
+                                    </div>
+                                    <div class="ship-item">
+                                        <div class="ship-icon">🕶️</div>
+                                        <div class="ship-info">
+                                            <h5>Stealth</h5>
+                                            <span class="ship-desc">Sleek and dark</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="briefing-card">
+                            <div class="card-header">
+                                <div class="card-icon">🏆</div>
+                                <h4>Achievements</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="achievement-grid">
+                                    <div class="achievement-item bronze">
+                                        <div class="achievement-icon">🥉</div>
+                                        <div class="achievement-info">
+                                            <h5>Bronze</h5>
+                                            <span class="achievement-desc">5,000+ points</span>
+                                        </div>
+                                    </div>
+                                    <div class="achievement-item silver">
+                                        <div class="achievement-icon">🥈</div>
+                                        <div class="achievement-info">
+                                            <h5>Silver</h5>
+                                            <span class="achievement-desc">15,000+ points</span>
+                                        </div>
+                                    </div>
+                                    <div class="achievement-item gold">
+                                        <div class="achievement-icon">🥇</div>
+                                        <div class="achievement-info">
+                                            <h5>Gold</h5>
+                                            <span class="achievement-desc">30,000+ points</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="briefing-section">
+                        <div class="section-header">
+                            <div class="section-icon">🎯</div>
+                            <h3>Scoring & Progression</h3>
+                        </div>
+                        <div class="section-content">
+                            <div class="progression-grid">
+                                <div class="progression-item">
+                                    <div class="progression-icon">📈</div>
+                                    <div class="progression-info">
+                                        <h5>Level Advancement</h5>
+                                        <span>Based on enemies destroyed (10 enemies per level)</span>
+                                    </div>
+                                </div>
+                                <div class="progression-item">
+                                    <div class="progression-icon">👾</div>
+                                    <div class="progression-info">
+                                        <h5>Boss Battles</h5>
+                                        <span>Every 5 levels</span>
+                                    </div>
+                                </div>
+                                <div class="progression-item">
+                                    <div class="progression-icon">🔗</div>
+                                    <div class="progression-info">
+                                        <h5>Combo System</h5>
+                                        <span>Chain kills for bonus points</span>
+                                    </div>
+                                </div>
+                                <div class="progression-item">
+                                    <div class="progression-icon">🔥</div>
+                                    <div class="progression-info">
+                                        <h5>Streak System</h5>
+                                        <span>Collect items to build streaks</span>
+                                    </div>
+                                </div>
+                                <div class="progression-item">
+                                    <div class="progression-icon">🎯</div>
+                                    <div class="progression-info">
+                                        <h5>Accuracy Tracking</h5>
+                                        <span>Precision shooting bonus</span>
+                                    </div>
+                                </div>
+                                <div class="progression-item">
+                                    <div class="progression-icon">❤️</div>
+                                    <div class="progression-info">
+                                        <h5>25 Lives</h5>
+                                        <span>Extended gameplay</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="briefing-section">
+                        <div class="section-header">
+                            <div class="section-icon">🔄</div>
+                            <h3>Auto-Updates</h3>
+                        </div>
+                        <div class="section-content">
+                            <div class="update-features">
+                                <div class="update-item">
+                                    <span class="update-icon">⏰</span>
+                                    <span>Automatic update checking every 30 minutes</span>
+                                </div>
+                                <div class="update-item">
+                                    <span class="update-icon">🔔</span>
+                                    <span>Instant notifications when updates are available</span>
+                                </div>
+                                <div class="update-item">
+                                    <span class="update-icon">⚡</span>
+                                    <span>One-click update application</span>
+                                </div>
+                                <div class="update-item">
+                                    <span class="update-icon">🔄</span>
+                                    <span>Background update processing</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="briefing-footer">
+                    <button class="btn btn-primary" onclick="hideBriefing()">
+                        <span class="btn-icon">🚀</span>
+                        <span class="btn-text">Let's Play!</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
