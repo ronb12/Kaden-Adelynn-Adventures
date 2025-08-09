@@ -49,7 +49,7 @@ class EnhancedSpaceShooter {
             lastAutoDefense: 0
         };
         
-        // Enhanced weapon system
+        // Enhanced weapon system - MORE WEAPONS!
         this.currentWeapon = 'basic';
         this.weaponLevel = 1;
         this.lastShot = 0;
@@ -58,6 +58,21 @@ class EnhancedSpaceShooter {
         this.rapidFireRate = 50; // Even faster rapid fire
         this.lastRapidShot = 0;
         
+        // NEW WEAPONS
+        this.availableWeapons = ['basic', 'plasma', 'spread', 'laser', 'missile', 'spread-shot', 'railgun', 'flamethrower', 'thunder', 'nuclear'];
+        this.weaponUnlocked = {
+            'basic': true,
+            'plasma': false,
+            'spread': false,
+            'laser': false,
+            'missile': false,
+            'spread-shot': false,
+            'railgun': false,
+            'flamethrower': false,
+            'thunder': false,
+            'nuclear': false
+        };
+        
         // Game objects
         this.bullets = [];
         this.enemies = [];
@@ -65,11 +80,13 @@ class EnhancedSpaceShooter {
         this.explosions = [];
         this.particles = [];
         
-        // Game settings
-        this.enemySpawnRate = 60;
+        // Game settings - HARDER DIFFICULTY
+        this.enemySpawnRate = 90; // Slower initial spawn
         this.enemySpawnTimer = 0;
-        this.powerupSpawnRate = 300;
+        this.powerupSpawnRate = 400; // Rarer powerups
         this.powerupSpawnTimer = 0;
+        this.levelUpThreshold = 2000; // Much harder to advance levels
+        this.difficultyRamp = 1.5; // Steeper difficulty increase
         
         // Mobile touch controls
         this.touchStartX = 0;
@@ -84,9 +101,12 @@ class EnhancedSpaceShooter {
         this.comboTimer = 0;
         this.comboDecayTime = 3000; // 3 seconds to maintain combo
         this.scoreMultiplier = 1;
-        this.levelUpThreshold = 1000;
-        this.difficultyRamp = 1.2;
-        this.powerupChance = 0.1;
+        this.powerupChance = 0.05; // Rarer powerups
+        
+        // Sound effects
+        this.sounds = {};
+        this.soundEnabled = true;
+        this.initSounds();
         
         // Initialize canvas
         this.resizeCanvas();
@@ -102,6 +122,138 @@ class EnhancedSpaceShooter {
         this.init();
         
         console.log('Game engine initialized successfully');
+    }
+    
+    initSounds() {
+        // Create audio context for sound effects
+        try {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Generate sound effects
+            this.sounds.missile = this.generateMissileSound();
+            this.sounds.explosion = this.generateExplosionSound();
+            this.sounds.shoot = this.generateShootSound();
+            this.sounds.powerup = this.generatePowerupSound();
+            this.sounds.levelUp = this.generateLevelUpSound();
+            
+        } catch (error) {
+            console.log('Audio not supported, sounds will be disabled');
+            this.soundEnabled = false;
+        }
+    }
+    
+    generateMissileSound() {
+        if (!this.audioContext) return null;
+        
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(200, this.audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(50, this.audioContext.currentTime + 0.5);
+        
+        gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.5);
+        
+        return { oscillator, gainNode };
+    }
+    
+    generateExplosionSound() {
+        if (!this.audioContext) return null;
+        
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(100, this.audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(20, this.audioContext.currentTime + 0.3);
+        
+        gainNode.gain.setValueAtTime(0.4, this.audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
+        
+        return { oscillator, gainNode };
+    }
+    
+    generateShootSound() {
+        if (!this.audioContext) return null;
+        
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(400, this.audioContext.currentTime + 0.1);
+        
+        gainNode.gain.setValueAtTime(0.2, this.audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.1);
+        
+        return { oscillator, gainNode };
+    }
+    
+    generatePowerupSound() {
+        if (!this.audioContext) return null;
+        
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(400, this.audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(800, this.audioContext.currentTime + 0.2);
+        
+        gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.2);
+        
+        return { oscillator, gainNode };
+    }
+    
+    generateLevelUpSound() {
+        if (!this.audioContext) return null;
+        
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(200, this.audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(800, this.audioContext.currentTime + 0.5);
+        
+        gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.5);
+        
+        return { oscillator, gainNode };
+    }
+    
+    playSound(soundType) {
+        if (!this.soundEnabled || !this.sounds[soundType]) return;
+        
+        try {
+            const sound = this.sounds[soundType];
+            if (sound.oscillator && sound.gainNode) {
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                // Copy the sound parameters
+                oscillator.frequency.setValueAtTime(sound.oscillator.frequency.value, this.audioContext.currentTime);
+                gainNode.gain.setValueAtTime(sound.gainNode.gain.value, this.audioContext.currentTime);
+                
+                oscillator.start(this.audioContext.currentTime);
+                oscillator.stop(this.audioContext.currentTime + 0.5);
+            }
+        } catch (error) {
+            // Ignore sound errors
+        }
     }
     
     initTouchControls() {
@@ -393,15 +545,27 @@ class EnhancedSpaceShooter {
     }
     
     updateDifficulty() {
-        // Increase difficulty based on score and level
+        // Much harder difficulty progression
         const newLevel = Math.floor(this.score / this.levelUpThreshold) + 1;
         if (newLevel > this.level) {
             this.level = newLevel;
-            this.enemySpawnRate = Math.max(20, 60 - (this.level * 5));
-            this.powerupChance = Math.min(0.3, 0.1 + (this.level * 0.02));
+            
+            // Much steeper difficulty increase
+            this.enemySpawnRate = Math.max(15, 90 - (this.level * 8)); // Faster spawn rate
+            this.powerupChance = Math.min(0.2, 0.05 + (this.level * 0.01)); // Rarer powerups
+            
+            // Increase enemy health and speed based on level
+            this.enemyHealthMultiplier = 1 + (this.level * 0.3);
+            this.enemySpeedMultiplier = 1 + (this.level * 0.15);
+            
+            // Increase level threshold for next level (exponential difficulty)
+            this.levelUpThreshold = Math.floor(this.levelUpThreshold * 1.2);
             
             // Show level up notification
             this.showLevelUpNotification();
+            
+            // Play level up sound
+            this.playSound('levelUp');
         }
     }
     
@@ -409,7 +573,7 @@ class EnhancedSpaceShooter {
         // Create level up notification
         const notification = document.createElement('div');
         notification.className = 'event-notification';
-        notification.innerHTML = `🎯 LEVEL ${this.level}!`;
+        notification.innerHTML = `🎯 LEVEL ${this.level}!<br><small>Difficulty Increased!</small>`;
         notification.style.background = 'linear-gradient(135deg, #00ff00, #00cc00)';
         notification.style.color = '#000';
         notification.style.fontWeight = 'bold';
@@ -422,7 +586,7 @@ class EnhancedSpaceShooter {
             if (notification.parentNode) {
                 notification.parentNode.removeChild(notification);
             }
-        }, 2000);
+        }, 3000);
     }
     
     updatePlayer() {
@@ -476,6 +640,9 @@ class EnhancedSpaceShooter {
     }
     
     createBullet() {
+        // Play shoot sound
+        this.playSound('shoot');
+        
         switch (this.currentWeapon) {
             case 'basic':
                 this.bullets.push({
@@ -537,6 +704,7 @@ class EnhancedSpaceShooter {
                         homing: true
                     });
                     this.player.missiles--;
+                    this.playSound('missile');
                 }
                 break;
             case 'spread-shot':
@@ -553,6 +721,61 @@ class EnhancedSpaceShooter {
                         angle: i * 0.2
                     });
                 }
+                break;
+            case 'railgun':
+                // High-speed piercing projectile
+                this.bullets.push({
+                    x: this.player.x + this.player.width / 2 - 1,
+                    y: this.player.y,
+                    width: 2,
+                    height: 8,
+                    speed: 15,
+                    damage: 30,
+                    type: 'railgun',
+                    piercing: true
+                });
+                break;
+            case 'flamethrower':
+                // Multiple rapid fire bullets
+                for (let i = 0; i < 3; i++) {
+                    this.bullets.push({
+                        x: this.player.x + this.player.width / 2 - 2 + (i - 1) * 4,
+                        y: this.player.y - i * 5,
+                        width: 3,
+                        height: 8,
+                        speed: 4,
+                        damage: 5,
+                        type: 'flamethrower'
+                    });
+                }
+                break;
+            case 'thunder':
+                // Lightning bolt weapon
+                for (let i = -1; i <= 1; i++) {
+                    this.bullets.push({
+                        x: this.player.x + this.player.width / 2 - 1,
+                        y: this.player.y,
+                        width: 2,
+                        height: 12,
+                        speed: 10,
+                        damage: 20,
+                        type: 'thunder',
+                        angle: i * 0.4
+                    });
+                }
+                break;
+            case 'nuclear':
+                // Massive nuclear blast
+                this.bullets.push({
+                    x: this.player.x + this.player.width / 2 - 8,
+                    y: this.player.y,
+                    width: 16,
+                    height: 20,
+                    speed: 3,
+                    damage: 100,
+                    type: 'nuclear',
+                    explosionRadius: 50
+                });
                 break;
         }
     }
@@ -639,17 +862,72 @@ class EnhancedSpaceShooter {
         if (this.enemySpawnTimer >= this.enemySpawnRate) {
             this.enemySpawnTimer = 0;
             
-            const enemyTypes = ['basic', 'fast', 'tank', 'boss'];
+            // More enemy types for higher levels
+            let enemyTypes = ['basic', 'fast', 'tank'];
+            if (this.level >= 3) enemyTypes.push('boss');
+            if (this.level >= 5) enemyTypes.push('elite');
+            if (this.level >= 8) enemyTypes.push('superboss');
+            
             const type = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
             
+            // Calculate health and speed multipliers
+            const healthMultiplier = this.enemyHealthMultiplier || 1;
+            const speedMultiplier = this.enemySpeedMultiplier || 1;
+            
+            let health, speed, width, height;
+            
+            switch(type) {
+                case 'basic':
+                    health = Math.floor(20 * healthMultiplier);
+                    speed = 2 * speedMultiplier;
+                    width = 60;
+                    height = 60;
+                    break;
+                case 'fast':
+                    health = Math.floor(15 * healthMultiplier);
+                    speed = 4 * speedMultiplier;
+                    width = 50;
+                    height = 50;
+                    break;
+                case 'tank':
+                    health = Math.floor(100 * healthMultiplier);
+                    speed = 1 * speedMultiplier;
+                    width = 80;
+                    height = 80;
+                    break;
+                case 'boss':
+                    health = Math.floor(200 * healthMultiplier);
+                    speed = 1.5 * speedMultiplier;
+                    width = 100;
+                    height = 100;
+                    break;
+                case 'elite':
+                    health = Math.floor(150 * healthMultiplier);
+                    speed = 3 * speedMultiplier;
+                    width = 70;
+                    height = 70;
+                    break;
+                case 'superboss':
+                    health = Math.floor(500 * healthMultiplier);
+                    speed = 2 * speedMultiplier;
+                    width = 120;
+                    height = 120;
+                    break;
+                default:
+                    health = Math.floor(20 * healthMultiplier);
+                    speed = 2 * speedMultiplier;
+                    width = 60;
+                    height = 60;
+            }
+            
             const enemy = {
-                x: Math.random() * (this.canvas.width - 60),
-                y: -60,
-                width: 60,
-                height: 60,
-                speed: type === 'fast' ? 4 : type === 'tank' ? 1 : 2,
-                health: type === 'tank' ? 100 : type === 'boss' ? 200 : 20,
-                maxHealth: type === 'tank' ? 100 : type === 'boss' ? 200 : 20,
+                x: Math.random() * (this.canvas.width - width),
+                y: -height,
+                width: width,
+                height: height,
+                speed: speed,
+                health: health,
+                maxHealth: health,
                 type: type
             };
             
@@ -686,15 +964,24 @@ class EnhancedSpaceShooter {
             for (let j = this.enemies.length - 1; j >= 0; j--) {
                 const enemy = this.enemies[j];
                 if (this.isColliding(bullet, enemy)) {
-                    // Remove bullet and enemy
-                    this.bullets.splice(i, 1);
-                    this.enemies.splice(j, 1);
+                    // Damage enemy
+                    enemy.health -= bullet.damage;
                     
-                    // Create explosion
-                    this.createExplosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
+                    // Remove bullet unless it's piercing
+                    if (!bullet.piercing) {
+                        this.bullets.splice(i, 1);
+                    }
                     
-                    // Update combo and score
-                    this.updateComboAndScore(enemy.type);
+                    // Check if enemy is destroyed
+                    if (enemy.health <= 0) {
+                        this.enemies.splice(j, 1);
+                        
+                        // Create explosion
+                        this.createExplosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
+                        
+                        // Update combo and score
+                        this.updateComboAndScore(enemy.type);
+                    }
                     
                     break;
                 }
@@ -711,8 +998,30 @@ class EnhancedSpaceShooter {
                 // Create explosion
                 this.createExplosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
                 
-                // Damage player
-                this.player.health -= 20;
+                // Damage player based on enemy type
+                let damage = 20;
+                switch(enemy.type) {
+                    case 'basic':
+                        damage = 20;
+                        break;
+                    case 'fast':
+                        damage = 25;
+                        break;
+                    case 'tank':
+                        damage = 40;
+                        break;
+                    case 'boss':
+                        damage = 60;
+                        break;
+                    case 'elite':
+                        damage = 35;
+                        break;
+                    case 'superboss':
+                        damage = 80;
+                        break;
+                }
+                
+                this.player.health -= damage;
                 this.player.invulnerable = 120; // 2 seconds of invulnerability
                 
                 // Reset combo
@@ -813,15 +1122,8 @@ class EnhancedSpaceShooter {
     }
     
     collectPowerup(powerup) {
-        this.powerupsCollected++;
-        
-        // Track powerup collection
-        if (typeof firebaseUtils !== 'undefined' && firebaseUtils.isAvailable()) {
-            firebaseUtils.trackEvent('powerup_collected', {
-                powerup_type: powerup.type,
-                total_powerups: this.powerupsCollected
-            });
-        }
+        // Play powerup sound
+        this.playSound('powerup');
         
         switch (powerup.type) {
             case 'health':
@@ -831,39 +1133,88 @@ class EnhancedSpaceShooter {
                 this.player.shield = Math.min(this.player.shield + 50, 100);
                 break;
             case 'weapon':
-                const weapons = ['basic', 'plasma', 'spread', 'laser', 'missile', 'spread-shot'];
-                const newWeapon = weapons[Math.floor(Math.random() * weapons.length)];
-                this.currentWeapon = newWeapon;
-                
-                // Track weapon change
-                if (typeof firebaseUtils !== 'undefined' && firebaseUtils.isAvailable()) {
-                    firebaseUtils.trackEvent('weapon_changed', {
-                        new_weapon: newWeapon
-                    });
-                }
+                // Unlock a new weapon
+                this.unlockRandomWeapon();
                 break;
             case 'missile':
                 this.player.missiles += 5;
                 break;
             case 'rapid-fire':
                 this.rapidFireEnabled = true;
-                this.rapidFireRate = Math.max(30, this.rapidFireRate - 10);
+                this.rapidFireRate = Math.max(20, this.rapidFireRate - 10);
+                setTimeout(() => {
+                    this.rapidFireEnabled = false;
+                    this.rapidFireRate = 50;
+                }, 10000);
                 break;
+        }
+        
+        this.powerupsCollected++;
+        
+        // Track powerup collection
+        if (typeof firebaseUtils !== 'undefined' && firebaseUtils.isAvailable()) {
+            firebaseUtils.trackEvent('powerup_collected', {
+                type: powerup.type,
+                timestamp: new Date().toISOString()
+            });
         }
     }
     
+    unlockRandomWeapon() {
+        const lockedWeapons = this.availableWeapons.filter(weapon => !this.weaponUnlocked[weapon]);
+        
+        if (lockedWeapons.length > 0) {
+            const randomWeapon = lockedWeapons[Math.floor(Math.random() * lockedWeapons.length)];
+            this.weaponUnlocked[randomWeapon] = true;
+            this.currentWeapon = randomWeapon;
+            
+            // Show weapon unlock notification
+            this.showWeaponUnlockNotification(randomWeapon);
+            
+            // Track weapon unlock
+            if (typeof firebaseUtils !== 'undefined' && firebaseUtils.isAvailable()) {
+                firebaseUtils.trackEvent('weapon_unlocked', {
+                    weapon: randomWeapon,
+                    timestamp: new Date().toISOString()
+                });
+            }
+        }
+    }
+    
+    showWeaponUnlockNotification(weaponName) {
+        const notification = document.createElement('div');
+        notification.className = 'event-notification';
+        notification.innerHTML = `🔫 NEW WEAPON UNLOCKED!<br><small>${weaponName.toUpperCase()}</small>`;
+        notification.style.background = 'linear-gradient(135deg, #ff6600, #ff4400)';
+        notification.style.color = '#fff';
+        notification.style.fontWeight = 'bold';
+        notification.style.fontSize = '24px';
+        
+        document.getElementById('gameContainer').appendChild(notification);
+        
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 3000);
+    }
+    
     createExplosion(x, y) {
+        // Play explosion sound
+        this.playSound('explosion');
+        
+        // Create explosion effect
         this.explosions.push({
-            x: x - 25,
-            y: y - 25,
-            width: 50,
-            height: 50,
+            x: x - 20,
+            y: y - 20,
+            width: 40,
+            height: 40,
             frame: 0,
-            maxFrames: 8
+            maxFrames: 20
         });
         
-        // Create particles
-        for (let i = 0; i < 10; i++) {
+        // Create particle effects
+        for (let i = 0; i < 8; i++) {
             this.particles.push({
                 x: x,
                 y: y,
@@ -954,17 +1305,67 @@ class EnhancedSpaceShooter {
                 }
             }
             
-            // Fallback to geometric shape - BRIGHTER COLORS
-            this.ctx.shadowColor = '#ffff00';
+            // Fallback to geometric shape - ENHANCED VISUALS
+            this.ctx.shadowColor = this.getBulletColor(bullet.type);
             this.ctx.shadowBlur = 10;
-            this.ctx.fillStyle = '#ffff00';
-            this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
             
-            // Add glow effect
-            this.ctx.globalAlpha = 0.6;
-            this.ctx.fillStyle = '#ffffff';
-            this.ctx.fillRect(bullet.x - 1, bullet.y - 1, bullet.width + 2, bullet.height + 2);
-            this.ctx.globalAlpha = 1.0;
+            switch (bullet.type) {
+                case 'basic':
+                    this.ctx.fillStyle = '#ffff00';
+                    this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                    break;
+                case 'plasma':
+                    this.ctx.fillStyle = '#00ffff';
+                    this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                    // Add plasma glow
+                    this.ctx.globalAlpha = 0.6;
+                    this.ctx.fillStyle = '#ffffff';
+                    this.ctx.fillRect(bullet.x - 1, bullet.y - 1, bullet.width + 2, bullet.height + 2);
+                    this.ctx.globalAlpha = 1.0;
+                    break;
+                case 'laser':
+                    this.ctx.fillStyle = '#ff00ff';
+                    this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                    break;
+                case 'missile':
+                    this.ctx.fillStyle = '#ff6600';
+                    this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                    break;
+                case 'railgun':
+                    this.ctx.fillStyle = '#00ff00';
+                    this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                    // Add railgun trail
+                    this.ctx.globalAlpha = 0.4;
+                    this.ctx.fillRect(bullet.x - 2, bullet.y + bullet.height, bullet.width + 4, 10);
+                    this.ctx.globalAlpha = 1.0;
+                    break;
+                case 'flamethrower':
+                    this.ctx.fillStyle = '#ff4400';
+                    this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                    break;
+                case 'thunder':
+                    this.ctx.fillStyle = '#ffff00';
+                    this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                    // Add lightning effect
+                    this.ctx.globalAlpha = 0.7;
+                    this.ctx.fillStyle = '#ffffff';
+                    this.ctx.fillRect(bullet.x - 1, bullet.y - 1, bullet.width + 2, bullet.height + 2);
+                    this.ctx.globalAlpha = 1.0;
+                    break;
+                case 'nuclear':
+                    this.ctx.fillStyle = '#ff0000';
+                    this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                    // Add nuclear glow
+                    this.ctx.globalAlpha = 0.8;
+                    this.ctx.fillStyle = '#ffff00';
+                    this.ctx.fillRect(bullet.x - 4, bullet.y - 4, bullet.width + 8, bullet.height + 8);
+                    this.ctx.globalAlpha = 1.0;
+                    break;
+                default:
+                    this.ctx.fillStyle = '#ffff00';
+                    this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+            }
+            
             this.ctx.shadowBlur = 0;
         }
     }
@@ -998,9 +1399,32 @@ class EnhancedSpaceShooter {
                 case 'boss':
                     this.ctx.fillStyle = '#ff4488'; // Brighter pink
                     break;
+                case 'elite':
+                    this.ctx.fillStyle = '#44ff44'; // Bright green
+                    break;
+                case 'superboss':
+                    this.ctx.fillStyle = '#ff0044'; // Bright red-pink
+                    break;
             }
             
             this.ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+            
+            // Add health bar for enemies with high health
+            if (enemy.maxHealth > 50) {
+                const healthBarWidth = enemy.width;
+                const healthBarHeight = 4;
+                const healthBarX = enemy.x;
+                const healthBarY = enemy.y - 8;
+                const healthPercentage = enemy.health / enemy.maxHealth;
+                
+                // Health bar background
+                this.ctx.fillStyle = '#333333';
+                this.ctx.fillRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
+                
+                // Health bar fill
+                this.ctx.fillStyle = healthPercentage > 0.5 ? '#00ff00' : healthPercentage > 0.25 ? '#ffff00' : '#ff0000';
+                this.ctx.fillRect(healthBarX, healthBarY, healthBarWidth * healthPercentage, healthBarHeight);
+            }
             
             // Add glow effect for better visibility
             this.ctx.globalAlpha = 0.4;
@@ -1285,8 +1709,35 @@ class EnhancedSpaceShooter {
                 return '#8844ff';
             case 'boss':
                 return '#ff4488';
+            case 'elite':
+                return '#44ff44';
+            case 'superboss':
+                return '#ff0044';
             default:
                 return '#ff0000';
+        }
+    }
+
+    getBulletColor(bulletType) {
+        switch (bulletType) {
+            case 'basic':
+                return '#ffff00';
+            case 'plasma':
+                return '#00ffff';
+            case 'laser':
+                return '#ff00ff';
+            case 'missile':
+                return '#ff6600';
+            case 'railgun':
+                return '#00ff00';
+            case 'flamethrower':
+                return '#ff4400';
+            case 'thunder':
+                return '#ffff00';
+            case 'nuclear':
+                return '#ff0000';
+            default:
+                return '#ffff00';
         }
     }
 }
