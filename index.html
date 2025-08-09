@@ -1626,9 +1626,12 @@
                 if (this.audioInitialized) return;
                 
                 try {
-                    // Create audio contexts for sound effects
+                    // Create audio contexts for sound effects and music
                     this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
                     this.audioInitialized = true;
+                    
+                    // Initialize background music
+                    this.initBackgroundMusic();
                     
                     // Generate explosion sound
                     this.sounds.explosion = () => {
@@ -1733,54 +1736,83 @@
                     this.sounds.backgroundMusic = () => {
                         if (!this.sfxEnabled || !this.audioContext) return;
                         
-                        // Create multiple oscillators for rich sound
+                        // Create multiple oscillators for rich game music
                         const bassOsc = this.audioContext.createOscillator();
                         const leadOsc = this.audioContext.createOscillator();
                         const padOsc = this.audioContext.createOscillator();
+                        const drumOsc = this.audioContext.createOscillator();
                         
                         const bassGain = this.audioContext.createGain();
                         const leadGain = this.audioContext.createGain();
                         const padGain = this.audioContext.createGain();
+                        const drumGain = this.audioContext.createGain();
                         
                         // Connect oscillators
                         bassOsc.connect(bassGain);
                         leadOsc.connect(leadGain);
                         padOsc.connect(padGain);
+                        drumOsc.connect(drumGain);
                         
                         bassGain.connect(this.audioContext.destination);
                         leadGain.connect(this.audioContext.destination);
                         padGain.connect(this.audioContext.destination);
+                        drumGain.connect(this.audioContext.destination);
                         
-                        // Bass line (lower frequency)
-                        bassOsc.frequency.setValueAtTime(110, this.audioContext.currentTime);
-                        bassOsc.frequency.setValueAtTime(220, this.audioContext.currentTime + 2);
-                        bassOsc.frequency.setValueAtTime(165, this.audioContext.currentTime + 4);
+                        // Epic space battle music progression
+                        const time = this.audioContext.currentTime;
                         
-                        // Lead melody (higher frequency)
-                        leadOsc.frequency.setValueAtTime(440, this.audioContext.currentTime);
-                        leadOsc.frequency.setValueAtTime(880, this.audioContext.currentTime + 1);
-                        leadOsc.frequency.setValueAtTime(660, this.audioContext.currentTime + 2);
-                        leadOsc.frequency.setValueAtTime(1100, this.audioContext.currentTime + 3);
+                        // Bass line (epic low frequencies)
+                        bassOsc.frequency.setValueAtTime(110, time);
+                        bassOsc.frequency.setValueAtTime(220, time + 1);
+                        bassOsc.frequency.setValueAtTime(165, time + 2);
+                        bassOsc.frequency.setValueAtTime(330, time + 3);
+                        bassOsc.frequency.setValueAtTime(110, time + 4);
                         
-                        // Pad harmony (middle frequency)
-                        padOsc.frequency.setValueAtTime(220, this.audioContext.currentTime);
-                        padOsc.frequency.setValueAtTime(330, this.audioContext.currentTime + 1.5);
-                        padOsc.frequency.setValueAtTime(440, this.audioContext.currentTime + 3);
+                        // Lead melody (heroic high frequencies)
+                        leadOsc.frequency.setValueAtTime(440, time);
+                        leadOsc.frequency.setValueAtTime(880, time + 0.5);
+                        leadOsc.frequency.setValueAtTime(660, time + 1);
+                        leadOsc.frequency.setValueAtTime(1100, time + 1.5);
+                        leadOsc.frequency.setValueAtTime(880, time + 2);
+                        leadOsc.frequency.setValueAtTime(1320, time + 2.5);
+                        leadOsc.frequency.setValueAtTime(660, time + 3);
+                        leadOsc.frequency.setValueAtTime(440, time + 4);
                         
-                        // Volume control
-                        bassGain.gain.setValueAtTime(0.1, this.audioContext.currentTime);
-                        leadGain.gain.setValueAtTime(0.05, this.audioContext.currentTime);
-                        padGain.gain.setValueAtTime(0.03, this.audioContext.currentTime);
+                        // Pad harmony (atmospheric middle frequencies)
+                        padOsc.frequency.setValueAtTime(220, time);
+                        padOsc.frequency.setValueAtTime(330, time + 1);
+                        padOsc.frequency.setValueAtTime(440, time + 2);
+                        padOsc.frequency.setValueAtTime(330, time + 3);
+                        padOsc.frequency.setValueAtTime(220, time + 4);
+                        
+                        // Drum beat (rhythm)
+                        drumOsc.frequency.setValueAtTime(200, time);
+                        drumOsc.frequency.setValueAtTime(200, time + 0.5);
+                        drumOsc.frequency.setValueAtTime(200, time + 1);
+                        drumOsc.frequency.setValueAtTime(200, time + 1.5);
+                        drumOsc.frequency.setValueAtTime(200, time + 2);
+                        drumOsc.frequency.setValueAtTime(200, time + 2.5);
+                        drumOsc.frequency.setValueAtTime(200, time + 3);
+                        drumOsc.frequency.setValueAtTime(200, time + 3.5);
+                        drumOsc.frequency.setValueAtTime(200, time + 4);
+                        
+                        // Volume control for balanced mix
+                        bassGain.gain.setValueAtTime(0.15, time);
+                        leadGain.gain.setValueAtTime(0.08, time);
+                        padGain.gain.setValueAtTime(0.05, time);
+                        drumGain.gain.setValueAtTime(0.1, time);
                         
                         // Start oscillators
-                        bassOsc.start(this.audioContext.currentTime);
-                        leadOsc.start(this.audioContext.currentTime);
-                        padOsc.start(this.audioContext.currentTime);
+                        bassOsc.start(time);
+                        leadOsc.start(time);
+                        padOsc.start(time);
+                        drumOsc.start(time);
                         
-                        // Stop after 5 seconds
-                        bassOsc.stop(this.audioContext.currentTime + 5);
-                        leadOsc.stop(this.audioContext.currentTime + 5);
-                        padOsc.stop(this.audioContext.currentTime + 5);
+                        // Stop after 5 seconds for continuous loop
+                        bassOsc.stop(time + 5);
+                        leadOsc.stop(time + 5);
+                        padOsc.stop(time + 5);
+                        drumOsc.stop(time + 5);
                     };
                     
                     // Background music (simple tone generator)
@@ -1790,6 +1822,18 @@
                     console.log('Audio initialization error:', error);
                     // Continue without audio
                 }
+            }
+            
+            initBackgroundMusic() {
+                // Initialize background music system
+                this.musicEnabled = true;
+                this.musicVolume = 0.3;
+                this.currentMusicTrack = 0;
+                this.musicTracks = [
+                    { name: 'Space Battle', duration: 30000 },
+                    { name: 'Victory Theme', duration: 15000 },
+                    { name: 'Boss Battle', duration: 45000 }
+                ];
             }
             
             startBackgroundMusic() {
@@ -2454,12 +2498,12 @@
             }
             
             spawnEnemies() {
-                // Limit to maximum 8 enemies on screen (reduced from 10)
-                if (this.enemies.length >= 8) return;
+                // Limit to maximum 10 enemies on screen (consistent throughout game)
+                if (this.enemies.length >= 10) return;
                 
-                // Use balanced spawn rate based on level difficulty
-                const spawnChance = 0.003 + (this.level * 0.0005); // Reduced spawn rate
-                const waveSize = Math.min(Math.floor(this.level / 10) + 1, 3); // Smaller waves
+                // Use consistent spawn rate throughout the game
+                const spawnChance = 0.005 + (this.level * 0.001); // Consistent spawn rate
+                const waveSize = Math.min(Math.floor(this.level / 8) + 1, 5); // Larger waves
                 
                 if (Math.random() < spawnChance) {
                     const enemyTypes = [
@@ -4372,7 +4416,7 @@ Good luck, pilot! 🚀`);
             // AI movement decision - Prioritize power-ups
             let targetX = game.player.x;
             let targetY = game.player.y;
-            let moveSpeed = game.player.speed * 2; // Faster movement
+            let moveSpeed = game.player.speed * 4; // Much faster movement for better collection
             
             if (closestPowerup && closestPowerupDistance < 400) {
                 // Move towards power-up
