@@ -80,17 +80,20 @@
         /* Ensure menu is visible by default */
         #menu {
             display: flex !important;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: rgba(0, 0, 0, 0.9) !important;
+            z-index: 1000 !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden;
         }
         
         #gameOver, #pauseOverlay, #briefingOverlay {
@@ -112,6 +115,7 @@
             z-index: 1001;
             margin: auto;
             transform: translateZ(0);
+            display: block;
         }
         
         .btn {
@@ -1580,11 +1584,25 @@
         document.addEventListener('DOMContentLoaded', () => {
             console.log('Page loaded, initializing game...');
             
-            // Ensure menu is visible
+            // Ensure menu is visible and properly positioned
             const menu = document.getElementById('menu');
             if (menu) {
                 menu.style.display = 'flex';
-                console.log('Menu displayed');
+                menu.style.position = 'fixed';
+                menu.style.top = '0';
+                menu.style.left = '0';
+                menu.style.right = '0';
+                menu.style.bottom = '0';
+                menu.style.width = '100%';
+                menu.style.height = '100%';
+                menu.style.background = 'rgba(0, 0, 0, 0.9)';
+                menu.style.zIndex = '1000';
+                menu.style.alignItems = 'center';
+                menu.style.justifyContent = 'center';
+                menu.style.margin = '0';
+                menu.style.padding = '0';
+                menu.style.overflow = 'hidden';
+                console.log('Menu displayed and positioned');
             }
             
             // Check if canvas is available
