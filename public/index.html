@@ -664,13 +664,7 @@
             }
         }
         
-        function restartGame() {
-            console.log('restartGame() called');
-            if (game) {
-                game.init();
-                game.startGame();
-            }
-        }
+
         
         function resumeGame() {
             console.log('resumeGame() called');
@@ -759,20 +753,39 @@
         }
         
         function restartGame() {
+            console.log('🔄 restartGame() called');
+            
+            // Hide the game over screen
+            document.getElementById('gameOver').style.display = 'none';
+            
             if (game) {
+                // Reset game state
                 game.gameState = 'playing';
                 game.lives = 25;
                 game.score = 0;
                 game.level = 1;
                 game.combo = 0;
+                game.maxCombo = 0;
+                game.survivalTime = 0;
+                game.enemiesDestroyed = 0;
+                game.powerupsCollected = 0;
+                
+                // Clear all game objects
                 game.enemies = [];
                 game.bullets = [];
                 game.powerups = [];
                 game.explosions = [];
                 game.particles = [];
+                
+                // Reset player
                 game.player.health = game.player.maxHealth;
                 game.player.shield = 0;
                 game.player.invulnerable = 0;
+                game.player.x = game.canvas.width / 2 - game.player.width / 2;
+                game.player.y = game.canvas.height - game.player.height - 20;
+                
+                // Show game container and start game
+                document.getElementById('gameContainer').classList.add('playing');
                 game.startGame();
             } else {
                 startGame();
@@ -876,17 +889,7 @@
         
 
         
-        // Enhanced store functions
-        function openStore() {
-            document.getElementById('menu').style.display = 'none';
-            document.getElementById('storeOverlay').style.display = 'flex';
-            
-            // Update store display with current game data
-            if (game) {
-                document.getElementById('storeMoney').textContent = game.money || 0;
-                document.getElementById('currentShip').textContent = game.currentShipType || 'Starfighter';
-            }
-        }
+
         
         function closeStore() {
             document.getElementById('storeOverlay').style.display = 'none';
