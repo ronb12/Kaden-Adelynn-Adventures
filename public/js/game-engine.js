@@ -13,6 +13,10 @@ class EnhancedSpaceShooter {
         }
         this.gameState = 'menu';
         
+        // Initialize sprite manager
+        this.spriteManager = new SpriteManager();
+        this.useSprites = true;
+        
         // Game stats
         this.score = 0;
         this.lives = 3;
@@ -68,10 +72,18 @@ class EnhancedSpaceShooter {
         this.resizeCanvas();
         window.addEventListener('resize', () => this.resizeCanvas());
         
+        // Initialize sprites
+        this.initSprites();
+        
         // Initialize game
         this.init();
         
         console.log('Game engine initialized successfully');
+    }
+    
+    initSprites() {
+        console.log('🎨 Initializing sprites...');
+        this.spriteManager.loadSprites();
     }
     
     resizeCanvas() {
@@ -652,8 +664,20 @@ class EnhancedSpaceShooter {
             return; // Blink when invulnerable
         }
         
-        this.ctx.fillStyle = '#00ffff';
-        this.ctx.fillRect(this.player.x, this.player.y, this.player.width, this.player.height);
+        // Try to draw sprite first
+        if (this.useSprites && this.spriteManager.isSpriteLoaded('player-fighter')) {
+            if (this.spriteManager.drawSprite(this.ctx, 'player-fighter', this.player.x, this.player.y, this.player.width, this.player.height)) {
+                // Sprite drawn successfully
+            } else {
+                // Fallback to geometric shape
+                this.ctx.fillStyle = '#00ffff';
+                this.ctx.fillRect(this.player.x, this.player.y, this.player.width, this.player.height);
+            }
+        } else {
+            // Fallback to geometric shape
+            this.ctx.fillStyle = '#00ffff';
+            this.ctx.fillRect(this.player.x, this.player.y, this.player.width, this.player.height);
+        }
         
         // Draw shield
         if (this.player.shield > 0) {
@@ -667,14 +691,36 @@ class EnhancedSpaceShooter {
     }
     
     drawBullets() {
-        this.ctx.fillStyle = '#ffff00';
         for (const bullet of this.bullets) {
+            // Try to draw sprite first
+            if (this.useSprites) {
+                const spriteName = this.getBulletSpriteName(bullet.type);
+                if (this.spriteManager.isSpriteLoaded(spriteName)) {
+                    if (this.spriteManager.drawSprite(this.ctx, spriteName, bullet.x, bullet.y, bullet.width, bullet.height)) {
+                        continue; // Sprite drawn successfully
+                    }
+                }
+            }
+            
+            // Fallback to geometric shape
+            this.ctx.fillStyle = '#ffff00';
             this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
         }
     }
     
     drawEnemies() {
         for (const enemy of this.enemies) {
+            // Try to draw sprite first
+            if (this.useSprites) {
+                const spriteName = this.getEnemySpriteName(enemy.type);
+                if (this.spriteManager.isSpriteLoaded(spriteName)) {
+                    if (this.spriteManager.drawSprite(this.ctx, spriteName, enemy.x, enemy.y, enemy.width, enemy.height)) {
+                        continue; // Sprite drawn successfully
+                    }
+                }
+            }
+            
+            // Fallback to geometric shape
             switch (enemy.type) {
                 case 'basic':
                     this.ctx.fillStyle = '#ff0000';
@@ -695,6 +741,14 @@ class EnhancedSpaceShooter {
     
     drawPowerups() {
         for (const powerup of this.powerups) {
+            // Try to draw sprite first
+            if (this.useSprites && this.spriteManager.isSpriteLoaded('effect-powerup')) {
+                if (this.spriteManager.drawSprite(this.ctx, 'effect-powerup', powerup.x, powerup.y, powerup.width, powerup.height)) {
+                    continue; // Sprite drawn successfully
+                }
+            }
+            
+            // Fallback to geometric shape
             switch (powerup.type) {
                 case 'health':
                     this.ctx.fillStyle = '#00ff00';
@@ -715,6 +769,14 @@ class EnhancedSpaceShooter {
     
     drawExplosions() {
         for (const explosion of this.explosions) {
+            // Try to draw sprite first
+            if (this.useSprites && this.spriteManager.isSpriteLoaded('effect-explosion')) {
+                if (this.spriteManager.drawSprite(this.ctx, 'effect-explosion', explosion.x, explosion.y, explosion.width, explosion.height)) {
+                    continue; // Sprite drawn successfully
+                }
+            }
+            
+            // Fallback to geometric shape
             const alpha = 1 - (explosion.frame / explosion.maxFrames);
             this.ctx.fillStyle = `rgba(255, 255, 0, ${alpha})`;
             this.ctx.fillRect(explosion.x, explosion.y, explosion.width, explosion.height);
@@ -789,5 +851,25 @@ class EnhancedSpaceShooter {
             "elite": "player-interceptor"
         };
         return spriteMap[this.currentShipType] || "player-fighter";
+    }
+    
+    getEnemySpriteName(enemyType) {
+        const spriteMap = {
+            'basic': 'enemy-basic',
+            'fast': 'enemy-fast',
+            'tank': 'enemy-tank',
+            'boss': 'enemy-boss'
+        };
+        return spriteMap[enemyType] || 'enemy-basic';
+    }
+    
+    getBulletSpriteName(bulletType) {
+        const spriteMap = {
+            'basic': 'weapon-laser',
+            'plasma': 'weapon-plasma',
+            'missile': 'weapon-missile',
+            'laser': 'weapon-laser'
+        };
+        return spriteMap[bulletType] || 'weapon-laser';
     }
 }
