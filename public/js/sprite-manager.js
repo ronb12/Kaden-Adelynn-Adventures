@@ -10,7 +10,7 @@ class SpriteManager {
     // Load all sprites for the game
     loadSprites() {
         const spriteList = {
-            // Player ships (actual sprite images)
+            // Player ships (Gradius-style Vic Viper ships)
             'player-fighter': 'assets/sprites/player/fighter-01.png',
             'player-interceptor': 'assets/sprites/player/fighter-02.png',
             'player-destroyer': 'assets/sprites/player/fighter-03.png',
@@ -105,9 +105,9 @@ class SpriteManager {
     // Get emoji fallback for sprites
     getEmojiFallback(name) {
         const fallbacks = {
-            'player-fighter': '🚀',
-            'player-interceptor': '🛸',
-            'player-destroyer': '🛰️',
+            'player-fighter': '🛸', // Flying saucer for Gradius-like ship
+            'player-interceptor': '🚀', // Rocket for interceptor
+            'player-destroyer': '🛰️', // Satellite for destroyer
             'enemy-basic': '👾',
             'enemy-fast': '🤖',
             'enemy-tank': '🦾',

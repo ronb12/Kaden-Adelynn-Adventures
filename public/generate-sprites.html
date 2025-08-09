@@ -20,7 +20,7 @@
             ctx.clearRect(0, 0, 64, 64);
             
             if (type === 'player') {
-                drawPlayerShip(ctx, color);
+                drawGradiusShip(ctx, color);
             } else {
                 drawEnemyShip(ctx, color, name);
             }
@@ -34,24 +34,93 @@
             console.log(`Generated: ${name}.png`);
         }
         
-        function drawPlayerShip(ctx, color) {
-            ctx.fillStyle = color;
+        function drawGradiusShip(ctx, color) {
+            // Gradius Vic Viper ship design
+            const shipColor = color;
+            const accentColor = '#ffffff';
+            const cockpitColor = '#87ceeb';
+            
+            // Main body
+            ctx.fillStyle = shipColor;
             ctx.beginPath();
+            // Nose cone
             ctx.moveTo(32, 8);
-            ctx.lineTo(20, 48);
-            ctx.lineTo(28, 48);
-            ctx.lineTo(28, 56);
-            ctx.lineTo(36, 56);
-            ctx.lineTo(36, 48);
-            ctx.lineTo(44, 48);
+            ctx.lineTo(28, 16);
+            ctx.lineTo(36, 16);
             ctx.closePath();
             ctx.fill();
             
-            // Cockpit
-            ctx.fillStyle = '#ffffff';
+            // Main body
             ctx.beginPath();
-            ctx.ellipse(32, 32, 4, 2, 0, 0, Math.PI * 2);
+            ctx.moveTo(28, 16);
+            ctx.lineTo(24, 32);
+            ctx.lineTo(22, 40);
+            ctx.lineTo(20, 48);
+            ctx.lineTo(18, 56);
+            ctx.lineTo(46, 56);
+            ctx.lineTo(44, 48);
+            ctx.lineTo(42, 40);
+            ctx.lineTo(40, 32);
+            ctx.lineTo(36, 16);
+            ctx.closePath();
             ctx.fill();
+            
+            // Wings
+            ctx.fillStyle = shipColor;
+            ctx.beginPath();
+            // Left wing
+            ctx.moveTo(24, 32);
+            ctx.lineTo(16, 40);
+            ctx.lineTo(14, 48);
+            ctx.lineTo(20, 48);
+            ctx.lineTo(22, 40);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Right wing
+            ctx.beginPath();
+            ctx.moveTo(40, 32);
+            ctx.lineTo(48, 40);
+            ctx.lineTo(50, 48);
+            ctx.lineTo(44, 48);
+            ctx.lineTo(42, 40);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Engine details
+            ctx.fillStyle = '#ff6600';
+            ctx.fillRect(26, 44, 3, 8);
+            ctx.fillRect(35, 44, 3, 8);
+            
+            // Cockpit
+            ctx.fillStyle = cockpitColor;
+            ctx.beginPath();
+            ctx.ellipse(32, 28, 6, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Cockpit details
+            ctx.fillStyle = '#000080';
+            ctx.beginPath();
+            ctx.ellipse(32, 28, 3, 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Ship details
+            ctx.fillStyle = accentColor;
+            // Nose detail
+            ctx.fillRect(31, 10, 2, 4);
+            
+            // Body line
+            ctx.beginPath();
+            ctx.moveTo(32, 16);
+            ctx.lineTo(32, 48);
+            ctx.strokeStyle = accentColor;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            
+            // Wing details
+            ctx.fillStyle = accentColor;
+            ctx.fillRect(30, 36, 4, 2);
+            ctx.fillRect(30, 42, 4, 2);
         }
         
         function drawEnemyShip(ctx, color, type) {
@@ -113,10 +182,10 @@
         // Generate all sprites
         console.log('Starting sprite generation...');
         
-        // Player sprites
-        generateSprite('fighter-01', '#00ffff', 'player');
-        generateSprite('fighter-02', '#00ff00', 'player');
-        generateSprite('fighter-03', '#ff00ff', 'player');
+        // Player sprites (Gradius style)
+        generateSprite('fighter-01', '#00ffff', 'player'); // Cyan Gradius ship
+        generateSprite('fighter-02', '#00ff00', 'player'); // Green Gradius ship
+        generateSprite('fighter-03', '#ff00ff', 'player'); // Magenta Gradius ship
         
         // Enemy sprites
         generateSprite('basic-enemy', '#ff0000', 'enemy');

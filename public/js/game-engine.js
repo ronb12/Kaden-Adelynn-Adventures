@@ -734,14 +734,12 @@ class EnhancedSpaceShooter {
             if (this.spriteManager.drawSprite(this.ctx, 'player-fighter', this.player.x, this.player.y, this.player.width, this.player.height)) {
                 // Sprite drawn successfully
             } else {
-                // Fallback to geometric shape
-                this.ctx.fillStyle = '#00ffff';
-                this.ctx.fillRect(this.player.x, this.player.y, this.player.width, this.player.height);
+                // Fallback to Gradius-style sprite
+                this.drawGradiusPlayer();
             }
         } else {
-            // Fallback to geometric shape
-            this.ctx.fillStyle = '#00ffff';
-            this.ctx.fillRect(this.player.x, this.player.y, this.player.width, this.player.height);
+            // Fallback to Gradius-style sprite
+            this.drawGradiusPlayer();
         }
         
         // Draw shield
@@ -753,6 +751,12 @@ class EnhancedSpaceShooter {
                         this.player.width / 2 + 10, 0, Math.PI * 2);
             this.ctx.stroke();
         }
+    }
+    
+    drawGradiusPlayer() {
+        // Generate and draw Gradius-style ship
+        const gradiusCanvas = this.generateGradiusSprite('#00ffff');
+        this.ctx.drawImage(gradiusCanvas, this.player.x, this.player.y, this.player.width, this.player.height);
     }
     
     drawBullets() {
@@ -969,5 +973,102 @@ class EnhancedSpaceShooter {
             'laser': 'weapon-laser'
         };
         return spriteMap[bulletType] || 'weapon-laser';
+    }
+
+    // Generate Gradius-style ship sprite as fallback
+    generateGradiusSprite(color = '#00ffff') {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 64;
+        canvas.height = 64;
+        
+        // Gradius Vic Viper ship design
+        const shipColor = color;
+        const accentColor = '#ffffff';
+        const cockpitColor = '#87ceeb';
+        
+        // Main body
+        ctx.fillStyle = shipColor;
+        ctx.beginPath();
+        // Nose cone
+        ctx.moveTo(32, 8);
+        ctx.lineTo(28, 16);
+        ctx.lineTo(36, 16);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Main body
+        ctx.beginPath();
+        ctx.moveTo(28, 16);
+        ctx.lineTo(24, 32);
+        ctx.lineTo(22, 40);
+        ctx.lineTo(20, 48);
+        ctx.lineTo(18, 56);
+        ctx.lineTo(46, 56);
+        ctx.lineTo(44, 48);
+        ctx.lineTo(42, 40);
+        ctx.lineTo(40, 32);
+        ctx.lineTo(36, 16);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Wings
+        ctx.fillStyle = shipColor;
+        ctx.beginPath();
+        // Left wing
+        ctx.moveTo(24, 32);
+        ctx.lineTo(16, 40);
+        ctx.lineTo(14, 48);
+        ctx.lineTo(20, 48);
+        ctx.lineTo(22, 40);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Right wing
+        ctx.beginPath();
+        ctx.moveTo(40, 32);
+        ctx.lineTo(48, 40);
+        ctx.lineTo(50, 48);
+        ctx.lineTo(44, 48);
+        ctx.lineTo(42, 40);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Engine details
+        ctx.fillStyle = '#ff6600';
+        ctx.fillRect(26, 44, 3, 8);
+        ctx.fillRect(35, 44, 3, 8);
+        
+        // Cockpit
+        ctx.fillStyle = cockpitColor;
+        ctx.beginPath();
+        ctx.ellipse(32, 28, 6, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Cockpit details
+        ctx.fillStyle = '#000080';
+        ctx.beginPath();
+        ctx.ellipse(32, 28, 3, 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Ship details
+        ctx.fillStyle = accentColor;
+        // Nose detail
+        ctx.fillRect(31, 10, 2, 4);
+        
+        // Body line
+        ctx.beginPath();
+        ctx.moveTo(32, 16);
+        ctx.lineTo(32, 48);
+        ctx.strokeStyle = accentColor;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        // Wing details
+        ctx.fillStyle = accentColor;
+        ctx.fillRect(30, 36, 4, 2);
+        ctx.fillRect(30, 42, 4, 2);
+        
+        return canvas;
     }
 }
