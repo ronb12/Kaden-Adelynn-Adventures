@@ -626,18 +626,54 @@
         
         // Game control functions
         function startGame() {
-            console.log('startGame() called');
-            if (!game) {
-                console.log('Creating new game instance');
-                game = new EnhancedSpaceShooter();
+            console.log('🎮 startGame() called');
+            
+            try {
+                // Hide the main menu
+                const menu = document.getElementById('menu');
+                if (menu) {
+                    menu.style.display = 'none';
+                    console.log('✅ Menu hidden');
+                }
+                
+                if (!game) {
+                    console.log('Creating new game instance');
+                    game = new EnhancedSpaceShooter();
+                    console.log('✅ Game instance created');
+                }
+                
+                // Don't reinitialize if game is already playing
+                if (game.gameState === 'playing') {
+                    console.log('Game already running, resuming...');
+                    return;
+                }
+                
+                // Set up game and start
+                game.keys = keys;
+                console.log('✅ Keys assigned to game');
+                
+                // Show game container and start game
+                const gameContainer = document.getElementById('gameContainer');
+                if (gameContainer) {
+                    gameContainer.classList.add('playing');
+                    console.log('✅ Game container shown');
+                }
+                
+                // Start the game
+                game.startGame();
+                console.log('✅ Game.startGame() called');
+                
+                console.log('✅ Game started successfully');
+            } catch (error) {
+                console.error('❌ Error in startGame:', error);
+                alert('Error starting game: ' + error.message);
+                
+                // Show menu again if there was an error
+                const menu = document.getElementById('menu');
+                if (menu) {
+                    menu.style.display = 'flex';
+                }
             }
-            // Don't reinitialize if game is already playing
-            if (game.gameState === 'playing') {
-                console.log('Game already running, resuming...');
-                return;
-            }
-            game.keys = keys;
-            game.startGame();
         }
         
         function loadGame() {
@@ -723,9 +759,17 @@
         }
         
         function showHighScores() {
-            if (game) {
-                game.showHighScores();
+            console.log('🏆 showHighScores() called');
+            
+            if (game && typeof game.showHighScores === 'function') {
+                try {
+                    game.showHighScores();
+                } catch (error) {
+                    console.error('Error showing high scores:', error);
+                    alert('High scores coming soon!');
+                }
             } else {
+                console.log('Game not initialized or showHighScores method not available');
                 alert('High scores coming soon!');
             }
         }
