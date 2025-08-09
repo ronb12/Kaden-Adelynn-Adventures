@@ -1630,9 +1630,6 @@
                     this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
                     this.audioInitialized = true;
                     
-                    // Initialize background music
-                    this.initBackgroundMusic();
-                    
                     // Generate explosion sound
                     this.sounds.explosion = () => {
                         if (!this.sfxEnabled || !this.audioContext) return;
@@ -1732,164 +1729,48 @@
                         oscillator.stop(this.audioContext.currentTime + 0.4);
                     };
                     
-                    // Copyright-free background music
-                    this.sounds.backgroundMusic = () => {
+                    // Generate laser sound
+                    this.sounds.laser = () => {
                         if (!this.sfxEnabled || !this.audioContext) return;
-                        
-                        try {
-                            // Create audio element for copyright-free music
-                            const audio = new Audio();
-                            audio.loop = true;
-                            audio.volume = 0.3;
-                            
-                            // Use working copyright-free music URLs
-                            const musicTracks = [
-                                'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
-                                'https://www.soundjay.com/misc/sounds/bell-ringing-04.wav',
-                                'https://www.soundjay.com/misc/sounds/bell-ringing-03.wav',
-                                'https://www.soundjay.com/misc/sounds/bell-ringing-02.wav'
-                            ];
-                            
-                            // Randomly select a track
-                            const randomTrack = musicTracks[Math.floor(Math.random() * musicTracks.length)];
-                            audio.src = randomTrack;
-                            
-                            // Fallback to another track if current fails
-                            audio.onerror = () => {
-                                console.log('Music track failed to load, trying fallback...');
-                                const fallbackTracks = musicTracks.filter(track => track !== randomTrack);
-                                if (fallbackTracks.length > 0) {
-                                    audio.src = fallbackTracks[Math.floor(Math.random() * fallbackTracks.length)];
-                                } else {
-                                    // If all tracks fail, use generated music
-                                    this.playGeneratedMusic();
-                                }
-                            };
-                            
-                            // Play the music with proper error handling
-                            audio.play().then(() => {
-                                console.log('Background music started successfully');
-                                this.backgroundMusic = audio;
-                            }).catch(error => {
-                                console.log('Background music failed to load:', error);
-                                // Fallback to generated tones if copyright-free music fails
-                                this.playGeneratedMusic();
-                            });
-                            
-                        } catch (error) {
-                            console.log('Audio creation error:', error);
-                            this.playGeneratedMusic();
-                        }
-                    };
-                    
-                    // Fallback generated music if copyright-free music fails
-                    this.playGeneratedMusic = () => {
-                        if (!this.sfxEnabled || !this.audioContext) return;
-                        
-                        const bassOsc = this.audioContext.createOscillator();
-                        const leadOsc = this.audioContext.createOscillator();
+                        const oscillator = this.audioContext.createOscillator();
                         const gainNode = this.audioContext.createGain();
                         
-                        bassOsc.connect(gainNode);
-                        leadOsc.connect(gainNode);
+                        oscillator.connect(gainNode);
                         gainNode.connect(this.audioContext.destination);
                         
-                        const time = this.audioContext.currentTime;
+                        oscillator.frequency.setValueAtTime(1200, this.audioContext.currentTime);
+                        oscillator.frequency.exponentialRampToValueAtTime(800, this.audioContext.currentTime + 0.1);
                         
-                        // Simple space-themed tones
-                        bassOsc.frequency.setValueAtTime(220, time);
-                        leadOsc.frequency.setValueAtTime(440, time);
+                        gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.1);
                         
-                        gainNode.gain.setValueAtTime(0.1, time);
-                        
-                        bassOsc.start(time);
-                        leadOsc.start(time);
-                        
-                        bassOsc.stop(time + 5);
-                        leadOsc.stop(time + 5);
+                        oscillator.start(this.audioContext.currentTime);
+                        oscillator.stop(this.audioContext.currentTime + 0.1);
                     };
                     
-                    // Background music (simple tone generator)
-                    this.startBackgroundMusic();
+                    // Generate shield sound
+                    this.sounds.shield = () => {
+                        if (!this.sfxEnabled || !this.audioContext) return;
+                        const oscillator = this.audioContext.createOscillator();
+                        const gainNode = this.audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(this.audioContext.destination);
+                        
+                        oscillator.frequency.setValueAtTime(300, this.audioContext.currentTime);
+                        oscillator.frequency.setValueAtTime(500, this.audioContext.currentTime + 0.1);
+                        oscillator.frequency.setValueAtTime(700, this.audioContext.currentTime + 0.2);
+                        
+                        gainNode.gain.setValueAtTime(0.2, this.audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
+                        
+                        oscillator.start(this.audioContext.currentTime);
+                        oscillator.stop(this.audioContext.currentTime + 0.3);
+                    };
                     
                 } catch (error) {
                     console.log('Audio initialization error:', error);
                     // Continue without audio
-                }
-            }
-            
-            initBackgroundMusic() {
-                // Initialize background music system
-                this.musicEnabled = true;
-                this.musicVolume = 0.3;
-                this.currentMusicTrack = 0;
-                this.musicTracks = [
-                    { name: 'Space Battle', duration: 30000 },
-                    { name: 'Victory Theme', duration: 15000 },
-                    { name: 'Boss Battle', duration: 45000 }
-                ];
-            }
-            
-            startBackgroundMusic() {
-                if (!this.sfxEnabled || !this.audioContext) return;
-                
-                try {
-                    // Resume audio context if suspended (required for autoplay)
-                    if (this.audioContext.state === 'suspended') {
-                        this.audioContext.resume();
-                    }
-                    
-                    // Only start music after user interaction (browser autoplay policy)
-                    if (this.gameState === 'playing') {
-                        // Start with copyright-free music
-                        this.sounds.backgroundMusic();
-                        
-                        // Change music track every 2 minutes for variety
-                        setInterval(() => {
-                            if (this.gameState === 'playing' && this.backgroundMusic) {
-                                this.changeMusicTrack();
-                            }
-                        }, 120000); // 2 minutes
-                    }
-                    
-                } catch (error) {
-                    console.log('Background music error:', error);
-                }
-            }
-            
-            changeMusicTrack() {
-                if (!this.backgroundMusic || !this.sfxEnabled) return;
-                
-                try {
-                    // Fade out current track
-                    this.backgroundMusic.volume = 0;
-                    
-                    // Create new audio element with different track
-                    const newAudio = new Audio();
-                    newAudio.loop = true;
-                    newAudio.volume = 0.3;
-                    
-                    const musicTracks = [
-                        'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
-                        'https://www.soundjay.com/misc/sounds/bell-ringing-04.wav',
-                        'https://www.soundjay.com/misc/sounds/bell-ringing-03.wav',
-                        'https://www.soundjay.com/misc/sounds/bell-ringing-02.wav'
-                    ];
-                    
-                    // Select different track
-                    const currentSrc = this.backgroundMusic.src;
-                    const availableTracks = musicTracks.filter(track => track !== currentSrc);
-                    if (availableTracks.length > 0) {
-                        newAudio.src = availableTracks[Math.floor(Math.random() * availableTracks.length)];
-                        newAudio.play().then(() => {
-                            this.backgroundMusic = newAudio;
-                        }).catch(error => {
-                            console.log('Music track change failed:', error);
-                            // Keep current music if change fails
-                        });
-                    }
-                } catch (error) {
-                    console.log('Music track change error:', error);
                 }
             }
             
