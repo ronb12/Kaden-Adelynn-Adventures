@@ -6,6 +6,11 @@
     <title>🚀 Kaden & Adelynn Adventures - Enhanced Space Shooter</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4facfe">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Space Adventures">
     <style>
         /* Professional styling for enhanced UI */
         body {
@@ -227,6 +232,7 @@
                     <button class="btn" onclick="openStore()">🏪 Ship Store</button>
                     <button class="btn" onclick="showHighScores()">🏆 High Scores</button>
                     <button class="btn" onclick="showBriefing()">📋 Mission Briefing</button>
+                    <button class="btn" onclick="checkForGameUpdates()">🔄 Check for Updates</button>
                 </div>
                 
                 <div class="stats-grid">
@@ -256,6 +262,7 @@
                     <p><strong>50 Levels</strong> - 50 Bosses - Challenges - Save/Load System!</p>
                     <p><strong>Pause:</strong> Press ESC, P, or tap pause button</p>
                     <p><strong>Store:</strong> Use money to buy new ship designs!</p>
+                    <p><strong>Auto-Updates:</strong> Game automatically checks for updates!</p>
                 </div>
             </div>
         </div>
@@ -420,12 +427,20 @@
                     
                     <h3>🎯 Scoring & Progression</h3>
                     <ul>
-                        <li>Level advancement: Based on enemies destroyed (10 per level)</li>
+                        <li>Level advancement: Based on enemies destroyed (10 enemies per level)</li>
                         <li>Boss battles: Every 5 levels</li>
                         <li>Combo system: Chain kills for bonus points</li>
                         <li>Streak system: Collect items to build streaks</li>
                         <li>Accuracy tracking: Precision shooting bonus</li>
                         <li>25 Lives: Extended gameplay</li>
+                    </ul>
+                    
+                    <h3>🔄 Auto-Updates</h3>
+                    <ul>
+                        <li>Automatic update checking every 30 minutes</li>
+                        <li>Instant notifications when updates are available</li>
+                        <li>One-click update application</li>
+                        <li>Background update processing</li>
                     </ul>
                 </div>
                 <button class="btn" onclick="hideBriefing()">🚀 Let's Play!</button>
@@ -437,6 +452,7 @@
     <script src="js/firebase-config.js"></script>
     <script src="js/sprite-manager.js"></script>
     <script src="js/game-engine.js"></script>
+    <script src="js/pwa-updates.js"></script>
     
     <script>
         // Global game instance
@@ -554,6 +570,20 @@
         function showHighScores() {
             // Implement high scores display
             console.log('Show high scores');
+        }
+        
+        function checkForGameUpdates() {
+            if (window.pwaUpdateManager) {
+                window.pwaUpdateManager.forceCheckForUpdates().then(hasUpdates => {
+                    if (hasUpdates) {
+                        alert('Checking for updates... Please wait.');
+                    } else {
+                        alert('Game is up to date!');
+                    }
+                });
+            } else {
+                alert('Update system not available');
+            }
         }
         
         // Initialize game when page loads
