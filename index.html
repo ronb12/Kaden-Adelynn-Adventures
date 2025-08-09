@@ -1736,40 +1736,50 @@
                     this.sounds.backgroundMusic = () => {
                         if (!this.sfxEnabled || !this.audioContext) return;
                         
-                        // Create audio element for copyright-free music
-                        const audio = new Audio();
-                        audio.loop = true;
-                        audio.volume = 0.3;
-                        
-                        // Use copyright-free space music from Pixabay
-                        const musicTracks = [
-                            'https://cdn.pixabay.com/download/audio/2022/03/15/audio_1647344395.mp3?filename=space-ambient-116846.mp3',
-                            'https://cdn.pixabay.com/download/audio/2021/08/04/audio_1628088410.mp3?filename=sci-fi-ambient-116847.mp3',
-                            'https://cdn.pixabay.com/download/audio/2022/01/18/audio_1642493695.mp3?filename=electronic-future-beats-123456.mp3',
-                            'https://cdn.pixabay.com/download/audio/2021/12/15/audio_1639584000.mp3?filename=space-battle-theme-789012.mp3'
-                        ];
-                        
-                        // Randomly select a track
-                        const randomTrack = musicTracks[Math.floor(Math.random() * musicTracks.length)];
-                        audio.src = randomTrack;
-                        
-                        // Fallback to another copyright-free track if current fails
-                        audio.onerror = () => {
-                            const fallbackTracks = musicTracks.filter(track => track !== randomTrack);
-                            if (fallbackTracks.length > 0) {
-                                audio.src = fallbackTracks[Math.floor(Math.random() * fallbackTracks.length)];
-                            }
-                        };
-                        
-                        // Play the music
-                        audio.play().catch(error => {
-                            console.log('Background music failed to load:', error);
-                            // Fallback to generated tones if copyright-free music fails
+                        try {
+                            // Create audio element for copyright-free music
+                            const audio = new Audio();
+                            audio.loop = true;
+                            audio.volume = 0.3;
+                            
+                            // Use working copyright-free music URLs
+                            const musicTracks = [
+                                'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
+                                'https://www.soundjay.com/misc/sounds/bell-ringing-04.wav',
+                                'https://www.soundjay.com/misc/sounds/bell-ringing-03.wav',
+                                'https://www.soundjay.com/misc/sounds/bell-ringing-02.wav'
+                            ];
+                            
+                            // Randomly select a track
+                            const randomTrack = musicTracks[Math.floor(Math.random() * musicTracks.length)];
+                            audio.src = randomTrack;
+                            
+                            // Fallback to another track if current fails
+                            audio.onerror = () => {
+                                console.log('Music track failed to load, trying fallback...');
+                                const fallbackTracks = musicTracks.filter(track => track !== randomTrack);
+                                if (fallbackTracks.length > 0) {
+                                    audio.src = fallbackTracks[Math.floor(Math.random() * fallbackTracks.length)];
+                                } else {
+                                    // If all tracks fail, use generated music
+                                    this.playGeneratedMusic();
+                                }
+                            };
+                            
+                            // Play the music with proper error handling
+                            audio.play().then(() => {
+                                console.log('Background music started successfully');
+                                this.backgroundMusic = audio;
+                            }).catch(error => {
+                                console.log('Background music failed to load:', error);
+                                // Fallback to generated tones if copyright-free music fails
+                                this.playGeneratedMusic();
+                            });
+                            
+                        } catch (error) {
+                            console.log('Audio creation error:', error);
                             this.playGeneratedMusic();
-                        });
-                        
-                        // Store reference for volume control
-                        this.backgroundMusic = audio;
+                        }
                     };
                     
                     // Fallback generated music if copyright-free music fails
@@ -1824,20 +1834,23 @@
                 if (!this.sfxEnabled || !this.audioContext) return;
                 
                 try {
-                    // Resume audio context if suspended
+                    // Resume audio context if suspended (required for autoplay)
                     if (this.audioContext.state === 'suspended') {
                         this.audioContext.resume();
                     }
                     
-                    // Start with copyright-free music
-                    this.sounds.backgroundMusic();
-                    
-                    // Change music track every 2 minutes for variety
-                    setInterval(() => {
-                        if (this.gameState === 'playing' && this.backgroundMusic) {
-                            this.changeMusicTrack();
-                        }
-                    }, 120000); // 2 minutes
+                    // Only start music after user interaction (browser autoplay policy)
+                    if (this.gameState === 'playing') {
+                        // Start with copyright-free music
+                        this.sounds.backgroundMusic();
+                        
+                        // Change music track every 2 minutes for variety
+                        setInterval(() => {
+                            if (this.gameState === 'playing' && this.backgroundMusic) {
+                                this.changeMusicTrack();
+                            }
+                        }, 120000); // 2 minutes
+                    }
                     
                 } catch (error) {
                     console.log('Background music error:', error);
@@ -1857,10 +1870,10 @@
                     newAudio.volume = 0.3;
                     
                     const musicTracks = [
-                        'https://cdn.pixabay.com/download/audio/2022/03/15/audio_1647344395.mp3?filename=space-ambient-116846.mp3',
-                        'https://cdn.pixabay.com/download/audio/2021/08/04/audio_1628088410.mp3?filename=sci-fi-ambient-116847.mp3',
-                        'https://cdn.pixabay.com/download/audio/2022/01/18/audio_1642493695.mp3?filename=electronic-future-beats-123456.mp3',
-                        'https://cdn.pixabay.com/download/audio/2021/12/15/audio_1639584000.mp3?filename=space-battle-theme-789012.mp3'
+                        'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
+                        'https://www.soundjay.com/misc/sounds/bell-ringing-04.wav',
+                        'https://www.soundjay.com/misc/sounds/bell-ringing-03.wav',
+                        'https://www.soundjay.com/misc/sounds/bell-ringing-02.wav'
                     ];
                     
                     // Select different track
@@ -1868,8 +1881,12 @@
                     const availableTracks = musicTracks.filter(track => track !== currentSrc);
                     if (availableTracks.length > 0) {
                         newAudio.src = availableTracks[Math.floor(Math.random() * availableTracks.length)];
-                        newAudio.play();
-                        this.backgroundMusic = newAudio;
+                        newAudio.play().then(() => {
+                            this.backgroundMusic = newAudio;
+                        }).catch(error => {
+                            console.log('Music track change failed:', error);
+                            // Keep current music if change fails
+                        });
                     }
                 } catch (error) {
                     console.log('Music track change error:', error);
