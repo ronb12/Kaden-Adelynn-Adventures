@@ -657,21 +657,11 @@
             }
         }
         
-        function saveGame() {
-            if (game) {
-                game.saveGame();
-                alert('Game saved successfully!');
-            }
-        }
+
         
 
         
-        function resumeGame() {
-            console.log('resumeGame() called');
-            if (game) {
-                game.resumeGame();
-            }
-        }
+
         
         function showMenu() {
             console.log('showMenu() called');
@@ -716,10 +706,7 @@
             showMenu(); // Use the showMenu function to ensure proper positioning
         }
         
-        function showHighScores() {
-            // Implement high scores display
-            console.log('Show high scores');
-        }
+
         
         function checkForGameUpdates() {
             if (window.pwaUpdateManager) {
@@ -800,29 +787,9 @@
             }
         }
         
-        function showMenu() {
-            if (game) {
-                game.gameState = 'menu';
-                game.pauseGame();
-            }
-            
-            document.getElementById('gameContainer').classList.remove('playing');
-            document.getElementById('menu').style.display = 'flex';
-            document.getElementById('gameOver').style.display = 'none';
-            document.getElementById('pauseOverlay').style.display = 'none';
-            document.getElementById('briefingOverlay').style.display = 'none';
-            document.getElementById('storeOverlay').style.display = 'none';
-        }
+
         
-        function showBriefing() {
-            document.getElementById('menu').style.display = 'none';
-            document.getElementById('briefingOverlay').style.display = 'flex';
-        }
-        
-        function hideBriefing() {
-            document.getElementById('briefingOverlay').style.display = 'none';
-            showMenu();
-        }
+
         
         function showGameOver() {
             if (game) {
