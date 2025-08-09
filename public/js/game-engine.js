@@ -142,7 +142,39 @@ class EnhancedSpaceShooter {
         console.log('Starting game...');
         this.gameState = 'playing';
         this.startTime = Date.now();
-        this.init();
+        
+        // Reset game stats for new game
+        this.score = 0;
+        this.lives = 3;
+        this.level = 1;
+        this.combo = 0;
+        this.maxCombo = 0;
+        this.enemiesDestroyed = 0;
+        this.powerupsCollected = 0;
+        this.survivalTime = 0;
+        
+        // Clear all game objects
+        this.bullets = [];
+        this.enemies = [];
+        this.powerups = [];
+        this.explosions = [];
+        this.particles = [];
+        
+        // Reset player
+        this.player.x = this.canvas.width / 2 - this.player.width / 2;
+        this.player.y = this.canvas.height - this.player.height - 20;
+        this.player.health = this.player.maxHealth;
+        this.player.shield = 0;
+        this.player.invulnerable = 0;
+        
+        // Reset weapons
+        this.currentWeapon = 'basic';
+        this.weaponLevel = 1;
+        this.lastShot = 0;
+        
+        // Reset timers
+        this.enemySpawnTimer = 0;
+        this.powerupSpawnTimer = 0;
         
         // Hide menu and show UI
         const menu = document.getElementById('menu');
@@ -150,6 +182,9 @@ class EnhancedSpaceShooter {
         
         const gameContainer = document.getElementById('gameContainer');
         if (gameContainer) gameContainer.classList.add('playing');
+        
+        // Update UI
+        this.updateUI();
         
         // Start game loop
         this.gameLoop();
@@ -197,10 +232,7 @@ class EnhancedSpaceShooter {
     }
     
     gameLoop() {
-        if (this.gameState !== 'playing') {
-            console.log('Game loop stopped - gameState:', this.gameState);
-            return;
-        }
+        if (this.gameState !== 'playing') return;
         
         // Update game
         this.update();
@@ -599,16 +631,6 @@ class EnhancedSpaceShooter {
         
         // Draw UI
         this.drawUI();
-        
-        // Debug: Draw a simple test rectangle to verify rendering is working
-        this.ctx.fillStyle = '#ff0000';
-        this.ctx.fillRect(10, 10, 50, 50);
-        
-        // Debug: Draw player position indicator
-        this.ctx.fillStyle = '#00ff00';
-        this.ctx.fillRect(this.player.x, this.player.y, this.player.width, this.player.height);
-        
-        console.log('Rendered frame - Player at:', this.player.x, this.player.y);
     }
     
     drawBackground() {
