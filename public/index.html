@@ -6,87 +6,374 @@
     <title>🚀 Kaden & Adelynn Adventures - Enhanced Space Shooter</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+    <style>
+        /* Professional styling for enhanced UI */
+        body {
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            color: #ffffff;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #gameCanvas {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+            background: linear-gradient(135deg, #000033 0%, #000066 100%);
+        }
+        
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            min-width: 200px;
+        }
+        
+        #ui div {
+            margin: 5px 0;
+            font-size: 14px;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+        
+        #menu, #gameOver, #pauseOverlay, #briefingOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .menu-content {
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.95) 0%, rgba(22, 33, 62, 0.95) 50%, rgba(15, 52, 96, 0.95) 100%);
+            padding: 40px;
+            border-radius: 25px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.3);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #00ff88, #00cc66);
+            border: none;
+            padding: 15px 30px;
+            margin: 10px;
+            border-radius: 25px;
+            color: #000;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 255, 136, 0.5);
+            background: linear-gradient(135deg, #00ff99, #00dd77);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #00ff88, #00cc66, #0099ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+        
+        h2 {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            color: #00ff88;
+        }
+        
+        .event-notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #00ff88, #00cc66);
+            padding: 20px 40px;
+            border-radius: 15px;
+            color: #000;
+            font-weight: bold;
+            font-size: 24px;
+            text-align: center;
+            z-index: 2000;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
+            animation: notificationPop 0.5s ease-out;
+        }
+        
+        @keyframes notificationPop {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #00ff88;
+        }
+    </style>
 </head>
 <body>
     <div id="gameContainer">
         <canvas id="gameCanvas" width="1000" height="700"></canvas>
         
-        <!-- Game UI -->
+        <!-- Enhanced Game UI -->
         <div id="ui">
-            <div>Score: <span id="score">0</span></div>
-            <div>Lives: <span id="lives">25</span></div>
-            <div>Level: <span id="level">1</span></div>
-            <div>Combo: <span id="combo">0</span></div>
-            <div>Streak: <span id="streak">0</span></div>
-            <div>Coins: <span id="coins">0</span></div>
-            <div>Gems: <span id="gems">0</span></div>
+            <div class="stat-item">
+                <div class="stat-label">Score</div>
+                <div class="stat-value"><span id="score">0</span></div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Level</div>
+                <div class="stat-value"><span id="level">1</span>/50</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Lives</div>
+                <div class="stat-value"><span id="lives">25</span></div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Combo</div>
+                <div class="stat-value"><span id="combo">0</span></div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Streak</div>
+                <div class="stat-value"><span id="streak">0</span></div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Accuracy</div>
+                <div class="stat-value"><span id="accuracy">0</span>%</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">🪙 Coins</div>
+                <div class="stat-value"><span id="coins">0</span></div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">💎 Gems</div>
+                <div class="stat-value"><span id="gems">0</span></div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">💰 Money</div>
+                <div class="stat-value">$<span id="money">0</span></div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">💠 Diamonds</div>
+                <div class="stat-value"><span id="diamonds">0</span></div>
+            </div>
         </div>
         
-        <!-- Main Menu -->
+        <!-- Enhanced Main Menu -->
         <div id="menu">
-            <h1>🚀 Kaden & Adelynn Adventures</h1>
-            <p>Enhanced Space Shooter Edition</p>
-            
-            <div style="margin: 20px 0;">
-                <button class="btn" onclick="startGame()">🎮 Start Game</button>
-                <button class="btn" onclick="showHighScores()">🏆 High Scores</button>
-                <button class="btn" onclick="showBriefing()">📋 Briefing</button>
-            </div>
-            
-            <div style="margin: 20px 0; font-size: 14px; opacity: 0.8;">
-                <p><strong>Desktop:</strong> Arrow Keys to move, Spacebar to shoot</p>
-                <p><strong>Mobile:</strong> Touch and drag to move, auto-shoot enabled!</p>
-                <p>Collect powerups, coins, and gems to survive as long as possible!</p>
-                <p><strong>25 Lives</strong> - Multiple Weapons - Rapid Fire - Combo System!</p>
-                <p><strong>Pause:</strong> Press ESC, P, or tap pause button</p>
+            <div class="menu-content">
+                <h1>🚀 Kaden & Adelynn Adventures</h1>
+                <p style="font-size: 1.2em; margin-bottom: 30px; opacity: 0.8;">Enhanced Space Shooter Edition</p>
+                
+                <div style="margin: 30px 0;">
+                    <button class="btn" onclick="startGame()">🎮 Start New Game</button>
+                    <button class="btn" onclick="loadGame()">📂 Load Game</button>
+                    <button class="btn" onclick="openStore()">🏪 Ship Store</button>
+                    <button class="btn" onclick="showHighScores()">🏆 High Scores</button>
+                    <button class="btn" onclick="showBriefing()">📋 Mission Briefing</button>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">Max Level Reached</div>
+                        <div class="stat-value" id="maxLevel">1</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Bosses Defeated</div>
+                        <div class="stat-value" id="bossesDefeated">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Challenges Completed</div>
+                        <div class="stat-value" id="challengesCompleted">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Total Score</div>
+                        <div class="stat-value" id="totalScore">0</div>
+                    </div>
+                </div>
+                
+                <div style="margin: 30px 0; font-size: 14px; opacity: 0.7;">
+                    <p><strong>Desktop:</strong> Arrow Keys to move, Spacebar to shoot</p>
+                    <p><strong>Mobile:</strong> Touch and drag to move, auto-shoot enabled!</p>
+                    <p>Collect powerups, coins, gems, money, and diamonds to survive!</p>
+                    <p><strong>25 Lives</strong> - Multiple Weapons - Rapid Fire - Combo System!</p>
+                    <p><strong>50 Levels</strong> - 50 Bosses - Challenges - Save/Load System!</p>
+                    <p><strong>Pause:</strong> Press ESC, P, or tap pause button</p>
+                    <p><strong>Store:</strong> Use money to buy new ship designs!</p>
+                </div>
             </div>
         </div>
         
-        <!-- Game Over Overlay -->
+        <!-- Enhanced Game Over Overlay -->
         <div id="gameOver">
-            <div id="gameOverContent">
+            <div class="menu-content">
                 <h2>Game Over</h2>
-                <p>Final Score: <span id="finalScore">0</span></p>
-                <p>Survival Time: <span id="finalTime">0</span>s</p>
-                <p>Enemies Destroyed: <span id="finalEnemies">0</span></p>
-                <p>Powerups Collected: <span id="finalPowerups">0</span></p>
-                <p>Coins Collected: <span id="finalCoins">0</span></p>
-                <p>Gems Collected: <span id="finalGems">0</span></p>
-                <p>Max Combo: <span id="finalCombo">0</span></p>
-                <p>Max Streak: <span id="finalStreak">0</span></p>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">Final Score</div>
+                        <div class="stat-value"><span id="finalScore">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Level Reached</div>
+                        <div class="stat-value"><span id="finalLevel">1</span>/50</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Survival Time</div>
+                        <div class="stat-value"><span id="finalTime">0</span>s</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Enemies Destroyed</div>
+                        <div class="stat-value"><span id="finalEnemies">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Bosses Defeated</div>
+                        <div class="stat-value"><span id="finalBosses">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Accuracy</div>
+                        <div class="stat-value"><span id="finalAccuracy">0</span>%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">🪙 Coins Collected</div>
+                        <div class="stat-value"><span id="finalCoins">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">💎 Gems Collected</div>
+                        <div class="stat-value"><span id="finalGems">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">💰 Money Collected</div>
+                        <div class="stat-value">$<span id="finalMoney">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">💠 Diamonds Collected</div>
+                        <div class="stat-value"><span id="finalDiamonds">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Max Combo</div>
+                        <div class="stat-value"><span id="finalCombo">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Max Streak</div>
+                        <div class="stat-value"><span id="finalStreak">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Medal</div>
+                        <div class="stat-value"><span id="finalMedal">None</span></div>
+                    </div>
+                </div>
                 
-                <div style="margin: 20px 0;">
+                <div style="margin: 30px 0;">
                     <button class="btn" onclick="restartGame()">🔄 Play Again</button>
                     <button class="btn" onclick="showMenu()">🏠 Main Menu</button>
                 </div>
             </div>
         </div>
         
-        <!-- Pause Overlay -->
+        <!-- Enhanced Pause Overlay -->
         <div id="pauseOverlay">
-            <div id="pauseContent">
+            <div class="menu-content">
                 <h2>⏸️ Game Paused</h2>
-                <p>Score: <span id="pauseScore">0</span></p>
-                <p>Level: <span id="pauseLevel">1</span></p>
-                <p>Lives: <span id="pauseLives">25</span></p>
-                <p>Combo: <span id="pauseCombo">0</span></p>
-                <p>Streak: <span id="pauseStreak">0</span></p>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">Score</div>
+                        <div class="stat-value"><span id="pauseScore">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Level</div>
+                        <div class="stat-value"><span id="pauseLevel">1</span>/50</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Lives</div>
+                        <div class="stat-value"><span id="pauseLives">25</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Combo</div>
+                        <div class="stat-value"><span id="pauseCombo">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Streak</div>
+                        <div class="stat-value"><span id="pauseStreak">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Accuracy</div>
+                        <div class="stat-value"><span id="pauseAccuracy">0</span>%</div>
+                    </div>
+                </div>
                 
-                <div style="margin: 20px 0;">
+                <div style="margin: 30px 0;">
                     <button class="btn" onclick="resumeGame()">▶️ Resume</button>
+                    <button class="btn" onclick="saveGame()">💾 Save Game</button>
+                    <button class="btn" onclick="openStore()">🏪 Store</button>
                     <button class="btn" onclick="showMenu()">🏠 Main Menu</button>
                 </div>
                 <p style="font-size: 12px; opacity: 0.7;">Press ESC, P, or click Resume to continue</p>
             </div>
         </div>
         
-        <!-- Briefing Overlay -->
+        <!-- Enhanced Briefing Overlay -->
         <div id="briefingOverlay">
-            <div id="briefingContent">
+            <div class="menu-content">
                 <h2>📋 Mission Briefing</h2>
-                <div style="text-align: left; max-width: 500px; margin: 0 auto;">
+                <div style="text-align: left; max-width: 600px; margin: 0 auto;">
                     <h3>🎯 Objective</h3>
-                    <p>Defend against waves of enemy ships and survive as long as possible!</p>
+                    <p>Defend against waves of enemy ships and survive through 50 levels! Defeat bosses every 5 levels to progress!</p>
                     
                     <h3>🎮 Controls</h3>
                     <p><strong>Desktop:</strong></p>
@@ -98,8 +385,8 @@
                     <p><strong>Mobile:</strong></p>
                     <ul>
                         <li>Touch and drag: Move ship</li>
-                        <li>Auto-shoot: Enabled</li>
-                        <li>Touch anywhere: Shoot</li>
+                        <li>Auto-shoot: Enabled (shoots while touching)</li>
+                        <li>Touch anywhere: Shoot continuously</li>
                     </ul>
                     
                     <h3>💎 Collectibles</h3>
@@ -111,13 +398,33 @@
                         <li>🟠 Rapid-fire: Faster shooting</li>
                         <li>🪙 Coins: Small score bonus</li>
                         <li>💎 Gems: Large score bonus</li>
+                        <li>💰 Money: Used to buy ships</li>
+                        <li>💠 Diamonds: Premium currency</li>
                     </ul>
                     
-                    <h3>🎯 Scoring</h3>
+                    <h3>🚀 Ships</h3>
                     <ul>
+                        <li>Gradius: Balanced starter ship</li>
+                        <li>Interceptor: Fast and agile</li>
+                        <li>Destroyer: Heavy and powerful</li>
+                        <li>Battleship: Massive with multiple weapons</li>
+                        <li>Stealth: Sleek and dark</li>
+                    </ul>
+                    
+                    <h3>🏆 Medals</h3>
+                    <ul>
+                        <li>🥉 Bronze: 5,000+ points</li>
+                        <li>🥈 Silver: 15,000+ points</li>
+                        <li>🥇 Gold: 30,000+ points</li>
+                    </ul>
+                    
+                    <h3>🎯 Scoring & Progression</h3>
+                    <ul>
+                        <li>Level advancement: Based on enemies destroyed (10 per level)</li>
+                        <li>Boss battles: Every 5 levels</li>
                         <li>Combo system: Chain kills for bonus points</li>
                         <li>Streak system: Collect items to build streaks</li>
-                        <li>Level progression: Difficulty increases</li>
+                        <li>Accuracy tracking: Precision shooting bonus</li>
                         <li>25 Lives: Extended gameplay</li>
                     </ul>
                 </div>
@@ -166,6 +473,30 @@
             game.startGame();
         }
         
+        function loadGame() {
+            if (game) {
+                if (game.loadGame()) {
+                    startGame();
+                } else {
+                    alert('No saved game found!');
+                }
+            } else {
+                game = new EnhancedSpaceShooter();
+                if (game.loadGame()) {
+                    startGame();
+                } else {
+                    alert('No saved game found!');
+                }
+            }
+        }
+        
+        function saveGame() {
+            if (game) {
+                game.saveGame();
+                alert('Game saved successfully!');
+            }
+        }
+        
         function restartGame() {
             console.log('restartGame() called');
             if (game) {
@@ -186,9 +517,27 @@
             document.getElementById('gameOver').style.display = 'none';
             document.getElementById('pauseOverlay').style.display = 'none';
             document.getElementById('briefingOverlay').style.display = 'none';
-            document.getElementById('menu').style.display = 'block';
+            document.getElementById('menu').style.display = 'flex';
             if (game) {
                 game.gameState = 'menu';
+            }
+        }
+        
+        function openStore() {
+            if (game) {
+                game.openStore();
+            }
+        }
+        
+        function closeStore() {
+            if (game) {
+                game.closeStore();
+            }
+        }
+        
+        function buyShip(shipType) {
+            if (game) {
+                game.buyShip(shipType);
             }
         }
         
@@ -199,7 +548,7 @@
         
         function hideBriefing() {
             document.getElementById('briefingOverlay').style.display = 'none';
-            document.getElementById('menu').style.display = 'block';
+            document.getElementById('menu').style.display = 'flex';
         }
         
         function showHighScores() {
