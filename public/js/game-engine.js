@@ -10,7 +10,7 @@ class EnhancedSpaceShooter {
         
         // Game stats
         this.score = 0;
-        this.lives = 25;
+        this.lives = 25; // Player starts with 25 lives
         this.level = 1;
         this.combo = 0;
         this.maxCombo = 0;
@@ -40,21 +40,25 @@ class EnhancedSpaceShooter {
             lastAutoDefense: 0
         };
         
-        // Enhanced weapon system
+        // Enhanced weapon system with multiple weapon types
         this.currentWeapon = 'basic';
         this.weaponLevel = 1;
         this.lastShot = 0;
         this.shotCooldown = 250;
         this.rapidFireMode = false;
         this.rapidFireTimer = 0;
-        this.rapidFireCooldown = 50; // Faster than normal shots
+        this.rapidFireCooldown = 30; // Even faster rapid fire
         this.weaponAmmo = {
             basic: Infinity,
-            plasma: 50,
-            spread: 30,
-            laser: 25,
-            missile: 10,
-            rapidRifle: 100
+            plasma: 75,
+            spread: 50,
+            laser: 40,
+            missile: 15,
+            rapidRifle: 150,
+            shotgun: 30,
+            flamethrower: 60,
+            lightning: 45,
+            iceCannon: 35
         };
         
         // Ship type and economy
@@ -339,8 +343,8 @@ class EnhancedSpaceShooter {
             return;
         }
         
-        // Handle rapid fire mode
-        if (this.rapidFireMode && this.currentWeapon === 'rapidRifle') {
+        // Handle rapid fire mode - enhanced for all weapons
+        if (this.rapidFireMode) {
             if (now - this.rapidFireTimer < this.rapidFireCooldown) return;
             this.rapidFireTimer = now;
         } else {
@@ -427,6 +431,61 @@ class EnhancedSpaceShooter {
                         spread: i
                     });
                 }
+                break;
+            case 'shotgun':
+                // Shotgun fires 5 pellets in a spread
+                for (let i = -2; i <= 2; i++) {
+                    this.bullets.push({
+                        x: this.player.x + this.player.width / 2 - 2 + i * 8,
+                        y: this.player.y,
+                        width: 3,
+                        height: 8,
+                        speed: 6,
+                        damage: 12,
+                        type: 'shotgun',
+                        angle: i * 0.2
+                    });
+                }
+                break;
+            case 'flamethrower':
+                // Flamethrower creates a cone of fire
+                for (let i = -1; i <= 1; i++) {
+                    this.bullets.push({
+                        x: this.player.x + this.player.width / 2 - 3 + i * 6,
+                        y: this.player.y,
+                        width: 6,
+                        height: 12,
+                        speed: 4,
+                        damage: 18,
+                        type: 'flamethrower',
+                        angle: i * 0.4
+                    });
+                }
+                break;
+            case 'lightning':
+                // Lightning creates electric arcs
+                this.bullets.push({
+                    x: this.player.x + this.player.width / 2 - 2,
+                    y: this.player.y,
+                    width: 4,
+                    height: 20,
+                    speed: 9,
+                    damage: 30,
+                    type: 'lightning'
+                });
+                break;
+            case 'iceCannon':
+                // Ice cannon freezes enemies
+                this.bullets.push({
+                    x: this.player.x + this.player.width / 2 - 3,
+                    y: this.player.y,
+                    width: 6,
+                    height: 14,
+                    speed: 7,
+                    damage: 20,
+                    type: 'iceCannon',
+                    freeze: true
+                });
                 break;
         }
     }
@@ -532,7 +591,11 @@ class EnhancedSpaceShooter {
         if (this.powerupSpawnTimer >= this.powerupSpawnRate) {
             this.powerupSpawnTimer = 0;
             
-            const powerupTypes = ['health', 'shield', 'weapon', 'missile', 'rapidRifle', 'ammo', 'coin', 'gem', 'money', 'diamond'];
+            const powerupTypes = [
+                'health', 'shield', 'weapon', 'missile', 'rapidRifle', 'ammo', 
+                'coin', 'gem', 'money', 'diamond', 'shotgun', 'flamethrower', 
+                'lightning', 'iceCannon', 'rapidFire'
+            ];
             const type = powerupTypes[Math.floor(Math.random() * powerupTypes.length)];
             
             const powerup = {
@@ -651,6 +714,30 @@ class EnhancedSpaceShooter {
                 this.currentWeapon = 'rapidRifle';
                 this.rapidFireMode = true;
                 this.weaponAmmo.rapidRifle += 50;
+                break;
+            case 'rapidFire':
+                // Rapid fire powerup for any weapon
+                this.rapidFireMode = true;
+                // Set a timer to disable rapid fire after 10 seconds
+                setTimeout(() => {
+                    this.rapidFireMode = false;
+                }, 10000);
+                break;
+            case 'shotgun':
+                this.currentWeapon = 'shotgun';
+                this.weaponAmmo.shotgun += 30;
+                break;
+            case 'flamethrower':
+                this.currentWeapon = 'flamethrower';
+                this.weaponAmmo.flamethrower += 40;
+                break;
+            case 'lightning':
+                this.currentWeapon = 'lightning';
+                this.weaponAmmo.lightning += 35;
+                break;
+            case 'iceCannon':
+                this.currentWeapon = 'iceCannon';
+                this.weaponAmmo.iceCannon += 25;
                 break;
             case 'ammo':
                 // Refill all weapon ammo
@@ -872,14 +959,30 @@ class EnhancedSpaceShooter {
                     emoji = '🚀';
                     color = '#ff00ff';
                     break;
-                case 'rapidRifle':
-                    emoji = '🔫';
-                    color = '#ff6600';
-                    break;
-                case 'ammo':
-                    emoji = '📦';
-                    color = '#00ff00';
-                    break;
+                            case 'rapidRifle':
+                emoji = '🔫';
+                color = '#ff6600';
+                break;
+            case 'shotgun':
+                emoji = '💥';
+                color = '#ff4500';
+                break;
+            case 'flamethrower':
+                emoji = '🔥';
+                color = '#ff8c00';
+                break;
+            case 'lightning':
+                emoji = '⚡';
+                color = '#ffff00';
+                break;
+            case 'iceCannon':
+                emoji = '❄️';
+                color = '#87ceeb';
+                break;
+            case 'ammo':
+                emoji = '📦';
+                color = '#00ff00';
+                break;
                 case 'coin':
                     emoji = '🪙';
                     color = '#ffd700';
@@ -928,43 +1031,84 @@ class EnhancedSpaceShooter {
     }
     
     drawUI() {
-        // Draw health bar
+        // Enhanced UI with better visibility
+        
+        // Draw health bar with better contrast
         const healthBarWidth = 200;
         const healthBarHeight = 20;
         const healthBarX = 10;
         const healthBarY = 10;
         
+        // Health bar background
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(healthBarX - 2, healthBarY - 2, healthBarWidth + 4, healthBarHeight + 4);
         this.ctx.fillStyle = '#333333';
         this.ctx.fillRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
         
+        // Health bar fill
         this.ctx.fillStyle = '#00ff00';
         this.ctx.fillRect(healthBarX, healthBarY, (this.player.health / this.player.maxHealth) * healthBarWidth, healthBarHeight);
         
+        // Health text
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.font = 'bold 12px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        this.ctx.fillText(`HP: ${this.player.health}/${this.player.maxHealth}`, healthBarX + healthBarWidth/2, healthBarY + healthBarHeight/2);
+        
         // Draw shield bar
         if (this.player.shield > 0) {
+            this.ctx.fillStyle = '#000000';
+            this.ctx.fillRect(healthBarX - 2, healthBarY + healthBarHeight + 3, healthBarWidth + 4, healthBarHeight + 4);
+            this.ctx.fillStyle = '#333333';
+            this.ctx.fillRect(healthBarX, healthBarY + healthBarHeight + 5, healthBarWidth, healthBarHeight);
             this.ctx.fillStyle = '#00ffff';
             this.ctx.fillRect(healthBarX, healthBarY + healthBarHeight + 5, (this.player.shield / 100) * healthBarWidth, healthBarHeight);
         }
         
-        // Draw weapon info
+        // Draw weapon info with better styling
         this.ctx.fillStyle = '#ffffff';
-        this.ctx.font = '14px Arial';
+        this.ctx.font = 'bold 16px Arial';
         this.ctx.textAlign = 'left';
         this.ctx.textBaseline = 'top';
         
-        const weaponY = healthBarY + healthBarHeight * 2 + 15;
-        this.ctx.fillText(`Weapon: ${this.currentWeapon}`, healthBarX, weaponY);
+        const weaponY = healthBarY + healthBarHeight * 2 + 20;
+        
+        // Weapon background
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        this.ctx.fillRect(healthBarX - 5, weaponY - 5, 300, 60);
+        this.ctx.strokeStyle = '#00ffff';
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(healthBarX - 5, weaponY - 5, 300, 60);
+        
+        // Weapon name
+        this.ctx.fillStyle = '#ffff00';
+        this.ctx.fillText(`Weapon: ${this.currentWeapon.toUpperCase()}`, healthBarX, weaponY);
         
         // Show ammo for current weapon (if not basic)
         if (this.currentWeapon !== 'basic') {
+            this.ctx.fillStyle = '#ffaa00';
             this.ctx.fillText(`Ammo: ${this.weaponAmmo[this.currentWeapon]}`, healthBarX, weaponY + 20);
         }
         
         // Show rapid fire status
         if (this.rapidFireMode) {
-            this.ctx.fillStyle = '#ffaa00';
-            this.ctx.fillText('RAPID FIRE!', healthBarX + 250, weaponY);
+            this.ctx.fillStyle = '#ff0000';
+            this.ctx.font = 'bold 18px Arial';
+            this.ctx.fillText('🔥 RAPID FIRE! 🔥', healthBarX + 250, weaponY);
         }
+        
+        // Draw lives indicator
+        this.ctx.fillStyle = '#ff0000';
+        this.ctx.font = 'bold 20px Arial';
+        this.ctx.textAlign = 'right';
+        this.ctx.fillText(`❤️ ${this.lives}`, this.canvas.width - 20, 30);
+        
+        // Draw score
+        this.ctx.fillStyle = '#ffff00';
+        this.ctx.font = 'bold 24px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText(`Score: ${this.score}`, this.canvas.width / 2, 30);
     }
     
     updateUI() {
