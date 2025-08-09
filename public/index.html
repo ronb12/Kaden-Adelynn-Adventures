@@ -35,8 +35,7 @@
             <div style="margin: 20px 0;">
                 <button class="btn" onclick="startGame()">🎮 Start Game</button>
                 <button class="btn" onclick="showHighScores()">🏆 High Scores</button>
-                <button class="btn" onclick="showBriefing()">📋 Briefing</button>
-                <button class="btn ai-btn" onclick="enableAIMode()">🤖 Enable AI Mode</button>
+                <button class="btn" onclick="showBriefing()">�� Briefing</button>
             </div>
             
             <div style="margin: 20px 0; font-size: 14px; opacity: 0.8;">
@@ -97,7 +96,6 @@
                         <li><strong>Movement:</strong> Arrow Keys</li>
                         <li><strong>Shoot:</strong> Spacebar</li>
                         <li><strong>Pause:</strong> ESC</li>
-                        <li><strong>AI Mode:</strong> Click AI button</li>
                     </ul>
                     
                     <h3>💎 Powerups:</h3>
@@ -112,11 +110,6 @@
                 <button class="btn" onclick="hideBriefing()">✅ Understood</button>
             </div>
         </div>
-        
-        <!-- Floating AI Control Button -->
-        <div id="aiControls" style="position: fixed; top: 20px; left: 20px; z-index: 1000; display: none;">
-            <button class="btn ai-btn-floating" onclick="enableAIMode()">🤖 AI MODE</button>
-        </div>
     </div>
 
     <!-- Firebase SDK -->
@@ -127,7 +120,6 @@
     <!-- External JavaScript -->
     <script src="js/firebase-config.js"></script>
     <script src="js/game-engine.js"></script>
-    <script src="js/ai-control.js"></script>
     
     <script>
         // Global game instance
@@ -221,9 +213,6 @@
             document.getElementById('gameOver').style.display = 'none';
             document.getElementById('pauseOverlay').style.display = 'none';
             document.getElementById('briefingOverlay').style.display = 'none';
-            
-            // Add AI control to game loop
-            setInterval(aiControl, 100); // AI decisions every 100ms
         });
     </script>
 </body>

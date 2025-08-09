@@ -56,10 +56,6 @@ class EnhancedSpaceShooter {
         this.powerupSpawnRate = 300;
         this.powerupSpawnTimer = 0;
         
-        // AI settings
-        this.aiMode = false;
-        this.aiDifficulty = 'normal';
-        
         // Initialize canvas
         this.resizeCanvas();
         window.addEventListener('resize', () => this.resizeCanvas());
@@ -155,6 +151,12 @@ class EnhancedSpaceShooter {
         this.gameState = 'gameOver';
         document.getElementById('gameContainer').classList.remove('playing');
         document.getElementById('gameOver').style.display = 'flex';
+        
+        // Update final stats
+        document.getElementById('finalScore').textContent = this.score;
+        document.getElementById('finalTime').textContent = this.survivalTime;
+        document.getElementById('finalEnemies').textContent = this.enemiesDestroyed;
+        document.getElementById('finalPowerups').textContent = this.powerupsCollected;
         
         // Save high score
         this.saveHighScore();
