@@ -35,7 +35,7 @@
             <div style="margin: 20px 0;">
                 <button class="btn" onclick="startGame()">🎮 Start Game</button>
                 <button class="btn" onclick="showHighScores()">🏆 High Scores</button>
-                <button class="btn" onclick="showBriefing()">�� Briefing</button>
+                <button class="btn" onclick="showBriefing()">📋 Briefing</button>
             </div>
             
             <div style="margin: 20px 0; font-size: 14px; opacity: 0.8;">
@@ -147,7 +147,9 @@
         
         // Game control functions
         function startGame() {
+            console.log('startGame() called');
             if (!game) {
+                console.log('Creating new game instance');
                 game = new EnhancedSpaceShooter();
             }
             game.keys = keys;
@@ -155,6 +157,7 @@
         }
         
         function restartGame() {
+            console.log('restartGame() called');
             if (game) {
                 game.init();
                 game.startGame();
@@ -162,12 +165,14 @@
         }
         
         function resumeGame() {
+            console.log('resumeGame() called');
             if (game) {
                 game.resumeGame();
             }
         }
         
         function showMenu() {
+            console.log('showMenu() called');
             document.getElementById('gameOver').style.display = 'none';
             document.getElementById('menu').style.display = 'block';
             if (game) {
@@ -176,35 +181,65 @@
         }
         
         function showHighScores() {
+            console.log('showHighScores() called');
             // Load and display high scores
-            firebaseUtils.loadHighScores().then(scores => {
-                let scoresHtml = '<h3>🏆 High Scores</h3>';
-                if (scores.length === 0) {
-                    scoresHtml += '<p>No high scores yet. Be the first!</p>';
-                } else {
-                    scoresHtml += '<ol>';
-                    scores.forEach(score => {
-                        scoresHtml += `<li>${score.score} - ${new Date(score.date).toLocaleDateString()}</li>`;
-                    });
-                    scoresHtml += '</ol>';
-                }
-                
+            if (typeof firebaseUtils !== 'undefined') {
+                firebaseUtils.loadHighScores().then(scores => {
+                    let scoresHtml = '<h3>🏆 High Scores</h3>';
+                    if (scores.length === 0) {
+                        scoresHtml += '<p>No high scores yet. Be the first!</p>';
+                    } else {
+                        scoresHtml += '<ol>';
+                        scores.forEach(score => {
+                            scoresHtml += `<li>${score.score} - ${new Date(score.date).toLocaleDateString()}</li>`;
+                        });
+                        scoresHtml += '</ol>';
+                    }
+                    
+                    document.getElementById('briefingContent').innerHTML = scoresHtml + 
+                        '<button class="btn" onclick="hideBriefing()">✅ Close</button>';
+                    document.getElementById('briefingOverlay').style.display = 'flex';
+                });
+            } else {
+                // Fallback if Firebase is not available
+                let scoresHtml = '<h3>🏆 High Scores</h3><p>High scores feature not available</p>';
                 document.getElementById('briefingContent').innerHTML = scoresHtml + 
                     '<button class="btn" onclick="hideBriefing()">✅ Close</button>';
                 document.getElementById('briefingOverlay').style.display = 'flex';
-            });
+            }
         }
         
         function showBriefing() {
+            console.log('showBriefing() called');
             document.getElementById('briefingOverlay').style.display = 'flex';
         }
         
         function hideBriefing() {
+            console.log('hideBriefing() called');
             document.getElementById('briefingOverlay').style.display = 'none';
         }
         
         // Initialize game when page loads
         window.addEventListener('load', () => {
+            console.log('Page loaded, initializing game...');
+            
+            // Check if canvas exists
+            const canvas = document.getElementById('gameCanvas');
+            if (!canvas) {
+                console.error('Canvas not found!');
+                return;
+            }
+            
+            // Check if canvas context is available
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                console.error('Could not get 2D context!');
+                return;
+            }
+            
+            console.log('Canvas and context available, creating game...');
+            
+            // Create game instance
             game = new EnhancedSpaceShooter();
             game.keys = keys;
             
@@ -213,6 +248,8 @@
             document.getElementById('gameOver').style.display = 'none';
             document.getElementById('pauseOverlay').style.display = 'none';
             document.getElementById('briefingOverlay').style.display = 'none';
+            
+            console.log('Game initialization complete');
         });
     </script>
 </body>

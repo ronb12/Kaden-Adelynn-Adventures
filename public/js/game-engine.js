@@ -2,7 +2,15 @@
 class EnhancedSpaceShooter {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
+        if (!this.canvas) {
+            console.error('Canvas not found!');
+            return;
+        }
         this.ctx = this.canvas.getContext('2d');
+        if (!this.ctx) {
+            console.error('Could not get 2D context!');
+            return;
+        }
         this.gameState = 'menu';
         
         // Game stats
@@ -62,10 +70,17 @@ class EnhancedSpaceShooter {
         
         // Initialize game
         this.init();
+        
+        console.log('Game engine initialized successfully');
     }
     
     resizeCanvas() {
         const container = document.getElementById('gameContainer');
+        if (!container) {
+            console.error('Game container not found!');
+            return;
+        }
+        
         const containerRect = container.getBoundingClientRect();
         
         // Set canvas size to fit container while maintaining aspect ratio
@@ -78,6 +93,8 @@ class EnhancedSpaceShooter {
         // Update player position to center of canvas
         this.player.x = this.canvas.width / 2 - this.player.width / 2;
         this.player.y = this.canvas.height - this.player.height - 20;
+        
+        console.log(`Canvas resized to ${maxWidth}x${maxHeight}`);
     }
     
     init() {
@@ -117,46 +134,63 @@ class EnhancedSpaceShooter {
         
         // Update UI
         this.updateUI();
+        
+        console.log('Game initialized');
     }
     
     startGame() {
+        console.log('Starting game...');
         this.gameState = 'playing';
         this.startTime = Date.now();
         this.init();
         
         // Hide menu and show UI
-        document.getElementById('menu').style.display = 'none';
-        document.getElementById('gameContainer').classList.add('playing');
+        const menu = document.getElementById('menu');
+        if (menu) menu.style.display = 'none';
+        
+        const gameContainer = document.getElementById('gameContainer');
+        if (gameContainer) gameContainer.classList.add('playing');
         
         // Start game loop
         this.gameLoop();
+        console.log('Game started successfully');
     }
     
     pauseGame() {
         if (this.gameState === 'playing') {
             this.gameState = 'paused';
-            document.getElementById('pauseOverlay').style.display = 'flex';
+            const pauseOverlay = document.getElementById('pauseOverlay');
+            if (pauseOverlay) pauseOverlay.style.display = 'flex';
         }
     }
     
     resumeGame() {
         if (this.gameState === 'paused') {
             this.gameState = 'playing';
-            document.getElementById('pauseOverlay').style.display = 'none';
+            const pauseOverlay = document.getElementById('pauseOverlay');
+            if (pauseOverlay) pauseOverlay.style.display = 'none';
             this.gameLoop();
         }
     }
     
     gameOver() {
         this.gameState = 'gameOver';
-        document.getElementById('gameContainer').classList.remove('playing');
-        document.getElementById('gameOver').style.display = 'flex';
+        const gameContainer = document.getElementById('gameContainer');
+        if (gameContainer) gameContainer.classList.remove('playing');
+        
+        const gameOver = document.getElementById('gameOver');
+        if (gameOver) gameOver.style.display = 'flex';
         
         // Update final stats
-        document.getElementById('finalScore').textContent = this.score;
-        document.getElementById('finalTime').textContent = this.survivalTime;
-        document.getElementById('finalEnemies').textContent = this.enemiesDestroyed;
-        document.getElementById('finalPowerups').textContent = this.powerupsCollected;
+        const finalScore = document.getElementById('finalScore');
+        const finalTime = document.getElementById('finalTime');
+        const finalEnemies = document.getElementById('finalEnemies');
+        const finalPowerups = document.getElementById('finalPowerups');
+        
+        if (finalScore) finalScore.textContent = this.score;
+        if (finalTime) finalTime.textContent = this.survivalTime;
+        if (finalEnemies) finalEnemies.textContent = this.enemiesDestroyed;
+        if (finalPowerups) finalPowerups.textContent = this.powerupsCollected;
         
         // Save high score
         this.saveHighScore();
