@@ -198,6 +198,13 @@ class EnhancedSpaceShooter {
         // Update UI
         this.updateUI();
         
+        // Track game start event
+        if (typeof firebaseUtils !== 'undefined' && firebaseUtils.isAvailable()) {
+            firebaseUtils.trackEvent('game_started', {
+                timestamp: new Date().toISOString()
+            });
+        }
+        
         // Start game loop
         this.gameLoop();
         console.log('Game started successfully');
@@ -587,6 +594,14 @@ class EnhancedSpaceShooter {
     collectPowerup(powerup) {
         this.powerupsCollected++;
         
+        // Track powerup collection
+        if (typeof firebaseUtils !== 'undefined' && firebaseUtils.isAvailable()) {
+            firebaseUtils.trackEvent('powerup_collected', {
+                powerup_type: powerup.type,
+                total_powerups: this.powerupsCollected
+            });
+        }
+        
         switch (powerup.type) {
             case 'health':
                 this.player.health = Math.min(this.player.health + 30, this.player.maxHealth);
@@ -596,7 +611,15 @@ class EnhancedSpaceShooter {
                 break;
             case 'weapon':
                 const weapons = ['basic', 'plasma', 'spread', 'laser', 'missile'];
-                this.currentWeapon = weapons[Math.floor(Math.random() * weapons.length)];
+                const newWeapon = weapons[Math.floor(Math.random() * weapons.length)];
+                this.currentWeapon = newWeapon;
+                
+                // Track weapon change
+                if (typeof firebaseUtils !== 'undefined' && firebaseUtils.isAvailable()) {
+                    firebaseUtils.trackEvent('weapon_changed', {
+                        new_weapon: newWeapon
+                    });
+                }
                 break;
             case 'missile':
                 this.player.missiles += 5;
@@ -823,15 +846,22 @@ class EnhancedSpaceShooter {
     }
     
     saveHighScore() {
-        // Save to localStorage
-        const highScores = JSON.parse(localStorage.getItem('highScores') || '[]');
-        highScores.push({
+        // Prepare score data
+        const scoreData = {
             score: this.score,
             date: new Date().toISOString(),
             survivalTime: this.survivalTime,
             enemiesDestroyed: this.enemiesDestroyed,
-            powerupsCollected: this.powerupsCollected
-        });
+            powerupsCollected: this.powerupsCollected,
+            level: this.level,
+            combo: this.maxCombo,
+            finalWeapon: this.currentWeapon,
+            livesRemaining: this.lives
+        };
+
+        // Save to localStorage (fallback)
+        const highScores = JSON.parse(localStorage.getItem('highScores') || '[]');
+        highScores.push(scoreData);
         
         // Sort by score (highest first)
         highScores.sort((a, b) => b.score - a.score);
@@ -840,6 +870,29 @@ class EnhancedSpaceShooter {
         highScores.splice(10);
         
         localStorage.setItem('highScores', JSON.stringify(highScores));
+        
+        // Save to Firebase if available
+        if (typeof firebaseUtils !== 'undefined' && firebaseUtils.isAvailable()) {
+            firebaseUtils.saveHighScore(scoreData).then(() => {
+                console.log('✅ High score saved to Firebase');
+            }).catch(error => {
+                console.warn('⚠️ Failed to save to Firebase:', error);
+            });
+            
+            // Track game completion event
+            firebaseUtils.trackEvent('game_completed', {
+                final_score: this.score,
+                survival_time: this.survivalTime,
+                enemies_destroyed: this.enemiesDestroyed,
+                powerups_collected: this.powerupsCollected,
+                final_level: this.level,
+                max_combo: this.maxCombo
+            });
+        } else {
+            console.log('⚠️ Firebase not available, score saved locally only');
+        }
+        
+        console.log('🏆 High score saved locally and to Firebase');
     }
     
     getPlayerSpriteName() {
