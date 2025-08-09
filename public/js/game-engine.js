@@ -71,6 +71,23 @@ class EnhancedSpaceShooter {
         this.powerupSpawnRate = 300;
         this.powerupSpawnTimer = 0;
         
+        // Mobile touch controls
+        this.touchStartX = 0;
+        this.touchStartY = 0;
+        this.touchActive = false;
+        this.lastTouchX = 0;
+        this.lastTouchY = 0;
+        this.autoShoot = true; // Auto-shoot on mobile
+        
+        // Addictiveness features
+        this.comboMultiplier = 1;
+        this.comboTimer = 0;
+        this.comboDecayTime = 3000; // 3 seconds to maintain combo
+        this.scoreMultiplier = 1;
+        this.levelUpThreshold = 1000;
+        this.difficultyRamp = 1.2;
+        this.powerupChance = 0.1;
+        
         // Initialize canvas
         this.resizeCanvas();
         window.addEventListener('resize', () => this.resizeCanvas());
@@ -78,10 +95,78 @@ class EnhancedSpaceShooter {
         // Initialize sprites
         this.initSprites();
         
+        // Initialize touch controls
+        this.initTouchControls();
+        
         // Initialize game
         this.init();
         
         console.log('Game engine initialized successfully');
+    }
+    
+    initTouchControls() {
+        // Touch start
+        this.canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = this.canvas.getBoundingClientRect();
+            this.touchStartX = touch.clientX - rect.left;
+            this.touchStartY = touch.clientY - rect.top;
+            this.touchActive = true;
+            this.lastTouchX = this.touchStartX;
+            this.lastTouchY = this.touchStartY;
+            
+            // Move player to touch position
+            this.movePlayerToTouch(this.touchStartX, this.touchStartY);
+            
+            // Auto-shoot on touch
+            if (this.autoShoot && this.gameState === 'playing') {
+                this.shoot();
+            }
+        });
+        
+        // Touch move
+        this.canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!this.touchActive) return;
+            
+            const touch = e.touches[0];
+            const rect = this.canvas.getBoundingClientRect();
+            const touchX = touch.clientX - rect.left;
+            const touchY = touch.clientY - rect.top;
+            
+            // Move player to touch position
+            this.movePlayerToTouch(touchX, touchY);
+            
+            this.lastTouchX = touchX;
+            this.lastTouchY = touchY;
+        });
+        
+        // Touch end
+        this.canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.touchActive = false;
+        });
+    }
+    
+    movePlayerToTouch(touchX, touchY) {
+        if (this.gameState !== 'playing') return;
+        
+        // Convert touch coordinates to canvas coordinates
+        const scaleX = this.canvas.width / this.canvas.offsetWidth;
+        const scaleY = this.canvas.height / this.canvas.offsetHeight;
+        
+        const canvasX = touchX * scaleX;
+        const canvasY = touchY * scaleY;
+        
+        // Move player to touch position with smooth interpolation
+        const targetX = Math.max(0, Math.min(canvasX - this.player.width / 2, this.canvas.width - this.player.width));
+        const targetY = Math.max(0, Math.min(canvasY - this.player.height / 2, this.canvas.height - this.player.height));
+        
+        // Smooth movement
+        const moveSpeed = 0.3;
+        this.player.x += (targetX - this.player.x) * moveSpeed;
+        this.player.y += (targetY - this.player.y) * moveSpeed;
     }
     
     initSprites() {
@@ -269,38 +354,75 @@ class EnhancedSpaceShooter {
     }
     
     update() {
+        if (this.gameState !== 'playing') return;
+        
         // Update survival time
         this.survivalTime = Math.floor((Date.now() - this.startTime) / 1000);
+        
+        // Update combo timer
+        if (this.comboTimer > 0) {
+            this.comboTimer -= 16; // Assuming 60fps
+            if (this.comboTimer <= 0) {
+                this.combo = 0;
+                this.comboMultiplier = 1;
+            }
+        }
         
         // Update player
         this.updatePlayer();
         
-        // Update bullets
+        // Update game objects
         this.updateBullets();
-        
-        // Update enemies
         this.updateEnemies();
-        
-        // Update powerups
         this.updatePowerups();
-        
-        // Update explosions
         this.updateExplosions();
-        
-        // Update particles
         this.updateParticles();
         
-        // Spawn enemies
+        // Spawn enemies and powerups
         this.spawnEnemies();
-        
-        // Spawn powerups
         this.spawnPowerups();
         
         // Check collisions
         this.checkCollisions();
         
+        // Update difficulty based on score
+        this.updateDifficulty();
+        
         // Update UI
         this.updateUI();
+    }
+    
+    updateDifficulty() {
+        // Increase difficulty based on score and level
+        const newLevel = Math.floor(this.score / this.levelUpThreshold) + 1;
+        if (newLevel > this.level) {
+            this.level = newLevel;
+            this.enemySpawnRate = Math.max(20, 60 - (this.level * 5));
+            this.powerupChance = Math.min(0.3, 0.1 + (this.level * 0.02));
+            
+            // Show level up notification
+            this.showLevelUpNotification();
+        }
+    }
+    
+    showLevelUpNotification() {
+        // Create level up notification
+        const notification = document.createElement('div');
+        notification.className = 'event-notification';
+        notification.innerHTML = `🎯 LEVEL ${this.level}!`;
+        notification.style.background = 'linear-gradient(135deg, #00ff00, #00cc00)';
+        notification.style.color = '#000';
+        notification.style.fontWeight = 'bold';
+        notification.style.fontSize = '28px';
+        
+        document.getElementById('gameContainer').appendChild(notification);
+        
+        // Remove notification after animation
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 2000);
     }
     
     updatePlayer() {
@@ -561,27 +683,18 @@ class EnhancedSpaceShooter {
         // Check bullet-enemy collisions
         for (let i = this.bullets.length - 1; i >= 0; i--) {
             const bullet = this.bullets[i];
-            
             for (let j = this.enemies.length - 1; j >= 0; j--) {
                 const enemy = this.enemies[j];
-                
                 if (this.isColliding(bullet, enemy)) {
-                    // Damage enemy
-                    enemy.health -= bullet.damage;
-                    
-                    // Remove bullet
+                    // Remove bullet and enemy
                     this.bullets.splice(i, 1);
+                    this.enemies.splice(j, 1);
                     
-                    // Check if enemy is destroyed
-                    if (enemy.health <= 0) {
-                        this.enemies.splice(j, 1);
-                        this.score += enemy.type === 'boss' ? 500 : enemy.type === 'tank' ? 200 : 100;
-                        this.enemiesDestroyed++;
-                        this.combo++;
-                        
-                        // Create explosion
-                        this.createExplosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
-                    }
+                    // Create explosion
+                    this.createExplosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
+                    
+                    // Update combo and score
+                    this.updateComboAndScore(enemy.type);
                     
                     break;
                 }
@@ -589,23 +702,31 @@ class EnhancedSpaceShooter {
         }
         
         // Check player-enemy collisions
-        if (this.player.invulnerable === 0) {
-            for (let i = this.enemies.length - 1; i >= 0; i--) {
-                const enemy = this.enemies[i];
+        for (let i = this.enemies.length - 1; i >= 0; i--) {
+            const enemy = this.enemies[i];
+            if (this.isColliding(this.player, enemy) && this.player.invulnerable <= 0) {
+                // Remove enemy
+                this.enemies.splice(i, 1);
                 
-                if (this.isColliding(this.player, enemy)) {
+                // Create explosion
+                this.createExplosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
+                
+                // Damage player
+                this.player.health -= 20;
+                this.player.invulnerable = 120; // 2 seconds of invulnerability
+                
+                // Reset combo
+                this.combo = 0;
+                this.comboMultiplier = 1;
+                this.comboTimer = 0;
+                
+                // Check if player died
+                if (this.player.health <= 0) {
                     this.lives--;
-                    this.player.invulnerable = 120; // 2 seconds at 60fps
-                    this.combo = 0;
-                    
-                    // Create explosion
-                    this.createExplosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
-                    
-                    // Remove enemy
-                    this.enemies.splice(i, 1);
-                    
+                    this.player.health = this.player.maxHealth;
                     if (this.lives <= 0) {
                         this.gameOver();
+                        return;
                     }
                 }
             }
@@ -614,12 +735,74 @@ class EnhancedSpaceShooter {
         // Check player-powerup collisions
         for (let i = this.powerups.length - 1; i >= 0; i--) {
             const powerup = this.powerups[i];
-            
             if (this.isColliding(this.player, powerup)) {
                 this.collectPowerup(powerup);
                 this.powerups.splice(i, 1);
             }
         }
+    }
+    
+    updateComboAndScore(enemyType) {
+        // Update combo
+        this.combo++;
+        this.comboTimer = this.comboDecayTime;
+        
+        // Calculate score based on enemy type and combo
+        let baseScore = 10;
+        switch (enemyType) {
+            case 'basic':
+                baseScore = 10;
+                break;
+            case 'fast':
+                baseScore = 25;
+                break;
+            case 'tank':
+                baseScore = 50;
+                break;
+            case 'boss':
+                baseScore = 200;
+                break;
+        }
+        
+        // Apply combo multiplier
+        this.comboMultiplier = Math.min(10, 1 + (this.combo * 0.5));
+        const finalScore = Math.floor(baseScore * this.comboMultiplier * this.scoreMultiplier);
+        
+        this.score += finalScore;
+        this.enemiesDestroyed++;
+        
+        // Show score popup
+        this.showScorePopup(finalScore, enemyType);
+        
+        // Update max combo
+        if (this.combo > this.maxCombo) {
+            this.maxCombo = this.combo;
+        }
+    }
+    
+    showScorePopup(score, enemyType) {
+        // Create score popup
+        const popup = document.createElement('div');
+        popup.style.position = 'absolute';
+        popup.style.left = `${Math.random() * 80 + 10}%`;
+        popup.style.top = `${Math.random() * 60 + 20}%`;
+        popup.style.color = '#ffff00';
+        popup.style.fontSize = '24px';
+        popup.style.fontWeight = 'bold';
+        popup.style.textShadow = '2px 2px 4px rgba(0,0,0,0.8)';
+        popup.style.zIndex = '1000';
+        popup.style.pointerEvents = 'none';
+        popup.style.animation = 'scorePopup 2s ease-out forwards';
+        popup.textContent = `+${score}`;
+        
+        document.getElementById('gameContainer').appendChild(popup);
+        
+        // Remove popup after animation
+        setTimeout(() => {
+            if (popup.parentNode) {
+                popup.parentNode.removeChild(popup);
+            }
+        }, 2000);
     }
     
     isColliding(rect1, rect2) {
@@ -771,9 +954,18 @@ class EnhancedSpaceShooter {
                 }
             }
             
-            // Fallback to geometric shape
+            // Fallback to geometric shape - BRIGHTER COLORS
+            this.ctx.shadowColor = '#ffff00';
+            this.ctx.shadowBlur = 10;
             this.ctx.fillStyle = '#ffff00';
             this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+            
+            // Add glow effect
+            this.ctx.globalAlpha = 0.6;
+            this.ctx.fillStyle = '#ffffff';
+            this.ctx.fillRect(bullet.x - 1, bullet.y - 1, bullet.width + 2, bullet.height + 2);
+            this.ctx.globalAlpha = 1.0;
+            this.ctx.shadowBlur = 0;
         }
     }
     
@@ -789,22 +981,33 @@ class EnhancedSpaceShooter {
                 }
             }
             
-            // Fallback to geometric shape
+            // Fallback to geometric shape - BRIGHTER COLORS
+            this.ctx.shadowColor = this.getEnemyColor(enemy.type);
+            this.ctx.shadowBlur = 8;
+            
             switch (enemy.type) {
                 case 'basic':
-                    this.ctx.fillStyle = '#ff0000';
+                    this.ctx.fillStyle = '#ff4444'; // Brighter red
                     break;
                 case 'fast':
-                    this.ctx.fillStyle = '#ff6600';
+                    this.ctx.fillStyle = '#ff8844'; // Brighter orange
                     break;
                 case 'tank':
-                    this.ctx.fillStyle = '#660066';
+                    this.ctx.fillStyle = '#8844ff'; // Brighter purple
                     break;
                 case 'boss':
-                    this.ctx.fillStyle = '#ff0066';
+                    this.ctx.fillStyle = '#ff4488'; // Brighter pink
                     break;
             }
+            
             this.ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+            
+            // Add glow effect for better visibility
+            this.ctx.globalAlpha = 0.4;
+            this.ctx.fillStyle = '#ffffff';
+            this.ctx.fillRect(enemy.x - 2, enemy.y - 2, enemy.width + 4, enemy.height + 4);
+            this.ctx.globalAlpha = 1.0;
+            this.ctx.shadowBlur = 0;
         }
     }
     
@@ -1070,5 +1273,20 @@ class EnhancedSpaceShooter {
         ctx.fillRect(30, 42, 4, 2);
         
         return canvas;
+    }
+
+    getEnemyColor(enemyType) {
+        switch (enemyType) {
+            case 'basic':
+                return '#ff4444';
+            case 'fast':
+                return '#ff8844';
+            case 'tank':
+                return '#8844ff';
+            case 'boss':
+                return '#ff4488';
+            default:
+                return '#ff0000';
+        }
     }
 }

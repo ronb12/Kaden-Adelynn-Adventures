@@ -12,6 +12,12 @@ body {
     color: #ffffff;
     overflow: hidden;
     user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    touch-action: manipulation;
 }
 
 #gameContainer {
@@ -21,6 +27,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    overflow: hidden;
 }
 
 #gameCanvas {
@@ -33,6 +40,23 @@ body {
     display: block;
     z-index: 1;
     position: relative;
+    touch-action: none;
+}
+
+/* Score popup animation */
+@keyframes scorePopup {
+    0% {
+        opacity: 0;
+        transform: scale(0.5) translateY(0);
+    }
+    20% {
+        opacity: 1;
+        transform: scale(1.2) translateY(-20px);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(1) translateY(-50px);
+    }
 }
 
 /* Dynamic background animations */
