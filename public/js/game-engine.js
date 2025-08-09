@@ -1037,4 +1037,232 @@ class EnhancedSpaceShooter {
         // Draw UI
         this.drawUI();
     }
+
+    // Store functionality
+    openStore() {
+        if (this.gameState === 'playing') {
+            this.gameState = 'paused';
+        }
+        
+        // Create store overlay
+        const storeOverlay = document.createElement('div');
+        storeOverlay.id = 'storeOverlay';
+        storeOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        `;
+        
+        const storeContent = document.createElement('div');
+        storeContent.className = 'menu-content';
+        storeContent.style.cssText = `
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.98) 0%, rgba(22, 33, 62, 0.98) 100%);
+            padding: 40px;
+            border-radius: 25px;
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            text-align: center;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 0 50px rgba(0, 255, 136, 0.3);
+        `;
+        
+        storeContent.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <h2 style="margin: 0; color: #00ff88;">🏪 Ship Store</h2>
+                <button onclick="game.closeStore()" style="
+                    background: rgba(255, 255, 255, 0.1);
+                    border: 2px solid rgba(255, 255, 255, 0.3);
+                    border-radius: 50%;
+                    width: 40px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    font-size: 18px;
+                    font-weight: bold;
+                    color: white;
+                ">✕</button>
+            </div>
+            <div style="margin-bottom: 20px; font-size: 1.2em; color: #00ff88;">
+                💰 Money: $${this.moneyCollected} | 💠 Diamonds: ${this.diamondsCollected}
+            </div>
+            <div id="storeItems" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                ${this.generateStoreItems()}
+            </div>
+        `;
+        
+        storeOverlay.appendChild(storeContent);
+        document.body.appendChild(storeOverlay);
+    }
+
+    closeStore() {
+        const storeOverlay = document.getElementById('storeOverlay');
+        if (storeOverlay) {
+            storeOverlay.remove();
+        }
+        
+        if (this.gameState === 'paused') {
+            this.gameState = 'playing';
+        }
+    }
+
+    generateStoreItems() {
+        let itemsHTML = '';
+        
+        for (const shipType of this.availableShips) {
+            if (!this.shipUnlocked[shipType]) {
+                const price = this.shipPrices[shipType] || 100;
+                const description = this.getShipDescription(shipType);
+                
+                itemsHTML += `
+                    <div style="
+                        background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+                        border: 1px solid rgba(0, 255, 136, 0.2);
+                        border-radius: 20px;
+                        padding: 25px;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+                    ">
+                        <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                            <div style="font-size: 2.5em; margin-right: 15px;">
+                                ${this.getShipIcon(shipType)}
+                            </div>
+                            <div>
+                                <h3 style="margin: 0; color: #00ff88; font-size: 1.5em;">${shipType.charAt(0).toUpperCase() + shipType.slice(1)}</h3>
+                                <p style="margin: 5px 0; color: rgba(255, 255, 255, 0.7); font-size: 0.9em;">${description}</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="color: #00ff88; font-weight: bold; font-size: 1.2em;">
+                                💰 $${price}
+                            </div>
+                            <button onclick="game.buyShip('${shipType}')" style="
+                                background: linear-gradient(135deg, #00ff88, #00cc66);
+                                border: none;
+                                padding: 10px 20px;
+                                border-radius: 25px;
+                                color: #000;
+                                font-weight: bold;
+                                font-size: 14px;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                                box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+                            ">Buy Ship</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        if (itemsHTML === '') {
+            itemsHTML = `
+                <div style="
+                    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+                    border: 1px solid rgba(0, 255, 136, 0.2);
+                    border-radius: 20px;
+                    padding: 25px;
+                    text-align: center;
+                ">
+                    <h3 style="color: #00ff88; margin-bottom: 10px;">🎉 All Ships Unlocked!</h3>
+                    <p style="color: rgba(255, 255, 255, 0.7);">You've unlocked all available ships!</p>
+                </div>
+            `;
+        }
+        
+        return itemsHTML;
+    }
+
+    getShipDescription(shipType) {
+        const descriptions = {
+            'gradius': 'Balanced starter ship with good all-around stats',
+            'interceptor': 'Fast and agile fighter with enhanced damage',
+            'destroyer': 'Heavy damage dealer, slower but powerful',
+            'battleship': 'Massive ship with multiple weapons',
+            'stealth': 'Sleek and dark with stealth capabilities'
+        };
+        return descriptions[shipType] || 'Unknown ship type';
+    }
+
+    getShipIcon(shipType) {
+        const icons = {
+            'gradius': '🛸',
+            'interceptor': '🚀',
+            'destroyer': '🛰️',
+            'battleship': '⚔️',
+            'stealth': '🕶️'
+        };
+        return icons[shipType] || '🚀';
+    }
+
+    buyShip(shipType) {
+        const price = this.shipPrices[shipType] || 100;
+        
+        if (this.moneyCollected >= price) {
+            this.moneyCollected -= price;
+            this.shipUnlocked[shipType] = true;
+            this.player.shipType = shipType;
+            
+            // Show purchase notification
+            this.showPurchaseNotification(shipType);
+            
+            // Update store display
+            const storeItems = document.getElementById('storeItems');
+            if (storeItems) {
+                storeItems.innerHTML = this.generateStoreItems();
+            }
+            
+            // Update UI
+            this.updateUI();
+            
+            console.log(`Ship ${shipType} purchased successfully!`);
+        } else {
+            alert('Not enough money to purchase this ship!');
+        }
+    }
+
+    showPurchaseNotification(shipType) {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #00ff88, #00cc66);
+            color: #000;
+            padding: 20px 40px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 24px;
+            text-align: center;
+            z-index: 2000;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
+            animation: notificationPop 0.5s ease-out;
+        `;
+        
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.5em;">🎉</span>
+                <span>Ship ${shipType.charAt(0).toUpperCase() + shipType.slice(1)} purchased!</span>
+            </div>
+        `;
+
+        document.body.appendChild(notification);
+
+        // Remove after 3 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 3000);
+    }
 }
