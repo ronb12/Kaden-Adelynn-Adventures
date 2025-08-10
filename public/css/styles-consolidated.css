@@ -917,53 +917,7 @@ h2 {
 }
 
 /* In-Game Scoreboard - Horizontal Bar */
-.dynamic-ui .game-stats {
-    position: absolute;
-    top: 5px;
-    left: 5px;
-    right: 5px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    background: rgba(0, 0, 0, 0.8);
-    border-radius: 8px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    width: calc(100% - 10px);
-}
 
-.dynamic-ui .game-stats .stat-item {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 4px;
-    padding: 4px 8px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    flex: 1;
-    justify-content: center;
-}
-
-.dynamic-ui .game-stats .stat-label {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.6em;
-    font-weight: 500;
-    text-transform: uppercase;
-    margin: 0;
-    letter-spacing: 0.5px;
-    white-space: nowrap;
-}
-
-.dynamic-ui .game-stats .stat-value {
-    color: #ffffff;
-    font-size: 0.8em;
-    font-weight: 600;
-    white-space: nowrap;
-}
 
 .stat-item {
     background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 204, 102, 0.1) 100%);
@@ -1458,5 +1412,316 @@ h2 {
     
     h2 {
         font-size: 1.5em;
+    }
+}
+
+/* ===== PROFESSIONAL IN-GAME UI REDESIGN ===== */
+
+/* Main Game UI Container */
+#ui {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: none;
+    background: transparent;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+}
+
+.playing #ui {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 0;
+    background: transparent;
+}
+
+/* Professional Scoreboard - Top Bar */
+.dynamic-ui .game-stats {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0;
+    padding: 12px 20px;
+    background: linear-gradient(180deg, 
+        rgba(0, 0, 0, 0.85) 0%, 
+        rgba(0, 0, 0, 0.75) 50%, 
+        rgba(0, 0, 0, 0.6) 100%);
+    backdrop-filter: blur(15px);
+    border-bottom: 2px solid rgba(0, 255, 255, 0.3);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* Individual Stat Items */
+.dynamic-ui .game-stats .stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 8px 12px;
+    background: rgba(0, 255, 255, 0.08);
+    border: 1px solid rgba(0, 255, 255, 0.15);
+    border-radius: 8px;
+    min-width: 70px;
+    text-align: center;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.dynamic-ui .game-stats .stat-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(0, 255, 255, 0.1), 
+        transparent);
+    transition: left 0.5s ease;
+}
+
+.dynamic-ui .game-stats .stat-item:hover::before {
+    left: 100%;
+}
+
+.dynamic-ui .game-stats .stat-item:hover {
+    background: rgba(0, 255, 255, 0.12);
+    border-color: rgba(0, 255, 255, 0.25);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 255, 255, 0.15);
+}
+
+/* Stat Labels */
+.dynamic-ui .game-stats .stat-label {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
+    text-transform: uppercase;
+    margin: 0;
+    letter-spacing: 0.8px;
+    white-space: nowrap;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Stat Values */
+.dynamic-ui .game-stats .stat-value {
+    font-size: 14px;
+    color: #ffffff;
+    font-weight: 700;
+    white-space: nowrap;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+    margin-top: 2px;
+}
+
+/* Special Stat Styling */
+.dynamic-ui .game-stats .stat-item.score .stat-value {
+    color: #00ff88;
+    font-weight: 800;
+    font-size: 16px;
+}
+
+.dynamic-ui .game-stats .stat-item.lives .stat-value {
+    color: #ff6b6b;
+    font-weight: 800;
+}
+
+.dynamic-ui .game-stats .stat-item.level .stat-value {
+    color: #4ecdc4;
+    font-weight: 800;
+}
+
+.dynamic-ui .game-stats .stat-item.combo .stat-value {
+    color: #ffd93d;
+    font-weight: 800;
+}
+
+.dynamic-ui .game-stats .stat-item.streak .stat-value {
+    color: #ff8c42;
+    font-weight: 800;
+}
+
+.dynamic-ui .game-stats .stat-item.money .stat-value {
+    color: #a8e6cf;
+    font-weight: 800;
+}
+
+/* Weapon Display */
+.weapon-display {
+    position: absolute;
+    top: 80px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 6px;
+    padding: 6px 12px;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Difficulty Display */
+.difficulty-display {
+    position: absolute;
+    top: 80px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 6px;
+    padding: 6px 12px;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Bonus Timers - Bottom Left */
+.bonus-timers {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.bonus-timer {
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(0, 255, 255, 0.4);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.bonus-timer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, 
+        transparent 30%, 
+        rgba(0, 255, 255, 0.1) 50%, 
+        transparent 70%);
+    animation: bonusPulse 2s ease-in-out infinite;
+}
+
+@keyframes bonusPulse {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 1; }
+}
+
+.bonus-timer.life {
+    border-color: rgba(255, 107, 107, 0.6);
+    background: rgba(255, 107, 107, 0.1);
+}
+
+.bonus-timer.shield {
+    border-color: rgba(0, 255, 255, 0.6);
+    background: rgba(0, 255, 255, 0.1);
+}
+
+/* Kid Mode Indicator */
+.kid-mode-indicator {
+    position: absolute;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    padding: 6px 16px;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+    animation: kidModePulse 3s ease-in-out infinite;
+}
+
+@keyframes kidModePulse {
+    0%, 100% { transform: translateX(-50%) scale(1); }
+    50% { transform: translateX(-50%) scale(1.05); }
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+
+    
+    .weapon-display,
+    .difficulty-display {
+        top: 70px;
+        font-size: 10px;
+        padding: 4px 8px;
+    }
+    
+    .bonus-timers {
+        bottom: 15px;
+        left: 15px;
+    }
+    
+    .bonus-timer {
+        font-size: 11px;
+        padding: 6px 10px;
+    }
+    
+    .kid-mode-indicator {
+        top: 70px;
+        font-size: 10px;
+        padding: 4px 12px;
+    }
+}
+
+@media (max-width: 480px) {
+
+    
+    .weapon-display,
+    .difficulty-display {
+        top: 65px;
+        font-size: 9px;
+        padding: 3px 6px;
+    }
+    
+    .bonus-timers {
+        bottom: 10px;
+        left: 10px;
+    }
+    
+    .bonus-timer {
+        font-size: 10px;
+        padding: 5px 8px;
+    }
+    
+    .kid-mode-indicator {
+        top: 65px;
+        font-size: 9px;
+        padding: 3px 10px;
     }
 }
