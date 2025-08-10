@@ -1451,7 +1451,7 @@ h2 {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    gap: 0;
+    gap: 8px; /* Increased gap to prevent overlapping */
     padding: 12px 20px;
     background: linear-gradient(180deg, 
         rgba(0, 0, 0, 0.85) 0%, 
@@ -1463,6 +1463,7 @@ h2 {
     font-size: 13px;
     font-weight: 600;
     letter-spacing: 0.5px;
+    min-height: 60px; /* Ensure consistent height */
 }
 
 /* Individual Stat Items */
@@ -1470,16 +1471,19 @@ h2 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
-    padding: 8px 12px;
+    gap: 3px; /* Increased gap between label and value */
+    padding: 8px 10px; /* Adjusted padding for better spacing */
     background: rgba(0, 255, 255, 0.08);
     border: 1px solid rgba(0, 255, 255, 0.15);
     border-radius: 8px;
-    min-width: 70px;
+    min-width: 75px; /* Increased minimum width to prevent crowding */
+    max-width: 90px; /* Added max-width for consistency */
     text-align: center;
     transition: all 0.2s ease;
     position: relative;
     overflow: hidden;
+    flex: 1; /* Allow items to grow evenly */
+    margin: 0 2px; /* Add small margins between items */
 }
 
 .dynamic-ui .game-stats .stat-item::before {
@@ -1509,24 +1513,26 @@ h2 {
 
 /* Stat Labels */
 .dynamic-ui .game-stats .stat-label {
-    font-size: 10px;
+    font-size: 9px; /* Slightly smaller to prevent overlap */
     color: rgba(255, 255, 255, 0.7);
     font-weight: 500;
     text-transform: uppercase;
     margin: 0;
-    letter-spacing: 0.8px;
+    letter-spacing: 0.6px;
     white-space: nowrap;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    line-height: 1.2; /* Ensure proper line height */
 }
 
 /* Stat Values */
 .dynamic-ui .game-stats .stat-value {
-    font-size: 14px;
+    font-size: 13px; /* Slightly smaller to prevent overlap */
     color: #ffffff;
     font-weight: 700;
     white-space: nowrap;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
-    margin-top: 2px;
+    margin-top: 1px; /* Reduced margin */
+    line-height: 1.2; /* Ensure proper line height */
 }
 
 /* Special Stat Styling */
@@ -1723,5 +1729,83 @@ h2 {
         top: 65px;
         font-size: 9px;
         padding: 3px 10px;
+    }
+}
+
+/* Prevent text overflow and ensure readability */
+.dynamic-ui .game-stats .stat-item {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+/* Ensure scoreboard doesn't wrap on smaller screens */
+@media (max-width: 1200px) {
+    .dynamic-ui .game-stats {
+        gap: 6px;
+        padding: 10px 15px;
+    }
+    
+    .dynamic-ui .game-stats .stat-item {
+        min-width: 65px;
+        max-width: 80px;
+        padding: 6px 8px;
+    }
+    
+    .dynamic-ui .game-stats .stat-label {
+        font-size: 8px;
+        letter-spacing: 0.4px;
+    }
+    
+    .dynamic-ui .game-stats .stat-value {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 768px) {
+    .dynamic-ui .game-stats {
+        gap: 4px;
+        padding: 8px 12px;
+        min-height: 55px;
+    }
+    
+    .dynamic-ui .game-stats .stat-item {
+        min-width: 55px;
+        max-width: 70px;
+        padding: 5px 6px;
+        margin: 0 1px;
+    }
+    
+    .dynamic-ui .game-stats .stat-label {
+        font-size: 7px;
+        letter-spacing: 0.3px;
+    }
+    
+    .dynamic-ui .game-stats .stat-value {
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 480px) {
+    .dynamic-ui .game-stats {
+        gap: 3px;
+        padding: 6px 8px;
+        min-height: 50px;
+    }
+    
+    .dynamic-ui .game-stats .stat-item {
+        min-width: 45px;
+        max-width: 60px;
+        padding: 4px 5px;
+        margin: 0;
+    }
+    
+    .dynamic-ui .game-stats .stat-label {
+        font-size: 6px;
+        letter-spacing: 0.2px;
+    }
+    
+    .dynamic-ui .game-stats .stat-value {
+        font-size: 10px;
     }
 }
