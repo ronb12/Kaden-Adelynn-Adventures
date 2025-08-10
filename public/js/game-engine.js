@@ -72,7 +72,8 @@ class EnhancedSpaceShooter {
         this.explosions = [];
         this.particles = [];
         
-        // Game settings - KID-FRIENDLY BALANCE
+        // Game settings - DIFFICULTY-BASED BALANCE
+        this.difficulty = 'easy'; // Default to easy (kid-friendly)
         this.enemySpawnRate = 120; // Slower enemy spawning (was 60)
         this.enemySpawnTimer = 0;
         this.powerupSpawnRate = 150; // More frequent powerups (was 300)
@@ -83,6 +84,40 @@ class EnhancedSpaceShooter {
         this.bonusLifeInterval = 1800; // Give bonus life every 30 seconds (1800 frames at 60fps)
         this.bonusShieldTimer = 0;
         this.bonusShieldInterval = 900; // Give bonus shield every 15 seconds (900 frames at 60fps)
+        
+        // Difficulty multipliers
+        this.difficultyMultipliers = {
+            easy: {
+                enemySpawnRate: 1.5,      // 1.5x slower spawning
+                enemyHealth: 0.7,         // 30% less health
+                enemySpeed: 0.8,          // 20% slower
+                powerupSpawnRate: 1.5,    // 1.5x more powerups
+                bonusLifeInterval: 0.8,   // 20% faster bonus lives
+                bonusShieldInterval: 0.8, // 20% faster bonus shields
+                playerDamage: 1.3,        // 30% more damage
+                startingLives: 25         // 25 starting lives
+            },
+            medium: {
+                enemySpawnRate: 1.0,      // Normal spawning
+                enemyHealth: 1.0,         // Normal health
+                enemySpeed: 1.0,          // Normal speed
+                powerupSpawnRate: 1.0,    // Normal powerup rate
+                bonusLifeInterval: 1.0,   // Normal bonus life rate
+                bonusShieldInterval: 1.0, // Normal bonus shield rate
+                playerDamage: 1.0,        // Normal damage
+                startingLives: 15         // 15 starting lives
+            },
+            hard: {
+                enemySpawnRate: 0.7,      // 1.4x faster spawning
+                enemyHealth: 1.4,         // 40% more health
+                enemySpeed: 1.3,          // 30% faster
+                powerupSpawnRate: 0.7,    // 1.4x fewer powerups
+                bonusLifeInterval: 1.5,   // 50% slower bonus lives
+                bonusShieldInterval: 1.5, // 50% slower bonus shields
+                playerDamage: 0.8,        // 20% less damage
+                startingLives: 10         // 10 starting lives
+            }
+        };
         
         // AI settings
         this.aiMode = false;
@@ -101,6 +136,60 @@ class EnhancedSpaceShooter {
         
         // Initialize game
         this.init();
+        
+        // Load saved difficulty preference
+        this.loadDifficultyPreference();
+        
+        // Expose difficulty setting to global scope
+        this.exposeDifficultyToGlobal();
+    }
+    
+    // Expose difficulty methods to global scope for HTML interaction
+    exposeDifficultyToGlobal() {
+        if (typeof window !== 'undefined') {
+            window.game = this;
+        }
+    }
+    
+    // Set difficulty and apply multipliers
+    setDifficulty(difficulty) {
+        if (this.difficultyMultipliers[difficulty]) {
+            this.difficulty = difficulty;
+            this.applyDifficultyMultipliers();
+            console.log(`🎯 Difficulty set to: ${difficulty}`);
+        }
+    }
+    
+    // Apply difficulty multipliers to game settings
+    applyDifficultyMultipliers() {
+        const multipliers = this.difficultyMultipliers[this.difficulty];
+        
+        // Apply enemy spawn rate multiplier
+        this.enemySpawnRate = Math.round(120 * multipliers.enemySpawnRate);
+        
+        // Apply powerup spawn rate multiplier
+        this.powerupSpawnRate = Math.round(150 * multipliers.powerupSpawnRate);
+        
+        // Apply bonus interval multipliers
+        this.bonusLifeInterval = Math.round(1800 * multipliers.bonusLifeInterval);
+        this.bonusShieldInterval = Math.round(900 * multipliers.bonusShieldInterval);
+        
+        // Update starting lives
+        this.lives = multipliers.startingLives;
+        
+        console.log(`🎮 Applied ${this.difficulty} difficulty settings`);
+    }
+    
+    // Load difficulty preference from localStorage
+    loadDifficultyPreference() {
+        try {
+            const saved = localStorage.getItem('gameDifficulty');
+            if (saved && this.difficultyMultipliers[saved]) {
+                this.setDifficulty(saved);
+            }
+        } catch (error) {
+            console.log('Using default difficulty: easy');
+        }
     }
     
     resizeCanvas() {
@@ -177,6 +266,9 @@ class EnhancedSpaceShooter {
         this.gameState = 'playing';
         this.startTime = Date.now();
         
+        // Apply current difficulty settings
+        this.applyDifficultyMultipliers();
+        
         // Don't call init() here as it resets the game state to 'menu'
         // this.init();
         
@@ -186,7 +278,7 @@ class EnhancedSpaceShooter {
         this.player.health = this.player.maxHealth;
         this.player.shield = 0;
         this.player.invulnerable = 0;
-        this.lives = 25; // Ensure 25 lives
+        // Lives will be set by applyDifficultyMultipliers()
         
         // Reset game objects for new game
         this.bullets = [];
@@ -375,6 +467,12 @@ class EnhancedSpaceShooter {
             return;
         }
         
+        // Helper function to apply difficulty multiplier to damage
+        const getDamage = (baseDamage) => {
+            const multipliers = this.difficultyMultipliers[this.difficulty];
+            return Math.round(baseDamage * multipliers.playerDamage);
+        };
+        
         // Handle rapid fire mode - enhanced for all weapons
         if (this.rapidFireMode) {
             if (now - this.rapidFireTimer < this.rapidFireCooldown) return;
@@ -397,7 +495,7 @@ class EnhancedSpaceShooter {
                     width: 4,
                     height: 10,
                     speed: 8,
-                    damage: 20, // KID-FRIENDLY: Increased damage (was 10)
+                    damage: getDamage(20), // Apply difficulty multiplier
                     type: 'basic'
                 });
                 break;
@@ -408,7 +506,7 @@ class EnhancedSpaceShooter {
                     width: 8,
                     height: 15,
                     speed: 6,
-                    damage: 25,
+                    damage: getDamage(25),
                     type: 'plasma'
                 });
                 break;
@@ -420,7 +518,7 @@ class EnhancedSpaceShooter {
                         width: 4,
                         height: 10,
                         speed: 7,
-                        damage: 8,
+                        damage: getDamage(8),
                         type: 'spread',
                         angle: i * 0.3
                     });
@@ -433,7 +531,7 @@ class EnhancedSpaceShooter {
                     width: 2,
                     height: this.canvas.height,
                     speed: 12,
-                    damage: 15,
+                    damage: getDamage(15),
                     type: 'laser'
                 });
                 break;
@@ -444,7 +542,7 @@ class EnhancedSpaceShooter {
                     width: 6,
                     height: 12,
                     speed: 5,
-                    damage: 40,
+                    damage: getDamage(40),
                     type: 'missile',
                     homing: true
                 });
@@ -458,7 +556,7 @@ class EnhancedSpaceShooter {
                         width: 2,
                         height: 8,
                         speed: 10,
-                        damage: 5,
+                        damage: getDamage(5),
                         type: 'rapidRifle',
                         spread: i
                     });
@@ -473,7 +571,7 @@ class EnhancedSpaceShooter {
                         width: 3,
                         height: 8,
                         speed: 6,
-                        damage: 12,
+                        damage: getDamage(12),
                         type: 'shotgun',
                         angle: i * 0.2
                     });
@@ -488,7 +586,7 @@ class EnhancedSpaceShooter {
                         width: 6,
                         height: 12,
                         speed: 4,
-                        damage: 18,
+                        damage: getDamage(18),
                         type: 'flamethrower',
                         angle: i * 0.4
                     });
@@ -502,7 +600,7 @@ class EnhancedSpaceShooter {
                     width: 4,
                     height: 20,
                     speed: 9,
-                    damage: 30,
+                    damage: getDamage(30),
                     type: 'lightning'
                 });
                 break;
@@ -514,7 +612,7 @@ class EnhancedSpaceShooter {
                     width: 6,
                     height: 14,
                     speed: 7,
-                    damage: 20,
+                    damage: getDamage(20),
                     type: 'iceCannon',
                     freeze: true
                 });
@@ -602,14 +700,19 @@ class EnhancedSpaceShooter {
             const enemyTypes = ['basic', 'fast', 'tank', 'boss'];
             const type = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
             
+            // Apply difficulty multipliers to enemy stats
+            const multipliers = this.difficultyMultipliers[this.difficulty];
+            const baseSpeed = type === 'fast' ? 3 : type === 'tank' ? 1 : 2;
+            const baseHealth = type === 'tank' ? 50 : type === 'boss' ? 80 : 15;
+            
             const enemy = {
                 x: Math.random() * (this.canvas.width - 60),
                 y: -60,
                 width: 60,
                 height: 60,
-                speed: type === 'fast' ? 3 : type === 'tank' ? 1 : 2, // Slower fast enemies
-                health: type === 'tank' ? 50 : type === 'boss' ? 80 : 15, // Much easier to defeat
-                maxHealth: type === 'tank' ? 50 : type === 'boss' ? 80 : 15,
+                speed: Math.round(baseSpeed * multipliers.enemySpeed),
+                health: Math.round(baseHealth * multipliers.enemyHealth),
+                maxHealth: Math.round(baseHealth * multipliers.enemyHealth),
                 type: type
             };
             
@@ -1187,6 +1290,17 @@ class EnhancedSpaceShooter {
         this.ctx.font = 'bold 18px Arial';
         this.ctx.textAlign = 'center';
         this.ctx.fillText(`🌟 KID MODE 🌟`, this.canvas.width / 2, 60);
+        
+        // Show current difficulty
+        const difficultyColors = {
+            easy: '#00ff00',
+            medium: '#ffff00', 
+            hard: '#ff0000'
+        };
+        this.ctx.fillStyle = difficultyColors[this.difficulty] || '#ffffff';
+        this.ctx.font = 'bold 16px Arial';
+        this.ctx.textAlign = 'right';
+        this.ctx.fillText(`Difficulty: ${this.difficulty.toUpperCase()}`, this.canvas.width - 20, 60);
     }
     
     updateUI() {

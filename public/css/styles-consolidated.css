@@ -94,6 +94,68 @@ body {
     animation: backgroundShift 20s infinite;
 }
 
+/* ===== DIFFICULTY SELECTION ===== */
+.difficulty-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.difficulty-btn {
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: bold;
+    border: 3px solid;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.difficulty-btn.easy {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    border-color: #4CAF50;
+    color: white;
+}
+
+.difficulty-btn.easy:hover {
+    background: linear-gradient(135deg, #45a049, #4CAF50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.difficulty-btn.medium {
+    background: linear-gradient(135deg, #FF9800, #F57C00);
+    border-color: #FF9800;
+    color: white;
+}
+
+.difficulty-btn.medium:hover {
+    background: linear-gradient(135deg, #F57C00, #FF9800);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+}
+
+.difficulty-btn.hard {
+    background: linear-gradient(135deg, #F44336, #D32F2F);
+    border-color: #F44336;
+    color: white;
+}
+
+.difficulty-btn.hard:hover {
+    background: linear-gradient(135deg, #D32F2F, #F44336);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+}
+
+.difficulty-btn.active {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px currentColor;
+}
+
 /* ===== UI ELEMENTS ===== */
 #ui {
     position: absolute;

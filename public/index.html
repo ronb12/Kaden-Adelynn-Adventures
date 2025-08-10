@@ -85,6 +85,17 @@
                 <h1>🚀 Kaden & Adelynn Adventures</h1>
                 <p style="font-size: 1.2em; margin-bottom: 30px; opacity: 0.8;">Enhanced Space Shooter Edition</p>
                 
+                <!-- Difficulty Selection -->
+                <div style="margin: 20px 0; text-align: center;">
+                    <h3 style="margin-bottom: 15px; color: #00ffff;">🎯 Select Difficulty</h3>
+                    <div class="difficulty-buttons">
+                        <button class="difficulty-btn easy" onclick="selectDifficulty('easy')" id="easyBtn">🟢 Easy</button>
+                        <button class="difficulty-btn medium" onclick="selectDifficulty('medium')" id="mediumBtn">🟡 Medium</button>
+                        <button class="difficulty-btn hard" onclick="selectDifficulty('hard')" id="hardBtn">🔴 Hard</button>
+                    </div>
+                    <p style="font-size: 0.9em; margin-top: 10px; opacity: 0.7;">Current: <span id="currentDifficulty">Easy</span></p>
+                </div>
+                
                 <div style="margin: 30px 0;">
                     <button class="btn" onclick="startGame()">🎮 Start New Game</button>
                     <button class="btn" onclick="loadGame()">📂 Load Game</button>
@@ -1027,13 +1038,58 @@
                 console.log('🎮 Canvas and context available, ready for game...');
                 console.log('✅ Game preparation complete');
                 
-                // Initialize touch controls for mobile
-                initTouchControls();
-                console.log('📱 Touch controls initialized');
-            } else {
-                console.error('❌ Canvas not found!');
-            }
-        });
-    </script>
+                            // Initialize touch controls for mobile
+            initTouchControls();
+            console.log('📱 Touch controls initialized');
+            
+            // Set default difficulty
+            selectDifficulty('easy');
+        } else {
+            console.error('❌ Canvas not found!');
+        }
+    });
+    
+    // Difficulty selection functions
+    let currentDifficulty = 'easy';
+    
+    function selectDifficulty(difficulty) {
+        currentDifficulty = difficulty;
+        
+        // Update UI
+        document.getElementById('currentDifficulty').textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+        
+        // Remove active class from all buttons
+        document.querySelectorAll('.difficulty-btn').forEach(btn => btn.classList.remove('active'));
+        
+        // Add active class to selected button
+        document.getElementById(difficulty + 'Btn').classList.add('active');
+        
+        console.log('🎯 Difficulty set to:', difficulty);
+        
+        // Store difficulty preference
+        localStorage.setItem('gameDifficulty', difficulty);
+        
+        // Update game engine if game is running
+        updateGameDifficulty(difficulty);
+    }
+    
+    // Load saved difficulty preference
+    function loadDifficultyPreference() {
+        const saved = localStorage.getItem('gameDifficulty');
+        if (saved && ['easy', 'medium', 'hard'].includes(saved)) {
+            selectDifficulty(saved);
+        }
+    }
+    
+    // Function to communicate difficulty change to game engine
+    function updateGameDifficulty(difficulty) {
+        if (window.game && window.game.setDifficulty) {
+            window.game.setDifficulty(difficulty);
+        }
+    }
+    
+    // Call load function when page loads
+    document.addEventListener('DOMContentLoaded', loadDifficultyPreference);
+</script>
 </body>
 </html>
