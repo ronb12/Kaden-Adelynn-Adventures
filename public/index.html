@@ -97,12 +97,13 @@
                 </div>
                 
                 <div style="margin: 30px 0;">
-                    <button class="btn" onclick="startGame()">🎮 Start New Game</button>
-                    <button class="btn" onclick="loadGame()">📂 Load Game</button>
-                    <button class="btn" onclick="openStore()">🏪 Ship Store</button>
-                    <button class="btn" onclick="showHighScores()">🏆 High Scores</button>
-                    <button class="btn" onclick="showBriefing()">📋 Mission Briefing</button>
-                    <button class="btn" onclick="checkForGameUpdates()">🔄 Check for Updates</button>
+                            <button class="btn" onclick="startGame()">🎮 Start New Game</button>
+        <button class="btn" onclick="loadGame()">📂 Load Game</button>
+        <button class="btn" onclick="openStore()">🏪 Ship Store</button>
+        <button class="btn" onclick="showHighScores()">🏆 High Scores</button>
+        <button class="btn" onclick="showBriefing()">📋 Mission Briefing</button>
+        <button class="btn" onclick="checkForGameUpdates()">🔄 Check for Updates</button>
+        <button class="btn" onclick="togglePause()" id="pauseBtn" style="display: none;">⏸️ Pause</button>
                 </div>
                 
                 <div class="stats-grid">
@@ -674,6 +675,13 @@
                 game.startGame();
                 console.log('✅ Game.startGame() called');
                 
+                // Show pause button
+                const pauseBtn = document.getElementById('pauseBtn');
+                if (pauseBtn) {
+                    pauseBtn.style.display = 'inline-block';
+                    pauseBtn.textContent = '⏸️ Pause';
+                }
+                
                 console.log('✅ Game started successfully');
             } catch (error) {
                 console.error('❌ Error in startGame:', error);
@@ -738,6 +746,24 @@
             
             if (game) {
                 game.gameState = 'menu';
+            }
+            
+            // Hide pause button
+            const pauseBtn = document.getElementById('pauseBtn');
+            if (pauseBtn) {
+                pauseBtn.style.display = 'none';
+            }
+        }
+        
+        function togglePause() {
+            if (game) {
+                if (game.gameState === 'playing') {
+                    game.pauseGame();
+                    document.getElementById('pauseBtn').textContent = '▶️ Resume';
+                } else if (game.gameState === 'paused') {
+                    game.resumeGame();
+                    document.getElementById('pauseBtn').textContent = '⏸️ Pause';
+                }
             }
         }
         

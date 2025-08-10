@@ -94,6 +94,20 @@ body {
     animation: backgroundShift 20s infinite;
 }
 
+/* ===== PAUSE BUTTON ===== */
+#pauseBtn {
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    border-color: #ff6b35;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+#pauseBtn:hover {
+    background: linear-gradient(135deg, #f7931e, #ff6b35);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+}
+
 /* ===== DIFFICULTY SELECTION ===== */
 .difficulty-buttons {
     display: flex;

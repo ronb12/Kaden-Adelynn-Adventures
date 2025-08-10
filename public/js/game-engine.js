@@ -578,17 +578,18 @@ class EnhancedSpaceShooter {
                 }
                 break;
             case 'flamethrower':
-                // Flamethrower creates a cone of fire
-                for (let i = -1; i <= 1; i++) {
+                // 4x Missiles - fires 4 powerful missiles
+                for (let i = 0; i < 4; i++) {
                     this.bullets.push({
-                        x: this.player.x + this.player.width / 2 - 3 + i * 6,
+                        x: this.player.x + this.player.width / 2 - 3 + (i - 1.5) * 8,
                         y: this.player.y,
                         width: 6,
                         height: 12,
-                        speed: 4,
-                        damage: getDamage(18),
+                        speed: 6,
+                        damage: getDamage(35),
                         type: 'flamethrower',
-                        angle: i * 0.4
+                        missile: true,
+                        spread: i
                     });
                 }
                 break;
@@ -740,7 +741,7 @@ class EnhancedSpaceShooter {
                 { type: 'missile', weight: 2 },      // 2% chance for missile
                 { type: 'rapidRifle', weight: 1 },   // 1% chance for rapid rifle
                 { type: 'shotgun', weight: 1 },      // 1% chance for shotgun
-                { type: 'flamethrower', weight: 1 }, // 1% chance for flamethrower
+                { type: 'flamethrower', weight: 1 }, // 1% chance for 4x missiles
                 { type: 'lightning', weight: 1 },    // 1% chance for lightning
                 { type: 'iceCannon', weight: 1 }     // 1% chance for ice cannon
             ];
@@ -897,7 +898,7 @@ class EnhancedSpaceShooter {
                 break;
             case 'flamethrower':
                 this.currentWeapon = 'flamethrower';
-                this.weaponAmmo.flamethrower += 40;
+                this.weaponAmmo.flamethrower += 60; // More ammo for 4x missiles
                 break;
             case 'lightning':
                 this.currentWeapon = 'lightning';
@@ -1136,7 +1137,7 @@ class EnhancedSpaceShooter {
                 color = '#ff4500';
                 break;
             case 'flamethrower':
-                emoji = '🔥';
+                emoji = '🚀🚀🚀🚀';
                 color = '#ff8c00';
                 break;
             case 'lightning':
