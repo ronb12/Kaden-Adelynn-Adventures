@@ -3,10 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>🚀 Kaden & Adelynn Adventures - Enhanced Space Shooter</title>
-    <link rel="stylesheet" href="css/styles-consolidated.css?v=2.0">
+    <link rel="stylesheet" href="css/styles-consolidated.css?v=5.0">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
-    <link rel="manifest" href="manifest.json?v=2.0">
+    <link rel="manifest" href="manifest.json?v=4.0">
     <meta name="theme-color" content="#4facfe">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,66 +20,44 @@
     <div id="gameContainer">
         <canvas id="gameCanvas" width="1000" height="700"></canvas>
         
-        <!-- Enhanced Game UI -->
-        <div id="ui">
-            <div class="stat-item">
-                <div class="stat-label">Score</div>
-                <div class="stat-value"><span id="score">0</span></div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">Level</div>
-                <div class="stat-value"><span id="level">1</span>/50</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">Lives</div>
-                <div class="stat-value"><span id="lives">25</span></div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">Combo</div>
-                <div class="stat-value"><span id="combo">0</span></div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">Streak</div>
-                <div class="stat-value"><span id="streak">0</span></div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">Accuracy</div>
-                <div class="stat-value"><span id="accuracy">0</span>%</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">🪙 Coins</div>
-                <div class="stat-value"><span id="coins">0</span></div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">💎 Gems</div>
-                <div class="stat-value"><span id="gems">0</span></div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">💰 Money</div>
-                <div class="stat-value">$<span id="money">0</span></div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">💠 Diamonds</div>
-                <div class="stat-value"><span id="diamonds">0</span></div>
-            </div>
-        </div>
-        
-        <!-- Mobile Touch Controls -->
-        <div id="mobileControls" class="mobile-controls">
-            <div class="control-group">
-                <div class="weapon-buttons">
-                    <button class="weapon-btn" data-weapon="basic" onclick="switchWeapon('basic')">🔫</button>
-                    <button class="weapon-btn" data-weapon="plasma" onclick="switchWeapon('plasma')">⚡</button>
-                    <button class="weapon-btn" data-weapon="spread" onclick="switchWeapon('spread')">💥</button>
-                    <button class="weapon-btn" data-weapon="laser" onclick="switchWeapon('laser')">🔥</button>
-                    <button class="weapon-btn" data-weapon="missile" onclick="switchWeapon('missile')">🚀</button>
-                    <button class="weapon-btn" data-weapon="rapidRifle" onclick="switchWeapon('rapidRifle')">🔫</button>
+        <!-- Game UI -->
+        <div id="ui" class="dynamic-ui" style="display: none;">
+            <div class="stats-grid game-stats">
+                <div class="stat-item">
+                    <div class="stat-label">Score</div>
+                    <div class="stat-value"><span id="score">0</span></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Level</div>
+                    <div class="stat-value"><span id="level">1</span>/50</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Lives</div>
+                    <div class="stat-value"><span id="lives">25</span></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Combo</div>
+                    <div class="stat-value"><span id="combo">0</span></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Streak</div>
+                    <div class="stat-value"><span id="streak">0</span></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Money</div>
+                    <div class="stat-value">$<span id="money">0</span></div>
                 </div>
             </div>
-            <div class="control-group">
-                <button class="control-btn pause-btn" onclick="togglePause()">⏸️</button>
-                <button class="control-btn menu-btn" onclick="showMenu()">🏠</button>
-            </div>
+            
+            <!-- Pause/Resume Button -->
+            <button id="pauseBtn" class="btn btn-floating" onclick="togglePause()" title="Pause/Resume (ESC/P)">
+                ⏸️
+            </button>
+            
+            <!-- Save Game Button -->
+            <button id="saveBtn" class="btn btn-floating save-btn" onclick="saveGame()" title="Save Game (S)" style="right: 80px;">
+                💾
+            </button>
         </div>
         
         <!-- Enhanced Main Menu -->
@@ -103,10 +84,9 @@
         <button class="btn" onclick="showHighScores()">🏆 High Scores</button>
         <button class="btn" onclick="showBriefing()">📋 Mission Briefing</button>
         <button class="btn" onclick="checkForGameUpdates()">🔄 Check for Updates</button>
-        <button class="btn" onclick="togglePause()" id="pauseBtn" style="display: none;">⏸️ Pause</button>
                 </div>
                 
-                <div class="stats-grid">
+                <div class="stats-grid menu-stats">
                     <div class="stat-item">
                         <div class="stat-label">Max Level Reached</div>
                         <div class="stat-value" id="maxLevel">1</div>
@@ -127,7 +107,7 @@
                 
                 <div style="margin: 30px 0; font-size: 14px; opacity: 0.7;">
                     <p><strong>Desktop:</strong> Arrow Keys to move, Spacebar to shoot</p>
-                    <p><strong>Mobile:</strong> Touch and drag to move, auto-shoot enabled!</p>
+                    <p><strong>Mobile:</strong> Touch and drag to move, auto-shoot enabled! Save with 💾 button or S key!</p>
                     <p>Collect powerups, coins, gems, money, and diamonds to survive!</p>
                     <p><strong>25 Lives</strong> - Multiple Weapons - Rapid Fire - Combo System!</p>
                     <p><strong>50 Levels</strong> - 50 Bosses - Challenges - Save/Load System!</p>
@@ -138,84 +118,81 @@
             </div>
         </div>
         
-        <!-- Enhanced Game Over Overlay -->
-        <div id="gameOver" style="display: none;">
-            <div class="menu-content">
-                <h2>Game Over</h2>
-                <div class="stats-grid">
+        <!-- Game Over Overlay -->
+        <div id="gameOver" class="overlay" style="display: none;">
+            <div id="gameOverContent" class="overlay-content">
+                <h2>💀 Game Over</h2>
+                <div class="stats-grid gameover-stats">
                     <div class="stat-item">
                         <div class="stat-label">Final Score</div>
-                        <div class="stat-value"><span id="finalScore">0</span></div>
+                        <div class="stat-value"><span id="gameOverScore">0</span></div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-label">Level Reached</div>
-                        <div class="stat-value"><span id="finalLevel">1</span>/50</div>
+                        <div class="stat-value"><span id="gameOverLevel">1</span></div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-label">Survival Time</div>
-                        <div class="stat-value"><span id="finalTime">0</span>s</div>
+                        <div class="stat-label">Lives Remaining</div>
+                        <div class="stat-value"><span id="gameOverLives">0</span></div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-label">Enemies Destroyed</div>
-                        <div class="stat-value"><span id="finalEnemies">0</span></div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-label">Bosses Defeated</div>
-                        <div class="stat-value"><span id="finalBosses">0</span></div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-label">Accuracy</div>
-                        <div class="stat-value"><span id="finalAccuracy">0</span>%</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-label">🪙 Coins Collected</div>
-                        <div class="stat-value"><span id="finalCoins">0</span></div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-label">💎 Gems Collected</div>
-                        <div class="stat-value"><span id="finalGems">0</span></div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-label">💰 Money Collected</div>
-                        <div class="stat-value">$<span id="finalMoney">0</span></div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-label">💠 Diamonds Collected</div>
-                        <div class="stat-value"><span id="finalDiamonds">0</span></div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-label">Max Combo</div>
-                        <div class="stat-value"><span id="finalCombo">0</span></div>
+                        <div class="stat-label">Final Combo</div>
+                        <div class="stat-value"><span id="gameOverCombo">0</span></div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-label">Max Streak</div>
-                        <div class="stat-value"><span id="finalStreak">0</span></div>
+                        <div class="stat-value"><span id="gameOverStreak">0</span></div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-label">Medal</div>
-                        <div class="stat-value"><span id="finalMedal">None</span></div>
+                        <div class="stat-label">Enemies Destroyed</div>
+                        <div class="stat-value"><span id="gameOverEnemiesDestroyed">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Bosses Defeated</div>
+                        <div class="stat-value"><span id="gameOverBossesDefeated">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Powerups Collected</div>
+                        <div class="stat-value"><span id="gameOverPowerupsCollected">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Survival Time</div>
+                        <div class="stat-value"><span id="gameOverSurvivalTime">0</span>s</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Money Earned</div>
+                        <div class="stat-value">$<span id="gameOverMoney">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Accuracy</div>
+                        <div class="stat-value"><span id="gameOverAccuracy">0</span>%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Total Shots</div>
+                        <div class="stat-value"><span id="gameOverTotalShots">0</span></div>
                     </div>
                 </div>
                 
-                <div style="margin: 30px 0;">
-                    <button class="btn" onclick="restartGame()">🔄 Play Again</button>
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="restartGame()">🔄 Play Again</button>
+                    <button class="btn btn-success" onclick="saveGame()">💾 Save Score</button>
                     <button class="btn" onclick="showMenu()">🏠 Main Menu</button>
                 </div>
             </div>
         </div>
         
-        <!-- Enhanced Pause Overlay -->
-        <div id="pauseOverlay" style="display: none;">
-            <div class="menu-content">
+        <!-- Pause Overlay -->
+        <div id="pauseOverlay" class="overlay" style="display: none;">
+            <div id="pauseContent" class="overlay-content">
                 <h2>⏸️ Game Paused</h2>
-                <div class="stats-grid">
+                <div class="stats-grid pause-stats">
                     <div class="stat-item">
                         <div class="stat-label">Score</div>
                         <div class="stat-value"><span id="pauseScore">0</span></div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-label">Level</div>
-                        <div class="stat-value"><span id="pauseLevel">1</span>/50</div>
+                        <div class="stat-value"><span id="pauseLevel">1</span></div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-label">Lives</div>
@@ -226,22 +203,19 @@
                         <div class="stat-value"><span id="pauseCombo">0</span></div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-label">Streak</div>
+                        <div class="stat-label">Max Streak</div>
                         <div class="stat-value"><span id="pauseStreak">0</span></div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-label">Accuracy</div>
                         <div class="stat-value"><span id="pauseAccuracy">0</span>%</div>
-            </div>
-        </div>
-        
-                <div style="margin: 30px 0;">
-                    <button class="btn" onclick="resumeGame()">▶️ Resume</button>
-                    <button class="btn" onclick="saveGame()">💾 Save Game</button>
-                    <button class="btn" onclick="openStore()">🏪 Store</button>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="resumeGame()">▶️ Resume Game</button>
+                    <button class="btn btn-success" onclick="saveGame()">💾 Save Game</button>
                     <button class="btn" onclick="showMenu()">🏠 Main Menu</button>
                 </div>
-                <p style="font-size: 12px; opacity: 0.7;">Press ESC, P, or click Resume to continue</p>
             </div>
         </div>
         
@@ -605,6 +579,48 @@
                 </div>
             </div>
         </div>
+        
+        <!-- High Scores Overlay -->
+        <div id="highScoresOverlay" class="overlay" style="display: none;">
+            <div class="overlay-content">
+                <h2>🏆 High Scores</h2>
+                <div class="high-scores-list">
+                    <div class="score-item">
+                        <div class="score-rank">1</div>
+                        <div class="score-name">Kaden</div>
+                        <div class="score-value">15,000</div>
+                        <div class="score-level">Level 8</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-rank">2</div>
+                        <div class="score-name">Adelynn</div>
+                        <div class="score-value">12,500</div>
+                        <div class="score-level">Level 6</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-rank">3</div>
+                        <div class="score-name">Space Hero</div>
+                        <div class="score-value">10,200</div>
+                        <div class="score-level">Level 5</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-rank">4</div>
+                        <div class="score-name">Star Pilot</div>
+                        <div class="score-value">8,750</div>
+                        <div class="score-level">Level 4</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-rank">5</div>
+                        <div class="score-name">Galaxy Explorer</div>
+                        <div class="score-value">7,300</div>
+                        <div class="score-level">Level 3</div>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="closeHighScores()">✅ Close</button>
+                </div>
+            </div>
+        </div>
 
     <!-- Scripts -->
             <script src="js/firebase-config.js?v=2.0"></script>
@@ -612,510 +628,6 @@
         <script src="js/game-engine.js?v=2.0"></script>
         <script src="js/pwa-updates.js?v=2.0"></script>
     
-    <script>
-        // Global game instance
-        let game;
-        
-        // Keyboard input handling
-        const keys = {};
-        
-        document.addEventListener('keydown', (e) => {
-            keys[e.key] = true;
-            
-            // Handle special keys
-            if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
-                if (game && game.gameState === 'playing') {
-                    game.pauseGame();
-                } else if (game && game.gameState === 'paused') {
-                    game.resumeGame();
-                }
-            }
-        });
-        
-        document.addEventListener('keyup', (e) => {
-            keys[e.key] = false;
-        });
-        
-        // Game control functions
-        function startGame() {
-            console.log('🎮 startGame() called');
-            
-            try {
-                // Hide the main menu
-                const menu = document.getElementById('menu');
-                if (menu) {
-                    menu.style.display = 'none';
-                    console.log('✅ Menu hidden');
-                }
-                
-                if (!game) {
-                    console.log('Creating new game instance');
-                    game = new EnhancedSpaceShooter();
-                    console.log('✅ Game instance created');
-                }
-                
-                // Don't reinitialize if game is already playing
-                if (game.gameState === 'playing') {
-                    console.log('Game already running, resuming...');
-                    return;
-                }
-                
-                // Set up game and start
-                game.keys = keys;
-                console.log('✅ Keys assigned to game');
-                
-                // Show game container and start game
-                const gameContainer = document.getElementById('gameContainer');
-                if (gameContainer) {
-                    gameContainer.classList.add('playing');
-                    console.log('✅ Game container shown');
-                }
-                
-                // Start the game
-                game.startGame();
-                console.log('✅ Game.startGame() called');
-                
-                // Show pause button
-                const pauseBtn = document.getElementById('pauseBtn');
-                if (pauseBtn) {
-                    pauseBtn.style.display = 'inline-block';
-                    pauseBtn.textContent = '⏸️ Pause';
-                }
-                
-                console.log('✅ Game started successfully');
-            } catch (error) {
-                console.error('❌ Error in startGame:', error);
-                alert('Error starting game: ' + error.message);
-                
-                // Show menu again if there was an error
-                const menu = document.getElementById('menu');
-                if (menu) {
-                    menu.style.display = 'flex';
-                }
-            }
-        }
-        
-        function loadGame() {
-            if (game) {
-                if (game.loadGame()) {
-                    startGame();
-                } else {
-                    alert('No saved game found!');
-                }
-            } else {
-                game = new EnhancedSpaceShooter();
-                if (game.loadGame()) {
-                    startGame();
-                } else {
-                    alert('No saved game found!');
-                }
-            }
-        }
-        
 
-        
-
-        
-
-        
-        function showMenu() {
-            console.log('showMenu() called');
-            document.getElementById('gameOver').style.display = 'none';
-            document.getElementById('pauseOverlay').style.display = 'none';
-            document.getElementById('briefingOverlay').style.display = 'none';
-            
-            // Reset and show main menu with proper positioning
-            const menu = document.getElementById('menu');
-            if (menu) {
-                menu.style.display = 'flex';
-                menu.style.position = 'fixed';
-                menu.style.top = '0';
-                menu.style.left = '0';
-                menu.style.right = '0';
-                menu.style.bottom = '0';
-                menu.style.width = '100%';
-                menu.style.height = '100%';
-                menu.style.background = 'rgba(0, 0, 0, 0.9)';
-                menu.style.zIndex = '1000';
-                menu.style.alignItems = 'center';
-                menu.style.justifyContent = 'center';
-                menu.style.margin = '0';
-                menu.style.padding = '20px';
-                menu.style.overflow = 'auto';
-            }
-            
-            if (game) {
-                game.gameState = 'menu';
-            }
-            
-            // Hide pause button
-            const pauseBtn = document.getElementById('pauseBtn');
-            if (pauseBtn) {
-                pauseBtn.style.display = 'none';
-            }
-        }
-        
-        function togglePause() {
-            if (game) {
-                if (game.gameState === 'playing') {
-                    game.pauseGame();
-                    document.getElementById('pauseBtn').textContent = '▶️ Resume';
-                } else if (game.gameState === 'paused') {
-                    game.resumeGame();
-                    document.getElementById('pauseBtn').textContent = '⏸️ Pause';
-                }
-            }
-        }
-        
-
-        
-        function showBriefing() {
-            document.getElementById('menu').style.display = 'none';
-            document.getElementById('briefingOverlay').style.display = 'flex';
-        }
-        
-        function hideBriefing() {
-            document.getElementById('briefingOverlay').style.display = 'none';
-            showMenu(); // Use the showMenu function to ensure proper positioning
-        }
-        
-
-        
-        function checkForGameUpdates() {
-            if (window.pwaUpdateManager) {
-                window.pwaUpdateManager.forceCheckForUpdates().then(hasUpdates => {
-                    if (hasUpdates) {
-                        alert('Checking for updates... Please wait.');
-                    } else {
-                        alert('Game is up to date!');
-                    }
-                });
-            } else {
-                alert('Update system not available');
-            }
-        }
-        
-        function showHighScores() {
-            console.log('🏆 showHighScores() called');
-            
-            if (game && typeof game.showHighScores === 'function') {
-                try {
-                    game.showHighScores();
-                } catch (error) {
-                    console.error('Error showing high scores:', error);
-                    alert('High scores coming soon!');
-                }
-            } else {
-                console.log('Game not initialized or showHighScores method not available');
-                alert('High scores coming soon!');
-            }
-        }
-        
-        function saveGame() {
-            if (game) {
-                game.saveGame();
-                alert('Game saved successfully!');
-            } else {
-                alert('No game to save!');
-            }
-        }
-        
-        function restartGame() {
-            console.log('🔄 restartGame() called');
-            
-            // Hide the game over screen
-            document.getElementById('gameOver').style.display = 'none';
-            
-            if (game) {
-                // Reset game state
-                game.gameState = 'playing';
-                game.lives = 25;
-                game.score = 0;
-                game.level = 1;
-                game.combo = 0;
-                game.maxCombo = 0;
-                game.survivalTime = 0;
-                game.enemiesDestroyed = 0;
-                game.powerupsCollected = 0;
-                
-                // Clear all game objects
-                game.enemies = [];
-                game.bullets = [];
-                game.powerups = [];
-                game.explosions = [];
-                game.particles = [];
-                
-                // Reset player
-                game.player.health = game.player.maxHealth;
-                game.player.shield = 0;
-                game.player.invulnerable = 0;
-                game.player.x = game.canvas.width / 2 - game.player.width / 2;
-                game.player.y = game.canvas.height - game.player.height - 20;
-                
-                // Show game container and start game
-                document.getElementById('gameContainer').classList.add('playing');
-                game.startGame();
-            } else {
-                startGame();
-            }
-        }
-        
-        function resumeGame() {
-            if (game) {
-                game.resumeGame();
-            } else {
-                alert('No game to resume!');
-            }
-        }
-        
-
-        
-
-        
-        function showGameOver() {
-            if (game) {
-                document.getElementById('gameContainer').classList.remove('playing');
-                document.getElementById('gameOver').style.display = 'flex';
-                document.getElementById('finalScore').textContent = game.score;
-                document.getElementById('finalLevel').textContent = game.level;
-                document.getElementById('finalLives').textContent = game.lives;
-                document.getElementById('finalCombo').textContent = game.maxCombo || 0;
-                document.getElementById('finalTime').textContent = Math.floor(game.survivalTime / 60);
-            }
-        }
-        
-        function showPause() {
-            if (game) {
-                game.pauseGame();
-                document.getElementById('pauseOverlay').style.display = 'flex';
-            }
-        }
-        
-        function hidePause() {
-            document.getElementById('pauseOverlay').style.display = 'none';
-            if (game) {
-                game.resumeGame();
-            }
-        }
-        
-        function togglePause() {
-            if (game) {
-                if (game.gameState === 'playing') {
-                    game.pauseGame();
-                    document.getElementById('pauseOverlay').style.display = 'flex';
-                } else if (game.gameState === 'paused') {
-                    game.resumeGame();
-                    document.getElementById('pauseOverlay').style.display = 'none';
-                }
-            }
-        }
-        
-        function switchWeapon(weaponType) {
-            if (game && game.gameState === 'playing') {
-                game.currentWeapon = weaponType;
-                
-                // Update active weapon button
-                document.querySelectorAll('.weapon-btn').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                document.querySelector(`[data-weapon="${weaponType}"]`).classList.add('active');
-                
-                console.log(`🔫 Switched to weapon: ${weaponType}`);
-            }
-        }
-        
-        function openStore() {
-            document.getElementById('menu').style.display = 'none';
-            document.getElementById('storeOverlay').style.display = 'flex';
-            
-            // Update store display with current game data
-            if (game) {
-                document.getElementById('storeMoney').textContent = game.money || 0;
-                document.getElementById('currentShip').textContent = game.currentShipType || 'Starfighter';
-            }
-        }
-        
-
-        
-
-        
-        function closeStore() {
-            document.getElementById('storeOverlay').style.display = 'none';
-            showMenu();
-        }
-        
-        function buyShip(shipType) {
-            if (!game) return;
-            
-            const shipPrices = {
-                'starfighter': 0,
-                'interceptor': 1000,
-                'destroyer': 2500,
-                'stealth': 5000,
-                'elite': 10000
-            };
-            
-            const price = shipPrices[shipType];
-            const currentMoney = game.money || 0;
-            
-            if (currentMoney >= price) {
-                game.buyShip(shipType);
-                alert(`Congratulations! You've purchased the ${shipType}!`);
-                closeStore();
-            } else {
-                alert(`You need $${price} to buy the ${shipType}. You have $${currentMoney}.`);
-            }
-        }
-        
-        // Touch controls for mobile
-        let touchStartX = 0;
-        let touchStartY = 0;
-        let isTouching = false;
-        
-        function initTouchControls() {
-            const canvas = document.getElementById('gameCanvas');
-            if (!canvas) return;
-            
-            // Touch start
-            canvas.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                const touch = e.touches[0];
-                touchStartX = touch.clientX;
-                touchStartY = touch.clientY;
-                isTouching = true;
-                
-                // Auto-shoot on touch
-                if (game && game.gameState === 'playing') {
-                    game.shoot();
-                }
-            });
-            
-            // Touch move
-            canvas.addEventListener('touchmove', (e) => {
-                e.preventDefault();
-                if (!isTouching || !game || game.gameState !== 'playing') return;
-                
-                const touch = e.touches[0];
-                const deltaX = touch.clientX - touchStartX;
-                const deltaY = touch.clientY - touchStartY;
-                
-                // Move player based on touch movement
-                const moveSpeed = 5;
-                game.player.x += deltaX * moveSpeed * 0.01;
-                game.player.y += deltaY * moveSpeed * 0.01;
-                
-                // Keep player within bounds
-                game.player.x = Math.max(0, Math.min(game.canvas.width - game.player.width, game.player.x));
-                game.player.y = Math.max(0, Math.min(game.canvas.height - game.player.height, game.player.y));
-                
-                touchStartX = touch.clientX;
-                touchStartY = touch.clientY;
-            });
-            
-            // Touch end
-            canvas.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                isTouching = false;
-            });
-            
-            // Prevent default touch behaviors
-            canvas.addEventListener('touchcancel', (e) => e.preventDefault());
-        }
-        
-        // Initialize game when page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('Page loaded, initializing game...');
-            
-            // Ensure all overlays are properly hidden initially
-            const gameOver = document.getElementById('gameOver');
-            const pauseOverlay = document.getElementById('pauseOverlay');
-            const briefingOverlay = document.getElementById('briefingOverlay');
-            
-            // Force hide all overlays
-            if (gameOver) gameOver.style.display = 'none';
-            if (pauseOverlay) pauseOverlay.style.display = 'none';
-            if (briefingOverlay) briefingOverlay.style.display = 'none';
-            
-            // Ensure main menu is visible and properly positioned
-            const menu = document.getElementById('menu');
-            if (menu) {
-                // Reset any inline styles and apply proper positioning
-                menu.style.display = 'flex';
-                menu.style.position = 'fixed';
-                menu.style.top = '0';
-                menu.style.left = '0';
-                menu.style.right = '0';
-                menu.style.bottom = '0';
-                menu.style.width = '100%';
-                menu.style.height = '100%';
-                menu.style.background = 'rgba(0, 0, 0, 0.9)';
-                menu.style.zIndex = '1000';
-                menu.style.alignItems = 'center';
-                menu.style.justifyContent = 'center';
-                menu.style.margin = '0';
-                menu.style.padding = '20px';
-                menu.style.overflow = 'auto';
-                console.log('✅ Main menu displayed and properly positioned');
-            }
-            
-            // Check if canvas is available and prepare for game
-            const canvas = document.getElementById('gameCanvas');
-            if (canvas) {
-                console.log('🎮 Canvas and context available, ready for game...');
-                console.log('✅ Game preparation complete');
-                
-                            // Initialize touch controls for mobile
-            initTouchControls();
-            console.log('📱 Touch controls initialized');
-            
-            // Set default difficulty
-            selectDifficulty('easy');
-        } else {
-            console.error('❌ Canvas not found!');
-        }
-    });
-    
-    // Difficulty selection functions
-    let currentDifficulty = 'easy';
-    
-    function selectDifficulty(difficulty) {
-        currentDifficulty = difficulty;
-        
-        // Update UI
-        document.getElementById('currentDifficulty').textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
-        
-        // Remove active class from all buttons
-        document.querySelectorAll('.difficulty-btn').forEach(btn => btn.classList.remove('active'));
-        
-        // Add active class to selected button
-        document.getElementById(difficulty + 'Btn').classList.add('active');
-        
-        console.log('🎯 Difficulty set to:', difficulty);
-        
-        // Store difficulty preference
-        localStorage.setItem('gameDifficulty', difficulty);
-        
-        // Update game engine if game is running
-        updateGameDifficulty(difficulty);
-    }
-    
-    // Load saved difficulty preference
-    function loadDifficultyPreference() {
-        const saved = localStorage.getItem('gameDifficulty');
-        if (saved && ['easy', 'medium', 'hard'].includes(saved)) {
-            selectDifficulty(saved);
-        }
-    }
-    
-    // Function to communicate difficulty change to game engine
-    function updateGameDifficulty(difficulty) {
-        if (window.game && window.game.setDifficulty) {
-            window.game.setDifficulty(difficulty);
-        }
-    }
-    
-    // Call load function when page loads
-    document.addEventListener('DOMContentLoaded', loadDifficultyPreference);
-</script>
 </body>
 </html>

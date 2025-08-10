@@ -1,0 +1,692 @@
+/* Overlays */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.overlay-content {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 2px solid rgba(78, 205, 196, 0.3);
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.overlay-content h2 {
+    color: #4ecdc4;
+    margin-bottom: 25px;
+    font-size: 2.5em;
+    text-shadow: 0 0 20px rgba(78, 205, 196, 0.5);
+}
+
+/* Button Groups */
+.button-group {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.button-group .btn {
+    min-width: 120px;
+}
+
+/* Button Variants */
+.btn-success {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-color: #10b981;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    border-color: #047857;
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
+
+/* High Scores */
+.high-scores-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 20px 0;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.score-item {
+    display: grid;
+    grid-template-columns: 50px 1fr 100px 80px;
+    gap: 15px;
+    align-items: center;
+    background: rgba(78, 205, 196, 0.1);
+    border: 1px solid rgba(78, 205, 205, 0.3);
+    border-radius: 10px;
+    padding: 15px;
+    transition: all 0.3s ease;
+}
+
+.score-item:hover {
+    background: rgba(78, 205, 196, 0.2);
+    border-color: rgba(78, 205, 205, 0.5);
+    transform: translateY(-2px);
+}
+
+.score-rank {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: #000;
+    font-weight: bold;
+    font-size: 1.2em;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.score-name {
+    color: #4ecdc4;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.score-value {
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 1.2em;
+    text-align: right;
+}
+
+.score-level {
+    color: #a0a0a0;
+    font-size: 0.9em;
+    text-align: right;
+}
+
+
+
+/* Floating Buttons */
+.btn-floating {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 2px solid rgba(78, 205, 196, 0.5);
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.btn-floating:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    border-color: rgba(78, 205, 196, 0.8);
+}
+
+/* Save Button Specific Styling */
+.save-btn {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-color: #10b981;
+    right: 90px;
+}
+
+.save-btn:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    border-color: #047857;
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
+
+/* Dynamic UI */
+.dynamic-ui {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 100;
+}
+
+.dynamic-ui .stats-grid {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    pointer-events: none;
+}
+
+/* In-Game Scoreboard - Horizontal Bar */
+.dynamic-ui .game-stats {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    right: 5px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    max-width: none;
+    width: calc(100% - 10px);
+}
+
+.dynamic-ui .game-stats .stat-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    min-width: auto;
+    flex: 1;
+    justify-content: center;
+}
+
+.dynamic-ui .game-stats .stat-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.6em;
+    font-weight: 500;
+    text-transform: uppercase;
+    margin: 0;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.dynamic-ui .game-stats .stat-value {
+    color: #ffffff;
+    font-size: 0.8em;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Menu Scoreboard - Medium */
+.menu-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    max-width: 400px;
+    justify-content: center;
+}
+
+.menu-stats .stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 80px;
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.menu-stats .stat-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.7em;
+    font-weight: 500;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+    letter-spacing: 0.5px;
+}
+
+.menu-stats .stat-value {
+    color: #ffffff;
+    font-size: 1.0em;
+    font-weight: 600;
+}
+
+/* Pause Scoreboard - Medium */
+.pause-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    max-width: 350px;
+    justify-content: center;
+}
+
+.pause-stats .stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 70px;
+    padding: 6px 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.pause-stats .stat-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.65em;
+    font-weight: 500;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+    letter-spacing: 0.5px;
+}
+
+.pause-stats .stat-value {
+    color: #ffffff;
+    font-size: 0.9em;
+    font-weight: 600;
+}
+
+/* Game Over Scoreboard - Large */
+.gameover-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    max-width: 500px;
+    justify-content: center;
+}
+
+.gameover-stats .stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 90px;
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.gameover-stats .stat-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.75em;
+    font-weight: 500;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+    letter-spacing: 0.5px;
+}
+
+.gameover-stats .stat-value {
+    color: #ffffff;
+    font-size: 1.1em;
+    font-weight: 600;
+}
+
+/* Mobile-optimized stats */
+@media (max-width: 768px) {
+    .dynamic-ui .game-stats {
+        top: 3px;
+        left: 3px;
+        right: 3px;
+        gap: 6px;
+        padding: 6px 8px;
+        width: calc(100% - 6px);
+    }
+    
+    .dynamic-ui .game-stats .stat-item {
+        padding: 3px 6px;
+        gap: 3px;
+    }
+    
+    .dynamic-ui .game-stats .stat-label {
+        font-size: 0.5em;
+    }
+    
+    .dynamic-ui .game-stats .stat-value {
+        font-size: 0.7em;
+    }
+    
+    .menu-stats {
+        max-width: 300px;
+        gap: 8px;
+        padding: 10px;
+    }
+    
+    .pause-stats {
+        max-width: 280px;
+        gap: 6px;
+        padding: 8px;
+    }
+    
+    .gameover-stats {
+        max-width: 350px;
+        gap: 8px;
+        padding: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .dynamic-ui .game-stats {
+        top: 2px;
+        left: 2px;
+        right: 2px;
+        gap: 4px;
+        padding: 4px 6px;
+        width: calc(100% - 4px);
+    }
+    
+    .dynamic-ui .game-stats .stat-item {
+        padding: 2px 4px;
+        gap: 2px;
+    }
+    
+    .dynamic-ui .game-stats .stat-label {
+        font-size: 0.45em;
+    }
+    
+    .dynamic-ui .game-stats .stat-value {
+        font-size: 0.6em;
+    }
+    
+    .menu-stats {
+        max-width: 250px;
+        gap: 6px;
+        padding: 8px;
+    }
+    
+    .pause-stats {
+        max-width: 220px;
+        gap: 5px;
+        padding: 6px;
+    }
+    
+    .gameover-stats {
+        max-width: 280px;
+        gap: 6px;
+        padding: 10px;
+    }
+}
+
+@media (max-width: 360px) {
+    .dynamic-ui .game-stats {
+        top: 1px;
+        left: 1px;
+        right: 1px;
+        gap: 3px;
+        padding: 3px 4px;
+        width: calc(100% - 2px);
+    }
+    
+    .dynamic-ui .game-stats .stat-item {
+        padding: 1px 3px;
+        gap: 1px;
+    }
+    
+    .dynamic-ui .game-stats .stat-label {
+        font-size: 0.4em;
+    }
+    
+    .dynamic-ui .game-stats .stat-value {
+        font-size: 0.5em;
+    }
+    
+    .menu-stats {
+        max-width: 200px;
+        gap: 4px;
+        padding: 6px;
+    }
+    
+    .pause-stats {
+        max-width: 180px;
+        gap: 4px;
+        padding: 5px;
+    }
+    
+    .gameover-stats {
+        max-width: 220px;
+        gap: 4px;
+        padding: 8px;
+    }
+}
+
+/* Responsive Design Improvements */
+@media (max-width: 768px) {
+    /* Optimize overlay content for mobile */
+    .overlay-content {
+        padding: 20px;
+        max-width: 95%;
+        max-height: 85vh;
+    }
+    
+    .overlay-content h2 {
+        font-size: 2em;
+        margin-bottom: 20px;
+    }
+    
+    .button-group {
+        gap: 10px;
+        margin-top: 15px;
+    }
+    
+    .button-group .btn {
+        min-width: 100px;
+        padding: 10px 15px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Further optimize overlays for small mobile */
+    .overlay-content {
+        padding: 15px;
+        max-width: 98%;
+        max-height: 90vh;
+    }
+    
+    .overlay-content h2 {
+        font-size: 1.8em;
+        margin-bottom: 15px;
+    }
+    
+    .button-group {
+        gap: 8px;
+        margin-top: 12px;
+    }
+    
+    .button-group .btn {
+        min-width: 90px;
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 360px) {
+    /* Ultra-compact for very small screens */
+    .overlay-content {
+        padding: 12px;
+        max-width: 99%;
+        max-height: 95vh;
+    }
+    
+    .overlay-content h2 {
+        font-size: 1.6em;
+        margin-bottom: 12px;
+    }
+    
+    .button-group {
+        gap: 6px;
+        margin-top: 10px;
+    }
+    
+    .button-group .btn {
+        min-width: 80px;
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+}
+
+/* Additional mobile optimizations for gameplay */
+@media (max-width: 768px) {
+    /* Ensure canvas takes maximum space */
+    #gameCanvas {
+        max-width: 100vw;
+        max-height: 100vh;
+        object-fit: contain;
+    }
+    
+    /* Optimize high scores for mobile */
+    .high-scores-list {
+        max-height: 300px;
+        gap: 10px;
+    }
+    
+    .score-item {
+        padding: 10px;
+        gap: 10px;
+    }
+    
+    .score-rank {
+        width: 35px;
+        height: 35px;
+        font-size: 1em;
+    }
+    
+    /* Optimize store for mobile */
+    .ship-card {
+        padding: 15px;
+        margin: 10px 0;
+    }
+    
+    .ship-name {
+        font-size: 1.1em;
+    }
+    
+    .ship-price {
+        font-size: 1em;
+    }
+    
+    .ship-stats span {
+        font-size: 0.9em;
+    }
+}
+
+@media (max-width: 480px) {
+    .high-scores-list {
+        max-height: 250px;
+        gap: 8px;
+    }
+    
+    .score-item {
+        padding: 8px;
+        gap: 8px;
+    }
+    
+    .score-rank {
+        width: 30px;
+        height: 30px;
+        font-size: 0.9em;
+    }
+    
+    .ship-card {
+        padding: 12px;
+        margin: 8px 0;
+    }
+    
+    .ship-name {
+        font-size: 1em;
+    }
+    
+    .ship-price {
+        font-size: 0.9em;
+    }
+    
+    .ship-stats span {
+        font-size: 0.8em;
+    }
+}
+
+/* Game Container and Canvas */
+#gameContainer {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    background: linear-gradient(135deg, #0f0f23, #1a1a2e);
+}
+
+#gameCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    cursor: crosshair;
+}
+
+/* Mobile-specific canvas optimizations */
+@media (max-width: 768px) {
+    #gameContainer {
+        height: 100vh;
+        height: 100dvh; /* Dynamic viewport height for mobile */
+    }
+    
+    #gameCanvas {
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        object-fit: contain;
+        touch-action: none; /* Prevent default touch behaviors */
+    }
+}
+
+@media (max-width: 480px) {
+    #gameContainer {
+        height: 100vh;
+        height: 100dvh;
+    }
+    
+    #gameCanvas {
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+    }
+}
+
+@media (max-width: 360px) {
+    #gameContainer {
+        height: 100vh;
+        height: 100dvh;
+    }
+    
+    #gameCanvas {
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+    }
+}
+
+
