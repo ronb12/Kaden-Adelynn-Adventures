@@ -122,20 +122,19 @@
 
 /* Floating Buttons */
 .btn-floating {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    width: 60px;
-    height: 60px;
+    position: absolute;
+    top: 10px;
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
     border: 2px solid rgba(78, 205, 196, 0.5);
     background: linear-gradient(135deg, #4facfe, #00f2fe);
     color: white;
-    font-size: 24px;
+    font-size: 18px;
     cursor: pointer;
     z-index: 1000;
     transition: all 0.3s ease;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -144,21 +143,34 @@
 
 .btn-floating:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
     border-color: rgba(78, 205, 196, 0.8);
 }
 
-/* Save Button Specific Styling */
-.save-btn {
-    background: linear-gradient(135deg, #10b981, #059669);
-    border-color: #10b981;
-    right: 90px;
+/* Pause Button - Top Right */
+#pauseBtn {
+    right: 10px;
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    border-color: #ff6b35;
 }
 
-.save-btn:hover {
+#pauseBtn:hover {
+    background: linear-gradient(135deg, #f7931e, #ff6b35);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+}
+
+/* Save Button - Top Right, next to pause */
+#saveBtn {
+    right: 65px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-color: #10b981;
+}
+
+#saveBtn:hover {
     background: linear-gradient(135deg, #059669, #047857);
-    border-color: #047857;
-    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+    border-color: #059669;
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
 }
 
 /* Dynamic UI */
