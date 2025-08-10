@@ -1283,7 +1283,7 @@ class EnhancedSpaceShooter {
             this.ctx.strokeStyle = '#ffff00';
             this.ctx.lineWidth = 2;
             this.ctx.setLineDash([5, 5]);
-            this.ctx.strokeRect(x - 2, y - 2, w + 4, h + 4);
+            this.ctx.strokeRect(this.player.x - 2, this.player.y - 2, this.player.width + 4, this.player.height + 4);
             this.ctx.restore();
         }
     }
