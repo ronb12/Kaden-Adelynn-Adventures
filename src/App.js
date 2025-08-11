@@ -3,29 +3,41 @@ import React, { useState, useEffect, useRef } from 'react';
 function App() {
   const [gameState, setGameState] = useState('menu');
   const [score, setScore] = useState(0);
-  const [lives, setLives] = useState(25);
+  const [lives, setLives] = useState(3);
   const [level, setLevel] = useState(1);
+  const [highScore, setHighScore] = useState(0);
+  
   const canvasRef = useRef(null);
   const gameLoopRef = useRef(null);
-  const playerRef = useRef({ x: 0, y: 0, width: 40, height: 30 });
+  const lastTimeRef = useRef(0);
+  
+  // Game objects
+  const playerRef = useRef({ x: 0, y: 0, width: 40, height: 40, speed: 5 });
   const bulletsRef = useRef([]);
   const enemiesRef = useRef([]);
+  const particlesRef = useRef([]);
   const keysRef = useRef({});
+  const lastShotRef = useRef(0);
 
+  // Initialize game
   useEffect(() => {
     const canvas = canvasRef.current;
+    if (!canvas) return;
+    
     const ctx = canvas.getContext('2d');
     
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      playerRef.current.x = canvas.width / 2 - 20;
+      // Center player
+      playerRef.current.x = canvas.width / 2 - playerRef.current.width / 2;
       playerRef.current.y = canvas.height - 100;
     };
     
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
+    // Keyboard controls
     const handleKeyDown = (e) => {
       keysRef.current[e.code] = true;
       if (e.code === 'Space') e.preventDefault();
@@ -38,61 +50,111 @@ function App() {
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
 
+    // Touch controls for mobile
+    let touchStartX = 0;
+    let touchStartY = 0;
+    
+    const handleTouchStart = (e) => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    };
+    
+    const handleTouchMove = (e) => {
+      e.preventDefault();
+      const touchX = e.touches[0].clientX;
+      const touchY = e.touches[0].clientY;
+      
+      const player = playerRef.current;
+      const canvas = canvasRef.current;
+      
+      // Move player based on touch
+      player.x = Math.max(0, Math.min(canvas.width - player.width, touchX - player.width / 2));
+      player.y = Math.max(0, Math.min(canvas.height - player.height, touchY - player.height / 2));
+    };
+    
+    const handleTouchEnd = () => {
+      // Auto-shoot when touch ends
+      if (gameState === 'playing') {
+        shoot();
+      }
+    };
+
+    canvas.addEventListener('touchstart', handleTouchStart);
+    canvas.addEventListener('touchmove', handleTouchMove);
+    canvas.addEventListener('touchend', handleTouchEnd);
+
     return () => {
       window.removeEventListener('resize', resizeCanvas);
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
+      canvas.removeEventListener('touchstart', handleTouchStart);
+      canvas.removeEventListener('touchmove', handleTouchMove);
+      canvas.removeEventListener('touchend', handleTouchEnd);
     };
-  }, []);
+  }, [gameState]);
 
-  const startGame = () => {
-    setGameState('playing');
-    setScore(0);
-    setLives(25);
-    setLevel(1);
-    bulletsRef.current = [];
-    enemiesRef.current = [];
-    
-    const gameLoop = () => {
+  // Game loop
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    const gameLoop = (currentTime) => {
       if (gameState !== 'playing') return;
       
-      updateGame();
+      const deltaTime = currentTime - lastTimeRef.current;
+      lastTimeRef.current = currentTime;
+      
+      updateGame(deltaTime);
       renderGame();
+      
       gameLoopRef.current = requestAnimationFrame(gameLoop);
     };
     
-    gameLoop();
+    gameLoopRef.current = requestAnimationFrame(gameLoop);
+    
+    return () => {
+      if (gameLoopRef.current) {
+        cancelAnimationFrame(gameLoopRef.current);
+      }
+    };
+  }, [gameState]);
+
+  const shoot = () => {
+    const now = Date.now();
+    if (now - lastShotRef.current < 200) return; // Rate limit shooting
+    
+    lastShotRef.current = now;
+    const player = playerRef.current;
+    
+    bulletsRef.current.push({
+      x: player.x + player.width / 2 - 2,
+      y: player.y,
+      width: 4,
+      height: 12,
+      speed: 8
+    });
   };
 
-  const updateGame = () => {
+  const updateGame = (deltaTime) => {
     const canvas = canvasRef.current;
     const player = playerRef.current;
     
     // Update player position
     if (keysRef.current['ArrowLeft'] || keysRef.current['KeyA']) {
-      player.x = Math.max(0, player.x - 5);
+      player.x = Math.max(0, player.x - player.speed);
     }
     if (keysRef.current['ArrowRight'] || keysRef.current['KeyD']) {
-      player.x = Math.min(canvas.width - player.width, player.x + 5);
+      player.x = Math.min(canvas.width - player.width, player.x + player.speed);
     }
     if (keysRef.current['ArrowUp'] || keysRef.current['KeyW']) {
-      player.y = Math.max(0, player.y - 5);
+      player.y = Math.max(0, player.y - player.speed);
     }
     if (keysRef.current['ArrowDown'] || keysRef.current['KeyS']) {
-      player.y = Math.min(canvas.height - player.height, player.y + 5);
+      player.y = Math.min(canvas.height - player.height, player.y + player.speed);
     }
 
-    // Auto-shoot
+    // Auto-shoot with spacebar
     if (keysRef.current['Space']) {
-      if (Date.now() % 10 === 0) {
-        bulletsRef.current.push({
-          x: player.x + player.width / 2,
-          y: player.y,
-          width: 4,
-          height: 10,
-          speed: 8
-        });
-      }
+      shoot();
     }
 
     // Update bullets
@@ -101,13 +163,14 @@ function App() {
       .filter(bullet => bullet.y > -bullet.height);
 
     // Spawn enemies
-    if (Math.random() < 0.02) {
+    if (Math.random() < 0.02 + (level * 0.005)) {
       enemiesRef.current.push({
         x: Math.random() * (canvas.width - 40),
         y: -40,
-        width: 40,
-        height: 30,
-        speed: 2 + Math.random() * 2
+        width: 30 + Math.random() * 20,
+        width: 30 + Math.random() * 20,
+        speed: 1 + Math.random() * 2 + (level * 0.5),
+        health: 1 + Math.floor(level / 3)
       });
     }
 
@@ -116,8 +179,24 @@ function App() {
       .map(enemy => ({ ...enemy, y: enemy.y + enemy.speed }))
       .filter(enemy => enemy.y < canvas.height);
 
+    // Update particles
+    particlesRef.current = particlesRef.current
+      .map(particle => ({
+        ...particle,
+        x: particle.x + particle.vx,
+        y: particle.y + particle.vy,
+        life: particle.life - 1
+      }))
+      .filter(particle => particle.life > 0);
+
     // Check collisions
     checkCollisions();
+    
+    // Check level progression
+    if (score > level * 1000) {
+      setLevel(prev => prev + 1);
+      setLives(prev => Math.min(prev + 1, 5)); // Bonus life every level
+    }
   };
 
   const checkCollisions = () => {
@@ -127,9 +206,24 @@ function App() {
     bulletsRef.current.forEach((bullet, bulletIndex) => {
       enemiesRef.current.forEach((enemy, enemyIndex) => {
         if (isColliding(bullet, enemy)) {
+          // Remove bullet and enemy
           bulletsRef.current.splice(bulletIndex, 1);
           enemiesRef.current.splice(enemyIndex, 1);
+          
+          // Add score
           setScore(prev => prev + 100);
+          
+          // Create explosion particles
+          for (let i = 0; i < 8; i++) {
+            particlesRef.current.push({
+              x: enemy.x + enemy.width / 2,
+              y: enemy.y + enemy.height / 2,
+              vx: (Math.random() - 0.5) * 4,
+              vy: (Math.random() - 0.5) * 4,
+              life: 30,
+              color: `hsl(${Math.random() * 60 + 15}, 100%, 50%)`
+            });
+          }
         }
       });
     });
@@ -138,6 +232,19 @@ function App() {
     enemiesRef.current.forEach(enemy => {
       if (isColliding(enemy, player)) {
         setLives(prev => prev - 1);
+        
+        // Create player hit particles
+        for (let i = 0; i < 12; i++) {
+          particlesRef.current.push({
+            x: player.x + player.width / 2,
+            y: player.y + player.height / 2,
+            vx: (Math.random() - 0.5) * 6,
+            vy: (Math.random() - 0.5) * 6,
+            life: 45,
+            color: '#4ecdc4'
+          });
+        }
+        
         if (lives <= 1) {
           gameOver();
         }
@@ -159,18 +266,33 @@ function App() {
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw background stars
+    // Draw animated background stars
     ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-    for (let i = 0; i < 50; i++) {
-      const x = (Date.now() * 0.1 + i * 100) % canvas.width;
+    for (let i = 0; i < 100; i++) {
+      const x = (Date.now() * 0.05 + i * 50) % canvas.width;
       const y = (i * 20) % canvas.height;
-      ctx.fillRect(x, y, 2, 2);
+      const size = Math.sin(Date.now() * 0.001 + i) * 2 + 1;
+      ctx.fillRect(x, y, size, size);
     }
+
+    // Draw particles
+    particlesRef.current.forEach(particle => {
+      ctx.fillStyle = particle.color;
+      ctx.globalAlpha = particle.life / 45;
+      ctx.fillRect(particle.x, particle.y, 4, 4);
+    });
+    ctx.globalAlpha = 1;
 
     // Draw player
     const player = playerRef.current;
     ctx.fillStyle = '#4ecdc4';
     ctx.fillRect(player.x, player.y, player.width, player.height);
+    
+    // Player glow effect
+    ctx.shadowColor = '#4ecdc4';
+    ctx.shadowBlur = 10;
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+    ctx.shadowBlur = 0;
 
     // Draw bullets
     ctx.fillStyle = '#ff6b6b';
@@ -179,16 +301,38 @@ function App() {
     });
 
     // Draw enemies
-    ctx.fillStyle = '#ff4757';
     enemiesRef.current.forEach(enemy => {
+      ctx.fillStyle = '#ff4757';
       ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
     });
+  };
+
+  const startGame = () => {
+    setGameState('playing');
+    setScore(0);
+    setLives(3);
+    setLevel(1);
+    bulletsRef.current = [];
+    enemiesRef.current = [];
+    particlesRef.current = [];
+    
+    // Reset player position
+    const canvas = canvasRef.current;
+    if (canvas) {
+      playerRef.current.x = canvas.width / 2 - playerRef.current.width / 2;
+      playerRef.current.y = canvas.height - 100;
+    }
   };
 
   const gameOver = () => {
     setGameState('gameOver');
     if (gameLoopRef.current) {
       cancelAnimationFrame(gameLoopRef.current);
+    }
+    
+    // Update high score
+    if (score > highScore) {
+      setHighScore(score);
     }
   };
 
@@ -201,15 +345,9 @@ function App() {
 
   const resumeGame = () => {
     setGameState('playing');
-    const gameLoop = () => {
-      if (gameState !== 'playing') return;
-      updateGame();
-      renderGame();
-      gameLoopRef.current = requestAnimationFrame(gameLoop);
-    };
-    gameLoop();
   };
 
+  // Menu Screen
   if (gameState === 'menu') {
     return (
       <div style={{
@@ -220,14 +358,65 @@ function App() {
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        color: 'white'
+        color: 'white',
+        position: 'relative',
+        overflow: 'hidden'
       }}>
-        <h1 style={{ fontSize: '4rem', marginBottom: '2rem', textAlign: 'center' }}>
+        {/* Animated background stars */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none'
+        }}>
+          {[...Array(50)].map((_, i) => (
+            <div
+              key={i}
+              style={{
+                position: 'absolute',
+                left: `${(i * 20) % 100}%`,
+                top: `${(i * 15) % 100}%`,
+                width: '2px',
+                height: '2px',
+                background: 'white',
+                animation: `twinkle ${2 + i % 3}s infinite`
+              }}
+            />
+          ))}
+        </div>
+
+        <h1 style={{ 
+          fontSize: 'clamp(2rem, 8vw, 4rem)', 
+          marginBottom: '2rem', 
+          textAlign: 'center',
+          textShadow: '0 0 20px rgba(78, 205, 196, 0.8)',
+          animation: 'glow 2s ease-in-out infinite alternate'
+        }}>
           🚀 Kaden & Adelynn Adventures
         </h1>
-        <p style={{ fontSize: '1.5rem', marginBottom: '3rem', textAlign: 'center' }}>
+        
+        <p style={{ 
+          fontSize: 'clamp(1rem, 4vw, 1.5rem)', 
+          marginBottom: '3rem', 
+          textAlign: 'center',
+          opacity: 0.9
+        }}>
           Embark on an epic space journey!
         </p>
+        
+        {highScore > 0 && (
+          <p style={{ 
+            fontSize: '1.2rem', 
+            marginBottom: '2rem', 
+            color: '#4ecdc4',
+            textAlign: 'center'
+          }}>
+            🏆 High Score: {highScore}
+          </p>
+        )}
+        
         <button
           onClick={startGame}
           style={{
@@ -235,25 +424,48 @@ function App() {
             border: 'none',
             borderRadius: '50px',
             color: 'white',
-            fontSize: '1.5rem',
+            fontSize: 'clamp(1rem, 4vw, 1.5rem)',
             fontWeight: 'bold',
             padding: '1rem 2rem',
             cursor: 'pointer',
-            minWidth: '200px'
+            minWidth: '200px',
+            boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)',
+            transition: 'all 0.3s ease',
+            transform: 'translateY(0)'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.transform = 'translateY(-3px)';
+            e.target.style.boxShadow = '0 12px 35px rgba(102, 126, 234, 0.6)';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.boxShadow = '0 8px 25px rgba(102, 126, 234, 0.4)';
           }}
         >
           🚀 Start Adventure
         </button>
+
+        <style>{`
+          @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+          }
+          @keyframes glow {
+            0% { text-shadow: 0 0 20px rgba(78, 205, 196, 0.8); }
+            100% { text-shadow: 0 0 30px rgba(78, 205, 196, 1), 0 0 40px rgba(78, 205, 196, 0.6); }
+          }
+        `}</style>
       </div>
     );
   }
 
+  // Game Over Screen
   if (gameState === 'gameOver') {
     return (
       <div style={{
         width: '100vw',
         height: '100vh',
-        background: 'rgba(0, 0, 0, 0.8)',
+        background: 'rgba(0, 0, 0, 0.9)',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
@@ -263,31 +475,59 @@ function App() {
         <h1 style={{ fontSize: '3rem', marginBottom: '2rem', color: '#ff6b6b' }}>
           Game Over
         </h1>
-        <div style={{ fontSize: '2rem', marginBottom: '2rem', color: '#4ecdc4' }}>
+        
+        <div style={{ fontSize: '2rem', marginBottom: '1rem', color: '#4ecdc4' }}>
           Final Score: {score}
         </div>
-        <button
-          onClick={() => setGameState('menu')}
-          style={{
-            background: 'linear-gradient(45deg, #667eea 0%, #764ba2 100%)',
-            border: 'none',
-            borderRadius: '50px',
-            color: 'white',
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
-            padding: '1rem 2rem',
-            cursor: 'pointer',
-            minWidth: '200px'
-          }}
-        >
-          🏠 Main Menu
-        </button>
+        
+        {score > highScore && (
+          <div style={{ fontSize: '1.5rem', marginBottom: '2rem', color: '#ffd700' }}>
+            🎉 New High Score! 🎉
+          </div>
+        )}
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <button
+            onClick={() => setGameState('menu')}
+            style={{
+              background: 'linear-gradient(45deg, #667eea 0%, #764ba2 100%)',
+              border: 'none',
+              borderRadius: '50px',
+              color: 'white',
+              fontSize: '1.2rem',
+              fontWeight: 'bold',
+              padding: '1rem 2rem',
+              cursor: 'pointer',
+              minWidth: '200px'
+            }}
+          >
+            🏠 Main Menu
+          </button>
+          
+          <button
+            onClick={startGame}
+            style={{
+              background: 'linear-gradient(45deg, #ff6b6b 0%, #ee5a24 100%)',
+              border: 'none',
+              borderRadius: '50px',
+              color: 'white',
+              fontSize: '1.2rem',
+              fontWeight: 'bold',
+              padding: '1rem 2rem',
+              cursor: 'pointer',
+              minWidth: '200px'
+            }}
+          >
+            🔄 Play Again
+          </button>
+        </div>
       </div>
     );
   }
 
+  // Game Screen
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
       <canvas
         ref={canvasRef}
         style={{
@@ -295,7 +535,8 @@ function App() {
           top: 0,
           left: 0,
           width: '100%',
-          height: '100%'
+          height: '100%',
+          cursor: 'none'
         }}
       />
       
@@ -307,11 +548,12 @@ function App() {
         color: 'white',
         fontSize: '1.2rem',
         fontWeight: 'bold',
-        zIndex: 10
+        zIndex: 10,
+        textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
       }}>
-        <div>Score: {score}</div>
-        <div>Lives: {lives}</div>
-        <div>Level: {level}</div>
+        <div style={{ marginBottom: '5px' }}>🚀 Score: {score}</div>
+        <div style={{ marginBottom: '5px' }}>❤️ Lives: {lives}</div>
+        <div>⭐ Level: {level}</div>
       </div>
 
       {/* Pause Button */}
@@ -329,7 +571,8 @@ function App() {
           color: 'white',
           fontSize: '24px',
           cursor: 'pointer',
-          zIndex: 10
+          zIndex: 10,
+          backdropFilter: 'blur(10px)'
         }}
       >
         ⏸️
@@ -355,7 +598,8 @@ function App() {
             borderRadius: '30px',
             padding: '3rem',
             textAlign: 'center',
-            color: 'white'
+            color: 'white',
+            backdropFilter: 'blur(20px)'
           }}>
             <h1 style={{ fontSize: '2rem', marginBottom: '2rem', color: '#4ecdc4' }}>
               ⏸️ Game Paused
