@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+<<<<<<< HEAD
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
@@ -35,4 +36,636 @@
     <noscript>You need to enable JavaScript to run this game!</noscript>
     <div id="root"></div>
   </body>
+=======
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>🚀 Kaden & Adelynn Adventures - Enhanced Space Shooter</title>
+    <link rel="stylesheet" href="css/styles-consolidated.css?v=5.0">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+    <link rel="manifest" href="manifest.json?v=4.0">
+    <meta name="theme-color" content="#4facfe">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Space Adventures">
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="1000" height="700"></canvas>
+        
+        <!-- Game UI -->
+        <div id="ui" class="dynamic-ui" style="display: none;">
+            <div class="stats-grid game-stats">
+                <div class="stat-item">
+                    <div class="stat-label">Score</div>
+                    <div class="stat-value"><span id="score">0</span></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Level</div>
+                    <div class="stat-value"><span id="level">1</span>/50</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Lives</div>
+                    <div class="stat-value"><span id="lives">25</span></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Combo</div>
+                    <div class="stat-value"><span id="combo">0</span></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Streak</div>
+                    <div class="stat-value"><span id="streak">0</span></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Money</div>
+                    <div class="stat-value">$<span id="money">0</span></div>
+                </div>
+            </div>
+            
+            <!-- Pause/Resume Button -->
+            <button id="pauseBtn" class="btn btn-floating" onclick="togglePause()" title="Pause/Resume (ESC/P)">
+                ⏸️
+            </button>
+            
+            <!-- Save Game Button -->
+            <button id="saveBtn" class="btn btn-floating save-btn" onclick="saveGame()" title="Save Game (S)">
+                💾
+            </button>
+        </div>
+        
+        <!-- Enhanced Main Menu -->
+        <div id="menu" style="display: flex;">
+            <div class="menu-content">
+                <h1>🚀 Kaden & Adelynn Adventures</h1>
+                <p style="font-size: 1.2em; margin-bottom: 30px; opacity: 0.8;">Enhanced Space Shooter Edition</p>
+                
+                <!-- Difficulty Selection -->
+                <div style="margin: 20px 0; text-align: center;">
+                    <h3 style="margin-bottom: 15px; color: #00ffff;">🎯 Select Difficulty</h3>
+                    <div class="difficulty-buttons">
+                        <button class="difficulty-btn easy" onclick="selectDifficulty('easy')" id="easyBtn">🟢 Easy</button>
+                        <button class="difficulty-btn medium" onclick="selectDifficulty('medium')" id="mediumBtn">🟡 Medium</button>
+                        <button class="difficulty-btn hard" onclick="selectDifficulty('hard')" id="hardBtn">🔴 Hard</button>
+                    </div>
+                    <p style="font-size: 0.9em; margin-top: 10px; opacity: 0.7;">Current: <span id="currentDifficulty">Easy</span></p>
+                </div>
+                
+                <div style="margin: 30px 0;">
+                            <button class="btn" onclick="startGame()">🎮 Start New Game</button>
+        <button class="btn" onclick="loadGame()">📂 Load Game</button>
+        <button class="btn" onclick="openStore()">🏪 Ship Store</button>
+        <button class="btn" onclick="showHighScores()">🏆 High Scores</button>
+        <button class="btn" onclick="showBriefing()">📋 Mission Briefing</button>
+        <button class="btn" onclick="checkForGameUpdates()">🔄 Check for Updates</button>
+                </div>
+                
+                <div class="stats-grid menu-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">Max Level Reached</div>
+                        <div class="stat-value" id="maxLevel">1</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Bosses Defeated</div>
+                        <div class="stat-value" id="bossesDefeated">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Challenges Completed</div>
+                        <div class="stat-value" id="challengesCompleted">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Total Score</div>
+                        <div class="stat-value" id="totalScore">0</div>
+                    </div>
+                </div>
+                
+                <div style="margin: 30px 0; font-size: 14px; opacity: 0.7;">
+                    <p><strong>Desktop:</strong> Arrow Keys to move, Spacebar to shoot</p>
+                    <p><strong>Mobile:</strong> Touch and drag to move, auto-shoot enabled! Save with 💾 button or S key!</p>
+                    <p>Collect powerups, coins, gems, money, and diamonds to survive!</p>
+                    <p><strong>25 Lives</strong> - Multiple Weapons - Rapid Fire - Combo System!</p>
+                    <p><strong>50 Levels</strong> - 50 Bosses - Challenges - Save/Load System!</p>
+                    <p><strong>Pause:</strong> Press ESC, P, or tap pause button</p>
+                    <p><strong>Store:</strong> Use money to buy new ship designs!</p>
+                    <p><strong>Auto-Updates:</strong> Game automatically checks for updates!</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Game Over Overlay -->
+        <div id="gameOver" class="overlay" style="display: none;">
+            <div id="gameOverContent" class="overlay-content">
+                <h2>💀 Game Over</h2>
+                <div class="stats-grid gameover-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">Final Score</div>
+                        <div class="stat-value"><span id="gameOverScore">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Level Reached</div>
+                        <div class="stat-value"><span id="gameOverLevel">1</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Lives Remaining</div>
+                        <div class="stat-value"><span id="gameOverLives">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Final Combo</div>
+                        <div class="stat-value"><span id="gameOverCombo">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Max Streak</div>
+                        <div class="stat-value"><span id="gameOverStreak">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Enemies Destroyed</div>
+                        <div class="stat-value"><span id="gameOverEnemiesDestroyed">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Bosses Defeated</div>
+                        <div class="stat-value"><span id="gameOverBossesDefeated">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Powerups Collected</div>
+                        <div class="stat-value"><span id="gameOverPowerupsCollected">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Survival Time</div>
+                        <div class="stat-value"><span id="gameOverSurvivalTime">0</span>s</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Money Earned</div>
+                        <div class="stat-value">$<span id="gameOverMoney">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Accuracy</div>
+                        <div class="stat-value"><span id="gameOverAccuracy">0</span>%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Total Shots</div>
+                        <div class="stat-value"><span id="gameOverTotalShots">0</span></div>
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="restartGame()">🔄 Play Again</button>
+                    <button class="btn btn-success" onclick="saveGame()">💾 Save Score</button>
+                    <button class="btn" onclick="showMenu()">🏠 Main Menu</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pause Overlay -->
+        <div id="pauseOverlay" class="overlay" style="display: none;">
+            <div id="pauseContent" class="overlay-content">
+                <h2>⏸️ Game Paused</h2>
+                <div class="stats-grid pause-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">Score</div>
+                        <div class="stat-value"><span id="pauseScore">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Level</div>
+                        <div class="stat-value"><span id="pauseLevel">1</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Lives</div>
+                        <div class="stat-value"><span id="pauseLives">25</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Combo</div>
+                        <div class="stat-value"><span id="pauseCombo">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Max Streak</div>
+                        <div class="stat-value"><span id="pauseStreak">0</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Accuracy</div>
+                        <div class="stat-value"><span id="pauseAccuracy">0</span>%</div>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="resumeGame()">▶️ Resume Game</button>
+                    <button class="btn btn-success" onclick="saveGame()">💾 Save Game</button>
+                    <button class="btn" onclick="showMenu()">🏠 Main Menu</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Enhanced Professional Briefing Overlay -->
+        <div id="briefingOverlay" style="display: none;">
+            <div class="menu-content briefing-content">
+                <div class="briefing-header">
+                    <div class="briefing-title">
+                        <h1>📋 MISSION BRIEFING</h1>
+                        <div class="briefing-subtitle">Enhanced Space Shooter Edition v1.0.0</div>
+                    </div>
+                    <div class="briefing-close" onclick="hideBriefing()">✕</div>
+                </div>
+                
+                <div class="briefing-body">
+                    <div class="briefing-section">
+                        <div class="section-header">
+                            <div class="section-icon">🎯</div>
+                            <h3>Mission Objective</h3>
+                        </div>
+                        <div class="section-content">
+                            <p class="mission-objective">
+                                Defend against waves of enemy ships and survive through <strong>50 epic levels</strong>! 
+                                Defeat powerful bosses every 5 levels to progress through the galaxy!
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="briefing-grid">
+                        <div class="briefing-card">
+                            <div class="card-header">
+                                <div class="card-icon">🎮</div>
+                                <h4>Controls</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="control-group">
+                                    <h5>Desktop</h5>
+                                    <ul class="control-list">
+                                        <li><span class="key">↑↓←→</span> Move ship</li>
+                                        <li><span class="key">SPACE</span> Shoot</li>
+                                        <li><span class="key">ESC/P</span> Pause/Resume</li>
+                                    </ul>
+                                </div>
+                                <div class="control-group">
+                                    <h5>Mobile</h5>
+                                    <ul class="control-list">
+                                        <li><span class="key">👆</span> Touch & drag to move</li>
+                                        <li><span class="key">⚡</span> Auto-shoot enabled</li>
+                                        <li><span class="key">🎯</span> Touch anywhere to shoot</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="briefing-card">
+                            <div class="card-header">
+                                <div class="card-icon">💎</div>
+                                <h4>Collectibles</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="collectible-grid">
+                                    <div class="collectible-item">
+                                        <span class="collectible-icon health">🟢</span>
+                                        <span class="collectible-name">Health</span>
+                                        <span class="collectible-desc">Restore health</span>
+                                    </div>
+                                    <div class="collectible-item">
+                                        <span class="collectible-icon shield">🔵</span>
+                                        <span class="collectible-name">Shield</span>
+                                        <span class="collectible-desc">Temporary shield</span>
+                                    </div>
+                                    <div class="collectible-item">
+                                        <span class="collectible-icon weapon">🟡</span>
+                                        <span class="collectible-name">Weapon</span>
+                                        <span class="collectible-desc">Upgrade weapon</span>
+                                    </div>
+                                    <div class="collectible-item">
+                                        <span class="collectible-icon missile">🟣</span>
+                                        <span class="collectible-name">Missile</span>
+                                        <span class="collectible-desc">Powerful missiles</span>
+                                    </div>
+                                    <div class="collectible-item">
+                                        <span class="collectible-icon rapid">🟠</span>
+                                        <span class="collectible-name">Rapid-fire</span>
+                                        <span class="collectible-desc">Faster shooting</span>
+                                    </div>
+                                    <div class="collectible-item">
+                                        <span class="collectible-icon coin">🪙</span>
+                                        <span class="collectible-name">Coins</span>
+                                        <span class="collectible-desc">Score bonus</span>
+                                    </div>
+                                    <div class="collectible-item">
+                                        <span class="collectible-icon gem">💎</span>
+                                        <span class="collectible-name">Gems</span>
+                                        <span class="collectible-desc">Large bonus</span>
+                                    </div>
+                                    <div class="collectible-item">
+                                        <span class="collectible-icon money">💰</span>
+                                        <span class="collectible-name">Money</span>
+                                        <span class="collectible-desc">Buy ships</span>
+                                    </div>
+                                    <div class="collectible-item">
+                                        <span class="collectible-icon diamond">💠</span>
+                                        <span class="collectible-name">Diamonds</span>
+                                        <span class="collectible-desc">Premium currency</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="briefing-card">
+                            <div class="card-header">
+                                <div class="card-icon">🚀</div>
+                                <h4>Ship Fleet</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="ship-grid">
+                                    <div class="ship-item">
+                                        <div class="ship-icon">🛸</div>
+                                        <div class="ship-info">
+                                            <h5>Gradius</h5>
+                                            <span class="ship-desc">Balanced starter ship</span>
+                                        </div>
+                                    </div>
+                                    <div class="ship-item">
+                                        <div class="ship-icon">🚀</div>
+                                        <div class="ship-info">
+                                            <h5>Interceptor</h5>
+                                            <span class="ship-desc">Fast and agile</span>
+                                        </div>
+                                    </div>
+                                    <div class="ship-item">
+                                        <div class="ship-icon">🛰️</div>
+                                        <div class="ship-info">
+                                            <h5>Destroyer</h5>
+                                            <span class="ship-desc">Heavy and powerful</span>
+                                        </div>
+                                    </div>
+                                    <div class="ship-item">
+                                        <div class="ship-icon">⚔️</div>
+                                        <div class="ship-info">
+                                            <h5>Battleship</h5>
+                                            <span class="ship-desc">Massive with multiple weapons</span>
+                                        </div>
+                                    </div>
+                                    <div class="ship-item">
+                                        <div class="ship-icon">🕶️</div>
+                                        <div class="ship-info">
+                                            <h5>Stealth</h5>
+                                            <span class="ship-desc">Sleek and dark</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="briefing-card">
+                            <div class="card-header">
+                                <div class="card-icon">🏆</div>
+                                <h4>Achievements</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="achievement-grid">
+                                    <div class="achievement-item bronze">
+                                        <div class="achievement-icon">🥉</div>
+                                        <div class="achievement-info">
+                                            <h5>Bronze</h5>
+                                            <span class="achievement-desc">5,000+ points</span>
+                                        </div>
+                                    </div>
+                                    <div class="achievement-item silver">
+                                        <div class="achievement-icon">🥈</div>
+                                        <div class="achievement-info">
+                                            <h5>Silver</h5>
+                                            <span class="achievement-desc">15,000+ points</span>
+                                        </div>
+                                    </div>
+                                    <div class="achievement-item gold">
+                                        <div class="achievement-icon">🥇</div>
+                                        <div class="achievement-info">
+                                            <h5>Gold</h5>
+                                            <span class="achievement-desc">30,000+ points</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="briefing-section">
+                        <div class="section-header">
+                            <div class="section-icon">🎯</div>
+                            <h3>Scoring & Progression</h3>
+                        </div>
+                        <div class="section-content">
+                            <div class="progression-grid">
+                                <div class="progression-item">
+                                    <div class="progression-icon">📈</div>
+                                    <div class="progression-info">
+                                        <h5>Level Advancement</h5>
+                                        <span>Based on enemies destroyed (10 enemies per level)</span>
+                                    </div>
+                                </div>
+                                <div class="progression-item">
+                                    <div class="progression-icon">👾</div>
+                                    <div class="progression-info">
+                                        <h5>Boss Battles</h5>
+                                        <span>Every 5 levels</span>
+                                    </div>
+                                </div>
+                                <div class="progression-item">
+                                    <div class="progression-icon">🔗</div>
+                                    <div class="progression-info">
+                                        <h5>Combo System</h5>
+                                        <span>Chain kills for bonus points</span>
+                                    </div>
+                                </div>
+                                <div class="progression-item">
+                                    <div class="progression-icon">🔥</div>
+                                    <div class="progression-info">
+                                        <h5>Streak System</h5>
+                                        <span>Collect items to build streaks</span>
+                                    </div>
+                                </div>
+                                <div class="progression-item">
+                                    <div class="progression-icon">🎯</div>
+                                    <div class="progression-info">
+                                        <h5>Accuracy Tracking</h5>
+                                        <span>Precision shooting bonus</span>
+                                    </div>
+                                </div>
+                                <div class="progression-item">
+                                    <div class="progression-icon">❤️</div>
+                                    <div class="progression-info">
+                                        <h5>25 Lives</h5>
+                                        <span>Extended gameplay</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="briefing-section">
+                        <div class="section-header">
+                            <div class="section-icon">🔄</div>
+                            <h3>Auto-Updates</h3>
+                        </div>
+                        <div class="section-content">
+                            <div class="update-features">
+                                <div class="update-item">
+                                    <span class="update-icon">⏰</span>
+                                    <span>Automatic update checking every 30 minutes</span>
+                                </div>
+                                <div class="update-item">
+                                    <span class="update-icon">🔔</span>
+                                    <span>Instant notifications when updates are available</span>
+                                </div>
+                                <div class="update-item">
+                                    <span class="update-icon">⚡</span>
+                                    <span>One-click update application</span>
+                                </div>
+                                <div class="update-item">
+                                    <span class="update-icon">🔄</span>
+                                    <span>Background update processing</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="briefing-footer">
+                    <button class="btn btn-primary" onclick="hideBriefing()">
+                        <span class="btn-icon">🚀</span>
+                        <span class="btn-text">Let's Play!</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Enhanced Ship Store Overlay -->
+        <div id="storeOverlay" style="display: none;">
+            <div class="menu-content store-content">
+                <div class="store-header">
+                    <div class="store-title">
+                        <h1>🏪 SHIP STORE</h1>
+                        <div class="store-subtitle">Purchase New Ship Designs</div>
+                    </div>
+                    <div class="store-close" onclick="closeStore()">✕</div>
+                </div>
+                
+                <div class="store-body">
+                    <div class="store-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">💰 Money</div>
+                            <div class="stat-value">$<span id="storeMoney">0</span></div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Current Ship</div>
+                            <div class="stat-value"><span id="currentShip">Starfighter</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="ship-grid">
+                        <div class="ship-card" onclick="buyShip('starfighter')">
+                            <div class="ship-icon">🚀</div>
+                            <div class="ship-name">Starfighter</div>
+                            <div class="ship-price">FREE</div>
+                            <div class="ship-stats">
+                                <span>Speed: ⭐⭐⭐</span>
+                                <span>Firepower: ⭐⭐⭐</span>
+                                <span>Defense: ⭐⭐</span>
+                            </div>
+                        </div>
+                        
+                        <div class="ship-card" onclick="buyShip('interceptor')">
+                            <div class="ship-icon">⚡</div>
+                            <div class="ship-name">Interceptor</div>
+                            <div class="ship-price">$1000</div>
+                            <div class="ship-stats">
+                                <span>Speed: ⭐⭐⭐⭐⭐</span>
+                                <span>Firepower: ⭐⭐⭐⭐</span>
+                                <span>Defense: ⭐⭐</span>
+                            </div>
+                        </div>
+                        
+                        <div class="ship-card" onclick="buyShip('destroyer')">
+                            <div class="ship-icon">🛡️</div>
+                            <div class="ship-name">Destroyer</div>
+                            <div class="ship-price">$2500</div>
+                            <div class="ship-stats">
+                                <span>Speed: ⭐⭐</span>
+                                <span>Firepower: ⭐⭐⭐⭐⭐</span>
+                                <span>Defense: ⭐⭐⭐⭐⭐</span>
+                            </div>
+                        </div>
+                        
+                        <div class="ship-card" onclick="buyShip('stealth')">
+                            <div class="ship-icon">👻</div>
+                            <div class="ship-name">Stealth</div>
+                            <div class="ship-price">$5000</div>
+                            <div class="ship-stats">
+                                <span>Speed: ⭐⭐⭐⭐</span>
+                                <span>Firepower: ⭐⭐⭐</span>
+                                <span>Defense: ⭐⭐⭐</span>
+                                <span>Special: Invisibility</span>
+                            </div>
+                        </div>
+                        
+                        <div class="ship-card" onclick="buyShip('elite')">
+                            <div class="ship-icon">👑</div>
+                            <div class="ship-name">Elite</div>
+                            <div class="ship-price">$10000</div>
+                            <div class="ship-stats">
+                                <span>Speed: ⭐⭐⭐⭐⭐</span>
+                                <span>Firepower: ⭐⭐⭐⭐⭐</span>
+                                <span>Defense: ⭐⭐⭐⭐⭐</span>
+                                <span>Special: All Abilities</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- High Scores Overlay -->
+        <div id="highScoresOverlay" class="overlay" style="display: none;">
+            <div class="overlay-content">
+                <h2>🏆 High Scores</h2>
+                <div class="high-scores-list">
+                    <div class="score-item">
+                        <div class="score-rank">1</div>
+                        <div class="score-name">Kaden</div>
+                        <div class="score-value">15,000</div>
+                        <div class="score-level">Level 8</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-rank">2</div>
+                        <div class="score-name">Adelynn</div>
+                        <div class="score-value">12,500</div>
+                        <div class="score-level">Level 6</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-rank">3</div>
+                        <div class="score-name">Space Hero</div>
+                        <div class="score-value">10,200</div>
+                        <div class="score-level">Level 5</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-rank">4</div>
+                        <div class="score-name">Star Pilot</div>
+                        <div class="score-value">8,750</div>
+                        <div class="score-level">Level 4</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-rank">5</div>
+                        <div class="score-name">Galaxy Explorer</div>
+                        <div class="score-value">7,300</div>
+                        <div class="score-level">Level 3</div>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="closeHighScores()">✅ Close</button>
+                </div>
+            </div>
+        </div>
+
+    <!-- Scripts -->
+            <script src="js/firebase-config.js?v=2.0"></script>
+        <script src="js/sprite-manager.js?v=2.0"></script>
+        <script src="js/game-engine.js?v=2.0"></script>
+        <script src="js/pwa-updates.js?v=2.0"></script>
+    
+
+</body>
+>>>>>>> e7e828c66ec73511f8095afb86f248b34a556d1b
 </html>

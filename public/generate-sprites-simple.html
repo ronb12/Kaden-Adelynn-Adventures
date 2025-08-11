@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Sprite Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            text-align: center;
+            padding: 20px;
+        }
+        .sprite-container {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px;
+            background: #333;
+            border-radius: 10px;
+        }
+        canvas {
+            border: 2px solid #00ffff;
+            border-radius: 5px;
+            background: #000;
+        }
+        button {
+            background: #00ffff;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #00cccc;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎮 Simple Sprite Generator</h1>
+    <p>Click the buttons below to generate and download sprites for your game!</p>
+    
+    <div class="sprite-container">
+        <h3>Gradius Player Ships</h3>
+        <canvas id="playerCanvas" width="64" height="64"></canvas>
+        <br>
+        <button onclick="generatePlayerSprite('fighter-01', '#00ffff')">🚀 Cyan Fighter</button>
+        <button onclick="generatePlayerSprite('fighter-02', '#00ff00')">🛸 Green Fighter</button>
+        <button onclick="generatePlayerSprite('fighter-03', '#ff00ff')">🛰️ Magenta Fighter</button>
+    </div>
+    
+    <div class="sprite-container">
+        <h3>Enemy Ships</h3>
+        <canvas id="enemyCanvas" width="64" height="64"></canvas>
+        <br>
+        <button onclick="generateEnemySprite('basic-enemy', '#ff0000', 'basic')">👾 Basic Enemy</button>
+        <button onclick="generateEnemySprite('fast-enemy', '#ff6600', 'fast')">🤖 Fast Enemy</button>
+        <button onclick="generateEnemySprite('tank-enemy', '#660066', 'tank')">🦾 Tank Enemy</button>
+        <button onclick="generateEnemySprite('boss-enemy', '#ff0066', 'boss')">👹 Boss Enemy</button>
+    </div>
+    
+    <div id="output"></div>
+    
+    <script>
+        const playerCanvas = document.getElementById('playerCanvas');
+        const enemyCanvas = document.getElementById('enemyCanvas');
+        const playerCtx = playerCanvas.getContext('2d');
+        const enemyCtx = enemyCanvas.getContext('2d');
+        
+        function drawGradiusShip(ctx, color = '#00ffff') {
+            ctx.clearRect(0, 0, 64, 64);
+            
+            const shipColor = color;
+            const accentColor = '#ffffff';
+            const cockpitColor = '#87ceeb';
+            const engineColor = '#ff6600';
+            const cockpitDetailColor = '#000080';
+            
+            // Main body - nose cone
+            ctx.fillStyle = shipColor;
+            ctx.beginPath();
+            ctx.moveTo(32, 8);
+            ctx.lineTo(28, 16);
+            ctx.lineTo(36, 16);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Main body - fuselage
+            ctx.beginPath();
+            ctx.moveTo(28, 16);
+            ctx.lineTo(24, 32);
+            ctx.lineTo(22, 40);
+            ctx.lineTo(20, 48);
+            ctx.lineTo(18, 56);
+            ctx.lineTo(46, 56);
+            ctx.lineTo(44, 48);
+            ctx.lineTo(42, 40);
+            ctx.lineTo(40, 32);
+            ctx.lineTo(36, 16);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Wings
+            ctx.fillStyle = shipColor;
+            // Left wing
+            ctx.beginPath();
+            ctx.moveTo(24, 32);
+            ctx.lineTo(16, 40);
+            ctx.lineTo(14, 48);
+            ctx.lineTo(20, 48);
+            ctx.lineTo(22, 40);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Right wing
+            ctx.beginPath();
+            ctx.moveTo(40, 32);
+            ctx.lineTo(48, 40);
+            ctx.lineTo(50, 48);
+            ctx.lineTo(44, 48);
+            ctx.lineTo(42, 40);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Engine details
+            ctx.fillStyle = engineColor;
+            ctx.fillRect(26, 44, 3, 8);
+            ctx.fillRect(35, 44, 3, 8);
+            
+            // Cockpit
+            ctx.fillStyle = cockpitColor;
+            ctx.beginPath();
+            ctx.ellipse(32, 28, 6, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Cockpit details
+            ctx.fillStyle = cockpitDetailColor;
+            ctx.beginPath();
+            ctx.ellipse(32, 28, 3, 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Ship details
+            ctx.fillStyle = accentColor;
+            ctx.fillRect(31, 10, 2, 4);
+            
+            ctx.beginPath();
+            ctx.moveTo(32, 16);
+            ctx.lineTo(32, 48);
+            ctx.strokeStyle = accentColor;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            
+            ctx.fillStyle = accentColor;
+            ctx.fillRect(30, 36, 4, 2);
+            ctx.fillRect(30, 42, 4, 2);
+        }
+        
+        function drawEnemyShip(ctx, color, type) {
+            ctx.clearRect(0, 0, 64, 64);
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            
+            switch(type) {
+                case 'basic':
+                    ctx.moveTo(32, 56);
+                    ctx.lineTo(44, 16);
+                    ctx.lineTo(40, 16);
+                    ctx.lineTo(32, 48);
+                    ctx.lineTo(24, 48);
+                    ctx.lineTo(20, 16);
+                    ctx.lineTo(16, 16);
+                    ctx.closePath();
+                    break;
+                case 'fast':
+                    ctx.moveTo(32, 56);
+                    ctx.lineTo(40, 16);
+                    ctx.lineTo(36, 16);
+                    ctx.lineTo(32, 48);
+                    ctx.lineTo(28, 48);
+                    ctx.lineTo(24, 16);
+                    ctx.lineTo(20, 16);
+                    ctx.closePath();
+                    break;
+                case 'tank':
+                    ctx.moveTo(32, 56);
+                    ctx.lineTo(48, 16);
+                    ctx.lineTo(44, 16);
+                    ctx.lineTo(36, 48);
+                    ctx.lineTo(28, 48);
+                    ctx.lineTo(20, 16);
+                    ctx.lineTo(16, 16);
+                    ctx.closePath();
+                    break;
+                case 'boss':
+                    ctx.moveTo(32, 56);
+                    ctx.lineTo(56, 16);
+                    ctx.lineTo(52, 16);
+                    ctx.lineTo(40, 48);
+                    ctx.lineTo(24, 48);
+                    ctx.lineTo(12, 16);
+                    ctx.lineTo(8, 16);
+                    ctx.closePath();
+                    break;
+            }
+            
+            ctx.fill();
+            
+            // Enemy cockpit
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.ellipse(32, 32, 3, 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        function generatePlayerSprite(name, color) {
+            drawGradiusShip(playerCtx, color);
+            const dataUrl = playerCanvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = name + '.png';
+            link.href = dataUrl;
+            link.click();
+            document.getElementById('output').innerHTML += `<p>✅ Generated: ${name}.png (${color})</p>`;
+        }
+        
+        function generateEnemySprite(name, color, type) {
+            drawEnemyShip(enemyCtx, color, type);
+            const dataUrl = enemyCanvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = name + '.png';
+            link.href = dataUrl;
+            link.click();
+            document.getElementById('output').innerHTML += `<p>✅ Generated: ${name}.png (${color})</p>`;
+        }
+        
+        // Initial preview
+        drawGradiusShip(playerCtx, '#00ffff');
+        drawEnemyShip(enemyCtx, '#ff0000', 'basic');
+    </script>
+</body>
+</html>

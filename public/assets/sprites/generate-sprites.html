@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sprite Generator</title>
+</head>
+<body>
+    <h1>Sprite Generator for Kaden & Adelynn Adventures</h1>
+    <div id="output"></div>
+    
+    <script>
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 64;
+        canvas.height = 64;
+        
+        // Generate player sprites
+        const playerSprites = [
+            {
+                name: 'player-fighter',
+                color: '#00ffff',
+                shape: 'fighter'
+            },
+            {
+                name: 'player-interceptor', 
+                color: '#00ff00',
+                shape: 'interceptor'
+            },
+            {
+                name: 'player-destroyer',
+                color: '#ff00ff', 
+                shape: 'destroyer'
+            }
+        ];
+        
+        // Generate enemy sprites
+        const enemySprites = [
+            {
+                name: 'enemy-basic',
+                color: '#ff0000',
+                shape: 'basic'
+            },
+            {
+                name: 'enemy-fast',
+                color: '#ff6600',
+                shape: 'fast'
+            },
+            {
+                name: 'enemy-tank',
+                color: '#660066',
+                shape: 'tank'
+            },
+            {
+                name: 'enemy-boss',
+                color: '#ff0066',
+                shape: 'boss'
+            }
+        ];
+        
+        function drawFighterShip(ctx, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(32, 8);
+            ctx.lineTo(20, 48);
+            ctx.lineTo(28, 48);
+            ctx.lineTo(28, 56);
+            ctx.lineTo(36, 56);
+            ctx.lineTo(36, 48);
+            ctx.lineTo(44, 48);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Cockpit
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.ellipse(32, 32, 4, 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        function drawInterceptorShip(ctx, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(32, 8);
+            ctx.lineTo(24, 48);
+            ctx.lineTo(28, 48);
+            ctx.lineTo(28, 56);
+            ctx.lineTo(36, 56);
+            ctx.lineTo(36, 48);
+            ctx.lineTo(40, 48);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Cockpit
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.ellipse(32, 32, 3, 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        function drawDestroyerShip(ctx, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(32, 8);
+            ctx.lineTo(16, 48);
+            ctx.lineTo(24, 48);
+            ctx.lineTo(24, 56);
+            ctx.lineTo(40, 56);
+            ctx.lineTo(40, 48);
+            ctx.lineTo(48, 48);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Cockpit
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.ellipse(32, 32, 5, 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        function drawEnemyShip(ctx, color, type) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            
+            switch(type) {
+                case 'basic':
+                    ctx.moveTo(32, 56);
+                    ctx.lineTo(44, 16);
+                    ctx.lineTo(40, 16);
+                    ctx.lineTo(32, 48);
+                    ctx.lineTo(24, 48);
+                    ctx.lineTo(20, 16);
+                    ctx.lineTo(16, 16);
+                    ctx.closePath();
+                    break;
+                case 'fast':
+                    ctx.moveTo(32, 56);
+                    ctx.lineTo(40, 16);
+                    ctx.lineTo(36, 16);
+                    ctx.lineTo(32, 48);
+                    ctx.lineTo(28, 48);
+                    ctx.lineTo(24, 16);
+                    ctx.lineTo(20, 16);
+                    ctx.closePath();
+                    break;
+                case 'tank':
+                    ctx.moveTo(32, 56);
+                    ctx.lineTo(48, 16);
+                    ctx.lineTo(44, 16);
+                    ctx.lineTo(36, 48);
+                    ctx.lineTo(28, 48);
+                    ctx.lineTo(20, 16);
+                    ctx.lineTo(16, 16);
+                    ctx.closePath();
+                    break;
+                case 'boss':
+                    ctx.moveTo(32, 56);
+                    ctx.lineTo(56, 16);
+                    ctx.lineTo(52, 16);
+                    ctx.lineTo(40, 48);
+                    ctx.lineTo(24, 48);
+                    ctx.lineTo(12, 16);
+                    ctx.lineTo(8, 16);
+                    ctx.closePath();
+                    break;
+            }
+            
+            ctx.fill();
+            
+            // Enemy cockpit
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.ellipse(32, 32, 3, 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        function generateSprite(spriteData, type) {
+            canvas.width = 64;
+            canvas.height = 64;
+            ctx.clearRect(0, 0, 64, 64);
+            
+            if (type === 'player') {
+                switch(spriteData.shape) {
+                    case 'fighter':
+                        drawFighterShip(ctx, spriteData.color);
+                        break;
+                    case 'interceptor':
+                        drawInterceptorShip(ctx, spriteData.color);
+                        break;
+                    case 'destroyer':
+                        drawDestroyerShip(ctx, spriteData.color);
+                        break;
+                }
+            } else {
+                drawEnemyShip(ctx, spriteData.color, spriteData.shape);
+            }
+            
+            const dataUrl = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = spriteData.name + '.png';
+            link.href = dataUrl;
+            link.click();
+        }
+        
+        // Generate all sprites
+        playerSprites.forEach(sprite => {
+            generateSprite(sprite, 'player');
+        });
+        
+        enemySprites.forEach(sprite => {
+            generateSprite(sprite, 'enemy');
+        });
+        
+        console.log('Sprites generated successfully!');
+    </script>
+</body>
+</html>

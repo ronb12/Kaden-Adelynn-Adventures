@@ -24,13 +24,13 @@ This guide shows you how to securely use Firebase API keys with GitHub Secrets f
 
 ```javascript
 const firebaseConfig = {
-    apiKey: "AIzaSyC1b-JWvBRGti5LFKk7LqSS8p1QFbP_D88",
-    authDomain: "kaden---adelynn-adventures.firebaseapp.com",
-    projectId: "kaden---adelynn-adventures",
-    storageBucket: "kaden---adelynn-adventures.firebasestorage.app",
-    messagingSenderId: "265116401918",
-    appId: "1:265116401918:web:e1511695b92aeb05e0e5af",
-    measurementId: "G-W4Q02R318L"
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID",
+    measurementId: "YOUR_MEASUREMENT_ID"
 };
 ```
 
@@ -48,13 +48,13 @@ const firebaseConfig = {
 
 | Secret Name | Value | Description |
 |-------------|-------|-------------|
-| `FIREBASE_API_KEY` | `AIzaSyC1b-JWvBRGti5LFKk7LqSS8p1QFbP_D88` | Firebase API Key |
-| `FIREBASE_AUTH_DOMAIN` | `kaden---adelynn-adventures.firebaseapp.com` | Auth Domain |
-| `FIREBASE_PROJECT_ID` | `kaden---adelynn-adventures` | Project ID |
-| `FIREBASE_STORAGE_BUCKET` | `kaden---adelynn-adventures.firebasestorage.app` | Storage Bucket |
-| `FIREBASE_MESSAGING_SENDER_ID` | `265116401918` | Messaging Sender ID |
-| `FIREBASE_APP_ID` | `1:265116401918:web:e1511695b92aeb05e0e5af` | App ID |
-| `FIREBASE_MEASUREMENT_ID` | `G-W4Q02R318L` | Analytics Measurement ID |
+| `FIREBASE_API_KEY` | `YOUR_API_KEY` | Firebase API Key |
+| `FIREBASE_AUTH_DOMAIN` | `YOUR_AUTH_DOMAIN` | Auth Domain |
+| `FIREBASE_PROJECT_ID` | `YOUR_PROJECT_ID` | Project ID |
+| `FIREBASE_STORAGE_BUCKET` | `YOUR_STORAGE_BUCKET` | Storage Bucket |
+| `FIREBASE_MESSAGING_SENDER_ID` | `YOUR_MESSAGING_SENDER_ID` | Messaging Sender ID |
+| `FIREBASE_APP_ID` | `YOUR_APP_ID` | App ID |
+| `FIREBASE_MEASUREMENT_ID` | `YOUR_MEASUREMENT_ID` | Analytics Measurement ID |
 
 ---
 
