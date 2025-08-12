@@ -15,10 +15,15 @@ function App() {
   const [customShipDesign, setCustomShipDesign] = useState(null);
   const [rapidFireActive, setRapidFireActive] = useState(false);
   const [rapidFireTimer, setRapidFireTimer] = useState(0);
+  const [activePowerUps, setActivePowerUps] = useState([]);
+  const [comboCount, setComboCount] = useState(0);
+  const [comboTimer, setComboTimer] = useState(0);
+  const [ultimateCharge, setUltimateCharge] = useState(0);
   
   const canvasRef = useRef(null);
   const gameLoopRef = useRef(null);
   const audioContextRef = useRef(null);
+  const lastShotTimeRef = useRef(0);
   
   // Game objects
   const playerRef = useRef({ x: 0, y: 0, width: 60, height: 45, speed: 6, health: 100 });
@@ -27,25 +32,24 @@ function App() {
   const particlesRef = useRef([]);
   const collectiblesRef = useRef([]);
   const keysRef = useRef({});
-  const lastShotRef = useRef(0);
 
   // Enhanced emoji collectibles with effects
   const emojiCollectibles = [
-    { emoji: '🚀', effect: 'speed', value: 100, color: '#4ecdc4', description: 'Speed Boost' },
-    { emoji: '💎', effect: 'score', value: 200, color: '#9b59b6', description: 'Bonus Points' },
-    { emoji: '⭐', effect: 'shield', value: 50, color: '#f1c40f', description: 'Shield Repair' },
-    { emoji: '🔥', effect: 'firepower', value: 150, color: '#e74c3c', description: 'Firepower Up' },
-    { emoji: '⚡', effect: 'rapid', value: 120, color: '#f39c12', description: 'Rapid Fire 4x' },
-    { emoji: '🛡️', effect: 'invincible', value: 300, color: '#3498db', description: 'Invincibility' },
-    { emoji: '💊', effect: 'health', value: 80, color: '#2ecc71', description: 'Health Pack' },
-    { emoji: '🎯', effect: 'accuracy', value: 90, color: '#e67e22', description: 'Accuracy Boost' },
-    { emoji: '🌟', effect: 'multishot', value: 250, color: '#ff6b6b', description: 'Multi Shot' },
-    { emoji: '💫', effect: 'time', value: 180, color: '#1abc9c', description: 'Time Slow' },
-    { emoji: '🎪', effect: 'bomb', value: 400, color: '#8e44ad', description: 'Screen Clear' },
-    { emoji: '🎭', effect: 'stealth', value: 220, color: '#34495e', description: 'Stealth Mode' },
-    { emoji: '🎨', effect: 'rainbow', value: 350, color: '#e91e63', description: 'Rainbow Mode' },
-    { emoji: '🎪', effect: 'shield', value: 75, color: '#00bcd4', description: 'Mega Shield' },
-    { emoji: '🎯', effect: 'homing', value: 280, color: '#ff9800', description: 'Homing Missiles' }
+    { emoji: '🚀', effect: 'speed', value: 100, color: '#4ecdc4', description: 'Speed Boost', duration: 10000 },
+    { emoji: '💎', effect: 'score', value: 200, color: '#9b59b6', description: 'Bonus Points', duration: 0 },
+    { emoji: '⭐', effect: 'shield', value: 50, color: '#f1c40f', description: 'Shield Repair', duration: 0 },
+    { emoji: '🔥', effect: 'firepower', value: 150, color: '#e74c3c', description: 'Firepower Up', duration: 15000 },
+    { emoji: '⚡', effect: 'rapid', value: 120, color: '#f39c12', description: 'Rapid Fire 4x', duration: 12000 },
+    { emoji: '🛡️', effect: 'invincible', value: 300, color: '#3498db', description: 'Invincibility', duration: 8000 },
+    { emoji: '💊', effect: 'health', value: 80, color: '#2ecc71', description: 'Health Pack', duration: 0 },
+    { emoji: '🎯', effect: 'accuracy', value: 90, color: '#e67e22', description: 'Accuracy Boost', duration: 10000 },
+    { emoji: '🌟', effect: 'multishot', value: 250, color: '#ff6b6b', description: 'Multi Shot', duration: 10000 },
+    { emoji: '💫', effect: 'time', value: 180, color: '#1abc9c', description: 'Time Slow', duration: 8000 },
+    { emoji: '🎪', effect: 'bomb', value: 400, color: '#8e44ad', description: 'Screen Clear', duration: 0 },
+    { emoji: '🎭', effect: 'stealth', value: 220, color: '#34495e', description: 'Stealth Mode', duration: 6000 },
+    { emoji: '🎨', effect: 'rainbow', value: 350, color: '#e91e63', description: 'Rainbow Mode', duration: 12000 },
+    { emoji: '🎪', effect: 'shield', value: 75, color: '#00bcd4', description: 'Mega Shield', duration: 0 },
+    { emoji: '🎯', effect: 'homing', value: 280, color: '#ff9800', description: 'Homing Missiles', duration: 15000 }
   ];
 
   // Default ship designs
@@ -111,6 +115,11 @@ function App() {
       if (e.code === 'Digit3') setWeaponType('plasma');
       if (e.code === 'KeyP') togglePause();
       if (e.code === 'Escape') togglePause();
+      if (e.code === 'KeyU') {
+        if (ultimateCharge >= 100) {
+          activateUltimate();
+        }
+      }
     };
 
     const handleKeyUp = (e) => {
@@ -125,7 +134,7 @@ function App() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [gameState]);
+  }, [gameState, ultimateCharge]);
 
   // Game loop
   useEffect(() => {
@@ -201,6 +210,23 @@ function App() {
         return prev - 16; // 60 FPS
       });
     }
+    
+    // Update combo timer
+    if (comboTimer > 0) {
+      setComboTimer(prev => prev - 16);
+      if (comboTimer <= 0) {
+        setComboCount(0);
+      }
+    }
+    
+    // Update power-up timers
+    setActivePowerUps(prev => prev.filter(powerUp => {
+      if (powerUp.duration > 0) {
+        powerUp.duration -= 16;
+        return powerUp.duration > 0;
+      }
+      return true;
+    }));
     
     // Update player position
     if (keysRef.current['ArrowLeft'] || keysRef.current['KeyA']) {
@@ -319,9 +345,10 @@ function App() {
     switch (collectible.effect) {
       case 'speed':
         playerRef.current.speed = Math.min(12, playerRef.current.speed + 1);
+        addPowerUp('Speed Boost', collectible.duration);
         setTimeout(() => {
           playerRef.current.speed = Math.max(6, playerRef.current.speed - 1);
-        }, 10000);
+        }, collectible.duration);
         break;
       case 'shield':
         setShields(prev => Math.min(100, prev + collectible.value));
@@ -331,20 +358,47 @@ function App() {
         break;
       case 'rapid':
         setRapidFireActive(true);
-        setRapidFireTimer(12000); // 12 seconds
+        setRapidFireTimer(collectible.duration);
+        addPowerUp('Rapid Fire 4x', collectible.duration);
         break;
       case 'firepower':
-        // Increase bullet damage temporarily
+        addPowerUp('Firepower Up', collectible.duration);
         break;
       case 'bomb':
         enemiesRef.current = [];
         setBossActive(false);
         break;
       case 'rainbow':
-        // Rainbow mode effect
+        addPowerUp('Rainbow Mode', collectible.duration);
         break;
       default:
         break;
+    }
+  };
+
+  const addPowerUp = (name, duration) => {
+    setActivePowerUps(prev => [...prev, { name, duration, startTime: Date.now() }]);
+  };
+
+  const activateUltimate = () => {
+    if (ultimateCharge >= 100) {
+      // Screen clear ultimate
+      enemiesRef.current = [];
+      setBossActive(false);
+      setUltimateCharge(0);
+      
+      // Create ultimate effect particles
+      for (let i = 0; i < 50; i++) {
+        particlesRef.current.push({
+          x: Math.random() * window.innerWidth,
+          y: Math.random() * window.innerHeight,
+          vx: (Math.random() - 0.5) * 15,
+          vy: (Math.random() - 0.5) * 15,
+          life: 80,
+          color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+          size: Math.random() * 8 + 4
+        });
+      }
     }
   };
 
@@ -357,13 +411,13 @@ function App() {
     if (weaponType === 'missile') fireRate = 800;
     if (weaponType === 'plasma') fireRate = 300;
     
-    // Rapid fire 4x effect
+    // Rapid fire 4x effect - FIXED
     if (rapidFireActive) {
       fireRate = Math.floor(fireRate / 4);
     }
     
-    if (now - lastShotRef.current < fireRate) return;
-    lastShotRef.current = now;
+    if (now - lastShotTimeRef.current < fireRate) return;
+    lastShotTimeRef.current = now;
     
     if (weaponType === 'laser') {
       bulletsRef.current.push({
@@ -412,6 +466,13 @@ function App() {
         if (isColliding(bullet, enemy)) {
           bulletsRef.current.splice(bulletIndex, 1);
           enemy.health -= bullet.damage;
+          
+          // Increase combo
+          setComboCount(prev => prev + 1);
+          setComboTimer(2000); // 2 seconds to maintain combo
+          
+          // Increase ultimate charge
+          setUltimateCharge(prev => Math.min(100, prev + 2));
           
           if (enemy.health <= 0) {
             enemiesRef.current.splice(enemyIndex, 1);
@@ -574,6 +635,17 @@ function App() {
       ctx.fillText(`⚡ RAPID FIRE 4x - ${Math.ceil(rapidFireTimer / 1000)}s`, canvas.width / 2, 80);
       ctx.restore();
     }
+
+    // Draw combo counter
+    if (comboCount > 1) {
+      ctx.save();
+      ctx.fillStyle = '#ffd700';
+      ctx.font = '18px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText(`🔥 COMBO x${comboCount}`, canvas.width / 2, 110);
+      ctx.restore();
+    }
   };
 
   const startGame = () => {
@@ -586,10 +658,15 @@ function App() {
     setBossActive(false);
     setRapidFireActive(false);
     setRapidFireTimer(0);
+    setActivePowerUps([]);
+    setComboCount(0);
+    setComboTimer(0);
+    setUltimateCharge(0);
     bulletsRef.current = [];
     enemiesRef.current = [];
     particlesRef.current = [];
     collectiblesRef.current = [];
+    lastShotTimeRef.current = 0;
     
     const canvas = canvasRef.current;
     if (canvas) {
@@ -681,7 +758,7 @@ function App() {
             onMouseEnter={(e) => {
               e.target.style.transform = 'translateY(-3px)';
               e.target.style.boxShadow = '0 12px 35px rgba(102, 126, 234, 0.6)';
-            }}
+          }}
             onMouseLeave={(e) => {
               e.target.style.transform = 'translateY(0)';
               e.target.style.boxShadow = '0 8px 25px rgba(102, 126, 234, 0.4)';
@@ -719,6 +796,7 @@ function App() {
             <div>⏸️ P/Escape to pause</div>
             <div>💎 Collect emojis for power-ups!</div>
             <div>⚡ Rapid Fire 4x power-up available</div>
+            <div>🔥 U key for Ultimate (when charged)</div>
             <div>🔺 Triangle-based jet fighter designs</div>
           </div>
         </div>
@@ -830,7 +908,36 @@ function App() {
         <div style={{ marginBottom: '5px' }}>⭐ Level: {level}</div>
         <div style={{ marginBottom: '5px' }}>🛡️ Shields: {Math.max(0, Math.floor(shields))}%</div>
         <div>🔫 Weapon: {weaponType.toUpperCase()}</div>
+        <div style={{ marginTop: '10px', fontSize: '0.9rem', opacity: 0.8 }}>
+          <div>🔥 Combo: x{comboCount}</div>
+          <div>⚡ Ultimate: {Math.floor(ultimateCharge)}%</div>
+        </div>
       </div>
+
+      {/* Power-up Bar */}
+      {activePowerUps.length > 0 && (
+        <div style={{
+          position: 'absolute',
+          top: '20px',
+          right: '120px',
+          background: 'rgba(0, 0, 0, 0.7)',
+          padding: '10px',
+          borderRadius: '10px',
+          zIndex: 10,
+          maxWidth: '200px'
+        }}>
+          <div style={{ color: 'white', fontSize: '0.8rem', marginBottom: '5px' }}>Active Power-ups:</div>
+          {activePowerUps.map((powerUp, index) => (
+            <div key={index} style={{ 
+              color: '#4ecdc4', 
+              fontSize: '0.7rem',
+              marginBottom: '2px'
+            }}>
+              {powerUp.name} - {Math.ceil(powerUp.duration / 1000)}s
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Pause/Resume Button */}
       <button
