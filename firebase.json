@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": "public",
+    "public": "build",
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -10,6 +10,12 @@
       "docs/",
       "assets/",
       "temp-repo/"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
     ],
     "headers": [
       {
@@ -41,4 +47,4 @@
       }
     ]
   }
-} 
+}
