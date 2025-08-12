@@ -20,16 +20,38 @@ function App() {
   const playerRef = useRef({ x: 0, y: 0, width: 60, height: 45, speed: 6, health: 100 });
   const bulletsRef = useRef([]);
   const enemiesRef = useRef([]);
-  const asteroidsRef = useRef([]);
   const particlesRef = useRef([]);
   const collectiblesRef = useRef([]);
   const keysRef = useRef({});
   const lastShotRef = useRef(0);
-  const lastAsteroidSpawnRef = useRef(0);
-  const lastCollectibleSpawnRef = useRef(0);
 
-  // Emoji collectibles
-  const emojiTypes = ['🚀', '💎', '⭐', '🔥', '⚡', '🛡️', '💊', '🎯', '🌟', '��'];
+  // Default triangle ship designs
+  const defaultShips = {
+    player: {
+      name: 'Fighter Jet',
+      shapes: [
+        { type: 'triangle', x: 30, y: 22.5, width: 60, height: 45, color: '#4ecdc4', rotation: 0 },
+        { type: 'triangle', x: 30, y: 33.75, width: 30, height: 22.5, color: '#3498db', rotation: 0 },
+        { type: 'triangle', x: 30, y: 45, width: 20, height: 15, color: '#f39c12', rotation: 0 }
+      ]
+    },
+    enemyFighter: {
+      name: 'Enemy Fighter',
+      shapes: [
+        { type: 'triangle', x: 25, y: 20, width: 50, height: 40, color: '#e74c3c', rotation: 180 },
+        { type: 'triangle', x: 25, y: 30, width: 25, height: 20, color: '#8e44ad', rotation: 180 },
+        { type: 'triangle', x: 25, y: 40, width: 15, height: 12, color: '#ff6b6b', rotation: 180 }
+      ]
+    },
+    enemyBomber: {
+      name: 'Enemy Bomber',
+      shapes: [
+        { type: 'triangle', x: 40, y: 30, width: 80, height: 60, color: '#8e44ad', rotation: 180 },
+        { type: 'triangle', x: 40, y: 45, width: 40, height: 30, color: '#9b59b6', rotation: 180 },
+        { type: 'triangle', x: 40, y: 60, width: 25, height: 20, color: '#e67e22', rotation: 180 }
+      ]
+    }
+  };
 
   // Initialize game
   useEffect(() => {
@@ -76,9 +98,7 @@ function App() {
     const gameLoop = (currentTime) => {
       if (gameState !== 'playing') return;
       
-      const deltaTime = currentTime - lastTimeRef.current;
-      lastTimeRef.current = currentTime;
-      
+      updateGame();
       renderGame();
       
       gameLoopRef.current = requestAnimationFrame(gameLoop);
@@ -93,62 +113,160 @@ function App() {
     };
   }, [gameState]);
 
-  const drawTriangleShip = (ctx, x, y, width, height, isPlayer = true) => {
-    const centerX = x + width / 2;
-    const centerY = y + height / 2;
+  const updateGame = () => {
+    const canvas = canvasRef.current;
+    const player = playerRef.current;
     
-    ctx.save();
-    ctx.translate(centerX, centerY);
-    
-    if (isPlayer) {
-      // Player ship - triangle design
-      ctx.fillStyle = '#4ecdc4';
-      ctx.beginPath();
-      ctx.moveTo(0, -height / 2);
-      ctx.lineTo(-width / 2, height / 2);
-      ctx.lineTo(width / 2, height / 2);
-      ctx.closePath();
-      ctx.fill();
-      
-      // Cockpit
-      ctx.fillStyle = '#3498db';
-      ctx.beginPath();
-      ctx.moveTo(0, -height / 4);
-      ctx.lineTo(-width / 4, height / 4);
-      ctx.lineTo(width / 4, height / 4);
-      ctx.closePath();
-      ctx.fill();
-      
-      // Engine glow
-      ctx.fillStyle = '#f39c12';
-      ctx.shadowColor = '#f39c12';
-      ctx.shadowBlur = 15;
-      ctx.fillRect(-width / 3, height / 2, width / 1.5, 8);
-      ctx.shadowBlur = 0;
-      
-    } else {
-      // Enemy ship - inverted triangle design
-      ctx.fillStyle = '#e74c3c';
-      ctx.beginPath();
-      ctx.moveTo(0, height / 2);
-      ctx.lineTo(-width / 2, -height / 2);
-      ctx.lineTo(width / 2, -height / 2);
-      ctx.closePath();
-      ctx.fill();
-      
-      // Enemy cockpit
-      ctx.fillStyle = '#8e44ad';
-      ctx.beginPath();
-      ctx.moveTo(0, height / 4);
-      ctx.lineTo(-width / 4, -height / 4);
-      ctx.lineTo(width / 4, -height / 4);
-      ctx.closePath();
-      ctx.fill();
-      
-      // Enemy engine
-      ctx.fillStyle = '#ff6b6b';
-      ctx.fillRect(-width / 3, -height / 2 - 8, width / 1.5, 6);
+    // Update player position
+    if (keysRef.current['ArrowLeft'] || keysRef.current['KeyA']) {
+      player.x = Math.max(0, player.x - player.speed);
     }
+    if (keysRef.current['ArrowRight'] || keysRef.current['KeyD']) {
+      player.x = Math.min(canvas.width - player.width, player.x + player.speed);
+    }
+    if (keysRef.current['ArrowUp'] || keysRef.current['KeyW']) {
+      player.y = Math.max(0, player.y - player.speed);
+    }
+    if (keysRef.current['ArrowDown'] || keysRef.current['KeyS']) {
+      player.y = Math.min(canvas.height - player.height, player.y + player.speed);
+    }
+
+    // Auto-shoot with spacebar
+    if (keysRef.current['Space']) {
+      shoot();
+    }
+
+    // Update bullets
+    bulletsRef.current = bulletsRef.current
+      .map(bullet => ({ ...bullet, y: bullet.y - bullet.speed }))
+      .filter(bullet => bullet.y > -bullet.height);
+
+    // Spawn enemies
+    if (Math.random() < 0.02) {
+      const enemyType = Math.random() < 0.2 ? 'enemyBomber' : 'enemyFighter';
+      const enemy = {
+        x: Math.random() * (canvas.width - 60),
+        y: -60,
+        width: 60,
+        height: 50,
+        speed: 2 + Math.random() * 2,
+        health: enemyType === 'enemyBomber' ? 150 : 100,
+        type: enemyType,
+        isBoss: enemyType === 'enemyBomber'
+      };
+      
+      enemiesRef.current.push(enemy);
+      
+      if (enemyType === 'enemyBomber') {
+        setBossActive(true);
+      }
+    }
+
+    // Update enemies
+    enemiesRef.current = enemiesRef.current
+      .map(enemy => ({ ...enemy, y: enemy.y + enemy.speed }))
+      .filter(enemy => enemy.y < canvas.height);
+
+    // Update particles
+    particlesRef.current = particlesRef.current
+      .map(particle => ({
+        ...particle,
+        x: particle.x + particle.vx,
+        y: particle.y + particle.vy,
+        life: particle.life - 1
+      }))
+      .filter(particle => particle.life > 0);
+
+    // Check collisions
+    checkCollisions();
+  };
+
+  const shoot = () => {
+    const now = Date.now();
+    const player = playerRef.current;
+    
+    if (weaponType === 'laser') {
+      if (now - lastShotRef.current < 150) return;
+      lastShotRef.current = now;
+      
+      bulletsRef.current.push({
+        x: player.x + player.width / 2 - 2,
+        y: player.y,
+        width: 4,
+        height: 15,
+        speed: 10,
+        damage: 25,
+        type: 'laser',
+        color: '#00ffff'
+      });
+    }
+  };
+
+  const checkCollisions = () => {
+    const player = playerRef.current;
+    
+    // Player bullets vs enemies
+    bulletsRef.current.forEach((bullet, bulletIndex) => {
+      enemiesRef.current.forEach((enemy, enemyIndex) => {
+        if (isColliding(bullet, enemy)) {
+          bulletsRef.current.splice(bulletIndex, 1);
+          enemy.health -= bullet.damage;
+          
+          if (enemy.health <= 0) {
+            enemiesRef.current.splice(enemyIndex, 1);
+            setScore(prev => prev + (enemy.isBoss ? 500 : 100));
+            
+            if (enemy.isBoss) {
+              setBossActive(false);
+            }
+            
+            // Create explosion particles
+            for (let i = 0; i < 15; i++) {
+              particlesRef.current.push({
+                x: enemy.x + enemy.width / 2,
+                y: enemy.y + enemy.height / 2,
+                vx: (Math.random() - 0.5) * 8,
+                vy: (Math.random() - 0.5) * 8,
+                life: 40,
+                color: `hsl(${Math.random() * 60 + 15}, 100%, 50%)`
+              });
+            }
+          }
+        }
+      });
+    });
+  };
+
+  const isColliding = (rect1, rect2) => {
+    return rect1.x < rect2.x + rect2.width &&
+           rect1.x + rect1.width > rect2.x &&
+           rect1.y < rect2.y + rect2.height &&
+           rect1.y + rect1.height > rect2.y;
+  };
+
+  const drawShipFromDesign = (ctx, shipDesign, x, y, scale = 1) => {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+    
+    shipDesign.shapes.forEach(shape => {
+      if (shape.type === 'triangle') {
+        ctx.save();
+        ctx.translate(shape.x, shape.y);
+        ctx.rotate((shape.rotation * Math.PI) / 180);
+        
+        ctx.beginPath();
+        ctx.moveTo(0, -shape.height / 2);
+        ctx.lineTo(-shape.width / 2, shape.height / 2);
+        ctx.lineTo(shape.width / 2, shape.height / 2);
+        ctx.closePath();
+        
+        ctx.fillStyle = shape.color;
+        ctx.fill();
+        
+        ctx.restore();
+      }
+    });
     
     ctx.restore();
   };
@@ -169,9 +287,41 @@ function App() {
       ctx.fillRect(x, y, size, size);
     }
 
-    // Draw player
-    drawTriangleShip(ctx, playerRef.current.x, playerRef.current.y, 
-                     playerRef.current.width, playerRef.current.height, true);
+    // Draw particles
+    particlesRef.current.forEach(particle => {
+      ctx.fillStyle = particle.color;
+      ctx.globalAlpha = particle.life / 40;
+      ctx.fillRect(particle.x, particle.y, 4, 4);
+    });
+    ctx.globalAlpha = 1;
+
+    // Draw player using default ship design
+    drawShipFromDesign(ctx, defaultShips.player, playerRef.current.x, playerRef.current.y);
+
+    // Draw bullets
+    bulletsRef.current.forEach(bullet => {
+      ctx.fillStyle = bullet.color;
+      ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+      
+      // Bullet glow effect
+      ctx.shadowColor = bullet.color;
+      ctx.shadowBlur = 5;
+      ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+      ctx.shadowBlur = 0;
+    });
+
+    // Draw enemies using default ship designs
+    enemiesRef.current.forEach(enemy => {
+      let shipDesign;
+      if (enemy.type === 'enemyBomber') {
+        shipDesign = defaultShips.enemyBomber;
+      } else {
+        shipDesign = defaultShips.enemyFighter;
+      }
+      
+      const scale = enemy.isBoss ? 1.5 : 1;
+      drawShipFromDesign(ctx, shipDesign, enemy.x, enemy.y, scale);
+    });
   };
 
   const startGame = () => {
@@ -181,6 +331,9 @@ function App() {
     setLevel(1);
     setShields(100);
     setBossActive(false);
+    bulletsRef.current = [];
+    enemiesRef.current = [];
+    particlesRef.current = [];
     
     const canvas = canvasRef.current;
     if (canvas) {
@@ -272,8 +425,19 @@ function App() {
               boxShadow: '0 6px 20px rgba(46, 204, 113, 0.4)'
             }}
           >
-            �� Design Spaceship
+            🎨 Design Spaceship
           </button>
+          
+          <div style={{ 
+            fontSize: '0.9rem', 
+            marginTop: '1rem', 
+            textAlign: 'center',
+            opacity: 0.7
+          }}>
+            <div>🎮 WASD/Arrows to move, Space to shoot</div>
+            <div>🔫 1=Laser, 2=Missile, 3=Plasma</div>
+            <div>🔺 Triangle-based jet fighter designs</div>
+          </div>
         </div>
 
         <style>{`
@@ -319,6 +483,24 @@ function App() {
         <div>🔫 Weapon: {weaponType.toUpperCase()}</div>
       </div>
 
+      {/* Boss Warning */}
+      {bossActive && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          color: '#ff0000',
+          fontSize: '2rem',
+          fontWeight: 'bold',
+          textShadow: '0 0 20px #ff0000',
+          zIndex: 20,
+          animation: 'bossWarning 1s ease-in-out infinite alternate'
+        }}>
+          ⚠️ BOSS INCOMING! ⚠️
+        </div>
+      )}
+
       {/* Back to Menu Button */}
       <button
         onClick={() => setGameState('menu')}
@@ -348,6 +530,13 @@ function App() {
           onClose={() => setShowDesigner(false)}
         />
       )}
+
+      <style>{`
+        @keyframes bossWarning {
+          0% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+          100% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+        }
+      `}</style>
     </div>
   );
 }
