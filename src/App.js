@@ -8,7 +8,6 @@ function App() {
   const [highScore, setHighScore] = useState(0);
   const [weaponType, setWeaponType] = useState('laser');
   const [shields, setShields] = useState(100);
-  const [powerUps, setPowerUps] = useState([]);
   const [bossActive, setBossActive] = useState(false);
   
   const canvasRef = useRef(null);
@@ -16,21 +15,24 @@ function App() {
   const lastTimeRef = useRef(0);
   
   // Game objects
-  const playerRef = useRef({ x: 0, y: 0, width: 50, height: 40, speed: 6, health: 100 });
+  const playerRef = useRef({ x: 0, y: 0, width: 60, height: 45, speed: 6, health: 100 });
   const bulletsRef = useRef([]);
   const enemiesRef = useRef([]);
   const asteroidsRef = useRef([]);
   const particlesRef = useRef([]);
+  const collectiblesRef = useRef([]);
   const keysRef = useRef({});
   const lastShotRef = useRef(0);
   const lastAsteroidSpawnRef = useRef(0);
+  const lastCollectibleSpawnRef = useRef(0);
+
+  // Emoji collectibles
+  const emojiTypes = ['🚀', '💎', '⭐', '🔥', '⚡', '🛡️', '💊', '🎯', '🌟', '💫'];
 
   // Initialize game
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
     
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
@@ -59,14 +61,6 @@ function App() {
     window.addEventListener('keyup', handleKeyUp);
 
     // Touch controls for mobile
-    let touchStartX = 0;
-    let touchStartY = 0;
-    
-    const handleTouchStart = (e) => {
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-    };
-    
     const handleTouchMove = (e) => {
       e.preventDefault();
       const touchX = e.touches[0].clientX;
@@ -85,7 +79,6 @@ function App() {
       }
     };
 
-    canvas.addEventListener('touchstart', handleTouchStart);
     canvas.addEventListener('touchmove', handleTouchMove);
     canvas.addEventListener('touchend', handleTouchEnd);
 
@@ -93,7 +86,6 @@ function App() {
       window.removeEventListener('resize', resizeCanvas);
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
-      canvas.removeEventListener('touchstart', handleTouchStart);
       canvas.removeEventListener('touchmove', handleTouchMove);
       canvas.removeEventListener('touchend', handleTouchEnd);
     };
@@ -123,6 +115,70 @@ function App() {
       }
     };
   }, [gameState]);
+
+  const spawnCollectible = () => {
+    const canvas = canvasRef.current;
+    const now = Date.now();
+    
+    if (now - lastCollectibleSpawnRef.current < 3000) return;
+    lastCollectibleSpawnRef.current = now;
+    
+    const emoji = emojiTypes[Math.floor(Math.random() * emojiTypes.length)];
+    const type = emoji === '🚀' ? 'speed' : 
+                 emoji === '💎' ? 'points' : 
+                 emoji === '⭐' ? 'score' : 
+                 emoji === '🔥' ? 'firepower' : 
+                 emoji === '⚡' ? 'rapidfire' : 
+                 emoji === '��️' ? 'shield' : 
+                 emoji === '💊' ? 'health' : 
+                 emoji === '🎯' ? 'homing' : 
+                 emoji === '🌟' ? 'multiplier' : 'bonus';
+    
+    collectiblesRef.current.push({
+      x: Math.random() * (canvas.width - 30),
+      y: -30,
+      width: 30,
+      height: 30,
+      speed: 2,
+      emoji: emoji,
+      type: type,
+      value: Math.floor(Math.random() * 100) + 50
+    });
+  };
+
+  const collectPowerUp = (collectible) => {
+    switch (collectible.type) {
+      case 'speed':
+        playerRef.current.speed = Math.min(10, playerRef.current.speed + 1);
+        break;
+      case 'points':
+        setScore(prev => prev + collectible.value);
+        break;
+      case 'score':
+        setScore(prev => prev + collectible.value * 2);
+        break;
+      case 'shield':
+        setShields(prev => Math.min(100, prev + 30));
+        break;
+      case 'health':
+        setLives(prev => Math.min(5, prev + 1));
+        break;
+      default:
+        setScore(prev => prev + collectible.value);
+    }
+    
+    // Create collection effect
+    for (let i = 0; i < 8; i++) {
+      particlesRef.current.push({
+        x: collectible.x + collectible.width / 2,
+        y: collectible.y + collectible.height / 2,
+        vx: (Math.random() - 0.5) * 6,
+        vy: (Math.random() - 0.5) * 6,
+        life: 25,
+        color: '#ffd700'
+      });
+    }
+  };
 
   const shoot = () => {
     const now = Date.now();
@@ -278,6 +334,23 @@ function App() {
         rotation: asteroid.rotation + asteroid.rotationSpeed
       }))
       .filter(asteroid => asteroid.y < canvas.height);
+
+    // Spawn collectibles
+    spawnCollectible();
+
+    // Update collectibles
+    collectiblesRef.current.forEach((collectible, index) => {
+      collectible.y += collectible.speed;
+      
+      // Check if player collected it
+      if (isColliding(collectible, player)) {
+        collectPowerUp(collectible);
+        collectiblesRef.current.splice(index, 1);
+      }
+    });
+
+    // Remove collectibles that went off screen
+    collectiblesRef.current = collectiblesRef.current.filter(collectible => collectible.y < canvas.height);
 
     // Update particles
     particlesRef.current = particlesRef.current
@@ -437,38 +510,68 @@ function App() {
     ctx.translate(centerX, centerY);
     
     if (isPlayer) {
-      // Player jet fighter
+      // Player jet fighter - F-22 Raptor style
       ctx.fillStyle = '#4ecdc4';
-      ctx.fillRect(-width/2, -height/2, width, height);
       
-      // Jet fighter details
+      // Main body
+      ctx.fillRect(-width/2, -height/2 + 5, width, height - 10);
+      
+      // Nose cone
       ctx.fillStyle = '#2c3e50';
-      ctx.fillRect(-width/2 + 5, -height/2 + 5, width - 10, height - 10);
+      ctx.fillRect(-width/2, -height/2, width/3, height/2);
       
       // Cockpit
       ctx.fillStyle = '#3498db';
-      ctx.fillRect(-width/2 + 8, -height/2 + 8, width - 16, height - 16);
+      ctx.fillRect(-width/2 + 8, -height/2 + 8, width/2, height/3);
       
       // Wings
       ctx.fillStyle = '#e74c3c';
-      ctx.fillRect(-width/2 - 5, -height/2 + 10, 8, height - 20);
-      ctx.fillRect(width/2 - 3, -height/2 + 10, 8, height - 20);
+      ctx.fillRect(-width/2 - 8, -height/2 + 15, 12, height/2);
+      ctx.fillRect(width/2 - 4, -height/2 + 15, 12, height/2);
       
-      // Engine glow
-      ctx.fillStyle = '#f39c12';
-      ctx.fillRect(-width/2 + 15, height/2, 20, 8);
-    } else {
-      // Enemy jet fighter
+      // Tail fins
       ctx.fillStyle = '#e74c3c';
-      ctx.fillRect(-width/2, -height/2, width, height);
+      ctx.fillRect(-width/2 + 5, height/2 - 8, 8, 12);
+      ctx.fillRect(width/2 - 13, height/2 - 8, 8, 12);
       
-      // Enemy details
+      // Engine exhaust
+      ctx.fillStyle = '#f39c12';
+      ctx.fillRect(-width/2 + 15, height/2, 30, 8);
+      
+      // Engine glow effect
+      ctx.shadowColor = '#f39c12';
+      ctx.shadowBlur = 15;
+      ctx.fillRect(-width/2 + 15, height/2, 30, 8);
+      ctx.shadowBlur = 0;
+      
+    } else {
+      // Enemy jet fighter - MiG-29 style
+      ctx.fillStyle = '#e74c3c';
+      
+      // Main body
+      ctx.fillRect(-width/2, -height/2 + 5, width, height - 10);
+      
+      // Nose cone
       ctx.fillStyle = '#c0392b';
-      ctx.fillRect(-width/2 + 5, -height/2 + 5, width - 10, height - 10);
+      ctx.fillRect(-width/2, -height/2, width/3, height/2);
       
-      // Enemy cockpit
+      // Cockpit
       ctx.fillStyle = '#8e44ad';
-      ctx.fillRect(-width/2 + 8, -height/2 + 8, width - 16, height - 16);
+      ctx.fillRect(-width/2 + 8, -height/2 + 8, width/2, height/3);
+      
+      // Wings
+      ctx.fillStyle = '#c0392b';
+      ctx.fillRect(-width/2 - 6, -height/2 + 12, 10, height/2);
+      ctx.fillRect(width/2 - 4, -height/2 + 12, 10, height/2);
+      
+      // Tail fins
+      ctx.fillStyle = '#c0392b';
+      ctx.fillRect(-width/2 + 3, height/2 - 6, 6, 10);
+      ctx.fillRect(width/2 - 9, height/2 - 6, 6, 10);
+      
+      // Engine exhaust
+      ctx.fillStyle = '#ff6b6b';
+      ctx.fillRect(-width/2 + 10, height/2, 20, 6);
     }
     
     ctx.restore();
@@ -489,6 +592,21 @@ function App() {
       const y = (Math.random() - 0.5) * asteroid.height;
       ctx.fillRect(x, y, 3, 3);
     }
+    
+    ctx.restore();
+  };
+
+  const drawCollectible = (ctx, collectible) => {
+    ctx.save();
+    ctx.font = '24px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    // Add glow effect
+    ctx.shadowColor = '#ffd700';
+    ctx.shadowBlur = 10;
+    ctx.fillText(collectible.emoji, collectible.x + collectible.width / 2, collectible.y + collectible.height / 2);
+    ctx.shadowBlur = 0;
     
     ctx.restore();
   };
@@ -542,6 +660,11 @@ function App() {
     asteroidsRef.current.forEach(asteroid => {
       drawAsteroid(ctx, asteroid);
     });
+
+    // Draw collectibles
+    collectiblesRef.current.forEach(collectible => {
+      drawCollectible(ctx, collectible);
+    });
   };
 
   const startGame = () => {
@@ -555,6 +678,7 @@ function App() {
     enemiesRef.current = [];
     asteroidsRef.current = [];
     particlesRef.current = [];
+    collectiblesRef.current = [];
     
     const canvas = canvasRef.current;
     if (canvas) {
@@ -641,7 +765,7 @@ function App() {
           textAlign: 'center',
           opacity: 0.9
         }}>
-          Epic Space Combat - Defend the Galaxy!
+          Epic Jet Fighter Combat - Defend the Galaxy!
         </p>
         
         {highScore > 0 && (
@@ -692,6 +816,7 @@ function App() {
           }}>
             <div>🎮 WASD/Arrows to move, Space to shoot</div>
             <div>🔫 1=Laser, 2=Missile, 3=Plasma</div>
+            <div>💎 Collect emojis for power-ups!</div>
           </div>
         </div>
 
