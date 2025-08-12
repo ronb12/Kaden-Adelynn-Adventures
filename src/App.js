@@ -6,18 +6,24 @@ function App() {
   const [lives, setLives] = useState(3);
   const [level, setLevel] = useState(1);
   const [highScore, setHighScore] = useState(0);
+  const [weaponType, setWeaponType] = useState('laser');
+  const [shields, setShields] = useState(100);
+  const [powerUps, setPowerUps] = useState([]);
+  const [bossActive, setBossActive] = useState(false);
   
   const canvasRef = useRef(null);
   const gameLoopRef = useRef(null);
   const lastTimeRef = useRef(0);
   
   // Game objects
-  const playerRef = useRef({ x: 0, y: 0, width: 40, height: 40, speed: 5 });
+  const playerRef = useRef({ x: 0, y: 0, width: 50, height: 40, speed: 6, health: 100 });
   const bulletsRef = useRef([]);
   const enemiesRef = useRef([]);
+  const asteroidsRef = useRef([]);
   const particlesRef = useRef([]);
   const keysRef = useRef({});
   const lastShotRef = useRef(0);
+  const lastAsteroidSpawnRef = useRef(0);
 
   // Initialize game
   useEffect(() => {
@@ -29,7 +35,6 @@ function App() {
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      // Center player
       playerRef.current.x = canvas.width / 2 - playerRef.current.width / 2;
       playerRef.current.y = canvas.height - 100;
     };
@@ -41,6 +46,9 @@ function App() {
     const handleKeyDown = (e) => {
       keysRef.current[e.code] = true;
       if (e.code === 'Space') e.preventDefault();
+      if (e.code === 'Digit1') setWeaponType('laser');
+      if (e.code === 'Digit2') setWeaponType('missile');
+      if (e.code === 'Digit3') setWeaponType('plasma');
     };
 
     const handleKeyUp = (e) => {
@@ -67,13 +75,11 @@ function App() {
       const player = playerRef.current;
       const canvas = canvasRef.current;
       
-      // Move player based on touch
       player.x = Math.max(0, Math.min(canvas.width - player.width, touchX - player.width / 2));
       player.y = Math.max(0, Math.min(canvas.height - player.height, touchY - player.height / 2));
     };
     
     const handleTouchEnd = () => {
-      // Auto-shoot when touch ends
       if (gameState === 'playing') {
         shoot();
       }
@@ -120,17 +126,70 @@ function App() {
 
   const shoot = () => {
     const now = Date.now();
-    if (now - lastShotRef.current < 200) return; // Rate limit shooting
-    
-    lastShotRef.current = now;
     const player = playerRef.current;
     
-    bulletsRef.current.push({
-      x: player.x + player.width / 2 - 2,
-      y: player.y,
-      width: 4,
-      height: 12,
-      speed: 8
+    if (weaponType === 'laser') {
+      if (now - lastShotRef.current < 150) return;
+      lastShotRef.current = now;
+      
+      bulletsRef.current.push({
+        x: player.x + player.width / 2 - 2,
+        y: player.y,
+        width: 4,
+        height: 15,
+        speed: 10,
+        damage: 25,
+        type: 'laser',
+        color: '#00ffff'
+      });
+    } else if (weaponType === 'missile') {
+      if (now - lastShotRef.current < 800) return;
+      lastShotRef.current = now;
+      
+      bulletsRef.current.push({
+        x: player.x + player.width / 2 - 3,
+        y: player.y,
+        width: 6,
+        height: 20,
+        speed: 8,
+        damage: 50,
+        type: 'missile',
+        color: '#ff6b6b'
+      });
+    } else if (weaponType === 'plasma') {
+      if (now - lastShotRef.current < 300) return;
+      lastShotRef.current = now;
+      
+      bulletsRef.current.push({
+        x: player.x + player.width / 2 - 4,
+        y: player.y,
+        width: 8,
+        height: 18,
+        speed: 12,
+        damage: 75,
+        type: 'plasma',
+        color: '#ff00ff'
+      });
+    }
+  };
+
+  const spawnAsteroid = () => {
+    const canvas = canvasRef.current;
+    const now = Date.now();
+    
+    if (now - lastAsteroidSpawnRef.current < 2000) return;
+    lastAsteroidSpawnRef.current = now;
+    
+    const size = 20 + Math.random() * 40;
+    asteroidsRef.current.push({
+      x: Math.random() * (canvas.width - size),
+      y: -size,
+      width: size,
+      height: size,
+      speed: 1 + Math.random() * 3,
+      rotation: 0,
+      rotationSpeed: (Math.random() - 0.5) * 0.1,
+      health: size / 10
     });
   };
 
@@ -163,21 +222,62 @@ function App() {
       .filter(bullet => bullet.y > -bullet.height);
 
     // Spawn enemies
-    if (Math.random() < 0.02 + (level * 0.005)) {
-      enemiesRef.current.push({
-        x: Math.random() * (canvas.width - 40),
-        y: -40,
-        width: 30 + Math.random() * 20,
-        width: 30 + Math.random() * 20,
-        speed: 1 + Math.random() * 2 + (level * 0.5),
-        health: 1 + Math.floor(level / 3)
-      });
+    if (Math.random() < 0.02 + (level * 0.003)) {
+      const enemyType = Math.random() < 0.1 ? 'boss' : 'fighter';
+      const enemy = {
+        x: Math.random() * (canvas.width - 60),
+        y: -60,
+        width: enemyType === 'boss' ? 80 : 50,
+        height: enemyType === 'boss' ? 60 : 40,
+        speed: enemyType === 'boss' ? 1 : 2 + Math.random() * 2,
+        health: enemyType === 'boss' ? 200 : 50 + Math.floor(level / 2),
+        type: enemyType,
+        lastShot: 0,
+        shotInterval: enemyType === 'boss' ? 1000 : 2000 + Math.random() * 1000
+      };
+      
+      enemiesRef.current.push(enemy);
+      
+      if (enemyType === 'boss') {
+        setBossActive(true);
+      }
     }
 
     // Update enemies
     enemiesRef.current = enemiesRef.current
       .map(enemy => ({ ...enemy, y: enemy.y + enemy.speed }))
       .filter(enemy => enemy.y < canvas.height);
+
+    // Enemy shooting
+    enemiesRef.current.forEach(enemy => {
+      const now = Date.now();
+      if (now - enemy.lastShot > enemy.shotInterval) {
+        enemy.lastShot = now;
+        
+        bulletsRef.current.push({
+          x: enemy.x + enemy.width / 2 - 2,
+          y: enemy.y + enemy.height,
+          width: 4,
+          height: 10,
+          speed: -5,
+          damage: 20,
+          type: 'enemy',
+          color: '#ff0000'
+        });
+      }
+    });
+
+    // Spawn asteroids
+    spawnAsteroid();
+
+    // Update asteroids
+    asteroidsRef.current = asteroidsRef.current
+      .map(asteroid => ({
+        ...asteroid,
+        y: asteroid.y + asteroid.speed,
+        rotation: asteroid.rotation + asteroid.rotationSpeed
+      }))
+      .filter(asteroid => asteroid.y < canvas.height);
 
     // Update particles
     particlesRef.current = particlesRef.current
@@ -193,9 +293,9 @@ function App() {
     checkCollisions();
     
     // Check level progression
-    if (score > level * 1000) {
+    if (score > level * 1500) {
       setLevel(prev => prev + 1);
-      setLives(prev => Math.min(prev + 1, 5)); // Bonus life every level
+      setLives(prev => Math.min(prev + 1, 5));
     }
   };
 
@@ -204,45 +304,115 @@ function App() {
     
     // Player bullets vs enemies
     bulletsRef.current.forEach((bullet, bulletIndex) => {
+      if (bullet.type === 'enemy') return;
+      
       enemiesRef.current.forEach((enemy, enemyIndex) => {
         if (isColliding(bullet, enemy)) {
-          // Remove bullet and enemy
           bulletsRef.current.splice(bulletIndex, 1);
-          enemiesRef.current.splice(enemyIndex, 1);
+          enemy.health -= bullet.damage;
           
-          // Add score
-          setScore(prev => prev + 100);
-          
-          // Create explosion particles
-          for (let i = 0; i < 8; i++) {
-            particlesRef.current.push({
-              x: enemy.x + enemy.width / 2,
-              y: enemy.y + enemy.height / 2,
-              vx: (Math.random() - 0.5) * 4,
-              vy: (Math.random() - 0.5) * 4,
-              life: 30,
-              color: `hsl(${Math.random() * 60 + 15}, 100%, 50%)`
-            });
+          if (enemy.health <= 0) {
+            enemiesRef.current.splice(enemyIndex, 1);
+            setScore(prev => prev + (enemy.type === 'boss' ? 500 : 100));
+            
+            if (enemy.type === 'boss') {
+              setBossActive(false);
+            }
+            
+            // Create explosion particles
+            for (let i = 0; i < 15; i++) {
+              particlesRef.current.push({
+                x: enemy.x + enemy.width / 2,
+                y: enemy.y + enemy.height / 2,
+                vx: (Math.random() - 0.5) * 8,
+                vy: (Math.random() - 0.5) * 8,
+                life: 40,
+                color: `hsl(${Math.random() * 60 + 15}, 100%, 50%)`
+              });
+            }
           }
         }
       });
     });
 
-    // Enemies vs player
-    enemiesRef.current.forEach(enemy => {
-      if (isColliding(enemy, player)) {
-        setLives(prev => prev - 1);
+    // Player bullets vs asteroids
+    bulletsRef.current.forEach((bullet, bulletIndex) => {
+      if (bullet.type === 'enemy') return;
+      
+      asteroidsRef.current.forEach((asteroid, asteroidIndex) => {
+        if (isColliding(bullet, asteroid)) {
+          bulletsRef.current.splice(bulletIndex, 1);
+          asteroid.health -= bullet.damage;
+          
+          if (asteroid.health <= 0) {
+            asteroidsRef.current.splice(asteroidIndex, 1);
+            setScore(prev => prev + 50);
+            
+            // Create asteroid explosion particles
+            for (let i = 0; i < 10; i++) {
+              particlesRef.current.push({
+                x: asteroid.x + asteroid.width / 2,
+                y: asteroid.y + asteroid.height / 2,
+                vx: (Math.random() - 0.5) * 6,
+                vy: (Math.random() - 0.5) * 6,
+                life: 35,
+                color: '#8b4513'
+              });
+            }
+          }
+        }
+      });
+    });
+
+    // Enemy bullets vs player
+    bulletsRef.current.forEach(bullet => {
+      if (bullet.type === 'enemy' && isColliding(bullet, player)) {
+        if (shields > 0) {
+          setShields(prev => Math.max(0, prev - bullet.damage));
+        } else {
+          setLives(prev => prev - 1);
+        }
         
         // Create player hit particles
-        for (let i = 0; i < 12; i++) {
+        for (let i = 0; i < 8; i++) {
           particlesRef.current.push({
             x: player.x + player.width / 2,
             y: player.y + player.height / 2,
-            vx: (Math.random() - 0.5) * 6,
-            vy: (Math.random() - 0.5) * 6,
-            life: 45,
+            vx: (Math.random() - 0.5) * 4,
+            vy: (Math.random() - 0.5) * 4,
+            life: 30,
             color: '#4ecdc4'
           });
+        }
+        
+        if (lives <= 1) {
+          gameOver();
+        }
+      }
+    });
+
+    // Enemies vs player
+    enemiesRef.current.forEach(enemy => {
+      if (isColliding(enemy, player)) {
+        if (shields > 0) {
+          setShields(prev => Math.max(0, prev - 30));
+        } else {
+          setLives(prev => prev - 1);
+        }
+        
+        if (lives <= 1) {
+          gameOver();
+        }
+      }
+    });
+
+    // Asteroids vs player
+    asteroidsRef.current.forEach(asteroid => {
+      if (isColliding(asteroid, player)) {
+        if (shields > 0) {
+          setShields(prev => Math.max(0, prev - 20));
+        } else {
+          setLives(prev => prev - 1);
         }
         
         if (lives <= 1) {
@@ -259,6 +429,70 @@ function App() {
            rect1.y + rect1.height > rect2.y;
   };
 
+  const drawJetFighter = (ctx, x, y, width, height, isPlayer = true) => {
+    const centerX = x + width / 2;
+    const centerY = y + height / 2;
+    
+    ctx.save();
+    ctx.translate(centerX, centerY);
+    
+    if (isPlayer) {
+      // Player jet fighter
+      ctx.fillStyle = '#4ecdc4';
+      ctx.fillRect(-width/2, -height/2, width, height);
+      
+      // Jet fighter details
+      ctx.fillStyle = '#2c3e50';
+      ctx.fillRect(-width/2 + 5, -height/2 + 5, width - 10, height - 10);
+      
+      // Cockpit
+      ctx.fillStyle = '#3498db';
+      ctx.fillRect(-width/2 + 8, -height/2 + 8, width - 16, height - 16);
+      
+      // Wings
+      ctx.fillStyle = '#e74c3c';
+      ctx.fillRect(-width/2 - 5, -height/2 + 10, 8, height - 20);
+      ctx.fillRect(width/2 - 3, -height/2 + 10, 8, height - 20);
+      
+      // Engine glow
+      ctx.fillStyle = '#f39c12';
+      ctx.fillRect(-width/2 + 15, height/2, 20, 8);
+    } else {
+      // Enemy jet fighter
+      ctx.fillStyle = '#e74c3c';
+      ctx.fillRect(-width/2, -height/2, width, height);
+      
+      // Enemy details
+      ctx.fillStyle = '#c0392b';
+      ctx.fillRect(-width/2 + 5, -height/2 + 5, width - 10, height - 10);
+      
+      // Enemy cockpit
+      ctx.fillStyle = '#8e44ad';
+      ctx.fillRect(-width/2 + 8, -height/2 + 8, width - 16, height - 16);
+    }
+    
+    ctx.restore();
+  };
+
+  const drawAsteroid = (ctx, asteroid) => {
+    ctx.save();
+    ctx.translate(asteroid.x + asteroid.width / 2, asteroid.y + asteroid.height / 2);
+    ctx.rotate(asteroid.rotation);
+    
+    ctx.fillStyle = '#8b4513';
+    ctx.fillRect(-asteroid.width / 2, -asteroid.height / 2, asteroid.width, asteroid.height);
+    
+    // Asteroid texture
+    ctx.fillStyle = '#654321';
+    for (let i = 0; i < 5; i++) {
+      const x = (Math.random() - 0.5) * asteroid.width;
+      const y = (Math.random() - 0.5) * asteroid.height;
+      ctx.fillRect(x, y, 3, 3);
+    }
+    
+    ctx.restore();
+  };
+
   const renderGame = () => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -268,42 +502,45 @@ function App() {
 
     // Draw animated background stars
     ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-    for (let i = 0; i < 100; i++) {
-      const x = (Date.now() * 0.05 + i * 50) % canvas.width;
-      const y = (i * 20) % canvas.height;
-      const size = Math.sin(Date.now() * 0.001 + i) * 2 + 1;
+    for (let i = 0; i < 150; i++) {
+      const x = (Date.now() * 0.03 + i * 40) % canvas.width;
+      const y = (i * 15) % canvas.height;
+      const size = Math.sin(Date.now() * 0.002 + i) * 2 + 1;
       ctx.fillRect(x, y, size, size);
     }
 
     // Draw particles
     particlesRef.current.forEach(particle => {
       ctx.fillStyle = particle.color;
-      ctx.globalAlpha = particle.life / 45;
+      ctx.globalAlpha = particle.life / 40;
       ctx.fillRect(particle.x, particle.y, 4, 4);
     });
     ctx.globalAlpha = 1;
 
     // Draw player
-    const player = playerRef.current;
-    ctx.fillStyle = '#4ecdc4';
-    ctx.fillRect(player.x, player.y, player.width, player.height);
-    
-    // Player glow effect
-    ctx.shadowColor = '#4ecdc4';
-    ctx.shadowBlur = 10;
-    ctx.fillRect(player.x, player.y, player.width, player.height);
-    ctx.shadowBlur = 0;
+    drawJetFighter(ctx, playerRef.current.x, playerRef.current.y, 
+                   playerRef.current.width, playerRef.current.height, true);
 
     // Draw bullets
-    ctx.fillStyle = '#ff6b6b';
     bulletsRef.current.forEach(bullet => {
+      ctx.fillStyle = bullet.color;
       ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+      
+      // Bullet glow effect
+      ctx.shadowColor = bullet.color;
+      ctx.shadowBlur = 5;
+      ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+      ctx.shadowBlur = 0;
     });
 
     // Draw enemies
     enemiesRef.current.forEach(enemy => {
-      ctx.fillStyle = '#ff4757';
-      ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+      drawJetFighter(ctx, enemy.x, enemy.y, enemy.width, enemy.height, false);
+    });
+
+    // Draw asteroids
+    asteroidsRef.current.forEach(asteroid => {
+      drawAsteroid(ctx, asteroid);
     });
   };
 
@@ -312,11 +549,13 @@ function App() {
     setScore(0);
     setLives(3);
     setLevel(1);
+    setShields(100);
+    setBossActive(false);
     bulletsRef.current = [];
     enemiesRef.current = [];
+    asteroidsRef.current = [];
     particlesRef.current = [];
     
-    // Reset player position
     const canvas = canvasRef.current;
     if (canvas) {
       playerRef.current.x = canvas.width / 2 - playerRef.current.width / 2;
@@ -330,7 +569,6 @@ function App() {
       cancelAnimationFrame(gameLoopRef.current);
     }
     
-    // Update high score
     if (score > highScore) {
       setHighScore(score);
     }
@@ -371,13 +609,13 @@ function App() {
           height: '100%',
           pointerEvents: 'none'
         }}>
-          {[...Array(50)].map((_, i) => (
+          {[...Array(80)].map((_, i) => (
             <div
               key={i}
               style={{
                 position: 'absolute',
-                left: `${(i * 20) % 100}%`,
-                top: `${(i * 15) % 100}%`,
+                left: `${(i * 15) % 100}%`,
+                top: `${(i * 12) % 100}%`,
                 width: '2px',
                 height: '2px',
                 background: 'white',
@@ -403,7 +641,7 @@ function App() {
           textAlign: 'center',
           opacity: 0.9
         }}>
-          Embark on an epic space journey!
+          Epic Space Combat - Defend the Galaxy!
         </p>
         
         {highScore > 0 && (
@@ -417,33 +655,45 @@ function App() {
           </p>
         )}
         
-        <button
-          onClick={startGame}
-          style={{
-            background: 'linear-gradient(45deg, #667eea 0%, #764ba2 100%)',
-            border: 'none',
-            borderRadius: '50px',
-            color: 'white',
-            fontSize: 'clamp(1rem, 4vw, 1.5rem)',
-            fontWeight: 'bold',
-            padding: '1rem 2rem',
-            cursor: 'pointer',
-            minWidth: '200px',
-            boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)',
-            transition: 'all 0.3s ease',
-            transform: 'translateY(0)'
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.transform = 'translateY(-3px)';
-            e.target.style.boxShadow = '0 12px 35px rgba(102, 126, 234, 0.6)';
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = '0 8px 25px rgba(102, 126, 234, 0.4)';
-          }}
-        >
-          🚀 Start Adventure
-        </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
+          <button
+            onClick={startGame}
+            style={{
+              background: 'linear-gradient(45deg, #667eea 0%, #764ba2 100%)',
+              border: 'none',
+              borderRadius: '50px',
+              color: 'white',
+              fontSize: 'clamp(1rem, 4vw, 1.5rem)',
+              fontWeight: 'bold',
+              padding: '1rem 2rem',
+              cursor: 'pointer',
+              minWidth: '200px',
+              boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)',
+              transition: 'all 0.3s ease',
+              transform: 'translateY(0)'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-3px)';
+              e.target.style.boxShadow = '0 12px 35px rgba(102, 126, 234, 0.6)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 8px 25px rgba(102, 126, 234, 0.4)';
+            }}
+          >
+            🚀 Start Mission
+          </button>
+          
+          <div style={{ 
+            fontSize: '0.9rem', 
+            marginTop: '1rem', 
+            textAlign: 'center',
+            opacity: 0.7
+          }}>
+            <div>🎮 WASD/Arrows to move, Space to shoot</div>
+            <div>🔫 1=Laser, 2=Missile, 3=Plasma</div>
+          </div>
+        </div>
 
         <style>{`
           @keyframes twinkle {
@@ -473,7 +723,7 @@ function App() {
         color: 'white'
       }}>
         <h1 style={{ fontSize: '3rem', marginBottom: '2rem', color: '#ff6b6b' }}>
-          Game Over
+          Mission Failed
         </h1>
         
         <div style={{ fontSize: '2rem', marginBottom: '1rem', color: '#4ecdc4' }}>
@@ -518,7 +768,7 @@ function App() {
               minWidth: '200px'
             }}
           >
-            🔄 Play Again
+            🔄 Try Again
           </button>
         </div>
       </div>
@@ -553,8 +803,28 @@ function App() {
       }}>
         <div style={{ marginBottom: '5px' }}>🚀 Score: {score}</div>
         <div style={{ marginBottom: '5px' }}>❤️ Lives: {lives}</div>
-        <div>⭐ Level: {level}</div>
+        <div style={{ marginBottom: '5px' }}>⭐ Level: {level}</div>
+        <div style={{ marginBottom: '5px' }}>🛡️ Shields: {Math.max(0, Math.floor(shields))}%</div>
+        <div>🔫 Weapon: {weaponType.toUpperCase()}</div>
       </div>
+
+      {/* Boss Warning */}
+      {bossActive && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          color: '#ff0000',
+          fontSize: '2rem',
+          fontWeight: 'bold',
+          textShadow: '0 0 20px #ff0000',
+          zIndex: 20,
+          animation: 'bossWarning 1s ease-in-out infinite alternate'
+        }}>
+          ⚠️ BOSS INCOMING! ⚠️
+        </div>
+      )}
 
       {/* Pause Button */}
       <button
@@ -602,7 +872,7 @@ function App() {
             backdropFilter: 'blur(20px)'
           }}>
             <h1 style={{ fontSize: '2rem', marginBottom: '2rem', color: '#4ecdc4' }}>
-              ⏸️ Game Paused
+              ⏸️ Mission Paused
             </h1>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <button
@@ -619,7 +889,7 @@ function App() {
                   minWidth: '200px'
                 }}
               >
-                ▶️ Resume Game
+                ▶️ Resume Mission
               </button>
               <button
                 onClick={() => setGameState('menu')}
@@ -641,6 +911,13 @@ function App() {
           </div>
         </div>
       )}
+
+      <style>{`
+        @keyframes bossWarning {
+          0% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+          100% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+        }
+      `}</style>
     </div>
   );
 }
