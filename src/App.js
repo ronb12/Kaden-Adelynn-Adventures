@@ -11,10 +11,12 @@ function App() {
   const [shields, setShields] = useState(100);
   const [bossActive, setBossActive] = useState(false);
   const [showDesigner, setShowDesigner] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [customShipDesign, setCustomShipDesign] = useState(null);
   
   const canvasRef = useRef(null);
   const gameLoopRef = useRef(null);
-  const lastTimeRef = useRef(0);
+  const audioContextRef = useRef(null);
   
   // Game objects
   const playerRef = useRef({ x: 0, y: 0, width: 60, height: 45, speed: 6, health: 100 });
@@ -25,7 +27,26 @@ function App() {
   const keysRef = useRef({});
   const lastShotRef = useRef(0);
 
-  // Default triangle ship designs
+  // Enhanced emoji collectibles with effects
+  const emojiCollectibles = [
+    { emoji: '🚀', effect: 'speed', value: 100, color: '#4ecdc4', description: 'Speed Boost' },
+    { emoji: '💎', effect: 'score', value: 200, color: '#9b59b6', description: 'Bonus Points' },
+    { emoji: '⭐', effect: 'shield', value: 50, color: '#f1c40f', description: 'Shield Repair' },
+    { emoji: '🔥', effect: 'firepower', value: 150, color: '#e74c3c', description: 'Firepower Up' },
+    { emoji: '⚡', effect: 'rapid', value: 120, color: '#f39c12', description: 'Rapid Fire' },
+    { emoji: '🛡️', effect: 'invincible', value: 300, color: '#3498db', description: 'Invincibility' },
+    { emoji: '💊', effect: 'health', value: 80, color: '#2ecc71', description: 'Health Pack' },
+    { emoji: '🎯', effect: 'accuracy', value: 90, color: '#e67e22', description: 'Accuracy Boost' },
+    { emoji: '🌟', effect: 'multishot', value: 250, color: '#ff6b6b', description: 'Multi Shot' },
+    { emoji: '💫', effect: 'time', value: 180, color: '#1abc9c', description: 'Time Slow' },
+    { emoji: '🎪', effect: 'bomb', value: 400, color: '#8e44ad', description: 'Screen Clear' },
+    { emoji: '🎭', effect: 'stealth', value: 220, color: '#34495e', description: 'Stealth Mode' },
+    { emoji: '🎨', effect: 'rainbow', value: 350, color: '#e91e63', description: 'Rainbow Mode' },
+    { emoji: '🎪', effect: 'shield', value: 75, color: '#00bcd4', description: 'Mega Shield' },
+    { emoji: '🎯', effect: 'homing', value: 280, color: '#ff9800', description: 'Homing Missiles' }
+  ];
+
+  // Default ship designs
   const defaultShips = {
     player: {
       name: 'Fighter Jet',
@@ -53,6 +74,17 @@ function App() {
     }
   };
 
+  // Initialize audio context
+  useEffect(() => {
+    audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    
+    return () => {
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
+    };
+  }, []);
+
   // Initialize game
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -75,6 +107,8 @@ function App() {
       if (e.code === 'Digit1') setWeaponType('laser');
       if (e.code === 'Digit2') setWeaponType('missile');
       if (e.code === 'Digit3') setWeaponType('plasma');
+      if (e.code === 'KeyP') togglePause();
+      if (e.code === 'Escape') togglePause();
     };
 
     const handleKeyUp = (e) => {
@@ -93,10 +127,10 @@ function App() {
 
   // Game loop
   useEffect(() => {
-    if (gameState !== 'playing') return;
+    if (gameState !== 'playing' || isPaused) return;
 
     const gameLoop = (currentTime) => {
-      if (gameState !== 'playing') return;
+      if (gameState !== 'playing' || isPaused) return;
       
       updateGame();
       renderGame();
@@ -111,7 +145,45 @@ function App() {
         cancelAnimationFrame(gameLoopRef.current);
       }
     };
-  }, [gameState]);
+  }, [gameState, isPaused]);
+
+  const togglePause = () => {
+    if (gameState === 'playing') {
+      setIsPaused(!isPaused);
+    }
+  };
+
+  // Sound effects
+  const playSound = (frequency, duration, type = 'sine') => {
+    if (!audioContextRef.current) return;
+    
+    const oscillator = audioContextRef.current.createOscillator();
+    const gainNode = audioContextRef.current.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContextRef.current.destination);
+    
+    oscillator.frequency.setValueAtTime(frequency, audioContextRef.current.currentTime);
+    oscillator.type = type;
+    
+    gainNode.gain.setValueAtTime(0.1, audioContextRef.current.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContextRef.current.currentTime + duration);
+    
+    oscillator.start(audioContextRef.current.currentTime);
+    oscillator.stop(audioContextRef.current.currentTime + duration);
+  };
+
+  const playMissileSound = () => {
+    playSound(200, 0.1, 'square');
+    setTimeout(() => playSound(150, 0.1, 'square'), 50);
+    setTimeout(() => playSound(100, 0.1, 'square'), 100);
+  };
+
+  const playExplosionSound = () => {
+    playSound(80, 0.3, 'sawtooth');
+    setTimeout(() => playSound(60, 0.2, 'sawtooth'), 100);
+    setTimeout(() => playSound(40, 0.1, 'sawtooth'), 200);
+  };
 
   const updateGame = () => {
     const canvas = canvasRef.current;
@@ -167,6 +239,46 @@ function App() {
       .map(enemy => ({ ...enemy, y: enemy.y + enemy.speed }))
       .filter(enemy => enemy.y < canvas.height);
 
+    // Spawn collectibles
+    if (Math.random() < 0.015) {
+      const collectible = emojiCollectibles[Math.floor(Math.random() * emojiCollectibles.length)];
+      collectiblesRef.current.push({
+        x: Math.random() * (canvas.width - 30),
+        y: -30,
+        width: 30,
+        height: 30,
+        speed: 2,
+        ...collectible
+      });
+    }
+
+    // Update collectibles
+    collectiblesRef.current.forEach((collectible, index) => {
+      collectible.y += collectible.speed;
+      
+      // Check if player collected it
+      if (isColliding(collectible, player)) {
+        applyCollectibleEffect(collectible);
+        collectiblesRef.current.splice(index, 1);
+        
+        // Create collection effect
+        for (let i = 0; i < 12; i++) {
+          particlesRef.current.push({
+            x: collectible.x + collectible.width / 2,
+            y: collectible.y + collectible.height / 2,
+            vx: (Math.random() - 0.5) * 8,
+            vy: (Math.random() - 0.5) * 8,
+            life: 30,
+            color: collectible.color,
+            size: Math.random() * 4 + 2
+          });
+        }
+      }
+    });
+
+    // Remove collectibles that went off screen
+    collectiblesRef.current = collectiblesRef.current.filter(collectible => collectible.y < canvas.height);
+
     // Update particles
     particlesRef.current = particlesRef.current
       .map(particle => ({
@@ -179,6 +291,34 @@ function App() {
 
     // Check collisions
     checkCollisions();
+    
+    // Check level progression
+    if (score > level * 1500) {
+      setLevel(prev => prev + 1);
+      setLives(prev => Math.min(prev + 1, 5));
+    }
+  };
+
+  const applyCollectibleEffect = (collectible) => {
+    setScore(prev => prev + collectible.value);
+    
+    switch (collectible.effect) {
+      case 'speed':
+        playerRef.current.speed = Math.min(10, playerRef.current.speed + 1);
+        break;
+      case 'shield':
+        setShields(prev => Math.min(100, prev + collectible.value));
+        break;
+      case 'health':
+        setLives(prev => Math.min(5, prev + 1));
+        break;
+      case 'bomb':
+        enemiesRef.current = [];
+        setBossActive(false);
+        break;
+      default:
+        break;
+    }
   };
 
   const shoot = () => {
@@ -198,6 +338,36 @@ function App() {
         damage: 25,
         type: 'laser',
         color: '#00ffff'
+      });
+    } else if (weaponType === 'missile') {
+      if (now - lastShotRef.current < 800) return;
+      lastShotRef.current = now;
+      
+      playMissileSound();
+      
+      bulletsRef.current.push({
+        x: player.x + player.width / 2 - 3,
+        y: player.y,
+        width: 6,
+        height: 20,
+        speed: 8,
+        damage: 50,
+        type: 'missile',
+        color: '#ff6b6b'
+      });
+    } else if (weaponType === 'plasma') {
+      if (now - lastShotRef.current < 300) return;
+      lastShotRef.current = now;
+      
+      bulletsRef.current.push({
+        x: player.x + player.width / 2 - 4,
+        y: player.y,
+        width: 8,
+        height: 18,
+        speed: 12,
+        damage: 75,
+        type: 'plasma',
+        color: '#ff00ff'
       });
     }
   };
@@ -220,20 +390,38 @@ function App() {
               setBossActive(false);
             }
             
+            playExplosionSound();
+            
             // Create explosion particles
-            for (let i = 0; i < 15; i++) {
+            for (let i = 0; i < 20; i++) {
               particlesRef.current.push({
                 x: enemy.x + enemy.width / 2,
                 y: enemy.y + enemy.height / 2,
-                vx: (Math.random() - 0.5) * 8,
-                vy: (Math.random() - 0.5) * 8,
-                life: 40,
-                color: `hsl(${Math.random() * 60 + 15}, 100%, 50%)`
+                vx: (Math.random() - 0.5) * 10,
+                vy: (Math.random() - 0.5) * 10,
+                life: 50,
+                color: `hsl(${Math.random() * 60 + 15}, 100%, 50%)`,
+                size: Math.random() * 6 + 3
               });
             }
           }
         }
       });
+    });
+
+    // Enemies vs player
+    enemiesRef.current.forEach(enemy => {
+      if (isColliding(enemy, player)) {
+        if (shields > 0) {
+          setShields(prev => Math.max(0, prev - 30));
+        } else {
+          setLives(prev => prev - 1);
+        }
+        
+        if (lives <= 1) {
+          gameOver();
+        }
+      }
     });
   };
 
@@ -290,13 +478,14 @@ function App() {
     // Draw particles
     particlesRef.current.forEach(particle => {
       ctx.fillStyle = particle.color;
-      ctx.globalAlpha = particle.life / 40;
-      ctx.fillRect(particle.x, particle.y, 4, 4);
+      ctx.globalAlpha = particle.life / 50;
+      ctx.fillRect(particle.x, particle.y, particle.size || 4, particle.size || 4);
     });
     ctx.globalAlpha = 1;
 
-    // Draw player using default ship design
-    drawShipFromDesign(ctx, defaultShips.player, playerRef.current.x, playerRef.current.y);
+    // Draw player using custom or default ship design
+    const playerShip = customShipDesign || defaultShips.player;
+    drawShipFromDesign(ctx, playerShip, playerRef.current.x, playerRef.current.y);
 
     // Draw bullets
     bulletsRef.current.forEach(bullet => {
@@ -322,10 +511,32 @@ function App() {
       const scale = enemy.isBoss ? 1.5 : 1;
       drawShipFromDesign(ctx, shipDesign, enemy.x, enemy.y, scale);
     });
+
+    // Draw collectibles
+    collectiblesRef.current.forEach(collectible => {
+      ctx.save();
+      ctx.font = '24px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      
+      // Add glow effect
+      ctx.shadowColor = collectible.color;
+      ctx.shadowBlur = 15;
+      ctx.fillText(collectible.emoji, collectible.x + collectible.width / 2, collectible.y + collectible.height / 2);
+      ctx.shadowBlur = 0;
+      
+      // Draw description
+      ctx.font = '10px Arial';
+      ctx.fillStyle = collectible.color;
+      ctx.fillText(collectible.description, collectible.x + collectible.width / 2, collectible.y + collectible.height + 15);
+      
+      ctx.restore();
+    });
   };
 
   const startGame = () => {
     setGameState('playing');
+    setIsPaused(false);
     setScore(0);
     setLives(3);
     setLevel(1);
@@ -334,6 +545,7 @@ function App() {
     bulletsRef.current = [];
     enemiesRef.current = [];
     particlesRef.current = [];
+    collectiblesRef.current = [];
     
     const canvas = canvasRef.current;
     if (canvas) {
@@ -342,8 +554,21 @@ function App() {
     }
   };
 
+  const gameOver = () => {
+    setGameState('gameOver');
+    setIsPaused(false);
+    if (gameLoopRef.current) {
+      cancelAnimationFrame(gameLoopRef.current);
+    }
+    
+    if (score > highScore) {
+      setHighScore(score);
+    }
+  };
+
   const handleSaveShip = (shipData) => {
     console.log('Saved ship:', shipData);
+    setCustomShipDesign(shipData);
     setShowDesigner(false);
   };
 
@@ -380,6 +605,17 @@ function App() {
         }}>
           Epic Triangle Jet Fighter Combat - Defend the Galaxy!
         </p>
+        
+        {highScore > 0 && (
+          <p style={{ 
+            fontSize: '1.2rem', 
+            marginBottom: '2rem', 
+            color: '#4ecdc4',
+            textAlign: 'center'
+          }}>
+            🏆 High Score: {highScore}
+          </p>
+        )}
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
           <button
@@ -436,6 +672,8 @@ function App() {
           }}>
             <div>🎮 WASD/Arrows to move, Space to shoot</div>
             <div>🔫 1=Laser, 2=Missile, 3=Plasma</div>
+            <div>⏸️ P/Escape to pause</div>
+            <div>💎 Collect emojis for power-ups!</div>
             <div>🔺 Triangle-based jet fighter designs</div>
           </div>
         </div>
@@ -446,6 +684,72 @@ function App() {
             100% { text-shadow: 0 0 30px rgba(78, 205, 196, 1), 0 0 40px rgba(78, 205, 196, 0.6); }
           }
         `}</style>
+      </div>
+    );
+  }
+
+  // Game Over Screen
+  if (gameState === 'gameOver') {
+    return (
+      <div style={{
+        width: '100vw',
+        height: '100vh',
+        background: 'rgba(0, 0, 0, 0.9)',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        color: 'white'
+      }}>
+        <h1 style={{ fontSize: '3rem', marginBottom: '2rem', color: '#ff6b6b' }}>
+          Mission Failed
+        </h1>
+        
+        <div style={{ fontSize: '2rem', marginBottom: '1rem', color: '#4ecdc4' }}>
+          Final Score: {score}
+        </div>
+        
+        {score > highScore && (
+          <div style={{ fontSize: '1.5rem', marginBottom: '2rem', color: '#ffd700' }}>
+            🎉 New High Score! 🎉
+          </div>
+        )}
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <button
+            onClick={() => setGameState('menu')}
+            style={{
+              background: 'linear-gradient(45deg, #667eea 0%, #764ba2 100%)',
+              border: 'none',
+              borderRadius: '50px',
+              color: 'white',
+              fontSize: '1.2rem',
+              fontWeight: 'bold',
+              padding: '1rem 2rem',
+              cursor: 'pointer',
+              minWidth: '200px'
+            }}
+          >
+            🏠 Main Menu
+          </button>
+          
+          <button
+            onClick={startGame}
+            style={{
+              background: 'linear-gradient(45deg, #ff6b6b 0%, #ee5a24 100%)',
+              border: 'none',
+              borderRadius: '50px',
+              color: 'white',
+              fontSize: '1.2rem',
+              fontWeight: 'bold',
+              padding: '1rem 2rem',
+              cursor: 'pointer',
+              minWidth: '200px'
+            }}
+          >
+            🔄 Try Again
+          </button>
+        </div>
       </div>
     );
   }
@@ -483,6 +787,30 @@ function App() {
         <div>🔫 Weapon: {weaponType.toUpperCase()}</div>
       </div>
 
+      {/* Pause/Resume Button */}
+      <button
+        onClick={togglePause}
+        style={{
+          position: 'absolute',
+          top: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: isPaused ? 'rgba(46, 204, 113, 0.8)' : 'rgba(255, 193, 7, 0.8)',
+          border: '2px solid rgba(255, 255, 255, 0.3)',
+          borderRadius: '50px',
+          color: 'white',
+          fontSize: '1rem',
+          fontWeight: 'bold',
+          padding: '0.5rem 1rem',
+          cursor: 'pointer',
+          zIndex: 10,
+          backdropFilter: 'blur(10px)',
+          minWidth: '120px'
+        }}
+      >
+        {isPaused ? '▶️ Resume' : '⏸️ Pause'}
+      </button>
+
       {/* Boss Warning */}
       {bossActive && (
         <div style={{
@@ -498,6 +826,50 @@ function App() {
           animation: 'bossWarning 1s ease-in-out infinite alternate'
         }}>
           ⚠️ BOSS INCOMING! ⚠️
+        </div>
+      )}
+
+      {/* Pause Overlay */}
+      {isPaused && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 15
+        }}>
+          <div style={{
+            background: 'rgba(0, 0, 0, 0.9)',
+            padding: '2rem',
+            borderRadius: '20px',
+            textAlign: 'center',
+            color: 'white',
+            border: '2px solid rgba(255, 255, 255, 0.3)'
+          }}>
+            <h2 style={{ fontSize: '2rem', marginBottom: '1rem' }}>⏸️ Game Paused</h2>
+            <p style={{ marginBottom: '1rem' }}>Press P or Escape to resume</p>
+            <button
+              onClick={togglePause}
+              style={{
+                background: 'linear-gradient(45deg, #2ecc71 0%, #27ae60 100%)',
+                border: 'none',
+                borderRadius: '25px',
+                color: 'white',
+                fontSize: '1rem',
+                fontWeight: 'bold',
+                padding: '0.5rem 1rem',
+                cursor: 'pointer',
+                minWidth: '100px'
+              }}
+            >
+              ▶️ Resume
+            </button>
+          </div>
         </div>
       )}
 
