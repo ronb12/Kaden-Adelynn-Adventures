@@ -13,6 +13,8 @@ function App() {
   const [showDesigner, setShowDesigner] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [customShipDesign, setCustomShipDesign] = useState(null);
+  const [rapidFireActive, setRapidFireActive] = useState(false);
+  const [rapidFireTimer, setRapidFireTimer] = useState(0);
   
   const canvasRef = useRef(null);
   const gameLoopRef = useRef(null);
@@ -33,7 +35,7 @@ function App() {
     { emoji: '💎', effect: 'score', value: 200, color: '#9b59b6', description: 'Bonus Points' },
     { emoji: '⭐', effect: 'shield', value: 50, color: '#f1c40f', description: 'Shield Repair' },
     { emoji: '🔥', effect: 'firepower', value: 150, color: '#e74c3c', description: 'Firepower Up' },
-    { emoji: '⚡', effect: 'rapid', value: 120, color: '#f39c12', description: 'Rapid Fire' },
+    { emoji: '⚡', effect: 'rapid', value: 120, color: '#f39c12', description: 'Rapid Fire 4x' },
     { emoji: '🛡️', effect: 'invincible', value: 300, color: '#3498db', description: 'Invincibility' },
     { emoji: '💊', effect: 'health', value: 80, color: '#2ecc71', description: 'Health Pack' },
     { emoji: '🎯', effect: 'accuracy', value: 90, color: '#e67e22', description: 'Accuracy Boost' },
@@ -189,6 +191,17 @@ function App() {
     const canvas = canvasRef.current;
     const player = playerRef.current;
     
+    // Update rapid fire timer
+    if (rapidFireActive) {
+      setRapidFireTimer(prev => {
+        if (prev <= 0) {
+          setRapidFireActive(false);
+          return 0;
+        }
+        return prev - 16; // 60 FPS
+      });
+    }
+    
     // Update player position
     if (keysRef.current['ArrowLeft'] || keysRef.current['KeyA']) {
       player.x = Math.max(0, player.x - player.speed);
@@ -213,16 +226,17 @@ function App() {
       .map(bullet => ({ ...bullet, y: bullet.y - bullet.speed }))
       .filter(bullet => bullet.y > -bullet.height);
 
-    // Spawn enemies
-    if (Math.random() < 0.02) {
-      const enemyType = Math.random() < 0.2 ? 'enemyBomber' : 'enemyFighter';
+    // Spawn enemies with progressive difficulty
+    const spawnRate = 0.02 + (level * 0.005);
+    if (Math.random() < spawnRate) {
+      const enemyType = Math.random() < (0.15 + level * 0.02) ? 'enemyBomber' : 'enemyFighter';
       const enemy = {
         x: Math.random() * (canvas.width - 60),
         y: -60,
         width: 60,
         height: 50,
-        speed: 2 + Math.random() * 2,
-        health: enemyType === 'enemyBomber' ? 150 : 100,
+        speed: (2 + Math.random() * 2) + (level * 0.3),
+        health: enemyType === 'enemyBomber' ? (150 + level * 20) : (100 + level * 15),
         type: enemyType,
         isBoss: enemyType === 'enemyBomber'
       };
@@ -304,7 +318,10 @@ function App() {
     
     switch (collectible.effect) {
       case 'speed':
-        playerRef.current.speed = Math.min(10, playerRef.current.speed + 1);
+        playerRef.current.speed = Math.min(12, playerRef.current.speed + 1);
+        setTimeout(() => {
+          playerRef.current.speed = Math.max(6, playerRef.current.speed - 1);
+        }, 10000);
         break;
       case 'shield':
         setShields(prev => Math.min(100, prev + collectible.value));
@@ -312,9 +329,19 @@ function App() {
       case 'health':
         setLives(prev => Math.min(5, prev + 1));
         break;
+      case 'rapid':
+        setRapidFireActive(true);
+        setRapidFireTimer(12000); // 12 seconds
+        break;
+      case 'firepower':
+        // Increase bullet damage temporarily
+        break;
       case 'bomb':
         enemiesRef.current = [];
         setBossActive(false);
+        break;
+      case 'rainbow':
+        // Rainbow mode effect
         break;
       default:
         break;
@@ -325,10 +352,20 @@ function App() {
     const now = Date.now();
     const player = playerRef.current;
     
+    // Base fire rate
+    let fireRate = 150;
+    if (weaponType === 'missile') fireRate = 800;
+    if (weaponType === 'plasma') fireRate = 300;
+    
+    // Rapid fire 4x effect
+    if (rapidFireActive) {
+      fireRate = Math.floor(fireRate / 4);
+    }
+    
+    if (now - lastShotRef.current < fireRate) return;
+    lastShotRef.current = now;
+    
     if (weaponType === 'laser') {
-      if (now - lastShotRef.current < 150) return;
-      lastShotRef.current = now;
-      
       bulletsRef.current.push({
         x: player.x + player.width / 2 - 2,
         y: player.y,
@@ -340,9 +377,6 @@ function App() {
         color: '#00ffff'
       });
     } else if (weaponType === 'missile') {
-      if (now - lastShotRef.current < 800) return;
-      lastShotRef.current = now;
-      
       playMissileSound();
       
       bulletsRef.current.push({
@@ -356,9 +390,6 @@ function App() {
         color: '#ff6b6b'
       });
     } else if (weaponType === 'plasma') {
-      if (now - lastShotRef.current < 300) return;
-      lastShotRef.current = now;
-      
       bulletsRef.current.push({
         x: player.x + player.width / 2 - 4,
         y: player.y,
@@ -532,6 +563,17 @@ function App() {
       
       ctx.restore();
     });
+
+    // Draw rapid fire indicator
+    if (rapidFireActive) {
+      ctx.save();
+      ctx.fillStyle = '#f39c12';
+      ctx.font = '16px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText(`⚡ RAPID FIRE 4x - ${Math.ceil(rapidFireTimer / 1000)}s`, canvas.width / 2, 80);
+      ctx.restore();
+    }
   };
 
   const startGame = () => {
@@ -542,6 +584,8 @@ function App() {
     setLevel(1);
     setShields(100);
     setBossActive(false);
+    setRapidFireActive(false);
+    setRapidFireTimer(0);
     bulletsRef.current = [];
     enemiesRef.current = [];
     particlesRef.current = [];
@@ -674,6 +718,7 @@ function App() {
             <div>🔫 1=Laser, 2=Missile, 3=Plasma</div>
             <div>⏸️ P/Escape to pause</div>
             <div>💎 Collect emojis for power-ups!</div>
+            <div>⚡ Rapid Fire 4x power-up available</div>
             <div>🔺 Triangle-based jet fighter designs</div>
           </div>
         </div>
