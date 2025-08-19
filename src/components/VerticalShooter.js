@@ -31,7 +31,11 @@ const VerticalShooter = () => {
     shotsFired: 0,
     accuracy: 0,
     asteroidsDestroyed: 0,
-    challengesCompleted: 0
+    challengesCompleted: 0,
+    combo: 0,
+    maxCombo: 0,
+    streak: 0,
+    maxStreak: 0
   });
   
   const canvasRef = useRef(null);
@@ -46,6 +50,16 @@ const VerticalShooter = () => {
   const ENEMY_SPEED = 3;
   const ENEMY_BULLET_SPEED = 4;
   const RAPID_FIRE_DELAY = 50; // Much faster firing when rapid fire is active
+  
+  // Dynamic difficulty and combo system
+  const [difficulty, setDifficulty] = useState(1);
+  const [comboMultiplier, setComboMultiplier] = useState(1);
+  const [comboTimer, setComboTimer] = useState(0);
+  const [screenShake, setScreenShake] = useState(0);
+  const [particles, setParticles] = useState([]);
+  const [boss, setBoss] = useState(null);
+  const [bossHealth, setBossHealth] = useState(0);
+  const [specialEvents, setSpecialEvents] = useState([]);
 
   useEffect(() => {
     const savedHighScore = localStorage.getItem('kadenAdelynnSpaceAdventuresHighScore');
@@ -171,6 +185,36 @@ const VerticalShooter = () => {
     }
   }, [rapidFire, rapidFireTimer]);
 
+  // Combo timer system
+  useEffect(() => {
+    if (comboTimer > 0) {
+      const timer = setInterval(() => {
+        setComboTimer(prev => {
+          if (prev <= 1) {
+            // Reset combo when timer expires
+            setComboMultiplier(1);
+            setGameStats(prev => ({ ...prev, combo: 0 }));
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      
+      return () => clearInterval(timer);
+    }
+  }, [comboTimer]);
+
+  // Screen shake effect
+  useEffect(() => {
+    if (screenShake > 0) {
+      const timer = setInterval(() => {
+        setScreenShake(prev => Math.max(0, prev - 1));
+      }, 50);
+      
+      return () => clearInterval(timer);
+    }
+  }, [screenShake]);
+
   useEffect(() => {
     if (gameState !== 'playing') return;
 
@@ -238,21 +282,85 @@ const VerticalShooter = () => {
           }))
       );
 
-      if (Math.random() < 0.03) {
+      // Update particles
+      setParticles(prev => 
+        prev.filter(particle => particle.life > 0)
+          .map(particle => ({
+            ...particle,
+            x: particle.x + particle.vx,
+            y: particle.y + particle.vy,
+            life: particle.life - 1,
+            size: particle.size * 0.98
+          }))
+      );
+
+      // Update boss movement and behavior
+      if (boss) {
+        setBoss(prev => {
+          if (!prev) return null;
+          
+          let newX = prev.x;
+          let newY = prev.y;
+          const time = gameTime * 0.1;
+          
+          // Different movement patterns
+          switch (prev.pattern) {
+            case 'circle':
+              newX = 400 + Math.cos(time) * 100;
+              newY = 100 + Math.sin(time) * 50;
+              break;
+            case 'zigzag':
+              newX = 400 + Math.sin(time * 2) * 150;
+              newY = 100 + Math.abs(Math.sin(time)) * 30;
+              break;
+            case 'spiral':
+              newX = 400 + Math.cos(time) * (50 + time * 10);
+              newY = 100 + Math.sin(time) * (30 + time * 5);
+              break;
+          }
+          
+          // Boss shooting
+          if (gameTime - prev.lastShot > 500) {
+            spawnBossBullet(prev.x, prev.y);
+            prev.lastShot = gameTime;
+          }
+          
+          return { ...prev, x: newX, y: newY, lastShot: prev.lastShot };
+        });
+      }
+
+      // Dynamic difficulty scaling
+      const currentDifficulty = Math.max(1, Math.floor(score / 1000) + 1);
+      if (currentDifficulty !== difficulty) {
+        setDifficulty(currentDifficulty);
+      }
+
+      // Dynamic enemy spawning based on difficulty
+      const enemySpawnRate = 0.03 + (difficulty * 0.01);
+      if (Math.random() < enemySpawnRate) {
         spawnEnemy();
       }
 
-      if (Math.random() < 0.008) {
+      // Dynamic power-up spawning
+      const powerUpSpawnRate = 0.008 + (difficulty * 0.002);
+      if (Math.random() < powerUpSpawnRate) {
         spawnPowerUp();
       }
 
-      if (Math.random() < 0.02) {
+      // Dynamic asteroid spawning
+      const asteroidSpawnRate = 0.02 + (difficulty * 0.005);
+      if (Math.random() < asteroidSpawnRate) {
         spawnAsteroid();
       }
 
       // Generate new challenge if none exists
       if (!currentChallenge && Math.random() < 0.005) {
         generateChallenge();
+      }
+
+      // Boss spawning every 5000 points
+      if (!boss && score > 0 && score % 5000 === 0) {
+        spawnBoss();
       }
 
       // Update game time for survival challenges
@@ -305,12 +413,29 @@ const VerticalShooter = () => {
     });
 
     enemies.forEach(enemy => {
-      drawTriangle(ctx, enemy.x, enemy.y, 20, '#E74C3C', '#C0392B');
+      drawTriangle(ctx, enemy.x, enemy.y, 20, enemy.color || '#E74C3C', '#C0392B');
+      
+      // Draw health bar for enemies with multiple health
+      if (enemy.maxHealth > 1) {
+        const healthBarWidth = 30;
+        const healthBarHeight = 4;
+        const healthPercentage = enemy.health / enemy.maxHealth;
+        
+        ctx.fillStyle = '#333';
+        ctx.fillRect(enemy.x - healthBarWidth/2, enemy.y - 35, healthBarWidth, healthBarHeight);
+        ctx.fillStyle = '#00FF00';
+        ctx.fillRect(enemy.x - healthBarWidth/2, enemy.y - 35, healthBarWidth * healthPercentage, healthBarHeight);
+      }
     });
 
     asteroids.forEach(asteroid => {
       drawAsteroid(ctx, asteroid.x, asteroid.y, asteroid.size, asteroid.rotation);
     });
+
+    // Draw boss
+    if (boss) {
+      drawBoss(ctx, boss);
+    }
 
     bullets.forEach(bullet => {
       if (bullet.type === 'player') {
@@ -331,7 +456,30 @@ const VerticalShooter = () => {
       }
     });
 
+    // Apply screen shake
+    if (screenShake > 0) {
+      const shakeX = (Math.random() - 0.5) * screenShake * 2;
+      const shakeY = (Math.random() - 0.5) * screenShake * 2;
+      ctx.save();
+      ctx.translate(shakeX, shakeY);
+    }
+
     drawTriangle(ctx, player.x, player.y, 25, '#3498DB', '#BDC3C7');
+
+    // Draw particles
+    particles.forEach(particle => {
+      const alpha = particle.life / particle.maxLife;
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = particle.color;
+      ctx.beginPath();
+      ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    if (screenShake > 0) {
+      ctx.restore();
+    }
 
     drawProfessionalUI(ctx);
 
@@ -350,6 +498,39 @@ const VerticalShooter = () => {
     
     ctx.fill();
     ctx.stroke();
+  };
+
+  const drawBoss = (ctx, boss) => {
+    // Draw boss body
+    ctx.fillStyle = boss.color;
+    ctx.strokeStyle = '#FFD700';
+    ctx.lineWidth = 3;
+    
+    ctx.beginPath();
+    ctx.arc(boss.x, boss.y, boss.size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Draw boss name
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(boss.name, boss.x, boss.y - boss.size - 10);
+    
+    // Draw boss health bar
+    const healthBarWidth = boss.size * 2;
+    const healthBarHeight = 8;
+    const healthPercentage = boss.health / boss.maxHealth;
+    
+    ctx.fillStyle = '#333';
+    ctx.fillRect(boss.x - healthBarWidth/2, boss.y - boss.size - 25, healthBarWidth, healthBarHeight);
+    ctx.fillStyle = '#00FF00';
+    ctx.fillRect(boss.x - healthBarWidth/2, boss.y - boss.size - 25, healthBarWidth * healthPercentage, healthBarHeight);
+    
+    // Draw boss phase indicator
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 12px Arial';
+    ctx.fillText(`PHASE ${boss.phase + 1}`, boss.x, boss.y + boss.size + 15);
   };
 
   const drawAsteroid = (ctx, x, y, size, rotation) => {
@@ -411,6 +592,11 @@ const VerticalShooter = () => {
     ctx.fillText(`SCORE: ${score.toLocaleString()}`, 20, 35);
     ctx.fillText(`LEVEL: ${level}`, 20, 60);
     
+    // Difficulty indicator
+    ctx.fillStyle = '#FF6B6B';
+    ctx.font = 'bold 18px Arial';
+    ctx.fillText(`DIFFICULTY: ${difficulty}`, 20, 80);
+    
     ctx.fillStyle = '#FFD700';
     ctx.fillText(`HIGH SCORE: ${highScore.toLocaleString()}`, 300, 35);
     
@@ -468,6 +654,23 @@ const VerticalShooter = () => {
     ctx.fillStyle = '#FFD700';
     ctx.font = 'bold 16px Arial';
     ctx.fillText(`🥉 ${medals.bronze} 🥈 ${medals.silver} 🥇 ${medals.gold}`, 500, 145);
+    
+    // Combo system display
+    if (gameStats.combo > 0) {
+      ctx.fillStyle = '#FF00FF';
+      ctx.font = 'bold 20px Arial';
+      ctx.fillText(`COMBO: ${gameStats.combo}x${comboMultiplier}`, 500, 165);
+      ctx.fillStyle = '#FFD700';
+      ctx.font = 'bold 14px Arial';
+      ctx.fillText(`TIMER: ${comboTimer}s`, 500, 180);
+    }
+    
+    // Streak display
+    if (gameStats.streak > 0) {
+      ctx.fillStyle = '#00FF00';
+      ctx.font = 'bold 16px Arial';
+      ctx.fillText(`STREAK: ${gameStats.streak}`, 500, 200);
+    }
   };
 
   const shootFromPosition = (x, y) => {
@@ -519,12 +722,42 @@ const VerticalShooter = () => {
     setBullets(prev => [...prev, enemyBullet]);
   };
 
+  const spawnBossBullet = (x, y) => {
+    const bossBullets = [];
+    for (let i = 0; i < 3; i++) {
+      const angle = (i - 1) * Math.PI / 4;
+      bossBullets.push({
+        x: x,
+        y: y + 30,
+        vx: Math.sin(angle) * 3,
+        vy: Math.cos(angle) * 3,
+        type: 'boss'
+      });
+    }
+    setBullets(prev => [...prev, ...bossBullets]);
+  };
+
   const spawnEnemy = () => {
+    const enemyTypes = [
+      { type: 'basic', health: 1, speed: ENEMY_SPEED, points: 100, color: '#E74C3C' },
+      { type: 'fast', health: 1, speed: ENEMY_SPEED * 1.5, points: 150, color: '#FF6B6B' },
+      { type: 'tank', health: 3, speed: ENEMY_SPEED * 0.7, points: 300, color: '#8B0000' },
+      { type: 'shooter', health: 2, speed: ENEMY_SPEED, points: 200, color: '#DC143C' }
+    ];
+    
+    // Higher difficulty unlocks more enemy types
+    const availableTypes = enemyTypes.slice(0, Math.min(difficulty, enemyTypes.length));
+    const selectedType = availableTypes[Math.floor(Math.random() * availableTypes.length)];
+    
     const enemy = {
       x: Math.random() * 700 + 50,
       y: -30,
-      vy: ENEMY_SPEED + Math.random() * 2,
-      health: 1,
+      vy: selectedType.speed + Math.random() * 2,
+      health: selectedType.health,
+      maxHealth: selectedType.health,
+      type: selectedType.type,
+      points: selectedType.points,
+      color: selectedType.color,
       lastShot: 0
     };
     setEnemies(prev => [...prev, enemy]);
@@ -556,6 +789,54 @@ const VerticalShooter = () => {
       progress: 0,
       completed: false
     });
+  };
+
+  const spawnBoss = () => {
+    const bossTypes = [
+      { name: 'Destroyer', health: 20, size: 40, color: '#8B0000', pattern: 'circle' },
+      { name: 'Annihilator', health: 30, size: 50, color: '#4B0082', pattern: 'zigzag' },
+      { name: 'Titan', health: 40, size: 60, color: '#800000', pattern: 'spiral' }
+    ];
+    
+    const selectedBoss = bossTypes[Math.floor(Math.random() * bossTypes.length)];
+    const bossLevel = Math.floor(score / 5000);
+    
+    const newBoss = {
+      ...selectedBoss,
+      x: 400,
+      y: 100,
+      health: selectedBoss.health + (bossLevel * 5),
+      maxHealth: selectedBoss.health + (bossLevel * 5),
+      pattern: selectedBoss.pattern,
+      phase: 0,
+      lastShot: 0
+    };
+    
+    setBoss(newBoss);
+    setBossHealth(newBoss.health);
+    
+    // Create dramatic entrance effect
+    setScreenShake(5);
+    createExplosion(400, 100, '#FFD700');
+  };
+
+  const createExplosion = (x, y, color) => {
+    const newParticles = [];
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2;
+      const speed = 2 + Math.random() * 3;
+      newParticles.push({
+        x: x,
+        y: y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 30,
+        maxLife: 30,
+        color: color || '#FF0000',
+        size: 3 + Math.random() * 3
+      });
+    }
+    setParticles(prev => [...prev, ...newParticles]);
   };
 
   const spawnPowerUp = () => {
@@ -591,8 +872,38 @@ const VerticalShooter = () => {
         if (distance < 25) {
           setBullets(prev => prev.filter((_, i) => i !== bulletIndex));
           setEnemies(prev => prev.filter((_, i) => i !== enemyIndex));
-          setScore(prev => prev + 100);
-          setGameStats(prev => ({ ...prev, enemiesDestroyed: prev.enemiesDestroyed + 1 }));
+          
+          // Combo system
+          const newCombo = gameStats.combo + 1;
+          let newMultiplier = comboMultiplier;
+          
+          // Increase multiplier based on combo
+          if (newCombo >= 10) newMultiplier = 5;
+          else if (newCombo >= 5) newMultiplier = 3;
+          else if (newCombo >= 3) newMultiplier = 2;
+          
+          setComboMultiplier(newMultiplier);
+          setComboTimer(5); // Reset combo timer
+          
+          // Calculate score with combo multiplier
+          const basePoints = enemy.points || 100;
+          const comboPoints = basePoints * newMultiplier;
+          setScore(prev => prev + comboPoints);
+          
+          // Add screen shake for satisfying feedback
+          setScreenShake(3);
+          
+          // Create explosion particles
+          createExplosion(enemy.x, enemy.y, enemy.color);
+          
+          setGameStats(prev => ({ 
+            ...prev, 
+            enemiesDestroyed: prev.enemiesDestroyed + 1,
+            combo: newCombo,
+            maxCombo: Math.max(prev.maxCombo, newCombo),
+            streak: prev.streak + 1,
+            maxStreak: Math.max(prev.maxStreak, prev.streak + 1)
+          }));
           
           // Update challenge progress
           if (currentChallenge && currentChallenge.type === 'destroy') {
@@ -623,6 +934,9 @@ const VerticalShooter = () => {
         if (player.health <= 15) {
           loseLife();
         }
+        
+        // Reset streak when hit
+        setGameStats(prev => ({ ...prev, streak: 0 }));
       }
     });
 
@@ -638,6 +952,9 @@ const VerticalShooter = () => {
         if (player.health <= 25) {
           loseLife();
         }
+        
+        // Reset streak when hit
+        setGameStats(prev => ({ ...prev, streak: 0 }));
       }
     });
 
@@ -693,6 +1010,43 @@ const VerticalShooter = () => {
       });
     });
 
+    // Check bullet collisions with boss
+    if (boss) {
+      bullets.forEach((bullet, bulletIndex) => {
+        if (bullet.type !== 'player') return;
+        
+        const distance = Math.sqrt(
+          Math.pow(bullet.x - boss.x, 2) + Math.pow(bullet.y - boss.y, 2)
+        );
+        
+        if (distance < boss.size / 2 + 4) {
+          setBullets(prev => prev.filter((_, i) => i !== bulletIndex));
+          
+          // Boss takes damage
+          const newBossHealth = boss.health - 1;
+          setBossHealth(newBossHealth);
+          
+          if (newBossHealth <= 0) {
+            // Boss defeated!
+            setScore(prev => prev + 1000 * difficulty);
+            setBoss(null);
+            setBossHealth(0);
+            createExplosion(boss.x, boss.y, '#FFD700');
+            setScreenShake(8);
+            
+            // Massive combo bonus
+            setComboMultiplier(10);
+            setComboTimer(10);
+            setGameStats(prev => ({ ...prev, combo: prev.combo + 5 }));
+          } else {
+            setBoss(prev => ({ ...prev, health: newBossHealth }));
+            createExplosion(boss.x, boss.y, boss.color);
+            setScreenShake(3);
+          }
+        }
+      });
+    }
+
     // Check player collision with asteroids
     asteroids.forEach((asteroid, index) => {
       const distance = Math.sqrt(
@@ -706,6 +1060,9 @@ const VerticalShooter = () => {
         if (player.health <= 20) {
           loseLife();
         }
+        
+        // Reset streak when hit
+        setGameStats(prev => ({ ...prev, streak: 0 }));
       }
     });
 
@@ -788,13 +1145,24 @@ const VerticalShooter = () => {
     setLevel(1);
     setGameTime(0);
     setInvincible(false);
+    setDifficulty(1);
+    setComboMultiplier(1);
+    setComboTimer(0);
+    setScreenShake(0);
+    setParticles([]);
+    setBoss(null);
+    setBossHealth(0);
     setGameStats({
       enemiesDestroyed: 0,
       powerUpsCollected: 0,
       shotsFired: 0,
       accuracy: 0,
       asteroidsDestroyed: 0,
-      challengesCompleted: 0
+      challengesCompleted: 0,
+      combo: 0,
+      maxCombo: 0,
+      streak: 0,
+      maxStreak: 0
     });
   };
 
