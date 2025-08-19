@@ -335,21 +335,21 @@ const VerticalShooter = () => {
         setDifficulty(currentDifficulty);
       }
 
-      // Dynamic enemy spawning based on difficulty
-      const enemySpawnRate = 0.03 + (difficulty * 0.01);
-      if (Math.random() < enemySpawnRate) {
+      // Dynamic enemy spawning based on difficulty (reduced rates + max limits)
+      const enemySpawnRate = 0.02 + (difficulty * 0.005); // Reduced from 0.01 to 0.005
+      if (Math.random() < enemySpawnRate && enemies.length < 8) { // Max 8 enemies on screen
         spawnEnemy();
       }
 
       // Dynamic power-up spawning
-      const powerUpSpawnRate = 0.008 + (difficulty * 0.002);
-      if (Math.random() < powerUpSpawnRate) {
+      const powerUpSpawnRate = 0.005 + (difficulty * 0.001); // Reduced from 0.002 to 0.001
+      if (Math.random() < powerUpSpawnRate && powerUps.length < 3) { // Max 3 power-ups on screen
         spawnPowerUp();
       }
 
-      // Dynamic asteroid spawning
-      const asteroidSpawnRate = 0.02 + (difficulty * 0.005);
-      if (Math.random() < asteroidSpawnRate) {
+      // Dynamic asteroid spawning (reduced rates + max limits)
+      const asteroidSpawnRate = 0.01 + (difficulty * 0.002); // Reduced from 0.005 to 0.002
+      if (Math.random() < asteroidSpawnRate && asteroids.length < 5) { // Max 5 asteroids on screen
         spawnAsteroid();
       }
 
@@ -413,7 +413,7 @@ const VerticalShooter = () => {
     });
 
     enemies.forEach(enemy => {
-      drawTriangle(ctx, enemy.x, enemy.y, 20, enemy.color || '#E74C3C', '#C0392B');
+      drawEnemyShip(ctx, enemy);
       
       // Draw health bar for enemies with multiple health
       if (enemy.maxHealth > 1) {
@@ -484,6 +484,134 @@ const VerticalShooter = () => {
     drawProfessionalUI(ctx);
 
   }, [gameState, player, bullets, enemies, powerUps, score, level, highScore, gameStats]);
+
+  const drawEnemyShip = (ctx, enemy) => {
+    const x = enemy.x;
+    const y = enemy.y;
+    const size = 20;
+    
+    ctx.save();
+    
+    // Different ship designs based on type
+    switch (enemy.type) {
+      case 'basic':
+        // Sleek fighter design
+        ctx.fillStyle = enemy.color || '#E74C3C';
+        ctx.strokeStyle = '#C0392B';
+        ctx.lineWidth = 2;
+        
+        // Main body
+        ctx.beginPath();
+        ctx.moveTo(x, y - size);
+        ctx.lineTo(x - size * 0.6, y + size * 0.4);
+        ctx.lineTo(x - size * 0.3, y + size * 0.6);
+        ctx.lineTo(x + size * 0.3, y + size * 0.6);
+        ctx.lineTo(x + size * 0.6, y + size * 0.4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        // Cockpit
+        ctx.fillStyle = '#FFD700';
+        ctx.beginPath();
+        ctx.arc(x, y - size * 0.3, size * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+        break;
+        
+      case 'fast':
+        // Speed-focused interceptor
+        ctx.fillStyle = enemy.color || '#FF6B6B';
+        ctx.strokeStyle = '#DC143C';
+        ctx.lineWidth = 2;
+        
+        // Pointed body
+        ctx.beginPath();
+        ctx.moveTo(x, y - size);
+        ctx.lineTo(x - size * 0.4, y + size * 0.2);
+        ctx.lineTo(x - size * 0.2, y + size * 0.6);
+        ctx.lineTo(x + size * 0.2, y + size * 0.6);
+        ctx.lineTo(x + size * 0.4, y + size * 0.2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        // Engine glow
+        ctx.fillStyle = '#00FFFF';
+        ctx.beginPath();
+        ctx.arc(x, y + size * 0.4, size * 0.15, 0, Math.PI * 2);
+        ctx.fill();
+        break;
+        
+      case 'tank':
+        // Heavy armored ship
+        ctx.fillStyle = enemy.color || '#8B0000';
+        ctx.strokeStyle = '#4B0082';
+        ctx.lineWidth = 3;
+        
+        // Wide armored body
+        ctx.beginPath();
+        ctx.moveTo(x, y - size);
+        ctx.lineTo(x - size * 0.8, y - size * 0.2);
+        ctx.lineTo(x - size * 0.9, y + size * 0.3);
+        ctx.lineTo(x - size * 0.7, y + size * 0.6);
+        ctx.lineTo(x + size * 0.7, y + size * 0.6);
+        ctx.lineTo(x + size * 0.9, y + size * 0.3);
+        ctx.lineTo(x + size * 0.8, y - size * 0.2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        // Armor plates
+        ctx.strokeStyle = '#FFD700';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x - size * 0.5, y - size * 0.5);
+        ctx.lineTo(x + size * 0.5, y - size * 0.5);
+        ctx.moveTo(x - size * 0.3, y);
+        ctx.lineTo(x + size * 0.3, y);
+        ctx.stroke();
+        break;
+        
+      case 'shooter':
+        // Artillery ship with weapon pods
+        ctx.fillStyle = enemy.color || '#DC143C';
+        ctx.strokeStyle = '#8B0000';
+        ctx.lineWidth = 2;
+        
+        // Central body
+        ctx.beginPath();
+        ctx.moveTo(x, y - size);
+        ctx.lineTo(x - size * 0.5, y + size * 0.6);
+        ctx.lineTo(x + size * 0.5, y + size * 0.6);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        // Weapon pods
+        ctx.fillStyle = '#FFD700';
+        ctx.beginPath();
+        ctx.arc(x - size * 0.4, y - size * 0.2, size * 0.25, 0, Math.PI * 2);
+        ctx.arc(x + size * 0.4, y - size * 0.2, size * 0.25, 0, Math.PI * 2);
+        ctx.fill();
+        break;
+        
+      default:
+        // Fallback to basic design
+        ctx.fillStyle = enemy.color || '#E74C3C';
+        ctx.strokeStyle = '#C0392B';
+        ctx.lineWidth = 2;
+        
+        ctx.beginPath();
+        ctx.moveTo(x, y - size);
+        ctx.lineTo(x - size * 0.8, y + size * 0.6);
+        ctx.lineTo(x + size * 0.8, y + size * 0.6);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    }
+    
+    ctx.restore();
+  };
 
   const drawTriangle = (ctx, x, y, size, fillColor, strokeColor) => {
     ctx.fillStyle = fillColor;
@@ -580,26 +708,50 @@ const VerticalShooter = () => {
   };
 
   const drawProfessionalUI = (ctx) => {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-    ctx.fillRect(10, 10, 780, 170);
+    // Main UI background - increased height for better organization
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+    ctx.fillRect(10, 10, 780, 200);
     ctx.strokeStyle = '#00FFFF';
     ctx.lineWidth = 2;
-    ctx.strokeRect(10, 10, 780, 170);
+    ctx.strokeRect(10, 10, 780, 200);
 
+    // TOP ROW - Score and High Score
     ctx.fillStyle = '#FFFFFF';
     ctx.font = 'bold 24px Arial';
     ctx.textAlign = 'left';
     ctx.fillText(`SCORE: ${score.toLocaleString()}`, 20, 35);
-    ctx.fillText(`LEVEL: ${level}`, 20, 60);
-    
-    // Difficulty indicator
-    ctx.fillStyle = '#FF6B6B';
-    ctx.font = 'bold 18px Arial';
-    ctx.fillText(`DIFFICULTY: ${difficulty}`, 20, 80);
     
     ctx.fillStyle = '#FFD700';
     ctx.fillText(`HIGH SCORE: ${highScore.toLocaleString()}`, 300, 35);
     
+    // SECOND ROW - Level and Difficulty
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 20px Arial';
+    ctx.fillText(`LEVEL: ${level}`, 20, 60);
+    
+    ctx.fillStyle = '#FF6B6B';
+    ctx.font = 'bold 18px Arial';
+    ctx.fillText(`DIFFICULTY: ${difficulty}`, 300, 60);
+    
+    // THIRD ROW - Lives and Status
+    ctx.fillStyle = '#FF69B4';
+    ctx.font = 'bold 18px Arial';
+    ctx.fillText(`LIVES: ${player.lives}`, 20, 85);
+    
+    // Status indicators
+    if (rapidFire) {
+      ctx.fillStyle = '#FF00FF';
+      ctx.font = 'bold 16px Arial';
+      ctx.fillText(`RAPID FIRE: ${rapidFireTimer}s`, 200, 85);
+    }
+    
+    if (invincible) {
+      ctx.fillStyle = '#00FF00';
+      ctx.font = 'bold 16px Arial';
+      ctx.fillText(`INVINCIBLE!`, 400, 85);
+    }
+    
+    // RIGHT SIDE - Health and Power bars
     ctx.fillStyle = '#333';
     ctx.fillRect(500, 20, 200, 20);
     ctx.fillStyle = '#E74C3C';
@@ -615,61 +767,53 @@ const VerticalShooter = () => {
     ctx.fillStyle = '#FFF';
     ctx.font = 'bold 14px Arial';
     ctx.fillText(`POWER: ${player.power}/3`, 500, 62);
-
-    // Lives display - moved to avoid overlap
-    ctx.fillStyle = '#FF69B4';
-    ctx.font = 'bold 16px Arial';
-    ctx.fillText(`LIVES: ${player.lives}`, 20, 85);
     
-    // Rapid fire status - moved to avoid overlap
-    if (rapidFire) {
-      ctx.fillStyle = '#FF00FF';
-      ctx.font = 'bold 14px Arial';
-      ctx.fillText(`RAPID FIRE: ${rapidFireTimer}s`, 20, 105);
-    }
-    
-    // Invincibility status
-    if (invincible) {
-      ctx.fillStyle = '#00FF00';
-      ctx.font = 'bold 14px Arial';
-      ctx.fillText(`INVINCIBLE!`, 20, 125);
-    }
-
+    // FOURTH ROW - Game Statistics
     ctx.fillStyle = '#00FFFF';
-    ctx.font = 'bold 12px Arial';
-    ctx.fillText(`ENEMIES: ${gameStats.enemiesDestroyed}`, 20, 145);
-    ctx.fillText(`ASTEROIDS: ${gameStats.asteroidsDestroyed}`, 150, 145);
-    ctx.fillText(`POWER-UPS: ${gameStats.powerUpsCollected}`, 280, 145);
-    ctx.fillText(`ACCURACY: ${gameStats.accuracy}%`, 420, 145);
+    ctx.font = 'bold 14px Arial';
+    ctx.fillText(`ENEMIES: ${gameStats.enemiesDestroyed}`, 20, 110);
+    ctx.fillText(`ASTEROIDS: ${gameStats.asteroidsDestroyed}`, 150, 110);
+    ctx.fillText(`POWER-UPS: ${gameStats.powerUpsCollected}`, 280, 110);
+    ctx.fillText(`ACCURACY: ${gameStats.accuracy}%`, 420, 110);
+    
+    // FIFTH ROW - Medals and Combo
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 16px Arial';
+    ctx.fillText(`🥉 ${medals.bronze} 🥈 ${medals.silver} 🥇 ${medals.gold}`, 20, 135);
+    
+    // Combo system display
+    if (gameStats.combo > 0) {
+      ctx.fillStyle = '#FF00FF';
+      ctx.font = 'bold 18px Arial';
+      ctx.fillText(`COMBO: ${gameStats.combo}x${comboMultiplier}`, 400, 135);
+      ctx.fillStyle = '#FFD700';
+      ctx.font = 'bold 14px Arial';
+      ctx.fillText(`TIMER: ${comboTimer}s`, 600, 135);
+    }
+    
+    // SIXTH ROW - Streak and Challenge
+    if (gameStats.streak > 0) {
+      ctx.fillStyle = '#00FF00';
+      ctx.font = 'bold 16px Arial';
+      ctx.fillText(`STREAK: ${gameStats.streak}`, 20, 160);
+    }
     
     // Display current challenge
     if (currentChallenge) {
       ctx.fillStyle = '#FFD700';
       ctx.font = 'bold 14px Arial';
-      ctx.fillText(`CHALLENGE: ${currentChallenge.description}`, 20, 165);
-      ctx.fillText(`PROGRESS: ${currentChallenge.progress}/${currentChallenge.target}`, 20, 180);
+      ctx.fillText(`CHALLENGE: ${currentChallenge.description}`, 200, 160);
+      ctx.fillText(`PROGRESS: ${currentChallenge.progress}/${currentChallenge.target}`, 200, 180);
     }
     
-    // Display medals
-    ctx.fillStyle = '#FFD700';
-    ctx.font = 'bold 16px Arial';
-    ctx.fillText(`🥉 ${medals.bronze} 🥈 ${medals.silver} 🥇 ${medals.gold}`, 500, 145);
-    
-    // Combo system display
-    if (gameStats.combo > 0) {
-      ctx.fillStyle = '#FF00FF';
+    // SEVENTH ROW - Boss indicator (if boss exists)
+    if (boss) {
+      ctx.fillStyle = '#FF0000';
       ctx.font = 'bold 20px Arial';
-      ctx.fillText(`COMBO: ${gameStats.combo}x${comboMultiplier}`, 500, 165);
-      ctx.fillStyle = '#FFD700';
-      ctx.font = 'bold 14px Arial';
-      ctx.fillText(`TIMER: ${comboTimer}s`, 500, 180);
-    }
-    
-    // Streak display
-    if (gameStats.streak > 0) {
-      ctx.fillStyle = '#00FF00';
-      ctx.font = 'bold 16px Arial';
-      ctx.fillText(`STREAK: ${gameStats.streak}`, 500, 200);
+      ctx.textAlign = 'center';
+      ctx.fillText(`BOSS: ${boss.name}`, 400, 160);
+      ctx.fillText(`HEALTH: ${boss.health}/${boss.maxHealth}`, 400, 180);
+      ctx.textAlign = 'left';
     }
   };
 
