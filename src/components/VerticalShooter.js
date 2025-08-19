@@ -63,6 +63,14 @@ const VerticalShooter = () => {
   const ENEMY_BULLET_SPEED = 4;
   const RAPID_FIRE_DELAY = 50; // Much faster firing when rapid fire is active
   
+  // Expanded gameplay area constants
+  const GAME_WIDTH = 800;
+  const GAME_HEIGHT = 700; // Increased from 600
+  const PLAYER_BOUNDARY_LEFT = 25;
+  const PLAYER_BOUNDARY_RIGHT = 775;
+  const PLAYER_BOUNDARY_TOP = 25;
+  const PLAYER_BOUNDARY_BOTTOM = 675; // Increased from 575
+  
   // Dynamic difficulty and combo system
   const [difficulty, setDifficulty] = useState(1);
   const [comboMultiplier, setComboMultiplier] = useState(1);
@@ -106,8 +114,8 @@ const VerticalShooter = () => {
         const y = touch.clientY - rect.top;
         
         // Move player to touch position
-        const newX = Math.max(25, Math.min(775, x));
-        const newY = Math.max(25, Math.min(575, y));
+        const newX = Math.max(PLAYER_BOUNDARY_LEFT, Math.min(PLAYER_BOUNDARY_RIGHT, x));
+        const newY = Math.max(PLAYER_BOUNDARY_TOP, Math.min(PLAYER_BOUNDARY_BOTTOM, y));
         
         setPlayer(prev => ({ ...prev, x: newX, y: newY }));
         playerRef.current = { ...playerRef.current, x: newX, y: newY };
@@ -257,13 +265,19 @@ const VerticalShooter = () => {
         let newX = prev.x;
         let newY = prev.y;
 
-        if (keys['w'] || keys['arrowup']) newY -= PLAYER_SPEED;
-        if (keys['s'] || keys['arrowdown']) newY += PLAYER_SPEED;
-        if (keys['a'] || keys['arrowleft']) newX -= PLAYER_SPEED;
-        if (keys['d'] || keys['arrowright']) newX += PLAYER_SPEED;
-
-        newX = Math.max(25, Math.min(775, newX));
-        newY = Math.max(25, Math.min(575, newY));
+        // Player movement
+        if (keys['w'] || keys['arrowup']) {
+          newY = Math.max(PLAYER_BOUNDARY_TOP, newY - PLAYER_SPEED);
+        }
+        if (keys['s'] || keys['arrowdown']) {
+          newY = Math.min(PLAYER_BOUNDARY_BOTTOM, newY + PLAYER_SPEED);
+        }
+        if (keys['a'] || keys['arrowleft']) {
+          newX = Math.max(PLAYER_BOUNDARY_LEFT, newX - PLAYER_SPEED);
+        }
+        if (keys['d'] || keys['arrowright']) {
+          newX = Math.min(PLAYER_BOUNDARY_RIGHT, newX + PLAYER_SPEED);
+        }
 
         const newPlayer = { ...prev, x: newX, y: newY };
         // Update the ref with current position for rapid fire
@@ -272,7 +286,7 @@ const VerticalShooter = () => {
       });
 
       setBullets(prev => 
-        prev.filter(bullet => bullet.y > -10 && bullet.y < 610)
+        prev.filter(bullet => bullet.y > -10 && bullet.y < GAME_HEIGHT)
           .map(bullet => ({
             ...bullet,
             y: bullet.y + bullet.vy
@@ -280,7 +294,7 @@ const VerticalShooter = () => {
       );
 
       setEnemies(prev => 
-        prev.filter(enemy => enemy.y < 610)
+        prev.filter(enemy => enemy.y < GAME_HEIGHT)
           .map(enemy => ({
             ...enemy,
             y: enemy.y + ENEMY_SPEED,
@@ -300,7 +314,7 @@ const VerticalShooter = () => {
       }
 
       setPowerUps(prev => 
-        prev.filter(powerUp => powerUp.y < 610)
+        prev.filter(powerUp => powerUp.y < GAME_HEIGHT)
           .map(powerUp => ({
             ...powerUp,
             y: powerUp.y + 2
@@ -308,7 +322,7 @@ const VerticalShooter = () => {
       );
 
       setAsteroids(prev => 
-        prev.filter(asteroid => asteroid.y < 610)
+        prev.filter(asteroid => asteroid.y < GAME_HEIGHT)
           .map(asteroid => ({
             ...asteroid,
             y: asteroid.y + asteroid.speed,
@@ -435,7 +449,7 @@ const VerticalShooter = () => {
 
     const ctx = canvas.getContext('2d');
 
-    ctx.clearRect(0, 0, 800, 600);
+    ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
     drawStarfield(ctx);
 
@@ -825,13 +839,13 @@ const VerticalShooter = () => {
 
   const drawStarfield = (ctx) => {
     ctx.fillStyle = '#000033';
-    ctx.fillRect(0, 0, 800, 600);
+    ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
     
     const time = Date.now() * 0.001;
     ctx.fillStyle = '#FFFFFF';
     for (let i = 0; i < 150; i++) {
-      const x = (i * 37) % 800;
-      const y = (i * 73 + time * 20) % 600;
+      const x = (i * 37) % GAME_WIDTH;
+      const y = (i * 73 + time * 20) % GAME_HEIGHT;
       const size = (i % 3) + 1;
       const alpha = 0.3 + 0.7 * Math.sin(time + i);
       ctx.globalAlpha = alpha;
@@ -841,128 +855,87 @@ const VerticalShooter = () => {
   };
 
   const drawProfessionalUI = (ctx) => {
-    // Main UI background - increased height for better organization
+    // Simplified UI background - more compact
     ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
-    ctx.fillRect(10, 10, 780, 200);
+    ctx.fillRect(10, 10, 780, 120);
     ctx.strokeStyle = '#00FFFF';
     ctx.lineWidth = 2;
-    ctx.strokeRect(10, 10, 780, 200);
+    ctx.strokeRect(10, 10, 780, 120);
 
     // TOP ROW - Score and High Score
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 24px Arial';
+    ctx.font = 'bold 20px Arial';
     ctx.textAlign = 'left';
-    ctx.fillText(`SCORE: ${score.toLocaleString()}`, 20, 35);
+    ctx.fillText(`SCORE: ${score.toLocaleString()}`, 20, 30);
     
     ctx.fillStyle = '#FFD700';
-    ctx.fillText(`HIGH SCORE: ${highScore.toLocaleString()}`, 300, 35);
+    ctx.fillText(`HIGH: ${highScore.toLocaleString()}`, 200, 30);
     
-    // SECOND ROW - Level and Difficulty
+    // SECOND ROW - Level and Lives
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 20px Arial';
-    ctx.fillText(`LEVEL: ${level}`, 20, 60);
-    
-    ctx.fillStyle = '#FF6B6B';
     ctx.font = 'bold 18px Arial';
-    ctx.fillText(`DIFFICULTY: ${difficulty}`, 300, 60);
+    ctx.fillText(`LEVEL: ${level}`, 20, 55);
     
-    // THIRD ROW - Lives and Status
     ctx.fillStyle = '#FF69B4';
-    ctx.font = 'bold 18px Arial';
-    ctx.fillText(`LIVES: ${player.lives}`, 20, 85);
+    ctx.fillText(`LIVES: ${player.lives}`, 120, 55);
     
-    // Status indicators
+    // THIRD ROW - Health and Power
+    ctx.fillStyle = '#333';
+    ctx.fillRect(20, 65, 150, 15);
+    ctx.fillStyle = '#E74C3C';
+    ctx.fillRect(20, 65, (player.health / 100) * 150, 15);
+    ctx.fillStyle = '#FFF';
+    ctx.font = 'bold 14px Arial';
+    ctx.fillText(`HEALTH: ${player.health}%`, 20, 77);
+    
+    ctx.fillStyle = '#FFD700';
+    ctx.fillRect(200, 65, 100, 15);
+    ctx.fillStyle = '#FFA500';
+    ctx.fillRect(200, 65, (player.power / 3) * 100, 15);
+    ctx.fillStyle = '#FFF';
+    ctx.font = 'bold 14px Arial';
+    ctx.fillText(`POWER: ${player.power}/3`, 200, 77);
+    
+    // FOURTH ROW - Weapon and Status
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 14px Arial';
+    ctx.fillText(`WEAPON: ${player.weaponType.toUpperCase()}`, 20, 100);
+    
     if (rapidFire) {
       ctx.fillStyle = '#FF00FF';
-      ctx.font = 'bold 16px Arial';
-      ctx.fillText(`RAPID FIRE: ${rapidFireTimer}s`, 200, 85);
+      ctx.fillText(`RAPID FIRE: ${rapidFireTimer}s`, 200, 100);
     }
     
     if (invincible) {
       ctx.fillStyle = '#00FF00';
-      ctx.font = 'bold 16px Arial';
-      ctx.fillText(`INVINCIBLE!`, 400, 85);
+      ctx.fillText(`INVINCIBLE!`, 400, 100);
     }
     
-    // Weapon and Defense info
-    ctx.fillStyle = '#FFD700';
-    ctx.font = 'bold 14px Arial';
-    ctx.fillText(`WEAPON: ${player.weaponType.toUpperCase()}`, 20, 105);
-    ctx.fillText(`LEVEL: ${player.weaponLevel}`, 150, 105);
-    
-    // Show available weapons
-    ctx.fillStyle = '#00FF00';
-    ctx.font = 'bold 12px Arial';
-    ctx.fillText(`WEAPONS: ${player.availableWeapons.join(' ')}`, 20, 125);
-    
-    if (player.has360Defense) {
-      ctx.fillStyle = '#00FFFF';
-      ctx.fillText(`DEFENSE: ${player.defenseShield}%`, 250, 105);
-    }
-    
-    // RIGHT SIDE - Health and Power bars
-    ctx.fillStyle = '#333';
-    ctx.fillRect(500, 20, 200, 20);
-    ctx.fillStyle = '#E74C3C';
-    ctx.fillRect(500, 20, (player.health / 100) * 200, 20);
-    ctx.fillStyle = '#FFF';
-    ctx.font = 'bold 16px Arial';
-    ctx.fillText(`HEALTH: ${player.health}%`, 500, 35);
-    
-    ctx.fillStyle = '#FFD700';
-    ctx.fillRect(500, 50, 200, 15);
-    ctx.fillStyle = '#FFA500';
-    ctx.fillRect(500, 50, (player.power / 3) * 200, 15);
-    ctx.fillStyle = '#FFF';
-    ctx.font = 'bold 14px Arial';
-    ctx.fillText(`POWER: ${player.power}/3`, 500, 62);
-    
-    // FOURTH ROW - Game Statistics
+    // RIGHT SIDE - Compact Stats
     ctx.fillStyle = '#00FFFF';
-    ctx.font = 'bold 14px Arial';
-    ctx.fillText(`ENEMIES: ${gameStats.enemiesDestroyed}`, 20, 110);
-    ctx.fillText(`ASTEROIDS: ${gameStats.asteroidsDestroyed}`, 150, 110);
-    ctx.fillText(`POWER-UPS: ${gameStats.powerUpsCollected}`, 280, 110);
-    ctx.fillText(`ACCURACY: ${gameStats.accuracy}%`, 420, 110);
+    ctx.font = 'bold 12px Arial';
+    ctx.fillText(`ENEMIES: ${gameStats.enemiesDestroyed}`, 500, 30);
+    ctx.fillText(`ASTEROIDS: ${gameStats.asteroidsDestroyed}`, 500, 45);
+    ctx.fillText(`ACCURACY: ${gameStats.accuracy}%`, 500, 60);
     
-    // FIFTH ROW - Medals and Combo
+    // Medals display
     ctx.fillStyle = '#FFD700';
     ctx.font = 'bold 16px Arial';
-    ctx.fillText(`🥉 ${medals.bronze} 🥈 ${medals.silver} 🥇 ${medals.gold}`, 20, 135);
+    ctx.fillText(`🥉 ${medals.bronze} 🥈 ${medals.silver} 🥇 ${medals.gold}`, 500, 80);
     
     // Combo system display
     if (gameStats.combo > 0) {
       ctx.fillStyle = '#FF00FF';
-      ctx.font = 'bold 18px Arial';
-      ctx.fillText(`COMBO: ${gameStats.combo}x${comboMultiplier}`, 400, 135);
-      ctx.fillStyle = '#FFD700';
-      ctx.font = 'bold 14px Arial';
-      ctx.fillText(`TIMER: ${comboTimer}s`, 600, 135);
-    }
-    
-    // SIXTH ROW - Streak and Challenge
-    if (gameStats.streak > 0) {
-      ctx.fillStyle = '#00FF00';
       ctx.font = 'bold 16px Arial';
-      ctx.fillText(`STREAK: ${gameStats.streak}`, 20, 160);
+      ctx.fillText(`COMBO: ${gameStats.combo}x${comboMultiplier}`, 500, 100);
     }
     
-    // Display current challenge
+    // Challenge display (if active)
     if (currentChallenge) {
       ctx.fillStyle = '#FFD700';
-      ctx.font = 'bold 14px Arial';
-      ctx.fillText(`CHALLENGE: ${currentChallenge.description}`, 200, 160);
-      ctx.fillText(`PROGRESS: ${currentChallenge.progress}/${currentChallenge.target}`, 200, 180);
-    }
-    
-    // SEVENTH ROW - Boss indicator (if boss exists)
-    if (boss) {
-      ctx.fillStyle = '#FF0000';
-      ctx.font = 'bold 20px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText(`BOSS: ${boss.name}`, 400, 160);
-      ctx.fillText(`HEALTH: ${boss.health}/${boss.maxHealth}`, 400, 180);
-      ctx.textAlign = 'left';
+      ctx.font = 'bold 12px Arial';
+      ctx.fillText(`CHALLENGE: ${currentChallenge.description}`, 20, 115);
+      ctx.fillText(`PROGRESS: ${currentChallenge.progress}/${currentChallenge.target}`, 200, 115);
     }
   };
 
@@ -2294,17 +2267,18 @@ const VerticalShooter = () => {
       padding: '20px',
       fontFamily: 'Arial, sans-serif'
     }}>
-      <canvas
-        ref={canvasRef}
-        width={800}
-        height={600}
-        style={{
-          border: '4px solid #00FFFF',
-          borderRadius: '15px',
-          boxShadow: '0 8px 32px rgba(0, 255, 255, 0.5)',
-          marginBottom: '20px'
-        }}
-      />
+      <div className="game-container">
+        <canvas
+          ref={canvasRef}
+          width={800}
+          height={700}
+          style={{
+            border: '2px solid #00FFFF',
+            backgroundColor: '#000033',
+            display: gameState === 'menu' ? 'none' : 'block'
+          }}
+        />
+      </div>
       
       <div style={{
         width: '800px',
