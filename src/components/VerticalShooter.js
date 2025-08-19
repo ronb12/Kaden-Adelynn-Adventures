@@ -8,11 +8,12 @@ const VerticalShooter = () => {
     health: 100, 
     power: 1, 
     lives: 25,
-    weaponType: 'laser', // laser, plasma, missile, spread
+    weaponType: 'laser', // Start with only laser
     weaponLevel: 1,
     defenseShield: 100,
     maxDefenseShield: 100,
-    has360Defense: false
+    has360Defense: false,
+    availableWeapons: ['laser'] // Only laser available at start
   });
   const [bullets, setBullets] = useState([]);
   const [enemies, setEnemies] = useState([]);
@@ -482,6 +483,15 @@ const VerticalShooter = () => {
         case 'weaponSwitch':
           symbol = '🔄';
           break;
+        case 'weaponPlasma':
+          symbol = '💜';
+          break;
+        case 'weaponMissile':
+          symbol = '🚀';
+          break;
+        case 'weaponSpread':
+          symbol = '🎯';
+          break;
       }
       
       ctx.fillText(symbol, powerUp.x, powerUp.y);
@@ -566,14 +576,39 @@ const VerticalShooter = () => {
 
     // Draw particles
     particles.forEach(particle => {
-      const alpha = particle.life / particle.maxLife;
-      ctx.globalAlpha = alpha;
-      ctx.fillStyle = particle.color;
-      ctx.beginPath();
-      ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-      ctx.fill();
+      if (particle.type === 'explosion') {
+        ctx.fillStyle = particle.color;
+        ctx.globalAlpha = particle.life / particle.maxLife;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.life / particle.maxLife * 3, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (particle.type === 'defense') {
+        ctx.fillStyle = particle.color;
+        ctx.globalAlpha = particle.life / particle.maxLife;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (particle.type === 'weaponSwitch') {
+        ctx.fillStyle = particle.color;
+        ctx.globalAlpha = particle.life / particle.maxLife;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (particle.type === 'weaponUnlock') {
+        ctx.fillStyle = particle.color;
+        ctx.globalAlpha = particle.life / particle.maxLife;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (particle.type === 'unlockText') {
+        ctx.fillStyle = particle.color;
+        ctx.globalAlpha = particle.life / particle.maxLife;
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(particle.text, particle.x, particle.y);
+      }
     });
-    ctx.globalAlpha = 1;
 
     if (screenShake > 0) {
       ctx.restore();
@@ -854,6 +889,11 @@ const VerticalShooter = () => {
     ctx.font = 'bold 14px Arial';
     ctx.fillText(`WEAPON: ${player.weaponType.toUpperCase()}`, 20, 105);
     ctx.fillText(`LEVEL: ${player.weaponLevel}`, 150, 105);
+    
+    // Show available weapons
+    ctx.fillStyle = '#00FF00';
+    ctx.font = 'bold 12px Arial';
+    ctx.fillText(`WEAPONS: ${player.availableWeapons.join(' ')}`, 20, 125);
     
     if (player.has360Defense) {
       ctx.fillStyle = '#00FFFF';
@@ -1426,7 +1466,10 @@ const VerticalShooter = () => {
       { type: 'rapidFire', color: '#FF00FF', effect: 'rapidFire' },
       { type: 'weaponUpgrade', color: '#FF6600', effect: 'weaponUpgrade' },
       { type: 'defenseShield', color: '#00FFFF', effect: 'defenseShield' },
-      { type: 'weaponSwitch', color: '#FF00FF', effect: 'weaponSwitch' }
+      { type: 'weaponSwitch', color: '#FF00FF', effect: 'weaponSwitch' },
+      { type: 'weaponPlasma', color: '#FF00FF', effect: 'unlockPlasma' },
+      { type: 'weaponMissile', color: '#FFA500', effect: 'unlockMissile' },
+      { type: 'weaponSpread', color: '#00FF00', effect: 'unlockSpread' }
     ];
     
     const selectedType = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
@@ -1599,6 +1642,39 @@ const VerticalShooter = () => {
           const availableWeapons = weaponTypes.filter(w => w !== currentWeapon);
           const newWeapon = availableWeapons[Math.floor(Math.random() * availableWeapons.length)];
           switchWeapon(newWeapon);
+        } else if (powerUp.effect === 'unlockPlasma') {
+          // Unlock plasma weapon
+          if (!player.availableWeapons.includes('plasma')) {
+            setPlayer(prev => ({ 
+              ...prev, 
+              availableWeapons: [...prev.availableWeapons, 'plasma']
+            }));
+            // Switch to plasma weapon automatically
+            setPlayer(prev => ({ ...prev, weaponType: 'plasma' }));
+            createWeaponUnlockEffect('plasma');
+          }
+        } else if (powerUp.effect === 'unlockMissile') {
+          // Unlock missile weapon
+          if (!player.availableWeapons.includes('missile')) {
+            setPlayer(prev => ({ 
+              ...prev, 
+              availableWeapons: [...prev.availableWeapons, 'missile']
+            }));
+            // Switch to missile weapon automatically
+            setPlayer(prev => ({ ...prev, weaponType: 'missile' }));
+            createWeaponUnlockEffect('missile');
+          }
+        } else if (powerUp.effect === 'unlockSpread') {
+          // Unlock spread weapon
+          if (!player.availableWeapons.includes('spread')) {
+            setPlayer(prev => ({ 
+              ...prev, 
+              availableWeapons: [...prev.availableWeapons, 'spread']
+            }));
+            // Switch to spread weapon automatically
+            setPlayer(prev => ({ ...prev, weaponType: 'spread' }));
+            createWeaponUnlockEffect('spread');
+          }
         }
         
         setPowerUps(prev => prev.filter((_, i) => i !== index));
@@ -1785,7 +1861,8 @@ const VerticalShooter = () => {
       weaponLevel: 1,
       defenseShield: 100,
       maxDefenseShield: 100,
-      has360Defense: false
+      has360Defense: false,
+      availableWeapons: ['laser'] // Only laser available at start
     };
     setPlayer(initialPlayer);
     playerRef.current = initialPlayer;
@@ -1846,19 +1923,38 @@ const VerticalShooter = () => {
 
   // Weapon switching system
   const switchWeapon = (newWeaponType) => {
+    // Only allow switching to weapons that have been collected
+    if (!player.availableWeapons.includes(newWeaponType)) {
+      return; // Weapon not available
+    }
+    
     const weaponTypes = ['laser', 'plasma', 'missile', 'spread'];
     const currentIndex = weaponTypes.indexOf(player.weaponType);
     let newIndex;
     
     if (newWeaponType === 'next') {
-      newIndex = (currentIndex + 1) % weaponTypes.length;
+      // Find next available weapon
+      let nextIndex = (currentIndex + 1) % weaponTypes.length;
+      while (!player.availableWeapons.includes(weaponTypes[nextIndex])) {
+        nextIndex = (nextIndex + 1) % weaponTypes.length;
+        // Prevent infinite loop if no other weapons available
+        if (nextIndex === currentIndex) return;
+      }
+      newIndex = nextIndex;
     } else if (newWeaponType === 'prev') {
-      newIndex = (currentIndex - 1 + weaponTypes.length) % weaponTypes.length;
+      // Find previous available weapon
+      let prevIndex = (currentIndex - 1 + weaponTypes.length) % weaponTypes.length;
+      while (!player.availableWeapons.includes(weaponTypes[prevIndex])) {
+        prevIndex = (prevIndex - 1 + weaponTypes.length) % weaponTypes.length;
+        // Prevent infinite loop if no other weapons available
+        if (prevIndex === currentIndex) return;
+      }
+      newIndex = prevIndex;
     } else {
       newIndex = weaponTypes.indexOf(newWeaponType);
     }
     
-    if (newIndex !== -1) {
+    if (newIndex !== -1 && player.availableWeapons.includes(weaponTypes[newIndex])) {
       setPlayer(prev => ({ ...prev, weaponType: weaponTypes[newIndex] }));
       
       // Create weapon switch effect
@@ -1993,6 +2089,58 @@ const VerticalShooter = () => {
     }
   };
 
+  const createWeaponUnlockEffect = (weaponType) => {
+    const colors = {
+      laser: '#00FFFF',
+      plasma: '#FF00FF',
+      missile: '#FFA500',
+      spread: '#00FF00'
+    };
+    
+    const weaponNames = {
+      laser: 'LASER',
+      plasma: 'PLASMA',
+      missile: 'MISSILE',
+      spread: 'SPREAD'
+    };
+    
+    // Create massive particle explosion
+    const unlockParticles = [];
+    for (let i = 0; i < 20; i++) {
+      unlockParticles.push({
+        x: player.x + (Math.random() - 0.5) * 100,
+        y: player.y + (Math.random() - 0.5) * 100,
+        vx: (Math.random() - 0.5) * 8,
+        vy: (Math.random() - 0.5) * 8,
+        life: 60,
+        maxLife: 60,
+        type: 'weaponUnlock',
+        color: colors[weaponType] || '#FFFFFF'
+      });
+    }
+    setParticles(prev => [...prev, ...unlockParticles]);
+    
+    // Add screen shake for dramatic effect
+    setScreenShake(5);
+    
+    // Create text effect
+    const textParticles = [];
+    for (let i = 0; i < 8; i++) {
+      textParticles.push({
+        x: player.x + (Math.random() - 0.5) * 80,
+        y: player.y - 30 + (Math.random() - 0.5) * 40,
+        vx: (Math.random() - 0.5) * 3,
+        vy: -2 - Math.random() * 2,
+        life: 90,
+        maxLife: 90,
+        type: 'unlockText',
+        text: `NEW WEAPON: ${weaponNames[weaponType]}`,
+        color: colors[weaponType] || '#FFFFFF'
+      });
+    }
+    setParticles(prev => [...prev, ...textParticles]);
+  };
+
   if (gameState === 'menu') {
     return (
       <div style={{
@@ -2054,10 +2202,11 @@ const VerticalShooter = () => {
             <h3>🎮 How to Play</h3>
             <p><strong>Movement:</strong> Use WASD or Arrow Keys to move your ship</p>
             <p><strong>Shooting:</strong> Press SPACEBAR to shoot</p>
-            <p><strong>Weapons:</strong> Press 1-4 to switch between weapon types</p>
+            <p><strong>Weapons:</strong> Collect power-ups to unlock new weapons, then press 1-4 to switch</p>
             <p><strong>Defense:</strong> Press D to activate 360° defense shield</p>
             <p><strong>Rapid Fire:</strong> Collect power-ups for temporary rapid fire</p>
             <p><strong>Objective:</strong> Destroy enemies, asteroids, and survive as long as possible!</p>
+            <p><strong>Weapon Types:</strong> Laser (starter), Plasma, Missile, Spread Shot</p>
           </div>
         </div>
       </div>
