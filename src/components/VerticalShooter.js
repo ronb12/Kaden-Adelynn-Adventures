@@ -2,7 +2,18 @@ import React, { useState, useEffect, useRef } from 'react';
 
 const VerticalShooter = () => {
   const [gameState, setGameState] = useState('menu');
-  const [player, setPlayer] = useState({ x: 400, y: 500, health: 100, power: 1, lives: 25 });
+  const [player, setPlayer] = useState({ 
+    x: 400, 
+    y: 500, 
+    health: 100, 
+    power: 1, 
+    lives: 25,
+    weaponType: 'laser', // laser, plasma, missile, spread
+    weaponLevel: 1,
+    defenseShield: 100,
+    maxDefenseShield: 100,
+    has360Defense: false
+  });
   const [bullets, setBullets] = useState([]);
   const [enemies, setEnemies] = useState([]);
   const [powerUps, setPowerUps] = useState([]);
@@ -130,6 +141,28 @@ const VerticalShooter = () => {
         e.preventDefault();
         shoot();
       }
+      
+      // Weapon switching controls
+      if (gameState === 'playing') {
+        switch (e.key) {
+          case '1':
+            switchWeapon('laser');
+            break;
+          case '2':
+            switchWeapon('plasma');
+            break;
+          case '3':
+            switchWeapon('missile');
+            break;
+          case '4':
+            switchWeapon('spread');
+            break;
+          case 'd':
+          case 'D':
+            activate360Defense();
+            break;
+        }
+      }
     };
 
     const handleKeyUp = (e) => {
@@ -143,7 +176,7 @@ const VerticalShooter = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [gameState]);
+  }, [gameState, player.weaponType]);
 
   // Rapid fire effect
   useEffect(() => {
@@ -406,10 +439,54 @@ const VerticalShooter = () => {
     drawStarfield(ctx);
 
     powerUps.forEach(powerUp => {
-      ctx.font = '30px Arial';
+      ctx.save();
+      
+      // Power-up glow effect
+      ctx.shadowColor = powerUp.color;
+      ctx.shadowBlur = 15;
+      
+      // Main power-up body
+      ctx.fillStyle = powerUp.color;
+      ctx.beginPath();
+      ctx.arc(powerUp.x, powerUp.y, 12, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Power-up border
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      
+      // Power-up symbol
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 16px Arial';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(powerUp.emoji, powerUp.x, powerUp.y);
+      
+      let symbol = '?';
+      switch (powerUp.type) {
+        case 'health':
+          symbol = '♥';
+          break;
+        case 'power':
+          symbol = '⚡';
+          break;
+        case 'rapidFire':
+          symbol = '🔥';
+          break;
+        case 'weaponUpgrade':
+          symbol = '🔫';
+          break;
+        case 'defenseShield':
+          symbol = '🛡️';
+          break;
+        case 'weaponSwitch':
+          symbol = '🔄';
+          break;
+      }
+      
+      ctx.fillText(symbol, powerUp.x, powerUp.y);
+      
+      ctx.restore();
     });
 
     enemies.forEach(enemy => {
@@ -437,21 +514,19 @@ const VerticalShooter = () => {
       drawBoss(ctx, boss);
     }
 
+    // Draw bullets
     bullets.forEach(bullet => {
       if (bullet.type === 'player') {
-        ctx.fillStyle = '#00FFFF';
-        ctx.beginPath();
-        ctx.arc(bullet.x, bullet.y, 4, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.fillStyle = 'rgba(0, 255, 255, 0.6)';
-        ctx.beginPath();
-        ctx.arc(bullet.x, bullet.y + 8, 2, 0, Math.PI * 2);
-        ctx.fill();
-      } else {
+        drawBullet(ctx, bullet);
+      } else if (bullet.type === 'enemy') {
         ctx.fillStyle = '#FF0000';
         ctx.beginPath();
         ctx.arc(bullet.x, bullet.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (bullet.type === 'boss') {
+        ctx.fillStyle = '#FF6600';
+        ctx.beginPath();
+        ctx.arc(bullet.x, bullet.y, 4, 0, Math.PI * 2);
         ctx.fill();
       }
     });
@@ -464,7 +539,30 @@ const VerticalShooter = () => {
       ctx.translate(shakeX, shakeY);
     }
 
-    drawTriangle(ctx, player.x, player.y, 25, '#3498DB', '#BDC3C7');
+    // Draw player
+    ctx.fillStyle = '#00FFFF';
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 2;
+    
+    // Player ship body
+    ctx.beginPath();
+    ctx.moveTo(player.x, player.y - 20);
+    ctx.lineTo(player.x - 15, player.y + 15);
+    ctx.lineTo(player.x - 8, player.y + 10);
+    ctx.lineTo(player.x + 8, player.y + 10);
+    ctx.lineTo(player.x + 15, player.y + 15);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    // Player ship details
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.arc(player.x, player.y - 5, 5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Draw 360 defense shield
+    drawDefenseShield(ctx);
 
     // Draw particles
     particles.forEach(particle => {
@@ -751,6 +849,17 @@ const VerticalShooter = () => {
       ctx.fillText(`INVINCIBLE!`, 400, 85);
     }
     
+    // Weapon and Defense info
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 14px Arial';
+    ctx.fillText(`WEAPON: ${player.weaponType.toUpperCase()}`, 20, 105);
+    ctx.fillText(`LEVEL: ${player.weaponLevel}`, 150, 105);
+    
+    if (player.has360Defense) {
+      ctx.fillStyle = '#00FFFF';
+      ctx.fillText(`DEFENSE: ${player.defenseShield}%`, 250, 105);
+    }
+    
     // RIGHT SIDE - Health and Power bars
     ctx.fillStyle = '#333';
     ctx.fillRect(500, 20, 200, 20);
@@ -819,27 +928,354 @@ const VerticalShooter = () => {
 
   const shootFromPosition = (x, y) => {
     const newBullets = [];
+    const weaponDamage = player.weaponLevel * 2;
     
-    if (player.power === 1) {
-      newBullets.push({
-        x: x,
-        y: y - 25,
-        vy: -BULLET_SPEED,
-        type: 'player'
-      });
-    }
-    else if (player.power === 2) {
-      newBullets.push(
-        { x: x - 10, y: y - 25, vy: -BULLET_SPEED, type: 'player' },
-        { x: x + 10, y: y - 25, vy: -BULLET_SPEED, type: 'player' }
-      );
-    }
-    else if (player.power === 3) {
-      newBullets.push(
-        { x: x, y: y - 25, vy: -BULLET_SPEED, type: 'player' },
-        { x: x - 15, y: y - 20, vy: -BULLET_SPEED, type: 'player' },
-        { x: x + 15, y: y - 20, vy: -BULLET_SPEED, type: 'player' }
-      );
+    switch (player.weaponType) {
+      case 'laser':
+        // Standard laser - straight forward
+        if (player.power === 1) {
+          newBullets.push({
+            x: x,
+            y: y - 25,
+            vy: -BULLET_SPEED,
+            type: 'player',
+            damage: weaponDamage,
+            weaponType: 'laser',
+            color: '#00FFFF'
+          });
+        } else if (player.power === 2) {
+          newBullets.push(
+            {
+              x: x - 10,
+              y: y - 25,
+              vy: -BULLET_SPEED,
+              type: 'player',
+              damage: weaponDamage,
+              weaponType: 'laser',
+              color: '#00FFFF'
+            },
+            {
+              x: x + 10,
+              y: y - 25,
+              vy: -BULLET_SPEED,
+              type: 'player',
+              damage: weaponDamage,
+              weaponType: 'laser',
+              color: '#00FFFF'
+            }
+          );
+        } else if (player.power === 3) {
+          newBullets.push(
+            {
+              x: x,
+              y: y - 25,
+              vy: -BULLET_SPEED,
+              type: 'player',
+              damage: weaponDamage,
+              weaponType: 'laser',
+              color: '#00FFFF'
+            },
+            {
+              x: x - 15,
+              y: y - 20,
+              vy: -BULLET_SPEED,
+              type: 'player',
+              damage: weaponDamage,
+              weaponType: 'laser',
+              color: '#00FFFF'
+            },
+            {
+              x: x + 15,
+              y: y - 20,
+              vy: -BULLET_SPEED,
+              type: 'player',
+              damage: weaponDamage,
+              weaponType: 'laser',
+              color: '#00FFFF'
+            }
+          );
+        }
+        break;
+        
+      case 'plasma':
+        // Plasma - faster, more damage, slight homing
+        if (player.power === 1) {
+          newBullets.push({
+            x: x,
+            y: y - 25,
+            vy: -BULLET_SPEED * 1.5,
+            type: 'player',
+            damage: weaponDamage * 1.5,
+            weaponType: 'plasma',
+            color: '#FF00FF',
+            homing: true
+          });
+        } else if (player.power === 2) {
+          newBullets.push(
+            {
+              x: x - 10,
+              y: y - 25,
+              vy: -BULLET_SPEED * 1.5,
+              type: 'player',
+              damage: weaponDamage * 1.5,
+              weaponType: 'plasma',
+              color: '#FF00FF',
+              homing: true
+            },
+            {
+              x: x + 10,
+              y: y - 25,
+              vy: -BULLET_SPEED * 1.5,
+              type: 'player',
+              damage: weaponDamage * 1.5,
+              weaponType: 'plasma',
+              color: '#FF00FF',
+              homing: true
+            }
+          );
+        } else if (player.power === 3) {
+          newBullets.push(
+            {
+              x: x,
+              y: y - 25,
+              vy: -BULLET_SPEED * 1.5,
+              type: 'player',
+              damage: weaponDamage * 1.5,
+              weaponType: 'plasma',
+              color: '#FF00FF',
+              homing: true
+            },
+            {
+              x: x - 15,
+              y: y - 20,
+              vy: -BULLET_SPEED * 1.5,
+              type: 'player',
+              damage: weaponDamage * 1.5,
+              weaponType: 'plasma',
+              color: '#FF00FF',
+              homing: true
+            },
+            {
+              x: x + 15,
+              y: y - 20,
+              vy: -BULLET_SPEED * 1.5,
+              type: 'player',
+              damage: weaponDamage * 1.5,
+              weaponType: 'plasma',
+              color: '#FF00FF',
+              homing: true
+            }
+          );
+        }
+        break;
+        
+      case 'missile':
+        // Missile - explosive, high damage, slower
+        if (player.power === 1) {
+          newBullets.push({
+            x: x,
+            y: y - 25,
+            vy: -BULLET_SPEED * 0.8,
+            type: 'player',
+            damage: weaponDamage * 2,
+            weaponType: 'missile',
+            color: '#FFA500',
+            explosive: true,
+            explosionRadius: 50
+          });
+        } else if (player.power === 2) {
+          newBullets.push(
+            {
+              x: x - 10,
+              y: y - 25,
+              vy: -BULLET_SPEED * 0.8,
+              type: 'player',
+              damage: weaponDamage * 2,
+              weaponType: 'missile',
+              color: '#FFA500',
+              explosive: true,
+              explosionRadius: 50
+            },
+            {
+              x: x + 10,
+              y: y - 25,
+              vy: -BULLET_SPEED * 0.8,
+              type: 'player',
+              damage: weaponDamage * 2,
+              weaponType: 'missile',
+              color: '#FFA500',
+              explosive: true,
+              explosionRadius: 50
+            }
+          );
+        } else if (player.power === 3) {
+          newBullets.push(
+            {
+              x: x,
+              y: y - 25,
+              vy: -BULLET_SPEED * 0.8,
+              type: 'player',
+              damage: weaponDamage * 2,
+              weaponType: 'missile',
+              color: '#FFA500',
+              explosive: true,
+              explosionRadius: 50
+            },
+            {
+              x: x - 15,
+              y: y - 20,
+              vy: -BULLET_SPEED * 0.8,
+              type: 'player',
+              damage: weaponDamage * 2,
+              weaponType: 'missile',
+              color: '#FFA500',
+              explosive: true,
+              explosionRadius: 50
+            },
+            {
+              x: x + 15,
+              y: y - 20,
+              vy: -BULLET_SPEED * 0.8,
+              type: 'player',
+              damage: weaponDamage * 2,
+              weaponType: 'missile',
+              color: '#FFA500',
+              explosive: true,
+              explosionRadius: 50
+            }
+          );
+        }
+        break;
+        
+      case 'spread':
+        // Spread shot - multiple directions
+        if (player.power === 1) {
+          newBullets.push(
+            {
+              x: x,
+              y: y - 25,
+              vy: -BULLET_SPEED,
+              type: 'player',
+              damage: weaponDamage,
+              weaponType: 'spread',
+              color: '#00FF00'
+            },
+            {
+              x: x,
+              y: y - 25,
+              vx: -2,
+              vy: -BULLET_SPEED * 0.8,
+              type: 'player',
+              damage: weaponDamage,
+              weaponType: 'spread',
+              color: '#00FF00'
+            },
+            {
+              x: x,
+              y: y - 25,
+              vx: 2,
+              vy: -BULLET_SPEED * 0.8,
+              type: 'player',
+              damage: weaponDamage,
+              weaponType: 'spread',
+              color: '#00FF00'
+            }
+          );
+        } else if (player.power === 2) {
+          newBullets.push(
+            {
+              x: x - 10,
+              y: y - 25,
+              vy: -BULLET_SPEED,
+              type: 'player',
+              damage: weaponDamage,
+              weaponType: 'spread',
+              color: '#00FF00'
+            },
+            {
+              x: x + 10,
+              y: y - 25,
+              vy: -BULLET_SPEED,
+              type: 'player',
+              damage: weaponDamage,
+              weaponType: 'spread',
+              color: '#00FF00'
+            },
+            {
+              x: x - 15,
+              y: y - 20,
+              vx: -3,
+              vy: -BULLET_SPEED * 0.7,
+              type: 'player',
+              damage: weaponDamage,
+              weaponType: 'spread',
+              color: '#00FF00'
+            },
+            {
+              x: x + 15,
+              y: y - 20,
+              vx: 3,
+              vy: -BULLET_SPEED * 0.7,
+              type: 'player',
+              damage: weaponDamage,
+              weaponType: 'spread',
+              color: '#00FF00'
+            }
+          );
+        } else if (player.power === 3) {
+          newBullets.push(
+            {
+              x: x,
+              y: y - 25,
+              vy: -BULLET_SPEED,
+              type: 'player',
+              damage: weaponDamage,
+              weaponType: 'spread',
+              color: '#00FF00'
+            },
+            {
+              x: x - 15,
+              y: y - 20,
+              vx: -2,
+              vy: -BULLET_SPEED * 0.8,
+              type: 'player',
+              damage: weaponDamage,
+              weaponType: 'spread',
+              color: '#00FF00'
+            },
+            {
+              x: x + 15,
+              y: y - 20,
+              vx: 2,
+              vy: -BULLET_SPEED * 0.8,
+              type: 'player',
+              damage: weaponDamage,
+              weaponType: 'spread',
+              color: '#00FF00'
+            },
+            {
+              x: x - 25,
+              y: y - 20,
+              vx: -4,
+              vy: -BULLET_SPEED * 0.6,
+              type: 'player',
+              damage: weaponDamage,
+              weaponType: 'spread',
+              color: '#00FF00'
+            },
+            {
+              x: x + 25,
+              y: y - 20,
+              vx: 4,
+              vy: -BULLET_SPEED * 0.6,
+              type: 'player',
+              damage: weaponDamage,
+              weaponType: 'spread',
+              color: '#00FF00'
+            }
+          );
+        }
+        break;
     }
     
     setBullets(prev => [...prev, ...newBullets]);
@@ -984,24 +1420,26 @@ const VerticalShooter = () => {
   };
 
   const spawnPowerUp = () => {
-    const types = [
-      { type: 'gem', emoji: '💎', effect: 'score' },
-      { type: 'star', emoji: '⭐', effect: 'power' },
-      { type: 'heart', emoji: '❤️', effect: 'health' },
-      { type: 'bolt', emoji: '⚡', effect: 'rapid' },
-      { type: 'shield', emoji: '🛡️', effect: 'shield' }
+    const powerUpTypes = [
+      { type: 'health', color: '#00FF00', effect: 'restore' },
+      { type: 'power', color: '#FFD700', effect: 'upgrade' },
+      { type: 'rapidFire', color: '#FF00FF', effect: 'rapidFire' },
+      { type: 'weaponUpgrade', color: '#FF6600', effect: 'weaponUpgrade' },
+      { type: 'defenseShield', color: '#00FFFF', effect: 'defenseShield' },
+      { type: 'weaponSwitch', color: '#FF00FF', effect: 'weaponSwitch' }
     ];
     
-    const powerUp = types[Math.floor(Math.random() * types.length)];
+    const selectedType = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
     
-    const newPowerUp = {
+    const powerUp = {
       x: Math.random() * 700 + 50,
-      y: -30,
-      type: powerUp.type,
-      emoji: powerUp.emoji,
-      effect: powerUp.effect
+      y: -20,
+      vy: 2,
+      type: selectedType.type,
+      color: selectedType.color,
+      effect: selectedType.effect
     };
-    setPowerUps(prev => [...prev, newPowerUp]);
+    setPowerUps(prev => [...prev, powerUp]);
   };
 
   const checkCollisions = () => {
@@ -1073,10 +1511,26 @@ const VerticalShooter = () => {
       
       if (distance < 30 && !invincible) {
         setBullets(prev => prev.filter((_, i) => i !== bulletIndex));
-        setPlayer(prev => ({ ...prev, health: Math.max(0, prev.health - 15) }));
         
-        if (player.health <= 15) {
-          loseLife();
+        // Check if defense shield absorbs damage
+        if (player.has360Defense && player.defenseShield > 0) {
+          const shieldDamage = Math.min(15, player.defenseShield);
+          setPlayer(prev => ({ 
+            ...prev, 
+            defenseShield: Math.max(0, prev.defenseShield - shieldDamage)
+          }));
+          
+          // If shield is depleted, deactivate 360 defense
+          if (player.defenseShield <= 15) {
+            setPlayer(prev => ({ ...prev, has360Defense: false }));
+          }
+        } else {
+          // Direct damage to player
+          setPlayer(prev => ({ ...prev, health: Math.max(0, prev.health - 15) }));
+          
+          if (player.health <= 15) {
+            loseLife();
+          }
         }
         
         // Reset streak when hit
@@ -1090,12 +1544,28 @@ const VerticalShooter = () => {
       );
       
       if (distance < 45 && !invincible) {
-        setPlayer(prev => ({ ...prev, health: Math.max(0, prev.health - 25) }));
-        setEnemies(prev => prev.filter(e => e !== enemy));
-        
-        if (player.health <= 25) {
-          loseLife();
+        // Check if defense shield absorbs damage
+        if (player.has360Defense && player.defenseShield > 0) {
+          const shieldDamage = Math.min(25, player.defenseShield);
+          setPlayer(prev => ({ 
+            ...prev, 
+            defenseShield: Math.max(0, prev.defenseShield - shieldDamage)
+          }));
+          
+          // If shield is depleted, deactivate 360 defense
+          if (player.defenseShield <= 25) {
+            setPlayer(prev => ({ ...prev, has360Defense: false }));
+          }
+        } else {
+          // Direct damage to player
+          setPlayer(prev => ({ ...prev, health: Math.max(0, prev.health - 25) }));
+          
+          if (player.health <= 25) {
+            loseLife();
+          }
         }
+        
+        setEnemies(prev => prev.filter(e => e !== enemy));
         
         // Reset streak when hit
         setGameStats(prev => ({ ...prev, streak: 0 }));
@@ -1108,15 +1578,27 @@ const VerticalShooter = () => {
       );
       
       if (distance < 40) {
-        if (powerUp.effect === 'score') {
-          setScore(prev => prev + 500);
-        } else if (powerUp.effect === 'power') {
+        if (powerUp.effect === 'restore') {
+          setPlayer(prev => ({ ...prev, health: Math.min(100, prev.health + 30) }));
+        } else if (powerUp.effect === 'upgrade') {
           setPlayer(prev => ({ ...prev, power: Math.min(3, prev.power + 1) }));
-        } else if (powerUp.effect === 'health') {
-          setPlayer(prev => ({ ...prev, health: Math.min(100, prev.health + 40) }));
-        } else if (powerUp.effect === 'rapid') {
+        } else if (powerUp.effect === 'rapidFire') {
           setRapidFire(true);
           setRapidFireTimer(8); // 8 seconds of rapid fire
+        } else if (powerUp.effect === 'weaponUpgrade') {
+          setPlayer(prev => ({ ...prev, weaponLevel: Math.min(5, prev.weaponLevel + 1) }));
+        } else if (powerUp.effect === 'defenseShield') {
+          setPlayer(prev => ({ 
+            ...prev, 
+            defenseShield: Math.min(prev.maxDefenseShield, prev.defenseShield + 50) 
+          }));
+        } else if (powerUp.effect === 'weaponSwitch') {
+          // Randomly switch to a different weapon
+          const weaponTypes = ['laser', 'plasma', 'missile', 'spread'];
+          const currentWeapon = player.weaponType;
+          const availableWeapons = weaponTypes.filter(w => w !== currentWeapon);
+          const newWeapon = availableWeapons[Math.floor(Math.random() * availableWeapons.length)];
+          switchWeapon(newWeapon);
         }
         
         setPowerUps(prev => prev.filter((_, i) => i !== index));
@@ -1199,10 +1681,26 @@ const VerticalShooter = () => {
       
       if (distance < asteroid.size / 2 + 25 && !invincible) {
         setAsteroids(prev => prev.filter((_, i) => i !== index));
-        setPlayer(prev => ({ ...prev, health: Math.max(0, prev.health - 20) }));
         
-        if (player.health <= 20) {
-          loseLife();
+        // Check if defense shield absorbs damage
+        if (player.has360Defense && player.defenseShield > 0) {
+          const shieldDamage = Math.min(20, player.defenseShield);
+          setPlayer(prev => ({ 
+            ...prev, 
+            defenseShield: Math.max(0, prev.defenseShield - shieldDamage)
+          }));
+          
+          // If shield is depleted, deactivate 360 defense
+          if (player.defenseShield <= 20) {
+            setPlayer(prev => ({ ...prev, has360Defense: false }));
+          }
+        } else {
+          // Direct damage to player
+          setPlayer(prev => ({ ...prev, health: Math.max(0, prev.health - 20) }));
+          
+          if (player.health <= 20) {
+            loseLife();
+          }
         }
         
         // Reset streak when hit
@@ -1277,7 +1775,18 @@ const VerticalShooter = () => {
 
   const startGame = () => {
     setGameState('playing');
-    const initialPlayer = { x: 400, y: 500, health: 100, power: 1, lives: 25 };
+    const initialPlayer = { 
+      x: 400, 
+      y: 500, 
+      health: 100, 
+      power: 1, 
+      lives: 25,
+      weaponType: 'laser',
+      weaponLevel: 1,
+      defenseShield: 100,
+      maxDefenseShield: 100,
+      has360Defense: false
+    };
     setPlayer(initialPlayer);
     playerRef.current = initialPlayer;
     setBullets([]);
@@ -1308,6 +1817,180 @@ const VerticalShooter = () => {
       streak: 0,
       maxStreak: 0
     });
+  };
+
+  // 360-degree defense system
+  const activate360Defense = () => {
+    if (player.defenseShield > 0) {
+      setPlayer(prev => ({ ...prev, has360Defense: true }));
+      
+      // Create defensive particles around the player
+      const defenseParticles = [];
+      for (let i = 0; i < 12; i++) {
+        const angle = (i / 12) * Math.PI * 2;
+        const radius = 40;
+        defenseParticles.push({
+          x: player.x + Math.cos(angle) * radius,
+          y: player.y + Math.sin(angle) * radius,
+          vx: Math.cos(angle) * 2,
+          vy: Math.sin(angle) * 2,
+          life: 60,
+          maxLife: 60,
+          type: 'defense',
+          color: '#00FFFF'
+        });
+      }
+      setParticles(prev => [...prev, ...defenseParticles]);
+    }
+  };
+
+  // Weapon switching system
+  const switchWeapon = (newWeaponType) => {
+    const weaponTypes = ['laser', 'plasma', 'missile', 'spread'];
+    const currentIndex = weaponTypes.indexOf(player.weaponType);
+    let newIndex;
+    
+    if (newWeaponType === 'next') {
+      newIndex = (currentIndex + 1) % weaponTypes.length;
+    } else if (newWeaponType === 'prev') {
+      newIndex = (currentIndex - 1 + weaponTypes.length) % weaponTypes.length;
+    } else {
+      newIndex = weaponTypes.indexOf(newWeaponType);
+    }
+    
+    if (newIndex !== -1) {
+      setPlayer(prev => ({ ...prev, weaponType: weaponTypes[newIndex] }));
+      
+      // Create weapon switch effect
+      createWeaponSwitchEffect(weaponTypes[newIndex]);
+    }
+  };
+
+  const createWeaponSwitchEffect = (weaponType) => {
+    const colors = {
+      laser: '#00FFFF',
+      plasma: '#FF00FF',
+      missile: '#FFA500',
+      spread: '#00FF00'
+    };
+    
+    const effectParticles = [];
+    for (let i = 0; i < 8; i++) {
+      effectParticles.push({
+        x: player.x + (Math.random() - 0.5) * 60,
+        y: player.y + (Math.random() - 0.5) * 60,
+        vx: (Math.random() - 0.5) * 4,
+        vy: (Math.random() - 0.5) * 4,
+        life: 30,
+        maxLife: 30,
+        type: 'weaponSwitch',
+        color: colors[weaponType] || '#FFFFFF'
+      });
+    }
+    setParticles(prev => [...prev, ...effectParticles]);
+  };
+
+  // Enhanced bullet drawing with weapon types
+  const drawBullet = (ctx, bullet) => {
+    ctx.save();
+    
+    if (bullet.weaponType === 'laser') {
+      // Laser beam effect
+      ctx.strokeStyle = bullet.color || '#00FFFF';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(bullet.x, bullet.y);
+      ctx.lineTo(bullet.x, bullet.y + 15);
+      ctx.stroke();
+      
+      // Glow effect
+      ctx.shadowColor = bullet.color || '#00FFFF';
+      ctx.shadowBlur = 10;
+      ctx.stroke();
+    } else if (bullet.weaponType === 'plasma') {
+      // Plasma orb
+      ctx.fillStyle = bullet.color || '#FF00FF';
+      ctx.beginPath();
+      ctx.arc(bullet.x, bullet.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Plasma trail
+      ctx.globalAlpha = 0.6;
+      ctx.beginPath();
+      ctx.arc(bullet.x, bullet.y + 8, 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 0.3;
+      ctx.beginPath();
+      ctx.arc(bullet.x, bullet.y + 16, 1, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (bullet.weaponType === 'missile') {
+      // Missile with trail
+      ctx.fillStyle = bullet.color || '#FFA500';
+      ctx.beginPath();
+      ctx.arc(bullet.x, bullet.y, 3, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Missile trail
+      ctx.strokeStyle = '#FFD700';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(bullet.x, bullet.y);
+      ctx.lineTo(bullet.x, bullet.y + 12);
+      ctx.stroke();
+    } else if (bullet.weaponType === 'spread') {
+      // Spread shot
+      ctx.fillStyle = bullet.color || '#00FF00';
+      ctx.beginPath();
+      ctx.arc(bullet.x, bullet.y, 2, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // Default bullet
+      ctx.fillStyle = bullet.color || '#FFFFFF';
+      ctx.beginPath();
+      ctx.arc(bullet.x, bullet.y, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    ctx.restore();
+  };
+
+  // Draw 360 defense shield
+  const drawDefenseShield = (ctx) => {
+    if (player.has360Defense && player.defenseShield > 0) {
+      ctx.save();
+      
+      // Shield effect
+      ctx.strokeStyle = '#00FFFF';
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = 0.6;
+      
+      // Multiple shield rings
+      for (let i = 0; i < 3; i++) {
+        const radius = 35 + i * 5;
+        const alpha = 0.8 - i * 0.2;
+        ctx.globalAlpha = alpha;
+        
+        ctx.beginPath();
+        ctx.arc(player.x, player.y, radius, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      
+      // Shield particles
+      ctx.globalAlpha = 0.8;
+      for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2 + (Date.now() / 1000);
+        const radius = 40;
+        const x = player.x + Math.cos(angle) * radius;
+        const y = player.y + Math.sin(angle) * radius;
+        
+        ctx.fillStyle = '#00FFFF';
+        ctx.beginPath();
+        ctx.arc(x, y, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      ctx.restore();
+    }
   };
 
   if (gameState === 'menu') {
@@ -1366,6 +2049,15 @@ const VerticalShooter = () => {
             <p>🎯 Complete challenges for rewards!</p>
             <p>📱 Touch controls work on mobile devices!</p>
             <p>⚠️ Watch out for enemy bullets!</p>
+          </div>
+          <div className="game-instructions">
+            <h3>🎮 How to Play</h3>
+            <p><strong>Movement:</strong> Use WASD or Arrow Keys to move your ship</p>
+            <p><strong>Shooting:</strong> Press SPACEBAR to shoot</p>
+            <p><strong>Weapons:</strong> Press 1-4 to switch between weapon types</p>
+            <p><strong>Defense:</strong> Press D to activate 360° defense shield</p>
+            <p><strong>Rapid Fire:</strong> Collect power-ups for temporary rapid fire</p>
+            <p><strong>Objective:</strong> Destroy enemies, asteroids, and survive as long as possible!</p>
           </div>
         </div>
       </div>
