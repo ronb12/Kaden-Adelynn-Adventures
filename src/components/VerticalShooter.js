@@ -9,14 +9,29 @@ const VerticalShooter = () => {
   const [score, setScore] = useState(0);
   const [level, setLevel] = useState(1);
   const [highScore, setHighScore] = useState(0);
+  const [medals, setMedals] = useState({
+    bronze: 0,
+    silver: 0,
+    gold: 0
+  });
+  const [scoreHistory, setScoreHistory] = useState([]);
   const [keys, setKeys] = useState({});
   const [rapidFire, setRapidFire] = useState(false);
   const [rapidFireTimer, setRapidFireTimer] = useState(0);
+  const [asteroids, setAsteroids] = useState([]);
+  const [gameTime, setGameTime] = useState(0);
+  const [challenges, setChallenges] = useState([]);
+  const [currentChallenge, setCurrentChallenge] = useState(null);
+  const [touchControls, setTouchControls] = useState(false);
+  const [touchStart, setTouchStart] = useState({ x: 0, y: 0 });
+  const [invincible, setInvincible] = useState(false);
   const [gameStats, setGameStats] = useState({
     enemiesDestroyed: 0,
     powerUpsCollected: 0,
     shotsFired: 0,
-    accuracy: 0
+    accuracy: 0,
+    asteroidsDestroyed: 0,
+    challengesCompleted: 0
   });
   
   const canvasRef = useRef(null);
@@ -24,6 +39,7 @@ const VerticalShooter = () => {
   const lastShotRef = useRef(0);
   const enemyShotTimerRef = useRef(0);
   const rapidFireIntervalRef = useRef(null);
+  const playerRef = useRef({ x: 400, y: 500, health: 100, power: 1, lives: 25 });
 
   const PLAYER_SPEED = 6;
   const BULLET_SPEED = 10;
@@ -37,6 +53,60 @@ const VerticalShooter = () => {
       setHighScore(parseInt(savedHighScore));
     }
   }, []);
+
+  // Touch controls for mobile devices
+  useEffect(() => {
+    const handleTouchStart = (e) => {
+      if (gameState === 'playing') {
+        const touch = e.touches[0];
+        const rect = e.target.getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+        
+        setTouchStart({ x, y });
+        setTouchControls(true);
+        
+        // Shoot on touch
+        shoot();
+      }
+    };
+
+    const handleTouchMove = (e) => {
+      if (gameState === 'playing' && touchControls) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const rect = e.target.getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+        
+        // Move player to touch position
+        const newX = Math.max(25, Math.min(775, x));
+        const newY = Math.max(25, Math.min(575, y));
+        
+        setPlayer(prev => ({ ...prev, x: newX, y: newY }));
+        playerRef.current = { ...playerRef.current, x: newX, y: newY };
+      }
+    };
+
+    const handleTouchEnd = () => {
+      setTouchControls(false);
+    };
+
+    const canvas = canvasRef.current;
+    if (canvas) {
+      canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+      canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+      canvas.addEventListener('touchend', handleTouchEnd);
+    }
+
+    return () => {
+      if (canvas) {
+        canvas.removeEventListener('touchstart', handleTouchStart);
+        canvas.removeEventListener('touchmove', handleTouchMove);
+        canvas.removeEventListener('touchend', handleTouchEnd);
+      }
+    };
+  }, [gameState, touchControls]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -65,7 +135,10 @@ const VerticalShooter = () => {
   useEffect(() => {
     if (rapidFire && gameState === 'playing') {
       rapidFireIntervalRef.current = setInterval(() => {
-        shoot();
+        // Use a ref to get the current player position without state updates
+        if (playerRef.current) {
+          shootFromPosition(playerRef.current.x, playerRef.current.y);
+        }
       }, RAPID_FIRE_DELAY);
     } else {
       if (rapidFireIntervalRef.current) {
@@ -114,7 +187,10 @@ const VerticalShooter = () => {
         newX = Math.max(25, Math.min(775, newX));
         newY = Math.max(25, Math.min(575, newY));
 
-        return { ...prev, x: newX, y: newY };
+        const newPlayer = { ...prev, x: newX, y: newY };
+        // Update the ref with current position for rapid fire
+        playerRef.current = newPlayer;
+        return newPlayer;
       });
 
       setBullets(prev => 
@@ -153,6 +229,15 @@ const VerticalShooter = () => {
           }))
       );
 
+      setAsteroids(prev => 
+        prev.filter(asteroid => asteroid.y < 610)
+          .map(asteroid => ({
+            ...asteroid,
+            y: asteroid.y + asteroid.speed,
+            rotation: asteroid.rotation + asteroid.rotationSpeed
+          }))
+      );
+
       if (Math.random() < 0.03) {
         spawnEnemy();
       }
@@ -160,6 +245,31 @@ const VerticalShooter = () => {
       if (Math.random() < 0.008) {
         spawnPowerUp();
       }
+
+      if (Math.random() < 0.02) {
+        spawnAsteroid();
+      }
+
+      // Generate new challenge if none exists
+      if (!currentChallenge && Math.random() < 0.005) {
+        generateChallenge();
+      }
+
+      // Update game time for survival challenges
+      setGameTime(prev => {
+        const newTime = prev + 1;
+        
+        // Check survival challenge
+        if (currentChallenge && currentChallenge.type === 'survive') {
+          if (newTime >= currentChallenge.target) {
+            setScore(prev => prev + currentChallenge.reward);
+            setGameStats(prev => ({ ...prev, challengesCompleted: prev.challengesCompleted + 1 }));
+            setCurrentChallenge(null);
+          }
+        }
+        
+        return newTime;
+      });
 
       checkCollisions();
 
@@ -196,6 +306,10 @@ const VerticalShooter = () => {
 
     enemies.forEach(enemy => {
       drawTriangle(ctx, enemy.x, enemy.y, 20, '#E74C3C', '#C0392B');
+    });
+
+    asteroids.forEach(asteroid => {
+      drawAsteroid(ctx, asteroid.x, asteroid.y, asteroid.size, asteroid.rotation);
     });
 
     bullets.forEach(bullet => {
@@ -238,6 +352,35 @@ const VerticalShooter = () => {
     ctx.stroke();
   };
 
+  const drawAsteroid = (ctx, x, y, size, rotation) => {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rotation);
+    
+    ctx.fillStyle = '#8B4513';
+    ctx.strokeStyle = '#654321';
+    ctx.lineWidth = 2;
+    
+    ctx.beginPath();
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2;
+      const radius = size * (0.7 + Math.sin(i * 0.5) * 0.3);
+      const px = Math.cos(angle) * radius;
+      const py = Math.sin(angle) * radius;
+      
+      if (i === 0) {
+        ctx.moveTo(px, py);
+      } else {
+        ctx.lineTo(px, py);
+      }
+    }
+    ctx.closePath();
+    
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  };
+
   const drawStarfield = (ctx) => {
     ctx.fillStyle = '#000033';
     ctx.fillRect(0, 0, 800, 600);
@@ -257,10 +400,10 @@ const VerticalShooter = () => {
 
   const drawProfessionalUI = (ctx) => {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-    ctx.fillRect(10, 10, 780, 80);
+    ctx.fillRect(10, 10, 780, 170);
     ctx.strokeStyle = '#00FFFF';
     ctx.lineWidth = 2;
-    ctx.strokeRect(10, 10, 780, 80);
+    ctx.strokeRect(10, 10, 780, 170);
 
     ctx.fillStyle = '#FFFFFF';
     ctx.font = 'bold 24px Arial';
@@ -287,23 +430,73 @@ const VerticalShooter = () => {
     ctx.font = 'bold 14px Arial';
     ctx.fillText(`POWER: ${player.power}/3`, 500, 62);
 
-    // Lives display
+    // Lives display - moved to avoid overlap
     ctx.fillStyle = '#FF69B4';
     ctx.font = 'bold 16px Arial';
-    ctx.fillText(`LIVES: ${player.lives}`, 20, 35);
+    ctx.fillText(`LIVES: ${player.lives}`, 20, 85);
     
-    // Rapid fire status
+    // Rapid fire status - moved to avoid overlap
     if (rapidFire) {
       ctx.fillStyle = '#FF00FF';
       ctx.font = 'bold 14px Arial';
-      ctx.fillText(`RAPID FIRE: ${rapidFireTimer}s`, 20, 55);
+      ctx.fillText(`RAPID FIRE: ${rapidFireTimer}s`, 20, 105);
+    }
+    
+    // Invincibility status
+    if (invincible) {
+      ctx.fillStyle = '#00FF00';
+      ctx.font = 'bold 14px Arial';
+      ctx.fillText(`INVINCIBLE!`, 20, 125);
     }
 
     ctx.fillStyle = '#00FFFF';
     ctx.font = 'bold 12px Arial';
-    ctx.fillText(`ENEMIES DESTROYED: ${gameStats.enemiesDestroyed}`, 20, 85);
-    ctx.fillText(`POWER-UPS: ${gameStats.powerUpsCollected}`, 200, 85);
-    ctx.fillText(`ACCURACY: ${gameStats.accuracy}%`, 380, 85);
+    ctx.fillText(`ENEMIES: ${gameStats.enemiesDestroyed}`, 20, 145);
+    ctx.fillText(`ASTEROIDS: ${gameStats.asteroidsDestroyed}`, 150, 145);
+    ctx.fillText(`POWER-UPS: ${gameStats.powerUpsCollected}`, 280, 145);
+    ctx.fillText(`ACCURACY: ${gameStats.accuracy}%`, 420, 145);
+    
+    // Display current challenge
+    if (currentChallenge) {
+      ctx.fillStyle = '#FFD700';
+      ctx.font = 'bold 14px Arial';
+      ctx.fillText(`CHALLENGE: ${currentChallenge.description}`, 20, 165);
+      ctx.fillText(`PROGRESS: ${currentChallenge.progress}/${currentChallenge.target}`, 20, 180);
+    }
+    
+    // Display medals
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 16px Arial';
+    ctx.fillText(`🥉 ${medals.bronze} 🥈 ${medals.silver} 🥇 ${medals.gold}`, 500, 145);
+  };
+
+  const shootFromPosition = (x, y) => {
+    const newBullets = [];
+    
+    if (player.power === 1) {
+      newBullets.push({
+        x: x,
+        y: y - 25,
+        vy: -BULLET_SPEED,
+        type: 'player'
+      });
+    }
+    else if (player.power === 2) {
+      newBullets.push(
+        { x: x - 10, y: y - 25, vy: -BULLET_SPEED, type: 'player' },
+        { x: x + 10, y: y - 25, vy: -BULLET_SPEED, type: 'player' }
+      );
+    }
+    else if (player.power === 3) {
+      newBullets.push(
+        { x: x, y: y - 25, vy: -BULLET_SPEED, type: 'player' },
+        { x: x - 15, y: y - 20, vy: -BULLET_SPEED, type: 'player' },
+        { x: x + 15, y: y - 20, vy: -BULLET_SPEED, type: 'player' }
+      );
+    }
+    
+    setBullets(prev => [...prev, ...newBullets]);
+    setGameStats(prev => ({ ...prev, shotsFired: prev.shotsFired + newBullets.length }));
   };
 
   const shoot = () => {
@@ -312,32 +505,8 @@ const VerticalShooter = () => {
     
     lastShotRef.current = now;
     
-    const newBullets = [];
-    
-    if (player.power === 1) {
-      newBullets.push({
-        x: player.x,
-        y: player.y - 25,
-        vy: -BULLET_SPEED,
-        type: 'player'
-      });
-    }
-    else if (player.power === 2) {
-      newBullets.push(
-        { x: player.x - 10, y: player.y - 25, vy: -BULLET_SPEED, type: 'player' },
-        { x: player.x + 10, y: player.y - 25, vy: -BULLET_SPEED, type: 'player' }
-      );
-    }
-    else if (player.power === 3) {
-      newBullets.push(
-        { x: player.x, y: player.y - 25, vy: -BULLET_SPEED, type: 'player' },
-        { x: player.x - 15, y: player.y - 20, vy: -BULLET_SPEED, type: 'player' },
-        { x: player.x + 15, y: player.y - 20, vy: -BULLET_SPEED, type: 'player' }
-      );
-    }
-    
-    setBullets(prev => [...prev, ...newBullets]);
-    setGameStats(prev => ({ ...prev, shotsFired: prev.shotsFired + newBullets.length }));
+    // Use current player position for accurate bullet placement
+    shootFromPosition(playerRef.current.x, playerRef.current.y);
   };
 
   const spawnEnemyBullet = (x, y) => {
@@ -359,6 +528,34 @@ const VerticalShooter = () => {
       lastShot: 0
     };
     setEnemies(prev => [...prev, enemy]);
+  };
+
+  const spawnAsteroid = () => {
+    const asteroid = {
+      x: Math.random() * 700 + 50,
+      y: -40,
+      size: Math.random() * 30 + 20,
+      speed: Math.random() * 2 + 1,
+      rotation: 0,
+      rotationSpeed: (Math.random() - 0.5) * 0.1
+    };
+    setAsteroids(prev => [...prev, asteroid]);
+  };
+
+  const generateChallenge = () => {
+    const challengeTypes = [
+      { type: 'destroy', target: 10, description: 'Destroy 10 enemies', reward: 500 },
+      { type: 'survive', target: 30, description: 'Survive 30 seconds', reward: 300 },
+      { type: 'accuracy', target: 80, description: 'Achieve 80% accuracy', reward: 400 },
+      { type: 'asteroids', target: 5, description: 'Destroy 5 asteroids', reward: 600 }
+    ];
+    
+    const challenge = challengeTypes[Math.floor(Math.random() * challengeTypes.length)];
+    setCurrentChallenge({
+      ...challenge,
+      progress: 0,
+      completed: false
+    });
   };
 
   const spawnPowerUp = () => {
@@ -396,6 +593,18 @@ const VerticalShooter = () => {
           setEnemies(prev => prev.filter((_, i) => i !== enemyIndex));
           setScore(prev => prev + 100);
           setGameStats(prev => ({ ...prev, enemiesDestroyed: prev.enemiesDestroyed + 1 }));
+          
+          // Update challenge progress
+          if (currentChallenge && currentChallenge.type === 'destroy') {
+            const newProgress = currentChallenge.progress + 1;
+            if (newProgress >= currentChallenge.target) {
+              setScore(prev => prev + currentChallenge.reward);
+              setGameStats(prev => ({ ...prev, challengesCompleted: prev.challengesCompleted + 1 }));
+              setCurrentChallenge(null);
+            } else {
+              setCurrentChallenge(prev => ({ ...prev, progress: newProgress }));
+            }
+          }
         }
       });
     });
@@ -407,7 +616,7 @@ const VerticalShooter = () => {
         Math.pow(bullet.x - player.x, 2) + Math.pow(bullet.y - player.y, 2)
       );
       
-      if (distance < 30) {
+      if (distance < 30 && !invincible) {
         setBullets(prev => prev.filter((_, i) => i !== bulletIndex));
         setPlayer(prev => ({ ...prev, health: Math.max(0, prev.health - 15) }));
         
@@ -422,7 +631,7 @@ const VerticalShooter = () => {
         Math.pow(player.x - enemy.x, 2) + Math.pow(player.y - enemy.y, 2)
       );
       
-      if (distance < 45) {
+      if (distance < 45 && !invincible) {
         setPlayer(prev => ({ ...prev, health: Math.max(0, prev.health - 25) }));
         setEnemies(prev => prev.filter(e => e !== enemy));
         
@@ -446,11 +655,57 @@ const VerticalShooter = () => {
           setPlayer(prev => ({ ...prev, health: Math.min(100, prev.health + 40) }));
         } else if (powerUp.effect === 'rapid') {
           setRapidFire(true);
-          setRapidFireTimer(3); // 3 seconds of rapid fire
+          setRapidFireTimer(8); // 8 seconds of rapid fire
         }
         
         setPowerUps(prev => prev.filter((_, i) => i !== index));
         setGameStats(prev => ({ ...prev, powerUpsCollected: prev.powerUpsCollected + 1 }));
+      }
+    });
+
+    // Check bullet collisions with asteroids
+    bullets.forEach((bullet, bulletIndex) => {
+      if (bullet.type !== 'player') return;
+      
+      asteroids.forEach((asteroid, asteroidIndex) => {
+        const distance = Math.sqrt(
+          Math.pow(bullet.x - asteroid.x, 2) + Math.pow(bullet.y - asteroid.y, 2)
+        );
+        
+        if (distance < asteroid.size / 2 + 4) {
+          setBullets(prev => prev.filter((_, i) => i !== bulletIndex));
+          setAsteroids(prev => prev.filter((_, i) => i !== asteroidIndex));
+          setScore(prev => prev + 200);
+          setGameStats(prev => ({ ...prev, asteroidsDestroyed: prev.asteroidsDestroyed + 1 }));
+          
+          // Update challenge progress
+          if (currentChallenge && currentChallenge.type === 'asteroids') {
+            const newProgress = currentChallenge.progress + 1;
+            if (newProgress >= currentChallenge.target) {
+              setScore(prev => prev + currentChallenge.reward);
+              setGameStats(prev => ({ ...prev, challengesCompleted: prev.challengesCompleted + 1 }));
+              setCurrentChallenge(null);
+            } else {
+              setCurrentChallenge(prev => ({ ...prev, progress: newProgress }));
+            }
+          }
+        }
+      });
+    });
+
+    // Check player collision with asteroids
+    asteroids.forEach((asteroid, index) => {
+      const distance = Math.sqrt(
+        Math.pow(player.x - asteroid.x, 2) + Math.pow(player.y - asteroid.y, 2)
+      );
+      
+      if (distance < asteroid.size / 2 + 25 && !invincible) {
+        setAsteroids(prev => prev.filter((_, i) => i !== index));
+        setPlayer(prev => ({ ...prev, health: Math.max(0, prev.health - 20) }));
+        
+        if (player.health <= 20) {
+          loseLife();
+        }
       }
     });
 
@@ -463,34 +718,83 @@ const VerticalShooter = () => {
   };
 
   const loseLife = () => {
-    setPlayer(prev => ({ ...prev, lives: prev.lives - 1, health: 100 }));
+    setPlayer(prev => {
+      const newLives = prev.lives - 1;
+      const newPlayer = { ...prev, lives: newLives, health: 100 };
+      
+      // Check if this was the last life
+      if (newLives <= 0) {
+        gameOver();
+      }
+      
+      return newPlayer;
+    });
     
-    if (player.lives <= 1) {
-      gameOver();
+    // Add brief invincibility period
+    setInvincible(true);
+    setTimeout(() => setInvincible(false), 2000); // 2 seconds of invincibility
+  };
+
+  const calculateMedal = (score) => {
+    if (score >= 10000) return 'gold';
+    if (score >= 5000) return 'silver';
+    if (score >= 2000) return 'bronze';
+    return null;
+  };
+
+  const awardMedal = (medalType) => {
+    if (medalType) {
+      setMedals(prev => ({
+        ...prev,
+        [medalType]: prev[medalType] + 1
+      }));
+      localStorage.setItem(`kadenAdelynnSpaceAdventuresMedal_${medalType}`, 
+        (medals[medalType] + 1).toString());
     }
   };
 
   const gameOver = () => {
+    // Update high score and history
+    const newScoreHistory = [...scoreHistory, { score, date: new Date().toISOString() }]
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10); // Keep top 10 scores
+    
+    setScoreHistory(newScoreHistory);
+    localStorage.setItem('kadenAdelynnSpaceAdventuresScoreHistory', JSON.stringify(newScoreHistory));
+    
     if (score > highScore) {
       setHighScore(score);
       localStorage.setItem('kadenAdelynnSpaceAdventuresHighScore', score.toString());
     }
+    
+    // Award medal
+    const medal = calculateMedal(score);
+    awardMedal(medal);
+    
     setGameState('gameOver');
   };
 
   const startGame = () => {
     setGameState('playing');
-    setPlayer({ x: 400, y: 500, health: 100, power: 1, lives: 25 });
+    const initialPlayer = { x: 400, y: 500, health: 100, power: 1, lives: 25 };
+    setPlayer(initialPlayer);
+    playerRef.current = initialPlayer;
     setBullets([]);
     setEnemies([]);
     setPowerUps([]);
+    setAsteroids([]);
+    setCurrentChallenge(null);
     setScore(0);
     setLevel(1);
+    setGameTime(0);
+    setInvincible(false);
     setGameStats({
       enemiesDestroyed: 0,
       powerUpsCollected: 0,
       shotsFired: 0,
-      accuracy: 0
+      accuracy: 0,
+      asteroidsDestroyed: 0,
+      challengesCompleted: 0
     });
   };
 
@@ -517,11 +821,12 @@ const VerticalShooter = () => {
             🚀 Kaden & Adelynn Space Adventures 🚀
           </h1>
           <p style={{ fontSize: '20px', color: '#FFF', marginBottom: '30px' }}>
-            Epic space adventure with triangle ships and power-ups!
+            Epic space adventure with asteroids, challenges, and medals!
           </p>
           <div style={{ marginBottom: '20px', color: '#FFD700' }}>
             <p style={{ fontSize: '18px' }}>🏆 High Score: {highScore.toLocaleString()}</p>
             <p style={{ fontSize: '16px', color: '#FF69B4' }}>💖 You have 25 lives to complete your mission!</p>
+            <p style={{ fontSize: '14px', color: '#FFD700' }}>🥉 Bronze: 2000+ 🥈 Silver: 5000+ 🥇 Gold: 10000+</p>
           </div>
           <button 
             onClick={startGame}
@@ -545,6 +850,9 @@ const VerticalShooter = () => {
             <p><strong>SPACEBAR</strong> - Fire weapons</p>
             <p>💎 Collect emojis for power-ups!</p>
             <p>⚡ Rapid Fire power-up gives you super-fast shooting!</p>
+            <p>🌌 Destroy asteroids for bonus points!</p>
+            <p>🎯 Complete challenges for rewards!</p>
+            <p>📱 Touch controls work on mobile devices!</p>
             <p>⚠️ Watch out for enemy bullets!</p>
           </div>
         </div>
@@ -579,6 +887,8 @@ const VerticalShooter = () => {
             <p style={{ fontSize: '18px', marginBottom: '10px' }}>Level Reached: {level}</p>
             <p style={{ fontSize: '16px', marginBottom: '10px' }}>Lives Remaining: {player.lives}</p>
             <p style={{ fontSize: '16px', marginBottom: '10px' }}>Enemies Destroyed: {gameStats.enemiesDestroyed}</p>
+            <p style={{ fontSize: '16px', marginBottom: '10px' }}>Asteroids Destroyed: {gameStats.asteroidsDestroyed}</p>
+            <p style={{ fontSize: '16px', marginBottom: '10px' }}>Challenges Completed: {gameStats.challengesCompleted}</p>
             <p style={{ fontSize: '16px', marginBottom: '10px' }}>Power-ups Collected: {gameStats.powerUpsCollected}</p>
             <p style={{ fontSize: '16px', marginBottom: '10px' }}>Accuracy: {gameStats.accuracy}%</p>
             {score > highScore && (

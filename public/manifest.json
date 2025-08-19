@@ -1,6 +1,7 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Space Adventures",
+  "name": "Kaden & Adelynn Space Adventures",
+  "description": "Epic space shooter game with asteroids, challenges, and medals",
   "icons": [
     {
       "src": "favicon.ico",
@@ -20,6 +21,9 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#000033",
+  "background_color": "#000066",
+  "orientation": "landscape",
+  "categories": ["games", "entertainment"],
+  "lang": "en"
 }
