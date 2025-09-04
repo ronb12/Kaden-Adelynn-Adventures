@@ -379,7 +379,7 @@ const Game = () => {
     // Start background music
     startBackgroundMusic();
     gameRef.current = {
-      player: { x: 0, y: 0, width: 40, height: 40, speed: 5, health: 25, maxHealth: 25 },
+      player: { x: 0, y: 0, width: 40, height: 40, speed: 5, health: 100, maxHealth: 100, lives: 25, maxLives: 25 },
       bullets: [],
       enemies: [],
       enemyBullets: [],
@@ -559,7 +559,8 @@ const Game = () => {
 
     // Handle input (keyboard + touch)
     const difficultySettings = getDifficultySettings();
-    const playerSpeed = difficultySettings.playerSpeed + (playerPowerUps.speed * 2);
+    const basePlayerSpeed = difficultySettings.playerSpeed + (playerPowerUps.speed * 2);
+    const playerSpeed = basePlayerSpeed * (cappedDeltaTime / targetFrameTime); // Make movement frame-rate independent
     
     // Pause/Resume with P key
     if (game.keys['p'] || game.keys['P']) {
@@ -1483,7 +1484,8 @@ const Game = () => {
     });
 
     // Check player collision with enemies
-    if (playerPowerUps.shield === 0 && !game.shieldActive) { // Only take damage if no shield
+    const isInvincible = game.respawnInvincible && Date.now() < game.respawnInvincible;
+    if (playerPowerUps.shield === 0 && !game.shieldActive && !isInvincible) { // Only take damage if no shield and not invincible
       game.enemies.forEach((enemy, enemyIndex) => {
         if (game.player.x < enemy.x + enemy.width &&
             game.player.x + game.player.width > enemy.x &&
@@ -1538,8 +1540,9 @@ const Game = () => {
         }
       });
 
-      // Check player collision with enemy bullets
-      game.enemyBullets.forEach((bullet, bulletIndex) => {
+      // Check player collision with enemy bullets (only if not invincible)
+      if (!isInvincible) {
+        game.enemyBullets.forEach((bullet, bulletIndex) => {
         if (game.player.x < bullet.x + bullet.width &&
             game.player.x + game.player.width > bullet.x &&
             game.player.y < bullet.y + bullet.height &&
@@ -1602,7 +1605,8 @@ const Game = () => {
             }
           }
         }
-      });
+        });
+      }
     }
 
     // Update particles
