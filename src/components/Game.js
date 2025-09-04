@@ -560,7 +560,7 @@ const Game = () => {
     // Handle input (keyboard + touch)
     const difficultySettings = getDifficultySettings();
     const basePlayerSpeed = difficultySettings.playerSpeed + (playerPowerUps.speed * 2);
-    const playerSpeed = basePlayerSpeed * (cappedDeltaTime / targetFrameTime); // Make movement frame-rate independent
+    const playerSpeed = basePlayerSpeed * (cappedDeltaTime / 16.67); // Frame-rate independent movement
     
     // Pause/Resume with P key
     if (game.keys['p'] || game.keys['P']) {
@@ -1540,9 +1540,8 @@ const Game = () => {
         }
       });
 
-      // Check player collision with enemy bullets (only if not invincible)
-      if (!isInvincible) {
-        game.enemyBullets.forEach((bullet, bulletIndex) => {
+      // Check player collision with enemy bullets
+      game.enemyBullets.forEach((bullet, bulletIndex) => {
         if (game.player.x < bullet.x + bullet.width &&
             game.player.x + game.player.width > bullet.x &&
             game.player.y < bullet.y + bullet.height &&
@@ -1550,14 +1549,14 @@ const Game = () => {
           // Take damage from enemy bullet
           game.enemyBullets.splice(bulletIndex, 1);
           
-          // Shield absorbs damage
+          // Shield or invincibility absorbs damage
           if (game.shieldActive && game.shieldEnergy > 0) {
             game.shieldEnergy -= 20;
             if (game.shieldEnergy <= 0) {
               game.shieldActive = false;
               game.shieldEnergy = 0;
             }
-          } else {
+          } else if (!isInvincible) {
           gameRef.current.player.health--;
             // Reset combo and streak on damage
             game.combo = 0;
@@ -1605,8 +1604,7 @@ const Game = () => {
             }
           }
         }
-        });
-      }
+      });
     }
 
     // Update particles
