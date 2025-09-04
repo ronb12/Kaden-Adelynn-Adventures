@@ -5,7 +5,7 @@ An epic space shooter game built with React, featuring advanced gameplay mechani
 ## 🌟 Game Features
 
 ### 🎮 Core Gameplay
-* **25 Health Points System**: Players start with 25 health for extended gameplay
+* **25 Lives System**: Players start with 25 lives, each with 100 health points
 * **6 Weapon Types**: Laser, Plasma, Missile, Beam, Spread, and Homing weapons
 * **Multi-Shot Power-up**: Fire 4 bullets side-by-side for devastating attacks
 * **Wing Fighter System**: Deploy up to 2 drone ships that fight alongside you
@@ -42,6 +42,14 @@ An epic space shooter game built with React, featuring advanced gameplay mechani
 
 ## 🎮 How to Play
 
+### 💫 Lives & Health System
+* **25 Lives**: Start with 25 lives total
+* **100 Health Per Life**: Each life has 100 health points
+* **Respawn Mechanics**: When health reaches 0, lose 1 life and respawn with full health
+* **Game Over**: Only when all 25 lives are exhausted
+* **Invincibility**: 2-second invincibility period after each respawn
+* **Extra Lives**: Collect rare 👤 life power-ups to gain additional lives
+
 ### Controls
 * **Movement**: WASD or Arrow Keys (Desktop) / Touch and drag (Mobile)
 * **Shooting**: SPACEBAR (Desktop) / Automatic on mobile
@@ -51,7 +59,8 @@ An epic space shooter game built with React, featuring advanced gameplay mechani
 ### Power-ups & Collectibles
 * **💎 Score Boost**: +500 points
 * **⭐ Power Upgrade**: Increases weapon effectiveness
-* **❤️ Health**: Restores +40 health points
+* **❤️ Health**: Restores health points
+* **👤 Extra Life**: Grants an additional life (rare)
 * **⚡ Rapid Fire**: 3 seconds of super-fast shooting
 * **🛡️ Shield**: Temporary invincibility
 * **🔫⚡💥🔮🎯🎪 Weapon Collectibles**: Unlock different weapon types
@@ -159,7 +168,14 @@ firebase deploy --only hosting
 
 ## 🚀 Recent Updates
 
-### Version 2.1 (Current)
+### Version 2.2 (Current)
+* ✅ **25 Lives System**: Players now have 25 lives with 100 health each
+* ✅ **Extra Life Power-ups**: Rare golden life collectibles
+* ✅ **Enhanced Mobile Controls**: Direct touch-to-move with automatic shooting
+* ✅ **Respawn Mechanics**: Lose a life when health depletes, respawn with full health
+* ✅ **Lives Display**: Clear UI showing both lives remaining and current health
+
+### Version 2.1
 * ✅ Enhanced mobile touch controls with velocity-based sensitivity
 * ✅ Wing fighters now look identical to main player ship
 * ✅ iOS-specific optimizations and haptic feedback
@@ -229,5 +245,5 @@ This project is a product of **Bradley Virtual Solutions, LLC**.
 * **Enemy Types**: 6 (Normal, Fast, Strong, Zigzag, Kamikaze, Shooter)
 * **Achievements**: 15+ unlockable
 * **Power-ups**: 10+ different types
-* **Max Health**: 25 points
+* **Lives System**: 25 lives with 100 health each
 * **Max Wing Fighters**: 2 escort ships
