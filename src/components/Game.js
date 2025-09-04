@@ -177,7 +177,77 @@ const Game = () => {
     shield: 0,
     speed: 0
   });
-  const [currentWeapon, setCurrentWeapon] = useState('laser'); // 'laser', 'plasma', 'missile', 'beam', 'spread', 'homing'
+  const [currentWeapon, setCurrentWeapon] = useState('laser');
+  
+  // Comprehensive weapon system with 50+ weapons
+  const weaponTypes = {
+    // Basic Energy Weapons (1-10)
+    laser: { name: 'Laser', color: '#ffff00', damage: 10, speed: 8, size: [4, 10], fireRate: 150, spread: 0 },
+    plasma: { name: 'Plasma', color: '#00ffff', damage: 12, speed: 7, size: [6, 12], fireRate: 180, spread: 0 },
+    photon: { name: 'Photon', color: '#ff00ff', damage: 15, speed: 10, size: [3, 12], fireRate: 120, spread: 0 },
+    ion: { name: 'Ion Beam', color: '#8800ff', damage: 8, speed: 12, size: [2, 15], fireRate: 100, spread: 0 },
+    pulse: { name: 'Pulse', color: '#ff8800', damage: 14, speed: 6, size: [8, 8], fireRate: 200, spread: 0 },
+    beam: { name: 'Energy Beam', color: '#ff00ff', damage: 20, speed: 10, size: [16, 20], fireRate: 300, spread: 0 },
+    disruptor: { name: 'Disruptor', color: '#ff4400', damage: 18, speed: 9, size: [5, 14], fireRate: 160, spread: 0 },
+    phaser: { name: 'Phaser', color: '#00ff88', damage: 16, speed: 11, size: [4, 16], fireRate: 140, spread: 0 },
+    neutron: { name: 'Neutron', color: '#4488ff', damage: 22, speed: 7, size: [6, 18], fireRate: 250, spread: 0 },
+    quantum: { name: 'Quantum', color: '#ff88ff', damage: 25, speed: 8, size: [7, 20], fireRate: 280, spread: 0 },
+    
+    // Projectile Weapons (11-20)
+    missile: { name: 'Missile', color: '#ff4400', damage: 30, speed: 5, size: [8, 15], fireRate: 400, spread: 0 },
+    rocket: { name: 'Rocket', color: '#ff6600', damage: 35, speed: 4, size: [10, 18], fireRate: 450, spread: 0 },
+    torpedo: { name: 'Torpedo', color: '#ff2200', damage: 40, speed: 3, size: [12, 20], fireRate: 500, spread: 0 },
+    grenade: { name: 'Grenade', color: '#88ff00', damage: 28, speed: 6, size: [6, 12], fireRate: 350, spread: 0 },
+    bomb: { name: 'Bomb', color: '#ff0088', damage: 50, speed: 2, size: [15, 25], fireRate: 600, spread: 0 },
+    mine: { name: 'Mine', color: '#ffaa00', damage: 45, speed: 1, size: [20, 20], fireRate: 800, spread: 0 },
+    flak: { name: 'Flak', color: '#ff8844', damage: 20, speed: 7, size: [8, 12], fireRate: 200, spread: 15 },
+    shell: { name: 'Shell', color: '#ffcc00', damage: 32, speed: 6, size: [9, 16], fireRate: 380, spread: 0 },
+    cannon: { name: 'Cannon', color: '#ff6644', damage: 38, speed: 5, size: [12, 22], fireRate: 420, spread: 0 },
+    mortar: { name: 'Mortar', color: '#aa4400', damage: 42, speed: 4, size: [14, 18], fireRate: 480, spread: 0 },
+    
+    // Spread Weapons (21-30)
+    spread: { name: 'Spread', color: '#ffff00', damage: 8, speed: 8, size: [4, 10], fireRate: 200, spread: 3 },
+    shotgun: { name: 'Shotgun', color: '#ff4488', damage: 6, speed: 9, size: [3, 8], fireRate: 250, spread: 5 },
+    scatter: { name: 'Scatter', color: '#88ff44', damage: 7, speed: 10, size: [2, 6], fireRate: 180, spread: 7 },
+    burst: { name: 'Burst', color: '#4488ff', damage: 9, speed: 8, size: [4, 8], fireRate: 120, spread: 4 },
+    spray: { name: 'Spray', color: '#ff8888', damage: 5, speed: 12, size: [2, 5], fireRate: 80, spread: 8 },
+    fan: { name: 'Fan', color: '#88ffff', damage: 10, speed: 7, size: [3, 9], fireRate: 160, spread: 6 },
+    arc: { name: 'Arc', color: '#ffaa88', damage: 12, speed: 6, size: [5, 12], fireRate: 220, spread: 4 },
+    wave: { name: 'Wave', color: '#aa88ff', damage: 11, speed: 9, size: [4, 11], fireRate: 190, spread: 5 },
+    cone: { name: 'Cone', color: '#ff88aa', damage: 8, speed: 11, size: [3, 7], fireRate: 140, spread: 9 },
+    radial: { name: 'Radial', color: '#88aaff', damage: 6, speed: 8, size: [2, 6], fireRate: 100, spread: 12 },
+    
+    // Special Weapons (31-40)
+    homing: { name: 'Homing', color: '#00ff00', damage: 18, speed: 4, size: [6, 12], fireRate: 300, spread: 0 },
+    seeking: { name: 'Seeking', color: '#44ff44', damage: 20, speed: 3, size: [5, 14], fireRate: 350, spread: 0 },
+    tracking: { name: 'Tracking', color: '#88ff88', damage: 22, speed: 5, size: [4, 16], fireRate: 280, spread: 0 },
+    guided: { name: 'Guided', color: '#00ff88', damage: 24, speed: 6, size: [7, 18], fireRate: 320, spread: 0 },
+    smart: { name: 'Smart', color: '#44ffaa', damage: 26, speed: 4, size: [6, 20], fireRate: 380, spread: 0 },
+    chain: { name: 'Chain', color: '#ffff88', damage: 15, speed: 8, size: [3, 12], fireRate: 200, spread: 0 },
+    lightning: { name: 'Lightning', color: '#8888ff', damage: 28, speed: 15, size: [2, 25], fireRate: 250, spread: 0 },
+    electric: { name: 'Electric', color: '#aaaaff', damage: 24, speed: 12, size: [3, 20], fireRate: 220, spread: 0 },
+    magnetic: { name: 'Magnetic', color: '#ff44ff', damage: 20, speed: 7, size: [5, 15], fireRate: 280, spread: 0 },
+    gravity: { name: 'Gravity', color: '#8844ff', damage: 32, speed: 3, size: [8, 8], fireRate: 400, spread: 0 },
+    
+    // Exotic Weapons (41-50)
+    antimatter: { name: 'Antimatter', color: '#ffffff', damage: 60, speed: 2, size: [10, 30], fireRate: 800, spread: 0 },
+    dark: { name: 'Dark Energy', color: '#440044', damage: 45, speed: 6, size: [6, 25], fireRate: 500, spread: 0 },
+    void: { name: 'Void', color: '#220022', damage: 55, speed: 4, size: [8, 28], fireRate: 600, spread: 0 },
+    cosmic: { name: 'Cosmic', color: '#4444aa', damage: 50, speed: 5, size: [9, 24], fireRate: 550, spread: 0 },
+    stellar: { name: 'Stellar', color: '#ffaa44', damage: 48, speed: 7, size: [7, 22], fireRate: 480, spread: 0 },
+    nova: { name: 'Nova', color: '#ffcc88', damage: 65, speed: 3, size: [12, 35], fireRate: 900, spread: 0 },
+    singularity: { name: 'Singularity', color: '#000088', damage: 80, speed: 1, size: [15, 40], fireRate: 1200, spread: 0 },
+    warp: { name: 'Warp', color: '#8800aa', damage: 35, speed: 15, size: [4, 18], fireRate: 300, spread: 0 },
+    temporal: { name: 'Temporal', color: '#aa0088', damage: 40, speed: 8, size: [6, 20], fireRate: 400, spread: 0 },
+    dimensional: { name: 'Dimensional', color: '#0088aa', damage: 42, speed: 9, size: [5, 22], fireRate: 350, spread: 0 },
+    
+    // Bonus Weapons (51-55)
+    rainbow: { name: 'Rainbow', color: '#ff0088', damage: 25, speed: 10, size: [5, 15], fireRate: 150, spread: 2 },
+    prism: { name: 'Prism', color: '#88ff00', damage: 30, speed: 8, size: [6, 18], fireRate: 200, spread: 3 },
+    crystal: { name: 'Crystal', color: '#00ff88', damage: 35, speed: 6, size: [8, 20], fireRate: 250, spread: 0 },
+    diamond: { name: 'Diamond', color: '#ffffff', damage: 45, speed: 4, size: [10, 25], fireRate: 400, spread: 0 },
+    ultimate: { name: 'Ultimate', color: '#ff00ff', damage: 100, speed: 12, size: [8, 30], fireRate: 100, spread: 1 }
+  }; // 'laser', 'plasma', 'missile', 'beam', 'spread', 'homing'
   const [achievements, setAchievements] = useState([]);
   const [showAchievement, setShowAchievement] = useState(null);
   const [maxCombo, setMaxCombo] = useState(0);
@@ -203,7 +273,7 @@ const Game = () => {
 
   // Game variables
   const gameRef = useRef({
-    player: { x: 0, y: 0, width: 40, height: 40, speed: 5, health: 25, maxHealth: 25 },
+    player: { x: 0, y: 0, width: 40, height: 40, speed: 5, health: 100, maxHealth: 100, lives: 25, maxLives: 25 },
     bullets: [],
     enemies: [],
     enemyBullets: [],
@@ -511,34 +581,113 @@ const Game = () => {
     if (game.keys['5']) setCurrentWeapon('spread');
     if (game.keys['6']) setCurrentWeapon('homing');
     
-    // Enhanced mobile touch controls
-    const touchThreshold = 15; // Reduced for better responsiveness
-    const touchSensitivity = touchControls.touchSensitivity;
+    // Enhanced mobile touch controls - direct position tracking
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
-    if (game.keys['ArrowLeft'] || game.keys['a'] || game.keys['A'] || 
-        (touchControls.isTouching && touchControls.touchCurrentX < touchControls.touchStartX - touchThreshold)) {
-      const touchSpeed = touchControls.isTouching ? 
-        Math.min(playerSpeed * touchSensitivity, playerSpeed * 2) : playerSpeed;
-      game.player.x = Math.max(0, game.player.x - touchSpeed);
+    if (touchControls.isTouching && isMobile) {
+      // Direct touch position control for mobile
+      const canvas = canvasRef.current;
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      
+      // Convert touch position to canvas coordinates
+      const targetX = touchControls.touchCurrentX * scaleX - game.player.width / 2;
+      const targetY = touchControls.touchCurrentY * scaleY - game.player.height / 2;
+      
+      // Smooth movement toward touch position
+      const moveSpeed = playerSpeed * 1.5;
+      const deltaX = targetX - game.player.x;
+      const deltaY = targetY - game.player.y;
+      
+      if (Math.abs(deltaX) > moveSpeed) {
+        game.player.x += deltaX > 0 ? moveSpeed : -moveSpeed;
+      } else {
+        game.player.x = targetX;
+      }
+      
+      if (Math.abs(deltaY) > moveSpeed) {
+        game.player.y += deltaY > 0 ? moveSpeed : -moveSpeed;
+      } else {
+        game.player.y = targetY;
+      }
+      
+      // Keep player on screen
+      game.player.x = Math.max(0, Math.min(canvas.width - game.player.width, game.player.x));
+      game.player.y = Math.max(0, Math.min(canvas.height - game.player.height - 20, game.player.y));
+    } else {
+      // Desktop keyboard controls
+      if (game.keys['ArrowLeft'] || game.keys['a'] || game.keys['A']) {
+      game.player.x = Math.max(0, game.player.x - playerSpeed);
     }
-    if (game.keys['ArrowRight'] || game.keys['d'] || game.keys['D'] || 
-        (touchControls.isTouching && touchControls.touchCurrentX > touchControls.touchStartX + touchThreshold)) {
-      const touchSpeed = touchControls.isTouching ? 
-        Math.min(playerSpeed * touchSensitivity, playerSpeed * 2) : playerSpeed;
-      game.player.x = Math.min(canvas.width - game.player.width, game.player.x + touchSpeed);
+      if (game.keys['ArrowRight'] || game.keys['d'] || game.keys['D']) {
+      game.player.x = Math.min(canvas.width - game.player.width, game.player.x + playerSpeed);
     }
-    if (game.keys['ArrowUp'] || game.keys['w'] || game.keys['W'] || 
-        (touchControls.isTouching && touchControls.touchCurrentY < touchControls.touchStartY - touchThreshold)) {
-      const touchSpeed = touchControls.isTouching ? 
-        Math.min(playerSpeed * touchSensitivity, playerSpeed * 2) : playerSpeed;
-      game.player.y = Math.max(0, game.player.y - touchSpeed);
+      if (game.keys['ArrowUp'] || game.keys['w'] || game.keys['W']) {
+      game.player.y = Math.max(0, game.player.y - playerSpeed);
     }
-    if (game.keys['ArrowDown'] || game.keys['s'] || game.keys['S'] || 
-        (touchControls.isTouching && touchControls.touchCurrentY > touchControls.touchStartY + touchThreshold)) {
-      const touchSpeed = touchControls.isTouching ? 
-        Math.min(playerSpeed * touchSensitivity, playerSpeed * 2) : playerSpeed;
-      // Prevent player from going off the bottom of the screen with a buffer
-      game.player.y = Math.min(canvas.height - game.player.height - 20, game.player.y + touchSpeed);
+      if (game.keys['ArrowDown'] || game.keys['s'] || game.keys['S']) {
+        game.player.y = Math.min(canvas.height - game.player.height - 20, game.player.y + playerSpeed);
+      }
+    }
+
+    // Enhanced shooting system for all weapons
+    const shouldShoot = (game.keys[' '] || game.keys['Spacebar'] || (isMobile && gameState === 'playing'));
+    
+    if (shouldShoot) {
+      const now = Date.now();
+      const weapon = weaponTypes[currentWeapon] || weaponTypes.laser;
+      const fireRate = playerPowerUps.rapidFire > 0 ? weapon.fireRate * 0.5 : weapon.fireRate;
+      const adjustedFireRate = isMobile ? Math.max(fireRate, 120) : fireRate;
+      
+      if (!game.lastShot || now - game.lastShot > adjustedFireRate) {
+        playShootSound();
+        
+        // Create bullets with weapon-specific properties
+        const createBullet = (x, y, offsetX = 0, offsetY = 0) => ({
+          x: x + offsetX,
+          y: y + offsetY,
+          width: weapon.size[0],
+          height: weapon.size[1],
+          speed: weapon.speed,
+          color: weapon.color,
+          damage: weapon.damage,
+          weapon: currentWeapon,
+          type: weapon.spread > 0 ? 'spread' : 'normal'
+        });
+
+        // Universal weapon system - works for all 50+ weapons
+        const centerX = game.player.x + game.player.width / 2;
+        const centerY = game.player.y;
+        
+        if (playerPowerUps.multiShot > 0) {
+          // Multi-shot: 4 bullets side by side for any weapon
+          const spacing = Math.max(weapon.size[0] + 2, 8);
+          game.bullets.push(
+            createBullet(centerX - spacing * 1.5, centerY),
+            createBullet(centerX - spacing * 0.5, centerY),
+            createBullet(centerX + spacing * 0.5, centerY),
+            createBullet(centerX + spacing * 1.5, centerY)
+          );
+        } else if (weapon.spread > 0) {
+          // Spread weapons fire multiple bullets in different directions
+          const spreadCount = weapon.spread;
+          const angleStep = Math.PI / 12; // 15 degrees between bullets
+          const startAngle = -(spreadCount - 1) * angleStep / 2;
+          
+          for (let i = 0; i < spreadCount; i++) {
+            const angle = startAngle + i * angleStep;
+            const bullet = createBullet(centerX, centerY);
+            bullet.vx = Math.sin(angle) * weapon.speed * 0.3;
+            bullet.vy = -Math.cos(angle) * weapon.speed;
+            game.bullets.push(bullet);
+          }
+        } else {
+          // Single shot for most weapons
+          game.bullets.push(createBullet(centerX - weapon.size[0] / 2, centerY));
+        }
+        game.lastShot = now;
+      }
     }
 
     // Update Options (drones) position
@@ -663,30 +812,61 @@ const Game = () => {
       }
     }
 
-    // Options (drones) shooting
+    // Options (drones) shooting with same weapon as player
     game.options.forEach((option) => {
       const now = Date.now();
-      if (now - option.lastShot > 300) { // Options shoot every 300ms
+      const weapon = weaponTypes[currentWeapon] || weaponTypes.laser;
+      const optionFireRate = Math.max(weapon.fireRate * 0.8, 200); // Slightly slower than player
+      
+      if (now - (option.lastShot || 0) > optionFireRate) {
         option.lastShot = now;
         
-        // Create bullet from option
+        // Create bullet from option with same weapon properties
         const bullet = {
-          x: option.x + option.width / 2 - 2,
+          x: option.x + option.width / 2 - weapon.size[0] / 2,
           y: option.y,
-          width: 4,
-          height: 8,
-          speed: 8,
-          color: '#00ffff',
+          width: weapon.size[0],
+          height: weapon.size[1],
+          speed: weapon.speed,
+          color: weapon.color,
+          damage: weapon.damage * 0.8, // Slightly less damage than player
+          weapon: currentWeapon,
           type: 'option'
         };
-        game.bullets.push(bullet);
+        
+        // Handle spread weapons for options too
+        if (weapon.spread > 0) {
+          const spreadCount = Math.min(weapon.spread, 3); // Limit options spread
+          const angleStep = Math.PI / 16;
+          const startAngle = -(spreadCount - 1) * angleStep / 2;
+          
+          for (let i = 0; i < spreadCount; i++) {
+            const angle = startAngle + i * angleStep;
+            const spreadBullet = { ...bullet };
+            spreadBullet.vx = Math.sin(angle) * weapon.speed * 0.2;
+            spreadBullet.vy = -Math.cos(angle) * weapon.speed;
+            game.bullets.push(spreadBullet);
+          }
+        } else {
+          game.bullets.push(bullet);
+        }
       }
     });
 
-    // Update bullets
+    // Update bullets with enhanced movement for spread weapons
     game.bullets = game.bullets.filter(bullet => {
-      bullet.y -= bullet.speed;
-      return bullet.y > -bullet.height;
+      // Handle spread weapons with directional velocity
+      if (bullet.vx !== undefined && bullet.vy !== undefined) {
+        bullet.x += bullet.vx;
+        bullet.y += bullet.vy;
+      } else {
+        bullet.y -= bullet.speed;
+      }
+      
+      // Remove bullets that go off screen
+      return bullet.y > -bullet.height && 
+             bullet.x > -bullet.width && 
+             bullet.x < canvas.width + bullet.width;
     });
 
     // Boss spawning logic
@@ -784,7 +964,7 @@ const Game = () => {
     // Spawn power-ups
     game.powerUpSpawnTimer += cappedDeltaTime;
     if (game.powerUpSpawnTimer > difficultySettings.powerUpSpawnRate) {
-      const powerUpTypes = ['multiShot', 'rapidFire', 'shield', 'speed', 'weapon'];
+      const powerUpTypes = ['multiShot', 'rapidFire', 'shield', 'speed', 'weapon', 'life'];
       const randomType = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
       game.powerUps.push({
         x: Math.random() * (canvas.width - 20),
@@ -1189,6 +1369,10 @@ const Game = () => {
           const currentIndex = weapons.indexOf(currentWeapon);
           const nextIndex = (currentIndex + 1) % weapons.length;
           setCurrentWeapon(weapons[nextIndex]);
+        } else if (powerUp.type === 'life') {
+          // Give extra life
+          game.player.lives = Math.min(game.player.lives + 1, game.player.maxLives);
+          checkAchievement('extra_life', 'Extra Life', 'Collected an extra life power-up!');
         } else {
           setPlayerPowerUps(prev => ({
             ...prev,
@@ -1315,9 +1499,41 @@ const Game = () => {
           playGameOverSound();
           
           if (gameRef.current.player.health <= 0) {
+            gameRef.current.player.lives -= 1;
+            
+            if (gameRef.current.player.lives > 0) {
+              // Respawn with full health
+              gameRef.current.player.health = gameRef.current.player.maxHealth;
+              gameRef.current.player.x = canvas.width / 2 - gameRef.current.player.width / 2;
+              gameRef.current.player.y = canvas.height - gameRef.current.player.height - 50;
+              
+              // Brief invincibility after respawn
+              gameRef.current.respawnInvincible = Date.now() + 2000; // 2 seconds of invincibility
+              
+              // Add respawn particles
+              for (let i = 0; i < 15; i++) {
+                gameRef.current.particles.push({
+                  x: gameRef.current.player.x + gameRef.current.player.width / 2,
+                  y: gameRef.current.player.y + gameRef.current.player.height / 2,
+                  vx: (Math.random() - 0.5) * 8,
+                  vy: (Math.random() - 0.5) * 8,
+                  life: 30,
+                  color: '#00ffff'
+                });
+              }
+              
+              // Check for achievements
+              checkAchievement('first_death', 'Lost a Life', 'Your first death in the game!');
+            } else {
+              // Game over - no lives left
             setGameState('gameOver');
-            stopBackgroundMusic();
+              stopBackgroundMusic();
             saveHighScore();
+              
+              // Check for achievements
+              checkAchievement('game_over', 'Game Over', 'Used all 25 lives!');
+              if (gameRef.current.score > 1000) checkAchievement('high_scorer', 'High Scorer', 'Scored over 1000 points!');
+            }
           }
         }
       });
@@ -1349,9 +1565,41 @@ const Game = () => {
           }
           
           if (gameRef.current.player.health <= 0) {
+            gameRef.current.player.lives -= 1;
+            
+            if (gameRef.current.player.lives > 0) {
+              // Respawn with full health
+              gameRef.current.player.health = gameRef.current.player.maxHealth;
+              gameRef.current.player.x = canvas.width / 2 - gameRef.current.player.width / 2;
+              gameRef.current.player.y = canvas.height - gameRef.current.player.height - 50;
+              
+              // Brief invincibility after respawn
+              gameRef.current.respawnInvincible = Date.now() + 2000; // 2 seconds of invincibility
+              
+              // Add respawn particles
+              for (let i = 0; i < 15; i++) {
+                gameRef.current.particles.push({
+                  x: gameRef.current.player.x + gameRef.current.player.width / 2,
+                  y: gameRef.current.player.y + gameRef.current.player.height / 2,
+                  vx: (Math.random() - 0.5) * 8,
+                  vy: (Math.random() - 0.5) * 8,
+                  life: 30,
+                  color: '#00ffff'
+                });
+              }
+              
+              // Check for achievements
+              checkAchievement('first_death', 'Lost a Life', 'Your first death in the game!');
+            } else {
+              // Game over - no lives left
             setGameState('gameOver');
-            stopBackgroundMusic();
+              stopBackgroundMusic();
             saveHighScore();
+              
+              // Check for achievements
+              checkAchievement('game_over', 'Game Over', 'Used all 25 lives!');
+              if (gameRef.current.score > 1000) checkAchievement('high_scorer', 'High Scorer', 'Scored over 1000 points!');
+            }
           }
         }
       });
@@ -1697,6 +1945,11 @@ const Game = () => {
           secondaryColor = '#ff44ff';
           symbol = '🔫';
           break;
+        case 'life': 
+          primaryColor = '#ffd700'; 
+          secondaryColor = '#ffed4e';
+          symbol = '👤';
+          break;
         default: 
           primaryColor = '#00ff00'; 
           secondaryColor = '#44ff44';
@@ -1899,7 +2152,10 @@ const Game = () => {
                 <span>Score: {gameRef.current?.score || 0}</span>
               </div>
               <div className="stat-item">
-                <span>Health: {gameRef.current?.player?.health || 0}/{gameRef.current?.player?.maxHealth || 25} ({Math.round(((gameRef.current?.player?.health || 0) / (gameRef.current?.player?.maxHealth || 25)) * 100)}%)</span>
+                <span>Lives: {gameRef.current?.player?.lives || 25}</span>
+              </div>
+              <div className="stat-item">
+                <span>Health: {gameRef.current?.player?.health || 0}/{gameRef.current?.player?.maxHealth || 100} ({Math.round(((gameRef.current?.player?.health || 0) / (gameRef.current?.player?.maxHealth || 100)) * 100)}%)</span>
               </div>
               <div className="stat-item level-display">
                 <span>LVL: {playerLevel} | XP: {playerXP}/{playerLevel * 100}</span>
