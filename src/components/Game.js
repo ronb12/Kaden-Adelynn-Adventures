@@ -4,6 +4,12 @@ import { WeaponSystem } from './Systems/WeaponSystem.js';
 import StoryModal from './Story/StoryModal.js';
 import StoryNotification from './Story/StoryNotification.js';
 import { storyEventSystem } from './Story/StoryEventSystem.js';
+import AdvancedSettings from './Advanced/AdvancedSettings.js';
+import { VisualEffectsSystem } from './Systems/VisualEffectsSystem.js';
+import { BOSS_TYPES } from '../constants/BossTypes.js';
+import { embeddedMusicSystem } from './Systems/EmbeddedMusicSystem.js';
+import { gamepadController } from './Systems/GamepadController.js';
+import { tvDisplayOptimizer } from './Systems/TVDisplayOptimizer.js';
 
 // Audio context for sound effects and music
 let audioContext = null;
@@ -198,6 +204,38 @@ const Game = () => {
     bossesDefeated: 0
   });
   
+  // Advanced features state
+  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
+  const [visualEffectsSystem] = useState(new VisualEffectsSystem());
+  const [musicInitialized, setMusicInitialized] = useState(false);
+  const [gamepadInitialized, setGamepadInitialized] = useState(false);
+  const [connectedControllers, setConnectedControllers] = useState([]);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [advancedSettings, setAdvancedSettings] = useState({
+    particleDensity: 'high',
+    visualEffects: true,
+    screenShake: false,
+    backgroundParallax: true,
+    masterVolume: 0.7,
+    musicVolume: 0.5,
+    sfxVolume: 0.8,
+    dynamicMusic: true,
+    highContrast: false,
+    largeText: false,
+    colorBlindMode: 'none',
+    screenReader: false,
+    hapticFeedback: true,
+    touchSensitivity: 1.5,
+    autoFire: true,
+    showTouchControls: true,
+    targetFPS: 60,
+    objectPooling: true,
+    performanceMode: false,
+    controllerEnabled: true,
+    controllerDeadzone: 0.15,
+    controllerVibration: true
+  });
+  
   // Comprehensive weapon system with 50+ weapons
   const weaponTypes = {
     // Basic Energy Weapons (1-10)
@@ -315,18 +353,33 @@ const Game = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     
-    // Set canvas size
+    // Set canvas size with TV support
     const resizeCanvas = () => {
       const container = canvas.parentElement;
-      const maxWidth = Math.min(800, container.clientWidth - 40);
-      const maxHeight = Math.min(700, window.innerHeight - 200);
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
       
-      canvas.width = maxWidth;
-      canvas.height = maxHeight;
+      // Use TV Display Optimizer for optimal sizing
+      const optimalSize = tvDisplayOptimizer.getOptimalCanvasSize();
+      
+      canvas.width = optimalSize.width;
+      canvas.height = optimalSize.height;
       
       // Center player
       gameRef.current.player.x = canvas.width / 2 - gameRef.current.player.width / 2;
       gameRef.current.player.y = canvas.height - gameRef.current.player.height - 20;
+      
+      // Log TV detection
+      if (tvDisplayOptimizer.isTV) {
+        const tvInfo = tvDisplayOptimizer.getTVInfo();
+        console.log(`📺 TV Display Optimized:`, {
+          resolution: `${screenWidth}x${screenHeight}`,
+          canvas: `${optimalSize.width}x${optimalSize.height}`,
+          tvType: tvInfo.tvType,
+          screenSize: tvInfo.screenSize,
+          aspectRatio: tvInfo.aspectRatio
+        });
+      }
     };
     
     // Load achievements on startup
@@ -348,10 +401,86 @@ const Game = () => {
       setDifficulty(savedDifficulty);
     }
 
+    // Initialize embedded music system
+    const initMusic = async () => {
+      try {
+        const success = await embeddedMusicSystem.initialize();
+        if (success) {
+          setMusicInitialized(true);
+          console.log('🎵 Embedded music system initialized successfully!');
+          // Expose globally for volume control
+          window.embeddedMusicSystem = embeddedMusicSystem;
+        } else {
+          console.warn('⚠️ Embedded music system failed to initialize');
+        }
+      } catch (error) {
+        console.error('❌ Error initializing embedded music system:', error);
+      }
+    };
+
+    // Initialize Gamepad controller system
+    const initGamepad = () => {
+      try {
+        const success = gamepadController.initialize();
+        if (success) {
+          setGamepadInitialized(true);
+          console.log('🎮 Gamepad controller system initialized successfully!');
+          // Expose globally for settings control
+          window.gamepadController = gamepadController;
+          
+          // Set up controller connection monitoring
+          const updateControllers = () => {
+            const controllers = gamepadController.getConnectedGamepads();
+            setConnectedControllers(controllers);
+          };
+          
+          // Update controllers every second
+          const controllerInterval = setInterval(updateControllers, 1000);
+          
+          // Cleanup interval on unmount
+          return () => clearInterval(controllerInterval);
+        } else {
+          console.warn('⚠️ Gamepad controller system failed to initialize');
+        }
+      } catch (error) {
+        console.error('❌ Error initializing gamepad controller system:', error);
+      }
+    };
+
+    // Initialize TV Display Optimizer
+    const initTVOptimizer = () => {
+      try {
+        tvDisplayOptimizer.applyTVOptimizations();
+        console.log('📺 TV Display Optimizer initialized successfully!');
+        
+        // Apply TV classes to game container
+        const gameContainer = document.querySelector('.game-container');
+        if (gameContainer) {
+          tvDisplayOptimizer.applyTVClasses(gameContainer);
+        }
+        
+        // Expose globally for debugging
+        window.tvDisplayOptimizer = tvDisplayOptimizer;
+      } catch (error) {
+        console.error('❌ Error initializing TV Display Optimizer:', error);
+      }
+    };
+
+    initMusic();
+    const cleanupGamepad = initGamepad();
+    initTVOptimizer();
+
     return () => {
       window.removeEventListener('resize', resizeCanvas);
+      embeddedMusicSystem.cleanup();
+      gamepadController.cleanup();
+      if (cleanupGamepad) cleanupGamepad();
     };
   }, []);
+
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+  };
 
   const startGame = () => {
     setGameState('playing');
@@ -563,9 +692,34 @@ const Game = () => {
     ctx.fillStyle = '#000011';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw optimized animated stars background
+    // Draw enhanced animated stars background
     const time = currentTime * 0.001;
     
+    if (advancedSettings.backgroundParallax) {
+      // Enhanced starfield with parallax layers
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowColor = '#ffffff';
+      ctx.shadowBlur = 2;
+      
+      for (let layer = 0; layer < 3; layer++) {
+        const layerSpeed = 0.5 + layer * 0.3;
+        const starCount = 30 + layer * 10;
+        const alpha = 0.3 - layer * 0.1;
+        
+        ctx.globalAlpha = alpha;
+        
+        for (let i = 0; i < starCount; i++) {
+          const x = (i * 47) % canvas.width;
+          const y = (i * 31 + currentTime * layerSpeed * 0.01) % canvas.height;
+          
+          // Enhanced twinkling effect
+          const twinkle = Math.sin(time * 2 + i + layer) * 0.3 + 0.7;
+          ctx.globalAlpha = alpha * twinkle;
+          
+          ctx.fillRect(x, y, 1 + layer, 1 + layer);
+        }
+      }
+    } else {
     // Simplified starfield for better performance
     ctx.fillStyle = '#ffffff';
     ctx.shadowColor = '#ffffff';
@@ -580,6 +734,7 @@ const Game = () => {
       ctx.globalAlpha = twinkle;
       
       ctx.fillRect(x, y, 1, 1);
+      }
     }
     
     ctx.globalAlpha = 1;
@@ -653,24 +808,49 @@ const Game = () => {
       game.player.y = Math.max(0, Math.min(canvas.height - game.player.height - 20, targetY));
       
       console.log('New player position:', game.player.x, game.player.y);
-    } else {
-      // Desktop keyboard controls
+      } else {
+      // Desktop keyboard and controller controls
+      let moveX = 0;
+      let moveY = 0;
+      
+      // Keyboard controls
       if (game.keys['ArrowLeft'] || game.keys['a'] || game.keys['A']) {
-      game.player.x = Math.max(0, game.player.x - playerSpeed);
+        moveX -= playerSpeed;
     }
       if (game.keys['ArrowRight'] || game.keys['d'] || game.keys['D']) {
-      game.player.x = Math.min(canvas.width - game.player.width, game.player.x + playerSpeed);
+        moveX += playerSpeed;
     }
       if (game.keys['ArrowUp'] || game.keys['w'] || game.keys['W']) {
-      game.player.y = Math.max(0, game.player.y - playerSpeed);
+        moveY -= playerSpeed;
     }
       if (game.keys['ArrowDown'] || game.keys['s'] || game.keys['S']) {
-        game.player.y = Math.min(canvas.height - game.player.height - 20, game.player.y + playerSpeed);
+        moveY += playerSpeed;
       }
+      
+      // Controller controls
+      if (gamepadInitialized && advancedSettings.controllerEnabled && connectedControllers.length > 0) {
+        const primaryController = connectedControllers[0];
+        const movement = gamepadController.getMovementInput(primaryController);
+        
+        // Apply controller movement with sensitivity
+        const controllerSensitivity = 1.5;
+        moveX += movement.x * playerSpeed * controllerSensitivity;
+        moveY += movement.y * playerSpeed * controllerSensitivity;
+      }
+      
+      // Apply movement
+      game.player.x = Math.max(0, Math.min(canvas.width - game.player.width, game.player.x + moveX));
+      game.player.y = Math.max(0, Math.min(canvas.height - game.player.height - 20, game.player.y + moveY));
     }
 
     // Enhanced shooting system for all weapons
-    const shouldShoot = (game.keys[' '] || game.keys['Spacebar'] || (isMobile && gameState === 'playing'));
+    let shouldShoot = (game.keys[' '] || game.keys['Spacebar'] || (isMobile && gameState === 'playing'));
+    
+    // Controller shooting
+    if (gamepadInitialized && advancedSettings.controllerEnabled && connectedControllers.length > 0) {
+      const primaryController = connectedControllers[0];
+      shouldShoot = shouldShoot || gamepadController.isShooting(primaryController);
+    }
     
     if (shouldShoot) {
       const now = Date.now();
@@ -823,6 +1003,11 @@ const Game = () => {
       game.bossPhase = 1;
       game.bossLastShot = 0;
       game.bossLastMove = 0;
+      
+      // Play boss approaching music
+      if (musicInitialized) {
+        embeddedMusicSystem.playSoundEffect('BOSS_APPROACHING');
+      }
       game.bossDirection = 1;
       
       game.enemies.push({
@@ -1190,11 +1375,20 @@ const Game = () => {
               });
               if (bossEvent) {
                 setStoryNotification(bossEvent);
+                // Play victory music
+                if (musicInitialized) {
+                  embeddedMusicSystem.playSoundEffect('VICTORY');
+                }
               }
             }
           } else {
             // Regular enemy dies immediately
           game.enemies.splice(enemyIndex, 1);
+          
+          // Visual effects: explosion
+          if (advancedSettings.visualEffects) {
+            visualEffectsSystem.createExplosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2, 1, '#ff4444');
+          }
           
           // Story event: enemy killed
           setStoryStats(prev => ({ ...prev, enemiesKilled: prev.enemiesKilled + 1 }));
@@ -1210,6 +1404,11 @@ const Game = () => {
           if (currentTime - game.lastKillTime < 2000) { // 2 second combo window
             game.combo++;
             game.killStreak++;
+            
+            // Visual effects: combo
+            if (advancedSettings.visualEffects && game.combo > 1) {
+              visualEffectsSystem.createComboEffect(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2, game.combo);
+            }
           } else {
             game.combo = 1;
             game.killStreak = 1;
@@ -1434,6 +1633,16 @@ const Game = () => {
         // Screen shake disabled
         playPowerUpSound(); // Use power-up sound for collection
         
+        // Visual effects: power-up collection
+        if (advancedSettings.visualEffects) {
+          visualEffectsSystem.createPowerUpEffect(emoji.x + emoji.width / 2, emoji.y + emoji.height / 2, emoji.type);
+        }
+        
+        // Play power-up music
+        if (musicInitialized) {
+          embeddedMusicSystem.playSoundEffect('POWER_UP');
+        }
+        
         // Handle weapon collectibles
         if (emoji.isWeapon && emoji.weaponType) {
           setCurrentWeapon(emoji.weaponType);
@@ -1446,6 +1655,10 @@ const Game = () => {
           });
           if (storyEvent) {
             setStoryNotification(storyEvent);
+            // Play weapon discovery music
+            if (musicInitialized) {
+              embeddedMusicSystem.playSoundEffect('WEAPON_DISCOVERY');
+            }
           }
         }
         
@@ -1511,6 +1724,11 @@ const Game = () => {
             setGameState('gameOver');
               stopBackgroundMusic();
             saveHighScore();
+              
+              // Play game over music
+              if (musicInitialized) {
+                embeddedMusicSystem.playSoundEffect('GAME_OVER');
+              }
               
               // Check for achievements
               checkAchievement('game_over', 'Game Over', 'Used all 25 lives!');
@@ -1578,6 +1796,11 @@ const Game = () => {
               stopBackgroundMusic();
             saveHighScore();
               
+              // Play game over music
+              if (musicInitialized) {
+                embeddedMusicSystem.playSoundEffect('GAME_OVER');
+              }
+              
               // Check for achievements
               checkAchievement('game_over', 'Game Over', 'Used all 25 lives!');
               if (gameRef.current.score > 1000) checkAchievement('high_scorer', 'High Scorer', 'Scored over 1000 points!');
@@ -1594,6 +1817,21 @@ const Game = () => {
       particle.life--;
       return particle.life > 0;
     });
+    
+    // Update and render visual effects
+    if (advancedSettings.visualEffects) {
+      visualEffectsSystem.update();
+      visualEffectsSystem.render(ctx);
+    }
+    
+    // Update Pixels music system
+            if (musicInitialized && advancedSettings.dynamicMusic) {
+          const combatIntensity = game.enemies.length > 0 ? Math.min(game.enemies.length / 10, 1) : 0;
+          embeddedMusicSystem.updateMusic(gameState, currentStoryChapter, combatIntensity, game.bossActive);
+        }
+    
+    // Handle controller input
+    handleControllerInput();
 
     // Draw enhanced player ship with shield effect
     if (playerPowerUps.shield > 0) {
@@ -2029,6 +2267,36 @@ const Game = () => {
     e.preventDefault();
   };
 
+  // Controller input handling
+  const handleControllerInput = () => {
+    if (!gamepadInitialized || !advancedSettings.controllerEnabled || connectedControllers.length === 0) {
+      return;
+    }
+
+    const primaryController = connectedControllers[0];
+    
+    // Controller pause
+    if (gamepadController.isPausePressed(primaryController)) {
+      if (gameState === 'playing') {
+        setGameState('paused');
+        stopBackgroundMusic();
+      } else if (gameState === 'paused') {
+        setGameState('playing');
+        startBackgroundMusic();
+      }
+    }
+    
+    // Controller weapon switching
+    if (gamepadController.isWeaponSwitching(primaryController)) {
+      const weaponKeys = Object.keys(weaponTypes);
+      const currentIndex = weaponKeys.indexOf(currentWeapon);
+      const nextIndex = (currentIndex + 1) % weaponKeys.length;
+      const nextWeapon = weaponKeys[nextIndex];
+      setCurrentWeapon(nextWeapon);
+      weaponSystemRef.current.setWeapon(nextWeapon);
+    }
+  };
+
   // Touch control handlers
   const handleTouchStart = React.useCallback((e) => {
     e.preventDefault();
@@ -2217,7 +2485,7 @@ const Game = () => {
 
   return (
     <div className="vertical-shooter">
-      <div className="game-container">
+      <div className={`game-container ${isFullscreen ? 'fullscreen' : ''}`}>
         <canvas
           ref={canvasRef}
           className="game-canvas"
@@ -2242,6 +2510,16 @@ const Game = () => {
               <div className="stat-item">
                 <span>Weapon: {currentWeapon.toUpperCase()}</span>
               </div>
+              {gamepadInitialized && connectedControllers.length > 0 && (
+                <div className="stat-item controller-status">
+                  <span>🎮 {connectedControllers.length} Controller{connectedControllers.length > 1 ? 's' : ''}</span>
+                </div>
+              )}
+              {tvDisplayOptimizer.isTV && (
+                <div className="stat-item tv-status">
+                  <span>📺 {tvDisplayOptimizer.tvType.toUpperCase()} TV ({tvDisplayOptimizer.screenSize})</span>
+                </div>
+              )}
               {gameRef.current?.combo > 0 && (
                 <div className="stat-item combo-display">
                   <span>COMBO: {gameRef.current?.combo || 0}x{gameRef.current?.comboMultiplier || 1}</span>
@@ -2371,11 +2649,17 @@ const Game = () => {
               <button className="menu-button primary" onClick={startGame}>
                 🎮 Start Adventure!
               </button>
-                          <button className="menu-button secondary" onClick={() => setShowHighScores(true)}>
-              🏆 High Scores
-            </button>
+              <button className="menu-button secondary" onClick={() => setShowHighScores(true)}>
+                🏆 High Scores
+              </button>
             <button className="menu-button secondary" onClick={() => setShowStoryModal(true)}>
               📖 Story
+            </button>
+            <button className="menu-button secondary" onClick={() => setShowAdvancedSettings(true)}>
+              ⚙️ Advanced Settings
+            </button>
+            <button className="menu-button secondary" onClick={toggleFullscreen}>
+              {isFullscreen ? '📱 Exit Fullscreen' : '🖥️ Fullscreen'}
             </button>
               <button className="menu-button secondary" onClick={() => setShowSettings(true)}>
                 ⚙️ How to Play
@@ -2539,6 +2823,13 @@ const Game = () => {
           localStorage.setItem('kadenAdelynnCharacter', character);
         }}
       />
+      
+      <AdvancedSettings
+        isOpen={showAdvancedSettings}
+        onClose={() => setShowAdvancedSettings(false)}
+        onSettingsChange={setAdvancedSettings}
+      />
+      
     </div>
   );
 };
