@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../Game.css';
+import { WeaponSystem } from './Systems/WeaponSystem.js';
+import StoryModal from './Story/StoryModal.js';
+import StoryNotification from './Story/StoryNotification.js';
+import { storyEventSystem } from './Story/StoryEventSystem.js';
 
 // Audio context for sound effects and music
 let audioContext = null;
@@ -163,6 +167,7 @@ const playGameOverSound = () => playSound(200, 0.5, 'triangle', 0.15);
 
 const Game = () => {
   const canvasRef = useRef(null);
+  const weaponSystemRef = useRef(new WeaponSystem());
   const [gameState, setGameState] = useState('menu'); // 'menu', 'playing', 'paused', 'gameOver'
   // Score is now tracked in gameRef.current.score
   const [highScores, setHighScores] = useState([]);
@@ -178,6 +183,20 @@ const Game = () => {
     speed: 0
   });
   const [currentWeapon, setCurrentWeapon] = useState('laser');
+  const [selectedCharacter, setSelectedCharacter] = useState(() => {
+    return localStorage.getItem('kadenAdelynnCharacter') || 'kaden';
+  }); // 'kaden' or 'adelynn'
+  
+  // Story system state
+  const [showStoryModal, setShowStoryModal] = useState(false);
+  const [currentStoryChapter, setCurrentStoryChapter] = useState('PROLOGUE');
+  const [storyNotification, setStoryNotification] = useState(null);
+  const [storyStats, setStoryStats] = useState({
+    enemiesKilled: 0,
+    weaponsCollected: 0,
+    powerUpsCollected: 0,
+    bossesDefeated: 0
+  });
   
   // Comprehensive weapon system with 50+ weapons
   const weaponTypes = {
@@ -375,6 +394,15 @@ const Game = () => {
     };
     
     generateDailyChallenge();
+
+    // Reset story system
+    storyEventSystem.reset();
+    setStoryStats({
+      enemiesKilled: 0,
+      weaponsCollected: 0,
+      powerUpsCollected: 0,
+      bossesDefeated: 0
+    });
 
     // Start background music
     startBackgroundMusic();
@@ -583,9 +611,24 @@ const Game = () => {
     if (game.keys['6']) setCurrentWeapon('homing');
     
     // Enhanced mobile touch controls - direct position tracking
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                     ('ontouchstart' in window) || 
+                     (navigator.maxTouchPoints > 0);
+    
+    // Debug logging for mobile touch
+    if (isMobile) {
+      console.log('Mobile device detected, touch state:', {
+        isTouching: touchControls.isTouching,
+        touchX: touchControls.touchCurrentX,
+        touchY: touchControls.touchCurrentY,
+        playerX: game.player.x,
+        playerY: game.player.y,
+        gameState: gameState
+      });
+    }
     
     if (touchControls.isTouching && isMobile) {
+      console.log('Processing touch movement...');
       // Direct touch position control for mobile
       const canvas = canvasRef.current;
       const rect = canvas.getBoundingClientRect();
@@ -596,26 +639,20 @@ const Game = () => {
       const targetX = touchControls.touchCurrentX * scaleX - game.player.width / 2;
       const targetY = touchControls.touchCurrentY * scaleY - game.player.height / 2;
       
-      // Smooth movement toward touch position
-      const moveSpeed = playerSpeed * 1.5;
-      const deltaX = targetX - game.player.x;
-      const deltaY = targetY - game.player.y;
+      console.log('Touch coordinates:', {
+        touchX: touchControls.touchCurrentX,
+        touchY: touchControls.touchCurrentY,
+        targetX: targetX,
+        targetY: targetY,
+        playerX: game.player.x,
+        playerY: game.player.y
+      });
       
-      if (Math.abs(deltaX) > moveSpeed) {
-        game.player.x += deltaX > 0 ? moveSpeed : -moveSpeed;
-      } else {
-        game.player.x = targetX;
-      }
+      // Direct position setting for more responsive control
+      game.player.x = Math.max(0, Math.min(canvas.width - game.player.width, targetX));
+      game.player.y = Math.max(0, Math.min(canvas.height - game.player.height - 20, targetY));
       
-      if (Math.abs(deltaY) > moveSpeed) {
-        game.player.y += deltaY > 0 ? moveSpeed : -moveSpeed;
-      } else {
-        game.player.y = targetY;
-      }
-      
-      // Keep player on screen
-      game.player.x = Math.max(0, Math.min(canvas.width - game.player.width, game.player.x));
-      game.player.y = Math.max(0, Math.min(canvas.height - game.player.height - 20, game.player.y));
+      console.log('New player position:', game.player.x, game.player.y);
     } else {
       // Desktop keyboard controls
       if (game.keys['ArrowLeft'] || game.keys['a'] || game.keys['A']) {
@@ -719,99 +756,6 @@ const Game = () => {
       option.y = Math.max(0, Math.min(canvas.height - option.height, option.y));
     });
     
-    // Shooting with power-ups
-    const shootCooldown = playerPowerUps.rapidFire > 0 ? 50 : 200; // 4x rapid fire
-    if (game.keys[' '] || touchControls.isTouching) {
-      const now = Date.now();
-      if (!game.lastShot || now - game.lastShot > shootCooldown) {
-        playShootSound();
-        
-        // Create bullets based on current weapon and multi-shot
-        const createBullet = (x, y, width, height, speed, color = '#ffff00') => ({
-          x, y, width, height, speed, color, weapon: currentWeapon
-        });
-
-        if (playerPowerUps.multiShot > 0) {
-          // Multi-shot: 4 bullets side by side
-          if (currentWeapon === 'plasma') {
-            // Plasma multi-shot - 4 bullets side by side
-            game.bullets.push(
-              createBullet(game.player.x + game.player.width / 2 - 15, game.player.y, 6, 12, 7, '#00ffff'),
-              createBullet(game.player.x + game.player.width / 2 - 5, game.player.y, 6, 12, 7, '#00ffff'),
-              createBullet(game.player.x + game.player.width / 2 + 5, game.player.y, 6, 12, 7, '#00ffff'),
-              createBullet(game.player.x + game.player.width / 2 + 15, game.player.y, 6, 12, 7, '#00ffff')
-            );
-          } else if (currentWeapon === 'missile') {
-            // Missile multi-shot - 4 missiles side by side
-            game.bullets.push(
-              createBullet(game.player.x + game.player.width / 2 - 18, game.player.y, 8, 15, 5, '#ff4400'),
-              createBullet(game.player.x + game.player.width / 2 - 6, game.player.y, 8, 15, 5, '#ff4400'),
-              createBullet(game.player.x + game.player.width / 2 + 6, game.player.y, 8, 15, 5, '#ff4400'),
-              createBullet(game.player.x + game.player.width / 2 + 18, game.player.y, 8, 15, 5, '#ff4400')
-            );
-          } else if (currentWeapon === 'beam') {
-            // Beam multi-shot - 4 wide beams
-            game.bullets.push(
-              createBullet(game.player.x + game.player.width / 2 - 20, game.player.y, 16, 20, 10, '#ff00ff'),
-              createBullet(game.player.x + game.player.width / 2 - 8, game.player.y, 16, 20, 10, '#ff00ff'),
-              createBullet(game.player.x + game.player.width / 2 + 8, game.player.y, 16, 20, 10, '#ff00ff'),
-              createBullet(game.player.x + game.player.width / 2 + 20, game.player.y, 16, 20, 10, '#ff00ff')
-            );
-          } else if (currentWeapon === 'spread') {
-            // Spread multi-shot - 4 spread patterns (12 bullets total)
-            game.bullets.push(
-              createBullet(game.player.x + game.player.width / 2 - 12, game.player.y, 4, 10, 8, '#ffff00'),
-              createBullet(game.player.x + game.player.width / 2 - 8, game.player.y, 4, 10, 8, '#ffff00'),
-              createBullet(game.player.x + game.player.width / 2 - 4, game.player.y, 4, 10, 8, '#ffff00'),
-              createBullet(game.player.x + game.player.width / 2, game.player.y, 4, 10, 8, '#ffff00'),
-              createBullet(game.player.x + game.player.width / 2 + 4, game.player.y, 4, 10, 8, '#ffff00'),
-              createBullet(game.player.x + game.player.width / 2 + 8, game.player.y, 4, 10, 8, '#ffff00'),
-              createBullet(game.player.x + game.player.width / 2 + 12, game.player.y, 4, 10, 8, '#ffff00')
-            );
-          } else if (currentWeapon === 'homing') {
-            // Homing multi-shot - 4 homing bullets
-            game.bullets.push(
-              createBullet(game.player.x + game.player.width / 2 - 15, game.player.y, 6, 12, 4, '#00ff00'),
-              createBullet(game.player.x + game.player.width / 2 - 5, game.player.y, 6, 12, 4, '#00ff00'),
-              createBullet(game.player.x + game.player.width / 2 + 5, game.player.y, 6, 12, 4, '#00ff00'),
-              createBullet(game.player.x + game.player.width / 2 + 15, game.player.y, 6, 12, 4, '#00ff00')
-            );
-          } else {
-            // Laser multi-shot - 4 lasers side by side
-            game.bullets.push(
-              createBullet(game.player.x + game.player.width / 2 - 12, game.player.y, 4, 10, 8, '#ffff00'),
-              createBullet(game.player.x + game.player.width / 2 - 4, game.player.y, 4, 10, 8, '#ffff00'),
-              createBullet(game.player.x + game.player.width / 2 + 4, game.player.y, 4, 10, 8, '#ffff00'),
-              createBullet(game.player.x + game.player.width / 2 + 12, game.player.y, 4, 10, 8, '#ffff00')
-            );
-          }
-        } else {
-          // Single shot
-          if (currentWeapon === 'plasma') {
-            game.bullets.push(createBullet(game.player.x + game.player.width / 2 - 3, game.player.y, 6, 12, 7, '#00ffff'));
-          } else if (currentWeapon === 'missile') {
-            game.bullets.push(createBullet(game.player.x + game.player.width / 2 - 4, game.player.y, 8, 15, 5, '#ff4400'));
-          } else if (currentWeapon === 'beam') {
-            // Beam weapon - wide and fast
-            game.bullets.push(createBullet(game.player.x + game.player.width / 2 - 8, game.player.y, 16, 20, 10, '#ff00ff'));
-          } else if (currentWeapon === 'spread') {
-            // Spread weapon - 3 bullets in a spread pattern
-            game.bullets.push(
-              createBullet(game.player.x + game.player.width / 2 - 2, game.player.y, 4, 10, 8, '#ffff00'),
-              createBullet(game.player.x + game.player.width / 2 - 8, game.player.y, 4, 10, 8, '#ffff00'),
-              createBullet(game.player.x + game.player.width / 2 + 4, game.player.y, 4, 10, 8, '#ffff00')
-            );
-          } else if (currentWeapon === 'homing') {
-            // Homing weapon - slower but tracks enemies
-            game.bullets.push(createBullet(game.player.x + game.player.width / 2 - 3, game.player.y, 6, 12, 4, '#00ff00'));
-          } else {
-            // Default laser
-            game.bullets.push(createBullet(game.player.x + game.player.width / 2 - 2, game.player.y, 4, 10, 8, '#ffff00'));
-          }
-        }
-        game.lastShot = now;
-      }
-    }
 
     // Options (drones) shooting with same weapon as player
     game.options.forEach((option) => {
@@ -1238,10 +1182,28 @@ const Game = () => {
               
               // Check for boss defeat achievement
               checkAchievement('boss_defeated', 'Boss Slayer', 'Defeated your first boss!');
+              
+              // Story event: boss defeated
+              setStoryStats(prev => ({ ...prev, bossesDefeated: prev.bossesDefeated + 1 }));
+              const bossEvent = storyEventSystem.checkTrigger('boss_killed', { 
+                count: storyStats.bossesDefeated + 1 
+              });
+              if (bossEvent) {
+                setStoryNotification(bossEvent);
+              }
             }
           } else {
             // Regular enemy dies immediately
           game.enemies.splice(enemyIndex, 1);
+          
+          // Story event: enemy killed
+          setStoryStats(prev => ({ ...prev, enemiesKilled: prev.enemiesKilled + 1 }));
+          const storyEvent = storyEventSystem.checkTrigger('enemy_killed', { 
+            count: storyStats.enemiesKilled + 1 
+          });
+          if (storyEvent) {
+            setStoryNotification(storyEvent);
+          }
           
           // Combo system
           const currentTime = Date.now();
@@ -1268,6 +1230,14 @@ const Game = () => {
           const totalScore = (baseScore + comboBonus + streakBonus) * game.comboMultiplier * (game.scoreMultiplier || 1);
           
           gameRef.current.score += totalScore;
+          
+          // Story event: score milestone
+          const scoreEvent = storyEventSystem.checkTrigger('score_milestone', { 
+            score: gameRef.current.score 
+          });
+          if (scoreEvent) {
+            setStoryNotification(scoreEvent);
+          }
           
           // Add XP and level progression
           const xpGain = Math.floor(totalScore / 10) + 1;
@@ -1467,6 +1437,16 @@ const Game = () => {
         // Handle weapon collectibles
         if (emoji.isWeapon && emoji.weaponType) {
           setCurrentWeapon(emoji.weaponType);
+          weaponSystemRef.current.setWeapon(emoji.weaponType);
+          
+          // Story event: weapon collected
+          setStoryStats(prev => ({ ...prev, weaponsCollected: prev.weaponsCollected + 1 }));
+          const storyEvent = storyEventSystem.checkTrigger('weapon_collected', { 
+            count: storyStats.weaponsCollected + 1 
+          });
+          if (storyEvent) {
+            setStoryNotification(storyEvent);
+          }
         }
         
         // Optimized collection particles
@@ -1619,9 +1599,10 @@ const Game = () => {
     if (playerPowerUps.shield > 0) {
       // Animated shield effect
       const shieldPulse = Math.sin(currentTime * 0.01) * 0.3 + 0.7;
-      ctx.strokeStyle = `rgba(0, 255, 255, ${shieldPulse})`;
+      const shieldColor = selectedCharacter === 'adelynn' ? '#ff69b4' : '#00ffff';
+      ctx.strokeStyle = `rgba(${selectedCharacter === 'adelynn' ? '255, 105, 180' : '0, 255, 255'}, ${shieldPulse})`;
       ctx.lineWidth = 4;
-      ctx.shadowColor = '#00ffff';
+      ctx.shadowColor = shieldColor;
       ctx.shadowBlur = 15;
       ctx.beginPath();
       ctx.moveTo(game.player.x + game.player.width/2, game.player.y - 8);
@@ -1632,17 +1613,26 @@ const Game = () => {
       ctx.shadowBlur = 0;
     }
     
-    // Draw enhanced blue triangular player ship
+    // Draw enhanced triangular player ship with character-based colors
     const shipCenterX = game.player.x + game.player.width/2;
     
-    // Main ship body with gradient effect
+    // Main ship body with gradient effect based on selected character
     const gradient = ctx.createLinearGradient(shipCenterX, game.player.y, shipCenterX, game.player.y + game.player.height);
+    
+    if (selectedCharacter === 'adelynn') {
+      // Pink gradient for Adelynn
+      gradient.addColorStop(0, '#ff69b4');
+      gradient.addColorStop(0.5, '#ff1493');
+      gradient.addColorStop(1, '#c71585');
+    } else {
+      // Blue gradient for Kaden
     gradient.addColorStop(0, '#00ffff');
     gradient.addColorStop(0.5, '#0088ff');
     gradient.addColorStop(1, '#0044aa');
+    }
     
     ctx.fillStyle = gradient;
-    ctx.shadowColor = '#00ffff';
+    ctx.shadowColor = selectedCharacter === 'adelynn' ? '#ff69b4' : '#00ffff';
     ctx.shadowBlur = 12;
     ctx.beginPath();
     ctx.moveTo(shipCenterX, game.player.y);
@@ -1811,21 +1801,30 @@ const Game = () => {
       ctx.restore();
     });
 
-    // Draw Options (drones) - identical to main player ship
+    // Draw Options (drones) - identical to main player ship with character-based colors
     game.options.forEach((option, index) => {
       ctx.save();
       
-      // Draw enhanced blue triangular wing fighter ship (same as main player)
+      // Draw enhanced triangular wing fighter ship with character-based colors
       const shipCenterX = option.x + option.width/2;
       
-      // Main ship body with gradient effect
+      // Main ship body with gradient effect based on selected character
       const gradient = ctx.createLinearGradient(shipCenterX - 15, option.y, shipCenterX + 15, option.y + option.height);
+      
+      if (selectedCharacter === 'adelynn') {
+        // Pink gradient for Adelynn's clone ships
+        gradient.addColorStop(0, '#ff69b4');
+        gradient.addColorStop(0.5, '#ff1493');
+        gradient.addColorStop(1, '#c71585');
+      } else {
+        // Blue gradient for Kaden's clone ships
       gradient.addColorStop(0, '#00ffff');
       gradient.addColorStop(0.5, '#0088ff');
       gradient.addColorStop(1, '#004488');
+      }
       
       ctx.fillStyle = gradient;
-      ctx.shadowColor = '#00ffff';
+      ctx.shadowColor = selectedCharacter === 'adelynn' ? '#ff69b4' : '#00ffff';
       ctx.shadowBlur = 12;
       ctx.beginPath();
       ctx.moveTo(shipCenterX, option.y); // Top point
@@ -2033,8 +2032,22 @@ const Game = () => {
   // Touch control handlers
   const handleTouchStart = React.useCallback((e) => {
     e.preventDefault();
+    e.stopPropagation();
+    console.log('Touch start detected!', e.touches.length);
+    
+    if (!e.touches || e.touches.length === 0) {
+      console.log('No touches found in touchstart event');
+      return;
+    }
+    
     const touch = e.touches[0];
-    const rect = canvasRef.current.getBoundingClientRect();
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      console.log('Canvas not found');
+      return;
+    }
+    
+    const rect = canvas.getBoundingClientRect();
     
     // Enhanced haptic feedback for iOS and mobile devices
     if (navigator.vibrate) {
@@ -2053,7 +2066,7 @@ const Game = () => {
       }
     }
     
-    setTouchControls({
+    const newTouchControls = {
       touchStartX: touch.clientX - rect.left,
       touchStartY: touch.clientY - rect.top,
       touchCurrentX: touch.clientX - rect.left,
@@ -2061,35 +2074,89 @@ const Game = () => {
       isTouching: true,
       multiTouch: e.touches.length > 1,
       touchSensitivity: 1.5
-    });
+    };
+    
+    console.log('Setting touch controls:', newTouchControls);
+    setTouchControls(newTouchControls);
+    
+    // Direct test - move ship immediately on touch start
+    if (gameRef.current && gameRef.current.player) {
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const targetX = newTouchControls.touchCurrentX * scaleX - gameRef.current.player.width / 2;
+      const targetY = newTouchControls.touchCurrentY * scaleY - gameRef.current.player.height / 2;
+      
+      gameRef.current.player.x = Math.max(0, Math.min(canvas.width - gameRef.current.player.width, targetX));
+      gameRef.current.player.y = Math.max(0, Math.min(canvas.height - gameRef.current.player.height - 20, targetY));
+      
+      console.log('Direct touch test - moved ship to:', gameRef.current.player.x, gameRef.current.player.y);
+    }
   }, []);
 
   const handleTouchMove = React.useCallback((e) => {
     e.preventDefault();
-    if (touchControls.isTouching) {
+    e.stopPropagation();
+    console.log('Touch move detected!', e.touches.length);
+    
+    if (!e.touches || e.touches.length === 0) {
+      console.log('No touches found in touchmove event');
+      return;
+    }
+    
+    setTouchControls(prev => {
+      if (!prev.isTouching) {
+        console.log('Not touching, ignoring move');
+        return prev;
+      }
+      
       const touch = e.touches[0];
-      const rect = canvasRef.current.getBoundingClientRect();
+      const canvas = canvasRef.current;
+      if (!canvas) {
+        console.log('Canvas not found in touchmove');
+        return prev;
+      }
+      
+      const rect = canvas.getBoundingClientRect();
       
       // Calculate touch velocity for better control
-      const deltaX = (touch.clientX - rect.left) - touchControls.touchCurrentX;
-      const deltaY = (touch.clientY - rect.top) - touchControls.touchCurrentY;
+      const deltaX = (touch.clientX - rect.left) - prev.touchCurrentX;
+      const deltaY = (touch.clientY - rect.top) - prev.touchCurrentY;
       const velocity = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
       
       // Adjust sensitivity based on velocity
       const dynamicSensitivity = Math.min(1.5 + (velocity * 0.02), 3.0);
       
-      setTouchControls(prev => ({
+      const newControls = {
         ...prev,
         touchCurrentX: touch.clientX - rect.left,
         touchCurrentY: touch.clientY - rect.top,
         touchSensitivity: dynamicSensitivity,
         multiTouch: e.touches.length > 1
-      }));
-    }
-  }, [touchControls.isTouching, touchControls.touchCurrentX, touchControls.touchCurrentY]);
+      };
+      
+      console.log('Touch move - new position:', newControls.touchCurrentX, newControls.touchCurrentY);
+      
+      // Direct test - move ship immediately on touch move
+      if (gameRef.current && gameRef.current.player) {
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const targetX = newControls.touchCurrentX * scaleX - gameRef.current.player.width / 2;
+        const targetY = newControls.touchCurrentY * scaleY - gameRef.current.player.height / 2;
+        
+        gameRef.current.player.x = Math.max(0, Math.min(canvas.width - gameRef.current.player.width, targetX));
+        gameRef.current.player.y = Math.max(0, Math.min(canvas.height - gameRef.current.player.height - 20, targetY));
+        
+        console.log('Direct touch move - moved ship to:', gameRef.current.player.x, gameRef.current.player.y);
+      }
+      
+      return newControls;
+    });
+  }, []);
 
   const handleTouchEnd = React.useCallback((e) => {
     e.preventDefault();
+    e.stopPropagation();
+    console.log('Touch end detected!');
     setTouchControls(prev => ({
       ...prev,
       isTouching: false
@@ -2113,16 +2180,26 @@ const Game = () => {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
-      // Standard touch events
-      canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
-      canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-      canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
-      canvas.addEventListener('touchcancel', handleTouchEnd, { passive: false });
+      // Standard touch events with iOS optimizations
+      canvas.addEventListener('touchstart', handleTouchStart, { passive: false, capture: true });
+      canvas.addEventListener('touchmove', handleTouchMove, { passive: false, capture: true });
+      canvas.addEventListener('touchend', handleTouchEnd, { passive: false, capture: true });
+      canvas.addEventListener('touchcancel', handleTouchEnd, { passive: false, capture: true });
       
       // iOS specific events
       canvas.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false });
       canvas.addEventListener('gesturechange', (e) => e.preventDefault(), { passive: false });
       canvas.addEventListener('gestureend', (e) => e.preventDefault(), { passive: false });
+      
+      // Additional iOS touch event support
+      canvas.addEventListener('touchforcechange', (e) => e.preventDefault(), { passive: false });
+      
+      // Prevent iOS Safari from scrolling
+      canvas.addEventListener('touchmove', (e) => {
+        if (e.touches.length > 1) {
+          e.preventDefault();
+        }
+      }, { passive: false });
     }
 
     return () => {
@@ -2136,7 +2213,7 @@ const Game = () => {
         canvas.removeEventListener('gestureend', (e) => e.preventDefault());
       }
     };
-  }, [touchControls.isTouching, handleTouchStart, handleTouchMove, handleTouchEnd]);
+  }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   return (
     <div className="vertical-shooter">
@@ -2157,7 +2234,7 @@ const Game = () => {
                 <span>Lives: {gameRef.current?.player?.lives || 25}</span>
               </div>
               <div className="stat-item">
-                <span>Health: {gameRef.current?.player?.health || 0}/{gameRef.current?.player?.maxHealth || 100} ({Math.round(((gameRef.current?.player?.health || 0) / (gameRef.current?.player?.maxHealth || 100)) * 100)}%)</span>
+                <span>Health: {Math.round(((gameRef.current?.player?.health || 0) / (gameRef.current?.player?.maxHealth || 100)) * 100)}%</span>
               </div>
               <div className="stat-item level-display">
                 <span>LVL: {playerLevel} | XP: {playerXP}/{playerLevel * 100}</span>
@@ -2233,8 +2310,26 @@ const Game = () => {
               <div className="menu-subtitle-container">
                 <p className="menu-subtitle">🌟 Epic space shooter game with power-ups and fun! 🌟</p>
                 <div className="menu-characters">
-                  <span className="character">👨‍🚀 Kaden</span>
-                  <span className="character">👩‍🚀 Adelynn</span>
+                  <span 
+                    className={`character kaden ${selectedCharacter === 'kaden' ? 'selected' : ''}`}
+                    onClick={() => {
+                      setSelectedCharacter('kaden');
+                      localStorage.setItem('kadenAdelynnCharacter', 'kaden');
+                    }}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    👨‍🚀 Kaden
+                  </span>
+                  <span 
+                    className={`character adelynn ${selectedCharacter === 'adelynn' ? 'selected' : ''}`}
+                    onClick={() => {
+                      setSelectedCharacter('adelynn');
+                      localStorage.setItem('kadenAdelynnCharacter', 'adelynn');
+                    }}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    👩‍🚀 Adelynn
+                  </span>
                 </div>
               </div>
             </div>
@@ -2276,9 +2371,12 @@ const Game = () => {
               <button className="menu-button primary" onClick={startGame}>
                 🎮 Start Adventure!
               </button>
-              <button className="menu-button secondary" onClick={() => setShowHighScores(true)}>
-                🏆 High Scores
-              </button>
+                          <button className="menu-button secondary" onClick={() => setShowHighScores(true)}>
+              🏆 High Scores
+            </button>
+            <button className="menu-button secondary" onClick={() => setShowStoryModal(true)}>
+              📖 Story
+            </button>
               <button className="menu-button secondary" onClick={() => setShowSettings(true)}>
                 ⚙️ How to Play
               </button>
@@ -2422,6 +2520,25 @@ const Game = () => {
           </div>
         </div>
       )}
+      
+      {/* Story System UI */}
+      {storyNotification && (
+        <StoryNotification
+          event={storyNotification}
+          onClose={() => setStoryNotification(null)}
+        />
+      )}
+      
+      <StoryModal
+        isOpen={showStoryModal}
+        onClose={() => setShowStoryModal(false)}
+        chapterId={currentStoryChapter}
+        characterId={selectedCharacter}
+        onCharacterSelect={(character) => {
+          setSelectedCharacter(character);
+          localStorage.setItem('kadenAdelynnCharacter', character);
+        }}
+      />
     </div>
   );
 };
