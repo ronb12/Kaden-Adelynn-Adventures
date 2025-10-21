@@ -181,10 +181,10 @@ const StarbaseScreen = ({
       );
       ctx.fill();
       
-      // Room border
+      // Room border (highlight if selected)
       ctx.globalAlpha = 1;
-      ctx.strokeStyle = isHovered ? '#ffffff' : room.accentColor;
-      ctx.lineWidth = isHovered ? 3 : 2;
+      ctx.strokeStyle = isSelected ? '#ffff00' : (isHovered ? '#ffffff' : room.accentColor);
+      ctx.lineWidth = isSelected ? 4 : (isHovered ? 3 : 2);
       ctx.stroke();
       
       // Room icon and name
