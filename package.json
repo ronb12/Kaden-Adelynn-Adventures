@@ -4,6 +4,7 @@
   "description": "Epic space shooter game with asteroids, challenges, and medals",
   "private": true,
   "dependencies": {
+    "firebase": "^10.7.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1"
