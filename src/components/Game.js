@@ -28,6 +28,7 @@ import { getProgressiveBackground } from '../systems/BackgroundPresetGenerator.j
 import MenuScreen from './Game/MenuScreen.js';
 import ShipSelectionScreen from './Game/ShipSelectionScreen.js';
 import DailyMissionsPanel from './Game/DailyMissionsPanel.js';
+import CampaignScreen from './Game/CampaignScreen.js';
 import ProgressionHUD from './Game/ProgressionHUD.js';
 import OnboardingTutorial from './Game/OnboardingTutorial.js';
 import GameOverScreen from './Game/GameOverScreen.js';
@@ -279,8 +280,17 @@ const Game = () => {
     return localStorage.getItem('selectedShip') || 'phoenixWing';
   });
   const [showShipSelection, setShowShipSelection] = useState(false);
+  const [showCampaign, setShowCampaign] = useState(false);
   const [gameMode, setGameMode] = useState('endless'); // 'endless', 'campaign'
   const [campaignLevel, setCampaignLevel] = useState(1);
+  const [completedLevels, setCompletedLevels] = useState(() => {
+    const saved = localStorage.getItem('completedCampaignLevels');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [levelStars, setLevelStars] = useState(() => {
+    const saved = localStorage.getItem('campaignLevelStars');
+    return saved ? JSON.parse(saved) : {};
+  });
   const [showDailyMissions, setShowDailyMissions] = useState(false);
   const [unlockedShips, setUnlockedShips] = useState(() => {
     const saved = localStorage.getItem('unlockedShips');
@@ -2885,7 +2895,7 @@ const Game = () => {
             onShowAdvancedSettings={() => setShowAdvancedSettings(true)}
             onShowShipSelection={() => setShowShipSelection(true)}
             onShowDailyMissions={() => setShowDailyMissions(true)}
-            onStartCampaign={() => alert('Campaign Mode: 300 EPIC Levels! Coming Soon!')}
+            onStartCampaign={() => setShowCampaign(true)}
             onToggleFullscreen={toggleFullscreen}
             onShowStarbase={null}
             onShowTutorial={() => setShowTutorial(true)}
@@ -3066,6 +3076,22 @@ const Game = () => {
               alert(`Claimed! +${reward.xp} XP, +${reward.credits} Credits`);
             }
           }}
+        />
+      )}
+      
+      {/* Campaign Screen */}
+      {showCampaign && (
+        <CampaignScreen
+          onStartLevel={(levelId, levelData) => {
+            setCampaignLevel(levelId);
+            setGameMode('campaign');
+            setShowCampaign(false);
+            startGame(); // Start the game in campaign mode
+          }}
+          onBack={() => setShowCampaign(false)}
+          currentLevel={campaignLevel}
+          completedLevels={completedLevels}
+          levelStars={levelStars}
         />
       )}
       
