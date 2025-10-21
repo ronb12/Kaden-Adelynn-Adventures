@@ -19,6 +19,7 @@ import DailyMissionSystem from '../systems/DailyMissionSystem.js';
 import ShipSelectionScreen from './Game/ShipSelectionScreen.js';
 import DailyMissionsPanel from './Game/DailyMissionsPanel.js';
 import ProgressionHUD from './Game/ProgressionHUD.js';
+import OnboardingTutorial from './Game/OnboardingTutorial.js';
 import { SHIP_TYPES } from '../constants/ShipConstants.js';
 import { ALL_CAMPAIGN_LEVELS } from '../constants/CampaignConstants.js';
 
@@ -264,6 +265,9 @@ const Game = () => {
   const [unlockedShips, setUnlockedShips] = useState(() => {
     const saved = localStorage.getItem('unlockedShips');
     return saved ? JSON.parse(saved) : ['phoenixWing', 'stellarArrow'];
+  });
+  const [showTutorial, setShowTutorial] = useState(() => {
+    return !localStorage.getItem('tutorialCompleted');
   });
   
   // Comprehensive weapon system with 50+ weapons
@@ -1420,8 +1424,33 @@ const Game = () => {
           game.bullets.splice(bulletIndex, 1);
           
           if (enemy.type === 'boss') {
+            // Calculate boss damage with ship abilities
+            const currentWeaponData = weaponTypes[currentWeapon];
+            let bossDamage = currentWeaponData.damage * 0.5; // Bosses take reduced damage
+            
+            // Apply ship damage multiplier
+            if (game.player.damageMultiplier) {
+              bossDamage *= game.player.damageMultiplier;
+            }
+            
+            // Apply special abilities
+            if (game.player.shipSpecial) {
+              const special = game.player.shipSpecial;
+              
+              // Critical hits
+              if (special.critChance && Math.random() < special.critChance) {
+                bossDamage *= (special.critMultiplier || 2.0);
+                particleSystemRef.current.addScreenShake(3);
+              }
+              
+              // Berserker mode
+              if (special.lowHealthThreshold && game.player.health < game.player.maxHealth * special.lowHealthThreshold) {
+                bossDamage *= (1 + special.lowHealthBonus);
+              }
+            }
+            
             // Boss takes damage but doesn't die immediately
-            enemy.health = (enemy.health || 100) - 5;
+            enemy.health = (enemy.health || 100) - bossDamage;
             gameRef.current.score += 25; // More points for hitting boss
             
             if (enemy.health <= 0) {
@@ -1429,6 +1458,24 @@ const Game = () => {
               game.bossActive = false;
               gameRef.current.score += 500; // Big bonus for defeating boss
           playExplosionSound();
+              
+              // Huge explosion for boss death
+              if (advancedSettings.visualEffects) {
+                particleSystemRef.current.createExplosion(
+                  enemy.x + enemy.width / 2,
+                  enemy.y + enemy.height / 2,
+                  'huge',
+                  '#ff00ff'
+                );
+                particleSystemRef.current.addScreenShake(15);
+              }
+              
+              // Reward XP and credits for boss
+              metaProgressionRef.current.addXP(200);
+              metaProgressionRef.current.addCredits(100);
+              
+              // Daily mission tracking
+              dailyMissionsRef.current.updateProgress('boss', 1);
               
               // Check for boss defeat achievement
               checkAchievement('boss_defeated', 'Boss Slayer', 'Defeated your first boss!');
@@ -1474,21 +1521,66 @@ const Game = () => {
           dailyMissionsRef.current.updateProgress('kills', 1);
           dailyMissionsRef.current.updateProgress('kills_specific', 1, { enemyType: enemy.type });
           
+          // Apply ship special abilities on kill
+          if (game.player.shipSpecial) {
+            const special = game.player.shipSpecial;
+            
+            // Life Steal - Plasma Reaper
+            if (special.healPercent && game.player.health < game.player.maxHealth) {
+              game.player.health = Math.min(
+                game.player.maxHealth,
+                game.player.health + (game.player.maxHealth * special.healPercent)
+              );
+            }
+            
+            // Phoenix Fury - bonus damage after kills (handled in damage calculation)
+            // Infinite Growth - Infinity Seeker
+            if (special.growthPerKill) {
+              if (!game.player.growthStacks) game.player.growthStacks = 0;
+              game.player.growthStacks = Math.min(
+                special.maxGrowth / special.growthPerKill,
+                game.player.growthStacks + 1
+              );
+            }
+          }
+          
+          // Reward XP and credits for regular enemy kills
+          const baseXP = 10;
+          const baseCredits = 5;
+          metaProgressionRef.current.addXP(baseXP);
+          metaProgressionRef.current.addCredits(baseCredits);
+          
           // Combo system
           const currentTime = Date.now();
           if (currentTime - game.lastKillTime < 2000) { // 2 second combo window
             game.combo++;
             game.killStreak++;
             
-            // Visual effects: combo
+            // Enhanced combo visual effects
             if (advancedSettings.visualEffects && game.combo > 1) {
               visualEffectsSystem.createComboEffect(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2, game.combo);
+              
+              // Bonus XP for combos
+              metaProgressionRef.current.addXP(game.combo * 2);
+              
+              // Special effects for high combos
+              if (game.combo >= 10) {
+                particleSystemRef.current.createExplosion(
+                  enemy.x + enemy.width / 2,
+                  enemy.y + enemy.height / 2,
+                  'large',
+                  '#ffff00'
+                );
+              }
             }
           } else {
             game.combo = 1;
             game.killStreak = 1;
           }
           game.lastKillTime = currentTime;
+          
+          // Track combo for daily missions
+          dailyMissionsRef.current.updateProgress('combo', game.combo);
           
           // Update combo multiplier
           game.comboMultiplier = Math.min(1 + Math.floor(game.combo / 5), 5); // Max 5x multiplier
@@ -1536,6 +1628,14 @@ const Game = () => {
             if (game.playerLevel % 3 === 0) {
               // Every 3 levels, slight speed boost
               game.player.speed = Math.min(game.player.speed + 0.2, 8);
+            }
+            
+            // Level up celebration effect
+            if (advancedSettings.visualEffects) {
+              particleSystemRef.current.createLevelUpEffect(
+                game.player.x + game.player.width / 2,
+                game.player.y + game.player.height / 2
+              );
             }
             
             // Show level up achievement
@@ -2981,6 +3081,13 @@ const Game = () => {
               alert(`Claimed! +${reward.xp} XP, +${reward.credits} Credits`);
             }
           }}
+        />
+      )}
+      
+      {/* Onboarding Tutorial */}
+      {showTutorial && (
+        <OnboardingTutorial
+          onComplete={() => setShowTutorial(false)}
         />
       )}
       
