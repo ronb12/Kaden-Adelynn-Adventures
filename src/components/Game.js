@@ -2854,10 +2854,15 @@ const Game = () => {
                 🎮 Start Endless Mode!
               </button>
               <button className="menu-button secondary" onClick={() => setShowShipSelection(true)}>
-                🛸 Ship Selection ({unlockedShips.length}/20)
+                🛸 Ship Selection ({unlockedShips.length}/150 Ships)
               </button>
               <button className="menu-button secondary" onClick={() => setShowDailyMissions(true)}>
                 ⭐ Daily Missions
+              </button>
+              <button className="menu-button secondary" onClick={() => {
+                alert('Campaign Mode: 200 Epic Levels Coming Soon!');
+              }}>
+                📋 Campaign (200 Levels)
               </button>
               <button className="menu-button secondary" onClick={() => setShowHighScores(true)}>
                 🏆 High Scores

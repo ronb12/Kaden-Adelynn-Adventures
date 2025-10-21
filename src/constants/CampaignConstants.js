@@ -1,6 +1,9 @@
 /**
- * Campaign Mode Constants - 50 Structured Levels with Objectives
+ * Campaign Mode Constants - 200 EPIC Levels with Objectives
+ * The most extensive campaign in mobile space shooters
  */
+
+import { generate200Levels } from './CampaignLevelGenerator.js';
 
 export const CAMPAIGN_LEVELS = {
   // Tutorial Levels (1-5)
@@ -402,11 +405,18 @@ const generateIntermediateLevels = () => {
   return generatedLevels;
 };
 
-// Merge all levels
+// Generate 200 levels
+const generated200Levels = generate200Levels();
+
+// Merge all levels (keeping original 10 key levels for story, adding 190 more)
 export const ALL_CAMPAIGN_LEVELS = {
   ...CAMPAIGN_LEVELS,
-  ...generateIntermediateLevels()
+  ...generateIntermediateLevels(),
+  ...generated200Levels
 };
+
+// Export total level count
+export const TOTAL_CAMPAIGN_LEVELS = Object.keys(ALL_CAMPAIGN_LEVELS).length;
 
 // Campaign progression tracking
 export const CAMPAIGN_PROGRESSION = {

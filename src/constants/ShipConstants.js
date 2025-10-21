@@ -1,6 +1,9 @@
 /**
- * Ship Constants - Ship types and their configurations
+ * Ship Constants - 150 Unique Ships with 50 Different Abilities
+ * The most comprehensive ship system in mobile gaming
  */
+
+import { generateAllShips, generateShipVisuals } from './ShipGenerator.js';
 
 export const SHIP_TYPES = {
   PHOENIX_WING: {
@@ -366,4 +369,15 @@ export const SHIP_UNLOCK_REQUIREMENTS = {
     achievement: 'high_scorer'
   }
 };
+
+// Generate and merge 150 ships
+const generatedShips = generateAllShips();
+Object.assign(SHIP_TYPES, generatedShips);
+
+// Generate visuals for all ships
+const generatedVisuals = generateShipVisuals(SHIP_TYPES);
+Object.assign(SHIP_VISUALS, generatedVisuals);
+
+// Export total ship count
+export const TOTAL_SHIPS = Object.keys(SHIP_TYPES).length;
 
