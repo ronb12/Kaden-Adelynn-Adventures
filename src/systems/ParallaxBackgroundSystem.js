@@ -313,6 +313,12 @@ export class ParallaxBackgroundSystem {
    * Initialize from preset config (supports 150 presets!)
    */
   initializeFromConfig(canvasWidth, canvasHeight, config) {
+    if (!config) {
+      console.warn('⚠️ No background config provided, using default space preset');
+      this.initialize(canvasWidth, canvasHeight, 'space');
+      return;
+    }
+    
     this.canvasWidth = canvasWidth;
     this.canvasHeight = canvasHeight;
     this.layers = [];
@@ -323,34 +329,45 @@ export class ParallaxBackgroundSystem {
     // Apply darkness overlay
     this.darknessOverlay = config.darkness || 0;
     
-    // Add layers based on config
-    if (config.stars > 0) {
+    // Add layers based on config (with safety checks)
+    const stars = config.stars || 0;
+    const nebulae = config.nebulae || 0;
+    const planets = config.planets || 0;
+    const asteroids = config.asteroids || 0;
+    
+    if (stars > 0) {
       // Far stars
-      this.layers.push(new BackgroundLayer('stars', 0.1, Math.floor(config.stars * 0.4), '#ffffff', 1));
+      this.layers.push(new BackgroundLayer('stars', 0.1, Math.max(1, Math.floor(stars * 0.4)), '#ffffff', 1));
       // Mid stars
-      this.layers.push(new BackgroundLayer('stars', 0.3, Math.floor(config.stars * 0.3), '#ccccff', 1.5));
+      this.layers.push(new BackgroundLayer('stars', 0.3, Math.max(1, Math.floor(stars * 0.3)), '#ccccff', 1.5));
       // Close stars
-      this.layers.push(new BackgroundLayer('stars', 0.6, Math.floor(config.stars * 0.3), '#ffffcc', 2));
+      this.layers.push(new BackgroundLayer('stars', 0.6, Math.max(1, Math.floor(stars * 0.3)), '#ffffcc', 2));
     }
     
-    if (config.nebulae > 0) {
+    if (nebulae > 0) {
       // Background nebulae
-      this.layers.push(new BackgroundLayer('nebula', 0.05, Math.min(config.nebulae, 3), config.nebulaColor || null, null));
+      this.layers.push(new BackgroundLayer('nebula', 0.05, Math.min(nebulae, 3), config.nebulaColor || null, null));
       // Mid nebulae if many
-      if (config.nebulae > 3) {
-        this.layers.push(new BackgroundLayer('nebula', 0.2, config.nebulae - 3, config.nebulaColor || null, null));
+      if (nebulae > 3) {
+        this.layers.push(new BackgroundLayer('nebula', 0.2, nebulae - 3, config.nebulaColor || null, null));
       }
     }
     
-    if (config.planets > 0) {
-      this.layers.push(new BackgroundLayer('planets', 0.15, Math.min(config.planets, 5), null, null));
+    if (planets > 0) {
+      this.layers.push(new BackgroundLayer('planets', 0.15, Math.min(planets, 5), null, null));
     }
     
-    if (config.asteroids > 0) {
+    if (asteroids > 0) {
       // Distant asteroids
-      this.layers.push(new BackgroundLayer('asteroids', 0.2, Math.floor(config.asteroids * 0.5), '#666666', null));
+      this.layers.push(new BackgroundLayer('asteroids', 0.2, Math.max(1, Math.floor(asteroids * 0.5)), '#666666', null));
       // Close asteroids
-      this.layers.push(new BackgroundLayer('asteroids', 0.5, Math.ceil(config.asteroids * 0.5), '#888888', null));
+      this.layers.push(new BackgroundLayer('asteroids', 0.5, Math.max(1, Math.ceil(asteroids * 0.5)), '#888888', null));
+    }
+    
+    // Always have at least one layer (fallback to stars)
+    if (this.layers.length === 0) {
+      console.warn('⚠️ Background config had no elements, adding default stars');
+      this.layers.push(new BackgroundLayer('stars', 0.3, 50, '#ffffff', 1));
     }
     
     // Initialize all layers
