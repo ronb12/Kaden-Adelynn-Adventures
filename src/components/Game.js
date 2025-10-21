@@ -18,6 +18,7 @@ import ParallaxBackgroundSystem from '../systems/ParallaxBackgroundSystem.js';
 import DailyMissionSystem from '../systems/DailyMissionSystem.js';
 import ShipSelectionScreen from './Game/ShipSelectionScreen.js';
 import DailyMissionsPanel from './Game/DailyMissionsPanel.js';
+import ProgressionHUD from './Game/ProgressionHUD.js';
 import { SHIP_TYPES } from '../constants/ShipConstants.js';
 import { ALL_CAMPAIGN_LEVELS } from '../constants/CampaignConstants.js';
 
@@ -523,6 +524,32 @@ const Game = () => {
       speed: 0
     });
     
+    // Initialize parallax background
+    if (canvasRef.current && !parallaxRef.current.initialized) {
+      parallaxRef.current.initialize(
+        canvasRef.current.width, 
+        canvasRef.current.height, 
+        'space'
+      );
+    }
+    
+    // Apply selected ship stats with meta-progression bonuses
+    const shipKey = Object.keys(SHIP_TYPES).find(k => SHIP_TYPES[k].id === selectedShip);
+    if (shipKey) {
+      const ship = SHIP_TYPES[shipKey];
+      const bonuses = metaProgressionRef.current.getTotalBonuses();
+      
+      if (gameRef.current?.player) {
+        gameRef.current.player.speed = ship.stats.speed * bonuses.speedMultiplier;
+        gameRef.current.player.maxHealth = ship.stats.maxHealth * bonuses.maxHealthMultiplier;
+        gameRef.current.player.health = ship.stats.maxHealth * bonuses.maxHealthMultiplier;
+        gameRef.current.player.damageMultiplier = ship.stats.damageMultiplier * bonuses.damageMultiplier;
+        gameRef.current.player.fireRateMultiplier = ship.stats.fireRateMultiplier * bonuses.fireRateMultiplier;
+        gameRef.current.player.shipSpecial = ship.special; // Store special ability
+        gameRef.current.player.shipColor = ship.color;
+      }
+    }
+    
     // Daily challenge system
     const generateDailyChallenge = () => {
       const challenges = [
@@ -715,13 +742,22 @@ const Game = () => {
 
     // Apply screen shake to canvas
     ctx.save();
-    ctx.translate(game.screenShakeX, game.screenShakeY);
+    
+    // Get screen shake from enhanced particle system
+    const shake = particleSystemRef.current.getScreenShake();
+    ctx.translate(game.screenShakeX + shake.x, game.screenShakeY + shake.y);
 
     // Clear canvas
     ctx.fillStyle = '#000011';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw enhanced animated stars background
+    // Draw parallax background (if enabled)
+    if (advancedSettings.backgroundParallax) {
+      parallaxRef.current.update(1);
+      parallaxRef.current.draw(ctx);
+    }
+
+    // Draw enhanced animated stars background (on top of parallax)
     const time = currentTime * 0.001;
     
     if (advancedSettings.backgroundParallax) {
@@ -1414,9 +1450,15 @@ const Game = () => {
             // Regular enemy dies immediately
           game.enemies.splice(enemyIndex, 1);
           
-          // Visual effects: explosion
+          // Enhanced particle explosion
           if (advancedSettings.visualEffects) {
             visualEffectsSystem.createExplosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2, 1, '#ff4444');
+            particleSystemRef.current.createExplosion(
+              enemy.x + enemy.width / 2, 
+              enemy.y + enemy.height / 2, 
+              'medium', 
+              enemy.color || '#ff4444'
+            );
           }
           
           // Story event: enemy killed
@@ -1427,6 +1469,10 @@ const Game = () => {
           if (storyEvent) {
             setStoryNotification(storyEvent);
           }
+          
+          // Daily mission tracking
+          dailyMissionsRef.current.updateProgress('kills', 1);
+          dailyMissionsRef.current.updateProgress('kills_specific', 1, { enemyType: enemy.type });
           
           // Combo system
           const currentTime = Date.now();
@@ -1557,9 +1603,21 @@ const Game = () => {
           game.player.y < powerUp.y + powerUp.height &&
           game.player.y + game.player.height > powerUp.y) {
         // Power-up collected
+        const collectedPowerUp = game.powerUps[powerUpIndex];
         game.powerUps.splice(powerUpIndex, 1);
         playPowerUpSound();
-        // Screen shake disabled
+        
+        // Enhanced particle effect for power-up collection
+        if (advancedSettings.visualEffects) {
+          particleSystemRef.current.createPowerUpEffect(
+            powerUp.x + powerUp.width / 2,
+            powerUp.y + powerUp.height / 2,
+            powerUp.color || '#ffff00'
+          );
+        }
+        
+        // Daily mission tracking
+        dailyMissionsRef.current.updateProgress('powerups', 1);
         
         // Apply power-up effect
         if (powerUp.type === 'weapon') {
@@ -1882,6 +1940,16 @@ const Game = () => {
     
     // Draw enhanced triangular player ship with character-based colors
     const shipCenterX = game.player.x + game.player.width/2;
+    
+    // Add ship trail particles
+    if (advancedSettings.visualEffects) {
+      particleSystemRef.current.createTrail(
+        shipCenterX,
+        game.player.y + game.player.height,
+        game.player.shipColor || (selectedCharacter === 'adelynn' ? '#ff69b4' : '#00ffff'),
+        1.5
+      );
+    }
     
     // Main ship body with gradient effect based on selected character
     const gradient = ctx.createLinearGradient(shipCenterX, game.player.y, shipCenterX, game.player.y + game.player.height);
@@ -2280,6 +2348,10 @@ const Game = () => {
     });
     ctx.globalAlpha = 1;
 
+    // Update and draw enhanced particle system
+    particleSystemRef.current.update();
+    particleSystemRef.current.draw(ctx);
+
     // Restore canvas transform
     ctx.restore();
 
@@ -2523,6 +2595,9 @@ const Game = () => {
         
         {gameState === 'playing' && (
           <div className="game-ui">
+            {/* Progression HUD */}
+            <ProgressionHUD metaProgression={metaProgressionRef.current} />
+            
             <div className="game-stats">
               <div className="stat-item">
                 <span>Score: {gameRef.current?.score || 0}</span>
