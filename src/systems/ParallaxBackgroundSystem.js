@@ -310,6 +310,55 @@ export class ParallaxBackgroundSystem {
   }
 
   /**
+   * Initialize from preset config (supports 150 presets!)
+   */
+  initializeFromConfig(canvasWidth, canvasHeight, config) {
+    this.canvasWidth = canvasWidth;
+    this.canvasHeight = canvasHeight;
+    this.layers = [];
+    this.config = config;
+    this.darkness = config.darkness || 0.5;
+    this.backgroundColor = config.color || '#000033';
+    
+    // Apply darkness overlay
+    this.darknessOverlay = config.darkness || 0;
+    
+    // Add layers based on config
+    if (config.stars > 0) {
+      // Far stars
+      this.layers.push(new BackgroundLayer('stars', 0.1, Math.floor(config.stars * 0.4), '#ffffff', 1));
+      // Mid stars
+      this.layers.push(new BackgroundLayer('stars', 0.3, Math.floor(config.stars * 0.3), '#ccccff', 1.5));
+      // Close stars
+      this.layers.push(new BackgroundLayer('stars', 0.6, Math.floor(config.stars * 0.3), '#ffffcc', 2));
+    }
+    
+    if (config.nebulae > 0) {
+      // Background nebulae
+      this.layers.push(new BackgroundLayer('nebula', 0.05, Math.min(config.nebulae, 3), config.nebulaColor || null, null));
+      // Mid nebulae if many
+      if (config.nebulae > 3) {
+        this.layers.push(new BackgroundLayer('nebula', 0.2, config.nebulae - 3, config.nebulaColor || null, null));
+      }
+    }
+    
+    if (config.planets > 0) {
+      this.layers.push(new BackgroundLayer('planets', 0.15, Math.min(config.planets, 5), null, null));
+    }
+    
+    if (config.asteroids > 0) {
+      // Distant asteroids
+      this.layers.push(new BackgroundLayer('asteroids', 0.2, Math.floor(config.asteroids * 0.5), '#666666', null));
+      // Close asteroids
+      this.layers.push(new BackgroundLayer('asteroids', 0.5, Math.ceil(config.asteroids * 0.5), '#888888', null));
+    }
+    
+    // Initialize all layers
+    this.layers.forEach(layer => layer.initialize(canvasWidth, canvasHeight));
+    this.initialized = true;
+  }
+
+  /**
    * Standard space preset
    */
   initializeSpacePreset() {
@@ -394,8 +443,20 @@ export class ParallaxBackgroundSystem {
   draw(ctx) {
     if (!this.initialized) return;
     
+    // Draw background color if set
+    if (this.backgroundColor) {
+      ctx.fillStyle = this.backgroundColor;
+      ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
+    }
+    
     // Draw layers from back to front
     this.layers.forEach(layer => layer.draw(ctx, this.time));
+    
+    // Apply darkness overlay
+    if (this.darknessOverlay > 0) {
+      ctx.fillStyle = `rgba(0, 0, 0, ${this.darknessOverlay * 0.3})`;
+      ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
+    }
   }
 
   /**

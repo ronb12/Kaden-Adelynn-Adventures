@@ -24,6 +24,7 @@ import WebGLBloomShader from '../systems/WebGLBloomShader.js';
 import DynamicLightingSystem from '../systems/DynamicLightingSystem.js';
 import VolumetricEffectsSystem from '../systems/VolumetricEffectsSystem.js';
 import ProceduralTextureSystem from '../systems/ProceduralTextureSystem.js';
+import { getProgressiveBackground } from '../systems/BackgroundPresetGenerator.js';
 import ShipSelectionScreen from './Game/ShipSelectionScreen.js';
 import DailyMissionsPanel from './Game/DailyMissionsPanel.js';
 import ProgressionHUD from './Game/ProgressionHUD.js';
@@ -544,13 +545,18 @@ const Game = () => {
       speed: 0
     });
     
-    // Initialize parallax background
-    if (canvasRef.current && !parallaxRef.current.initialized) {
-      parallaxRef.current.initialize(
+    // Initialize parallax background with dynamic preset based on level
+    if (canvasRef.current) {
+      // Get progressive background based on campaign level (supports 150 presets!)
+      const backgroundConfig = getProgressiveBackground(campaignLevel);
+      
+      parallaxRef.current.initializeFromConfig(
         canvasRef.current.width, 
         canvasRef.current.height, 
-        'space'
+        backgroundConfig
       );
+      
+      console.log(`🎨 Level ${campaignLevel} Background: ${backgroundConfig.name || 'Dynamic'}`);
     }
     
     // Initialize enhanced background renderer
