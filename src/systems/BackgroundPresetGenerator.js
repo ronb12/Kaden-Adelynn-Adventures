@@ -51,6 +51,60 @@ export const BACKGROUND_THEMES = {
 };
 
 /**
+ * Helper: Shift color hue
+ */
+const shiftColor = (color, amount) => {
+  try {
+    const hex = color.replace('#', '');
+    let r = parseInt(hex.substr(0, 2), 16);
+    let g = parseInt(hex.substr(2, 2), 16);
+    let b = parseInt(hex.substr(4, 2), 16);
+    
+    r = Math.max(0, Math.min(255, r + amount));
+    g = Math.max(0, Math.min(255, g + amount));
+    b = Math.max(0, Math.min(255, b + amount));
+    
+    return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+  } catch (e) {
+    return color;
+  }
+};
+
+/**
+ * Helper: Pick random special effects
+ */
+const pickRandomSpecialEffects = () => {
+  const effects = {};
+  const possibilities = ['animated', 'lightning', 'vortex', 'quantum', 'glitch', 'streaks'];
+  
+  if (Math.random() > 0.7) {
+    effects[possibilities[Math.floor(Math.random() * possibilities.length)]] = true;
+  }
+  
+  return effects;
+};
+
+/**
+ * Helper: Darken color
+ */
+const darkenColor = (color, amount) => {
+  try {
+    const hex = color.replace('#', '');
+    let r = parseInt(hex.substr(0, 2), 16);
+    let g = parseInt(hex.substr(2, 2), 16);
+    let b = parseInt(hex.substr(4, 2), 16);
+    
+    r = Math.max(0, r - amount);
+    g = Math.max(0, g - amount);
+    b = Math.max(0, b - amount);
+    
+    return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+  } catch (e) {
+    return color;
+  }
+};
+
+/**
  * Generate 150 background presets procedurally
  */
 const generate150PresetsInternal = () => {
@@ -192,40 +246,6 @@ const getHazardBackground = (levelNum) => {
 };
 
 /**
- * Shift color hue
- */
-const shiftColor = (color, amount) => {
-  try {
-    const hex = color.replace('#', '');
-    let r = parseInt(hex.substr(0, 2), 16);
-    let g = parseInt(hex.substr(2, 2), 16);
-    let b = parseInt(hex.substr(4, 2), 16);
-    
-    r = Math.max(0, Math.min(255, r + amount));
-    g = Math.max(0, Math.min(255, g + amount));
-    b = Math.max(0, Math.min(255, b + amount));
-    
-    return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
-  } catch (e) {
-    return color;
-  }
-};
-
-/**
- * Pick random special effects
- */
-const pickRandomSpecialEffects = () => {
-  const effects = {};
-  const possibilities = ['animated', 'lightning', 'vortex', 'quantum', 'glitch', 'streaks'];
-  
-  if (Math.random() > 0.7) {
-    effects[possibilities[Math.floor(Math.random() * possibilities.length)]] = true;
-  }
-  
-  return effects;
-};
-
-/**
  * Get progressive difficulty background
  */
 export const getProgressiveBackground = (levelNum) => {
@@ -251,23 +271,6 @@ const getDifficultyTier = (levelNum) => {
   if (levelNum <= 200) return { tier: 4, name: 'extreme' };
   if (levelNum <= 250) return { tier: 5, name: 'nightmare' };
   return { tier: 6, name: 'impossible' };
-};
-
-const darkenColor = (color, amount) => {
-  try {
-    const hex = color.replace('#', '');
-    let r = parseInt(hex.substr(0, 2), 16);
-    let g = parseInt(hex.substr(2, 2), 16);
-    let b = parseInt(hex.substr(4, 2), 16);
-    
-    r = Math.max(0, r - amount);
-    g = Math.max(0, g - amount);
-    b = Math.max(0, b - amount);
-    
-    return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
-  } catch (e) {
-    return color;
-  }
 };
 
 export default { generate150Presets, getBackgroundForLevel, getProgressiveBackground };
