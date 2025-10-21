@@ -795,8 +795,8 @@ const Game = () => {
     const shake = particleSystemRef.current.getScreenShake();
     ctx.translate(game.screenShakeX + shake.x, game.screenShakeY + shake.y);
 
-    // Clear canvas
-    ctx.fillStyle = '#000011';
+    // Clear canvas with LIGHTER background for mobile visibility
+    ctx.fillStyle = '#0a0a2a'; // Much lighter than #000011
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Draw enhanced backgrounds (if enabled)

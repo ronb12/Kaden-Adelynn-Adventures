@@ -258,9 +258,9 @@ export const getProgressiveBackground = (levelNum) => {
   // Clone the preset to avoid mutating the cached object
   const progressivePreset = { ...basePreset };
   
-  // REDUCED darkness for better mobile visibility (max 0.6 instead of 0.95)
-  const maxDarkness = 0.6;
-  progressivePreset.darkness = Math.min(maxDarkness, (progressivePreset.darkness || 0.3) + (difficulty.tier * 0.05));
+  // MINIMAL darkness for mobile visibility (max 0.3 instead of 0.95)
+  const maxDarkness = 0.3; // Very light!
+  progressivePreset.darkness = Math.min(maxDarkness, (progressivePreset.darkness || 0.1) + (difficulty.tier * 0.02));
   progressivePreset.color = darkenColor(progressivePreset.color || '#001144', difficulty.tier * 10);
   progressivePreset.intensity = 1.0 + (difficulty.tier * 0.2);
   
