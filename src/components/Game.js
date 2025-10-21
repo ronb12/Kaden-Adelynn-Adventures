@@ -2139,6 +2139,24 @@ const Game = () => {
       );
     }
     
+    // Add bright glow behind player for visibility on dark backgrounds
+    ctx.save();
+    const glowColor = selectedCharacter === 'adelynn' ? '#ff69b4' : '#00ffff';
+    ctx.shadowBlur = 30;
+    ctx.shadowColor = glowColor;
+    ctx.fillStyle = glowColor;
+    ctx.globalAlpha = 0.3;
+    ctx.beginPath();
+    ctx.arc(
+      game.player.x + game.player.width / 2,
+      game.player.y + game.player.height / 2,
+      game.player.width * 0.8,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+    ctx.restore();
+    
     // Draw advanced ship using new renderer
     const shipKey = Object.keys(SHIP_TYPES).find(k => SHIP_TYPES[k].id === selectedShip);
     const ship = shipKey ? SHIP_TYPES[shipKey] : SHIP_TYPES.PHOENIX_WING;
@@ -2161,6 +2179,21 @@ const Game = () => {
         character: selectedCharacter
       }
     );
+    
+    // Add bright white outline for maximum visibility
+    ctx.save();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.8;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = '#ffffff';
+    ctx.strokeRect(
+      game.player.x + 2,
+      game.player.y + 2,
+      game.player.width - 4,
+      game.player.height - 4
+    );
+    ctx.restore();
 
     // Draw enhanced player missiles with different weapon types
     game.bullets.forEach(bullet => {

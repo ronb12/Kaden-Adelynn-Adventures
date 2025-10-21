@@ -469,9 +469,12 @@ export class ParallaxBackgroundSystem {
     // Draw layers from back to front
     this.layers.forEach(layer => layer.draw(ctx, this.time));
     
-    // Apply darkness overlay
+    // Apply darkness overlay (REDUCED for better mobile visibility)
     if (this.darknessOverlay > 0) {
-      ctx.fillStyle = `rgba(0, 0, 0, ${this.darknessOverlay * 0.3})`;
+      // Cap darkness at 0.15 max (was 0.3) for better visibility
+      const maxDarknessAlpha = 0.15;
+      const darknessAlpha = Math.min(this.darknessOverlay * 0.15, maxDarknessAlpha);
+      ctx.fillStyle = `rgba(0, 0, 0, ${darknessAlpha})`;
       ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
     }
   }

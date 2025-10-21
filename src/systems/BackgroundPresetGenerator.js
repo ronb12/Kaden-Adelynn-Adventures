@@ -5,12 +5,12 @@
  */
 
 export const BACKGROUND_THEMES = {
-  // Space Regions (10 base themes)
-  VOID_SPACE: { darkness: 0.9, stars: 20, nebulae: 0, planets: 0, asteroids: 0, color: '#000033' },
-  STAR_CLUSTER: { darkness: 0.3, stars: 150, nebulae: 1, planets: 1, asteroids: 0, color: '#001144' },
-  NEBULA_FIELD: { darkness: 0.5, stars: 40, nebulae: 5, planets: 2, asteroids: 0, color: '#220044' },
-  ASTEROID_BELT: { darkness: 0.6, stars: 30, nebulae: 0, planets: 1, asteroids: 50, color: '#332211' },
-  PLANETARY_SYSTEM: { darkness: 0.4, stars: 50, nebulae: 1, planets: 5, asteroids: 10, color: '#112244' },
+  // Space Regions (10 base themes) - REDUCED darkness for mobile visibility
+  VOID_SPACE: { darkness: 0.4, stars: 20, nebulae: 0, planets: 0, asteroids: 0, color: '#001155' },
+  STAR_CLUSTER: { darkness: 0.2, stars: 150, nebulae: 1, planets: 1, asteroids: 0, color: '#002266' },
+  NEBULA_FIELD: { darkness: 0.3, stars: 40, nebulae: 5, planets: 2, asteroids: 0, color: '#330055' },
+  ASTEROID_BELT: { darkness: 0.4, stars: 30, nebulae: 0, planets: 1, asteroids: 50, color: '#443322' },
+  PLANETARY_SYSTEM: { darkness: 0.2, stars: 50, nebulae: 1, planets: 5, asteroids: 10, color: '#223355' },
   COSMIC_DUST: { darkness: 0.5, stars: 80, nebulae: 3, planets: 2, asteroids: 5, color: '#221133' },
   WARP_TUNNEL: { darkness: 0.7, stars: 100, nebulae: 2, planets: 0, asteroids: 0, color: '#330066', animated: true },
   SUPERNOVA_REMNANT: { darkness: 0.3, stars: 60, nebulae: 8, planets: 0, asteroids: 20, color: '#442200' },
@@ -195,17 +195,18 @@ export const getBackgroundForLevel = (levelNum) => {
  * Boss-specific backgrounds (dark and dramatic)
  */
 const getBossBackground = (bossNumber) => {
+  // REDUCED darkness for mobile visibility (was 0.85-0.99, now 0.4-0.6)
   const bossBgs = [
-    { darkness: 0.95, stars: 5, nebulae: 1, planets: 0, asteroids: 0, color: '#1a0000', lightning: true, name: 'Void Emperor Throne' },
-    { darkness: 0.9, stars: 10, nebulae: 2, planets: 0, asteroids: 0, color: '#000a1a', vortex: true, name: 'Chaos Dimension' },
-    { darkness: 0.92, stars: 8, nebulae: 1, planets: 1, asteroids: 0, color: '#0a001a', timeDistortion: true, name: 'Temporal Rift' },
-    { darkness: 0.98, stars: 3, nebulae: 0, planets: 0, asteroids: 0, color: '#000000', shadows: true, name: 'Shadow Realm' },
-    { darkness: 0.88, stars: 15, nebulae: 3, planets: 0, asteroids: 0, color: '#1a0a00', forge: true, name: 'Star Forge' },
-    { darkness: 0.94, stars: 12, nebulae: 2, planets: 0, asteroids: 0, color: '#1a001a', vortex: true, name: 'Void Nexus' },
-    { darkness: 0.85, stars: 20, nebulae: 4, planets: 2, asteroids: 0, color: '#2a1a1a', debris: true, name: 'Cosmic Battlefield' },
-    { darkness: 0.96, stars: 6, nebulae: 3, planets: 0, asteroids: 0, color: '#1a0a1a', glitch: true, name: 'Reality Breach' },
-    { darkness: 0.93, stars: 10, nebulae: 2, planets: 1, asteroids: 0, color: '#0a0a1a', quantum: true, name: 'Quantum Void' },
-    { darkness: 0.99, stars: 2, nebulae: 1, planets: 0, asteroids: 0, color: '#000000', apocalypse: true, name: 'Apocalypse Dimension' }
+    { darkness: 0.5, stars: 5, nebulae: 1, planets: 0, asteroids: 0, color: '#330000', lightning: true, name: 'Void Emperor Throne' },
+    { darkness: 0.45, stars: 10, nebulae: 2, planets: 0, asteroids: 0, color: '#001a33', vortex: true, name: 'Chaos Dimension' },
+    { darkness: 0.5, stars: 8, nebulae: 1, planets: 1, asteroids: 0, color: '#1a0033', timeDistortion: true, name: 'Temporal Rift' },
+    { darkness: 0.6, stars: 3, nebulae: 0, planets: 0, asteroids: 0, color: '#110011', shadows: true, name: 'Shadow Realm' },
+    { darkness: 0.4, stars: 15, nebulae: 3, planets: 0, asteroids: 0, color: '#331a00', forge: true, name: 'Star Forge' },
+    { darkness: 0.5, stars: 12, nebulae: 2, planets: 0, asteroids: 0, color: '#330033', vortex: true, name: 'Void Nexus' },
+    { darkness: 0.4, stars: 20, nebulae: 4, planets: 2, asteroids: 0, color: '#3a2a2a', debris: true, name: 'Cosmic Battlefield' },
+    { darkness: 0.55, stars: 6, nebulae: 3, planets: 0, asteroids: 0, color: '#2a1a2a', glitch: true, name: 'Reality Breach' },
+    { darkness: 0.5, stars: 10, nebulae: 2, planets: 1, asteroids: 0, color: '#1a1a2a', quantum: true, name: 'Quantum Void' },
+    { darkness: 0.6, stars: 2, nebulae: 1, planets: 0, asteroids: 0, color: '#110011', apocalypse: true, name: 'Apocalypse Dimension' }
   ];
   
   const bg = { ...bossBgs[bossNumber % bossBgs.length] }; // Clone to avoid mutation
@@ -256,8 +257,11 @@ export const getProgressiveBackground = (levelNum) => {
   
   // Clone the preset to avoid mutating the cached object
   const progressivePreset = { ...basePreset };
-  progressivePreset.darkness = Math.min(0.95, (progressivePreset.darkness || 0.5) + (difficulty.tier * 0.1));
-  progressivePreset.color = darkenColor(progressivePreset.color || '#000033', difficulty.tier * 15);
+  
+  // REDUCED darkness for better mobile visibility (max 0.6 instead of 0.95)
+  const maxDarkness = 0.6;
+  progressivePreset.darkness = Math.min(maxDarkness, (progressivePreset.darkness || 0.3) + (difficulty.tier * 0.05));
+  progressivePreset.color = darkenColor(progressivePreset.color || '#001144', difficulty.tier * 10);
   progressivePreset.intensity = 1.0 + (difficulty.tier * 0.2);
   
   return progressivePreset;
