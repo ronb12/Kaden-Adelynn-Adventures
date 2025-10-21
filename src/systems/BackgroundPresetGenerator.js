@@ -53,7 +53,7 @@ export const BACKGROUND_THEMES = {
 /**
  * Generate 150 background presets procedurally
  */
-export const generate150Presets = () => {
+const generate150PresetsInternal = () => {
   const presets = {};
   
   // Add all themed presets (60 from above)
@@ -87,11 +87,19 @@ export const generate150Presets = () => {
   return presets;
 };
 
+// Cache the presets - generate once at module load time
+const CACHED_PRESETS = generate150PresetsInternal();
+
+/**
+ * Generate 150 background presets (exported for testing)
+ */
+export const generate150Presets = () => CACHED_PRESETS;
+
 /**
  * Get background for specific campaign level
  */
 export const getBackgroundForLevel = (levelNum) => {
-  const presets = generate150Presets();
+  const presets = CACHED_PRESETS;
   
   // Boss levels (every 10) - dramatic dark backgrounds
   if (levelNum % 10 === 0) {
@@ -109,8 +117,24 @@ export const getBackgroundForLevel = (levelNum) => {
   }
   
   // Regular levels - cycle through all 150 presets
-  const presetIndex = (levelNum % 150) + 1;
-  return presets[`PRESET_${presetIndex}`];
+  const presetIndex = ((levelNum - 1) % 150) + 1; // Ensure 1-150 range
+  const preset = presets[`PRESET_${presetIndex}`];
+  
+  // Safety check and clone to prevent mutation
+  if (!preset) {
+    console.error(`⚠️ Preset not found for index ${presetIndex}, using fallback`);
+    return { 
+      darkness: 0.5, 
+      stars: 50, 
+      nebulae: 2, 
+      planets: 1, 
+      asteroids: 0, 
+      color: '#000033',
+      name: 'Fallback Space'
+    };
+  }
+  
+  return { ...preset }; // Clone to prevent mutation
 };
 
 /**
@@ -163,7 +187,8 @@ const getHazardBackground = (levelNum) => {
     { darkness: 0.2, stars: 60, nebulae: 6, planets: 1, asteroids: 0, color: '#4a3a0a', solarFlares: true, name: 'Solar Flares' }
   ];
   
-  return hazardTypes[Math.floor(levelNum / 7) % hazardTypes.length];
+  const hazard = hazardTypes[Math.floor(levelNum / 7) % hazardTypes.length];
+  return { ...hazard }; // Clone to prevent mutation
 };
 
 /**
@@ -209,11 +234,13 @@ export const getProgressiveBackground = (levelNum) => {
   // Darkness increases with difficulty
   const basePreset = getBackgroundForLevel(levelNum);
   
-  basePreset.darkness = Math.min(0.95, basePreset.darkness + (difficulty.tier * 0.1));
-  basePreset.color = darkenColor(basePreset.color, difficulty.tier * 15);
-  basePreset.intensity = 1.0 + (difficulty.tier * 0.2);
+  // Clone the preset to avoid mutating the cached object
+  const progressivePreset = { ...basePreset };
+  progressivePreset.darkness = Math.min(0.95, (progressivePreset.darkness || 0.5) + (difficulty.tier * 0.1));
+  progressivePreset.color = darkenColor(progressivePreset.color || '#000033', difficulty.tier * 15);
+  progressivePreset.intensity = 1.0 + (difficulty.tier * 0.2);
   
-  return basePreset;
+  return progressivePreset;
 };
 
 const getDifficultyTier = (levelNum) => {
