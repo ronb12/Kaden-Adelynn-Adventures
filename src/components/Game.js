@@ -16,6 +16,8 @@ import EnhancedParticleSystem from '../systems/EnhancedParticleSystem.js';
 import MetaProgressionSystem from '../systems/MetaProgressionSystem.js';
 import ParallaxBackgroundSystem from '../systems/ParallaxBackgroundSystem.js';
 import DailyMissionSystem from '../systems/DailyMissionSystem.js';
+import AdvancedShipRenderer from '../systems/AdvancedShipRenderer.js';
+import EnhancedBackgroundRenderer from '../systems/EnhancedBackgroundRenderer.js';
 import ShipSelectionScreen from './Game/ShipSelectionScreen.js';
 import DailyMissionsPanel from './Game/DailyMissionsPanel.js';
 import ProgressionHUD from './Game/ProgressionHUD.js';
@@ -253,6 +255,8 @@ const Game = () => {
   const metaProgressionRef = useRef(new MetaProgressionSystem());
   const parallaxRef = useRef(new ParallaxBackgroundSystem());
   const dailyMissionsRef = useRef(new DailyMissionSystem());
+  const shipRendererRef = useRef(new AdvancedShipRenderer());
+  const enhancedBgRef = useRef(null); // Initialize in useEffect
   
   // New Feature States
   const [selectedShip, setSelectedShip] = useState(() => {
@@ -537,6 +541,15 @@ const Game = () => {
       );
     }
     
+    // Initialize enhanced background renderer
+    if (canvasRef.current && !enhancedBgRef.current) {
+      enhancedBgRef.current = new EnhancedBackgroundRenderer(
+        canvasRef.current.width,
+        canvasRef.current.height
+      );
+      enhancedBgRef.current.initialize();
+    }
+    
     // Apply selected ship stats with meta-progression bonuses
     const shipKey = Object.keys(SHIP_TYPES).find(k => SHIP_TYPES[k].id === selectedShip);
     if (shipKey) {
@@ -755,10 +768,16 @@ const Game = () => {
     ctx.fillStyle = '#000011';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw parallax background (if enabled)
+    // Draw enhanced backgrounds (if enabled)
     if (advancedSettings.backgroundParallax) {
       parallaxRef.current.update(1);
       parallaxRef.current.draw(ctx);
+      
+      // Add enhanced background effects
+      if (enhancedBgRef.current) {
+        enhancedBgRef.current.update();
+        enhancedBgRef.current.draw(ctx, currentTime);
+      }
     }
 
     // Draw enhanced animated stars background (on top of parallax)
@@ -2038,7 +2057,9 @@ const Game = () => {
       ctx.shadowBlur = 0;
     }
     
-    // Draw enhanced triangular player ship with character-based colors
+    // Update ship renderer animation
+    shipRendererRef.current.update(1);
+    
     const shipCenterX = game.player.x + game.player.width/2;
     
     // Add ship trail particles
@@ -2051,42 +2072,28 @@ const Game = () => {
       );
     }
     
-    // Main ship body with gradient effect based on selected character
-    const gradient = ctx.createLinearGradient(shipCenterX, game.player.y, shipCenterX, game.player.y + game.player.height);
+    // Draw advanced ship using new renderer
+    const shipKey = Object.keys(SHIP_TYPES).find(k => SHIP_TYPES[k].id === selectedShip);
+    const ship = shipKey ? SHIP_TYPES[shipKey] : SHIP_TYPES.PHOENIX_WING;
+    const shipShape = ship.tierIndex !== undefined ? 
+      AdvancedShipRenderer.getShapeForTier(ship.tierIndex || 0, ship.id.charCodeAt(0)) :
+      'fighter_jet';
     
-    if (selectedCharacter === 'adelynn') {
-      // Pink gradient for Adelynn
-      gradient.addColorStop(0, '#ff69b4');
-      gradient.addColorStop(0.5, '#ff1493');
-      gradient.addColorStop(1, '#c71585');
-    } else {
-      // Blue gradient for Kaden
-    gradient.addColorStop(0, '#00ffff');
-    gradient.addColorStop(0.5, '#0088ff');
-    gradient.addColorStop(1, '#0044aa');
-    }
-    
-    ctx.fillStyle = gradient;
-    ctx.shadowColor = selectedCharacter === 'adelynn' ? '#ff69b4' : '#00ffff';
-    ctx.shadowBlur = 12;
-    ctx.beginPath();
-    ctx.moveTo(shipCenterX, game.player.y);
-    ctx.lineTo(game.player.x, game.player.y + game.player.height);
-    ctx.lineTo(game.player.x + game.player.width, game.player.y + game.player.height);
-    ctx.closePath();
-    ctx.fill();
-    
-    // Add ship details
-    ctx.fillStyle = '#ffffff';
-    ctx.shadowBlur = 5;
-    ctx.beginPath();
-    ctx.moveTo(shipCenterX, game.player.y + 5);
-    ctx.lineTo(shipCenterX - 8, game.player.y + game.player.height - 5);
-    ctx.lineTo(shipCenterX + 8, game.player.y + game.player.height - 5);
-    ctx.closePath();
-    ctx.fill();
-    
-    ctx.shadowBlur = 0;
+    shipRendererRef.current.drawShip(
+      ctx,
+      game.player.x,
+      game.player.y,
+      game.player.width,
+      game.player.height,
+      {
+        color: game.player.shipColor || (selectedCharacter === 'adelynn' ? '#ff69b4' : '#00ffff'),
+        glowColor: selectedCharacter === 'adelynn' ? '#ff88ff' : '#00ccff',
+        shape: shipShape,
+        health: game.player.health / game.player.maxHealth,
+        invincible: game.player.invincible || false,
+        character: selectedCharacter
+      }
+    );
 
     // Draw enhanced player missiles with different weapon types
     game.bullets.forEach(bullet => {
