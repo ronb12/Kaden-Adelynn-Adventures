@@ -1,6 +1,6 @@
 /**
- * Campaign Level Generator - Creates 200 Unique Levels
- * Most extensive campaign mode in mobile space shooters
+ * Campaign Level Generator - Creates 300 EPIC Levels
+ * THE LARGEST campaign mode in ALL mobile gaming!
  */
 
 const LEVEL_THEMES = [
@@ -11,7 +11,13 @@ const LEVEL_THEMES = [
   'Shield Test', 'Evasion Course', 'Hunter Mission', 'Rescue Op', 'Sabotage',
   'Infiltration', 'Extraction', 'Demolition', 'Escort Duty', 'Siege',
   'Ambush', 'Counter-Attack', 'Fortress Assault', 'Fleet Battle', 'Last Stand',
-  'Gauntlet Run', 'Chaos Mode', 'Precision Strike', 'Heavy Metal', 'Lightning War'
+  'Gauntlet Run', 'Chaos Mode', 'Precision Strike', 'Heavy Metal', 'Lightning War',
+  'Void Incursion', 'Warp Jump', 'Quantum Leap', 'Black Hole', 'Supernova',
+  'Galaxy Defense', 'Star Forge', 'Celestial War', 'Cosmic Rift', 'Infinity Edge',
+  'Temporal Paradox', 'Reality Breach', 'Dimension Shift', 'Nexus Battle', 'Final Frontier',
+  'Ultimate Challenge', 'Apocalypse', 'Armageddon', 'Ragnarok', 'Exodus',
+  'Genesis Protocol', 'Omega Directive', 'Alpha Strike', 'Beta Squadron', 'Gamma Burst',
+  'Delta Force', 'Epsilon Wave', 'Zeta Assault', 'Eta Defense', 'Theta Protocol'
 ];
 
 const BOSS_TYPES_CAMPAIGN = [
@@ -19,19 +25,30 @@ const BOSS_TYPES_CAMPAIGN = [
   'Temporal Destroyer', 'Chaos Lord', 'Shadow Emperor', 'Void Tyrant',
   'Galactic Destroyer', 'Omega Titan', 'Void Emperor', 'Dimensional Overlord',
   'Cosmic Horror', 'Star Devourer', 'Reality Breaker', 'Infinity Eater',
-  'Time Weaver', 'Chaos Incarnate', 'Void Sovereign', 'Ultimate Destroyer'
+  'Time Weaver', 'Chaos Incarnate', 'Void Sovereign', 'Ultimate Destroyer',
+  'Primordial Entity', 'Ancient One', 'Void God', 'Chaos Titan', 'Death Star',
+  'Oblivion Lord', 'Entropy King', 'Singularity Beast', 'Quantum Nightmare', 'Final Boss'
 ];
 
 /**
- * Generate 200 campaign levels
+ * Generate 300 campaign levels
  */
-export const generate200Levels = () => {
+export const generate300Levels = () => {
   const levels = {};
   
-  for (let i = 1; i <= 200; i++) {
+  for (let i = 1; i <= 300; i++) {
     levels[`LEVEL_${i}`] = generateLevel(i);
   }
   
+  return levels;
+};
+
+// Backward compatibility
+export const generate200Levels = () => {
+  const levels = {};
+  for (let i = 1; i <= 200; i++) {
+    levels[`LEVEL_${i}`] = generateLevel(i);
+  }
   return levels;
 };
 
@@ -81,7 +98,9 @@ const getDifficulty = (levelNum) => {
   if (levelNum <= 50) return { name: 'easy', multiplier: 1.0 };
   if (levelNum <= 100) return { name: 'medium', multiplier: 1.3 };
   if (levelNum <= 150) return { name: 'hard', multiplier: 1.6 };
-  return { name: 'extreme', multiplier: 2.0 };
+  if (levelNum <= 200) return { name: 'extreme', multiplier: 2.0 };
+  if (levelNum <= 250) return { name: 'nightmare', multiplier: 2.5 };
+  return { name: 'impossible', multiplier: 3.0 };
 };
 
 /**
@@ -259,9 +278,11 @@ const generateRewards = (levelNum, isBossLevel) => {
   if (levelNum === 100) rewards.title = 'Ace Commander';
   if (levelNum === 150) rewards.title = 'Legendary Hero';
   if (levelNum === 200) rewards.title = 'Void Slayer Supreme';
+  if (levelNum === 250) rewards.title = 'Cosmic Dominator';
+  if (levelNum === 300) rewards.title = 'God of War';
   
   return rewards;
 };
 
-export default generate200Levels;
+export default generate300Levels;
 

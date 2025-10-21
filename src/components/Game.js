@@ -2860,9 +2860,9 @@ const Game = () => {
                 ⭐ Daily Missions
               </button>
               <button className="menu-button secondary" onClick={() => {
-                alert('Campaign Mode: 200 Epic Levels Coming Soon!');
+                alert('Campaign Mode: 300 EPIC Levels! Coming Soon!');
               }}>
-                📋 Campaign (200 Levels)
+                📋 Campaign (300 LEVELS!)
               </button>
               <button className="menu-button secondary" onClick={() => setShowHighScores(true)}>
                 🏆 High Scores
