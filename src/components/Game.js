@@ -21,6 +21,9 @@ import EnhancedBackgroundRenderer from '../systems/EnhancedBackgroundRenderer.js
 import AdvancedWeaponRenderer from '../systems/AdvancedWeaponRenderer.js';
 import PostProcessingEffects from '../systems/PostProcessingEffects.js';
 import WebGLBloomShader from '../systems/WebGLBloomShader.js';
+import DynamicLightingSystem from '../systems/DynamicLightingSystem.js';
+import VolumetricEffectsSystem from '../systems/VolumetricEffectsSystem.js';
+import ProceduralTextureSystem from '../systems/ProceduralTextureSystem.js';
 import ShipSelectionScreen from './Game/ShipSelectionScreen.js';
 import DailyMissionsPanel from './Game/DailyMissionsPanel.js';
 import ProgressionHUD from './Game/ProgressionHUD.js';
@@ -263,6 +266,9 @@ const Game = () => {
   const weaponRendererRef = useRef(new AdvancedWeaponRenderer());
   const postProcessingRef = useRef(new PostProcessingEffects());
   const bloomShaderRef = useRef(null); // WebGL bloom (optional)
+  const lightingSystemRef = useRef(new DynamicLightingSystem());
+  const volumetricRef = useRef(new VolumetricEffectsSystem());
+  const textureSystemRef = useRef(new ProceduralTextureSystem());
   
   // New Feature States
   const [selectedShip, setSelectedShip] = useState(() => {
@@ -1484,15 +1490,35 @@ const Game = () => {
               gameRef.current.score += 500; // Big bonus for defeating boss
           playExplosionSound();
               
-              // Huge explosion for boss death
+              // Massive volumetric boss explosion (10/10 quality!)
               if (advancedSettings.visualEffects) {
                 particleSystemRef.current.createExplosion(
+                  enemy.x + enemy.width / 2,
+                  enemy.y + enemy.width / 2,
+                  'huge',
+                  '#ff00ff'
+                );
+                volumetricRef.current.createVolumetricExplosion(
                   enemy.x + enemy.width / 2,
                   enemy.y + enemy.height / 2,
                   'huge',
                   '#ff00ff'
                 );
                 particleSystemRef.current.addScreenShake(15);
+                
+                // Multiple light flashes for epic effect
+                for (let i = 0; i < 3; i++) {
+                  setTimeout(() => {
+                    const light = lightingSystemRef.current.addLight(
+                      enemy.x + enemy.width / 2,
+                      enemy.y + enemy.height / 2,
+                      i === 0 ? '#ffffff' : i === 1 ? '#ff00ff' : '#00ffff',
+                      1.0,
+                      200 + i * 50
+                    );
+                    setTimeout(() => lightingSystemRef.current.removeLight(light), 300);
+                  }, i * 100);
+                }
               }
               
               // Reward XP and credits for boss
@@ -1522,7 +1548,7 @@ const Game = () => {
             // Regular enemy dies immediately
           game.enemies.splice(enemyIndex, 1);
           
-          // Enhanced particle explosion
+          // Enhanced particle explosion + volumetric cloud
           if (advancedSettings.visualEffects) {
             visualEffectsSystem.createExplosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2, 1, '#ff4444');
             particleSystemRef.current.createExplosion(
@@ -1531,6 +1557,22 @@ const Game = () => {
               'medium', 
               enemy.color || '#ff4444'
             );
+            // Add volumetric explosion cloud for AAA quality
+            volumetricRef.current.createVolumetricExplosion(
+              enemy.x + enemy.width / 2,
+              enemy.y + enemy.height / 2,
+              'medium',
+              enemy.color || '#ff6600'
+            );
+            // Add dynamic light flash
+            const light = lightingSystemRef.current.addLight(
+              enemy.x + enemy.width / 2,
+              enemy.y + enemy.height / 2,
+              '#ff8800',
+              1.0,
+              100
+            );
+            setTimeout(() => lightingSystemRef.current.removeLight(light), 200);
           }
           
           // Story event: enemy killed
@@ -2461,20 +2503,37 @@ const Game = () => {
     });
     ctx.globalAlpha = 1;
 
+    // Update and draw volumetric effects
+    volumetricRef.current.update();
+    volumetricRef.current.draw(ctx);
+
     // Update and draw enhanced particle system
     particleSystemRef.current.update();
     particleSystemRef.current.draw(ctx);
 
+    // Update and render dynamic lighting
+    lightingSystemRef.current.update();
+    
     // Restore canvas transform
     ctx.restore();
+
+    // Apply dynamic lighting (before post-processing)
+    if (advancedSettings.visualEffects) {
+      lightingSystemRef.current.render(ctx, canvas);
+    }
 
     // Apply AAA post-processing effects
     if (advancedSettings.visualEffects) {
       postProcessingRef.current.applyAllEffects(ctx, canvas, {
-        motionBlur: false, // Disabled for performance, enable for ultra-quality
+        motionBlur: false, // Can enable for ultra-quality
         vignette: true,
         colorGrading: 'space',
-        intensity: 0.7
+        intensity: 0.8,
+        lightRays: game.player ? {
+          x: game.player.x + game.player.width / 2,
+          y: game.player.y,
+          intensity: 0.15
+        } : null
       });
     }
 

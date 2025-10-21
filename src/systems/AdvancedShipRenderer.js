@@ -2,12 +2,16 @@
  * Advanced Ship Renderer
  * Creates professional-quality ship visuals without sprites
  * Multi-part geometric designs that rival sprite-based games
+ * NOW WITH: Procedural details, metallic sheen, panel lines, rivets
  */
+
+import ProceduralTextureSystem from './ProceduralTextureSystem.js';
 
 export class AdvancedShipRenderer {
   constructor() {
     this.shipCache = new Map(); // Cache rendered ships for performance
     this.animationTime = 0;
+    this.textureSystem = new ProceduralTextureSystem();
   }
 
   /**
@@ -107,14 +111,25 @@ export class AdvancedShipRenderer {
     ctx.closePath();
     ctx.fill();
 
-    // Cockpit window
+    // Cockpit window with reflection
     ctx.shadowBlur = 0;
-    ctx.fillStyle = '#ffffff';
-    ctx.globalAlpha = 0.8;
+    const cockpitGradient = ctx.createRadialGradient(-w/16, -h/4 - h/16, 0, 0, -h/4, w/8);
+    cockpitGradient.addColorStop(0, 'rgba(200, 230, 255, 1)');
+    cockpitGradient.addColorStop(0.6, 'rgba(100, 180, 255, 0.8)');
+    cockpitGradient.addColorStop(1, 'rgba(50, 100, 200, 0.5)');
+    ctx.fillStyle = cockpitGradient;
     ctx.beginPath();
     ctx.arc(0, -h/4, w/8, 0, Math.PI * 2);
     ctx.fill();
-    ctx.globalAlpha = 1;
+
+    // Add panel lines
+    this.textureSystem.generateShipPanels(ctx, w, h, color, 4);
+
+    // Add metallic sheen
+    this.textureSystem.generateMetallicSheen(ctx, -w/2, -h/2, w, h, Math.PI / 3);
+
+    // Add rivets for detail
+    this.textureSystem.generateRivets(ctx, -w/2, -h/2, w, h, 0.05);
 
     // Wing details
     ctx.strokeStyle = glowColor;
