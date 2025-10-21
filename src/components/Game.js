@@ -11,6 +11,16 @@ import { embeddedMusicSystem } from './Systems/EmbeddedMusicSystem.js';
 import { gamepadController } from './Systems/GamepadController.js';
 import { tvDisplayOptimizer } from './Systems/TVDisplayOptimizer.js';
 
+// New Feature Imports
+import EnhancedParticleSystem from '../systems/EnhancedParticleSystem.js';
+import MetaProgressionSystem from '../systems/MetaProgressionSystem.js';
+import ParallaxBackgroundSystem from '../systems/ParallaxBackgroundSystem.js';
+import DailyMissionSystem from '../systems/DailyMissionSystem.js';
+import ShipSelectionScreen from './Game/ShipSelectionScreen.js';
+import DailyMissionsPanel from './Game/DailyMissionsPanel.js';
+import { SHIP_TYPES } from '../constants/ShipConstants.js';
+import { ALL_CAMPAIGN_LEVELS } from '../constants/CampaignConstants.js';
+
 // Audio context for sound effects and music
 let audioContext = null;
 let backgroundMusicOscillator = null;
@@ -234,6 +244,25 @@ const Game = () => {
     controllerEnabled: true,
     controllerDeadzone: 0.15,
     controllerVibration: true
+  });
+
+  // New Feature Systems
+  const particleSystemRef = useRef(new EnhancedParticleSystem());
+  const metaProgressionRef = useRef(new MetaProgressionSystem());
+  const parallaxRef = useRef(new ParallaxBackgroundSystem());
+  const dailyMissionsRef = useRef(new DailyMissionSystem());
+  
+  // New Feature States
+  const [selectedShip, setSelectedShip] = useState(() => {
+    return localStorage.getItem('selectedShip') || 'phoenixWing';
+  });
+  const [showShipSelection, setShowShipSelection] = useState(false);
+  const [gameMode, setGameMode] = useState('endless'); // 'endless', 'campaign'
+  const [campaignLevel, setCampaignLevel] = useState(1);
+  const [showDailyMissions, setShowDailyMissions] = useState(false);
+  const [unlockedShips, setUnlockedShips] = useState(() => {
+    const saved = localStorage.getItem('unlockedShips');
+    return saved ? JSON.parse(saved) : ['phoenixWing', 'stellarArrow'];
   });
   
   // Comprehensive weapon system with 50+ weapons
@@ -2647,7 +2676,13 @@ const Game = () => {
             
             <div className="menu-buttons">
               <button className="menu-button primary" onClick={startGame}>
-                🎮 Start Adventure!
+                🎮 Start Endless Mode!
+              </button>
+              <button className="menu-button secondary" onClick={() => setShowShipSelection(true)}>
+                🛸 Ship Selection ({unlockedShips.length}/20)
+              </button>
+              <button className="menu-button secondary" onClick={() => setShowDailyMissions(true)}>
+                ⭐ Daily Missions
               </button>
               <button className="menu-button secondary" onClick={() => setShowHighScores(true)}>
                 🏆 High Scores
@@ -2829,6 +2864,50 @@ const Game = () => {
         onClose={() => setShowAdvancedSettings(false)}
         onSettingsChange={setAdvancedSettings}
       />
+      
+      {/* Ship Selection Screen */}
+      {showShipSelection && (
+        <ShipSelectionScreen
+          onSelect={(shipId) => {
+            setSelectedShip(shipId);
+            localStorage.setItem('selectedShip', shipId);
+            setShowShipSelection(false);
+            
+            // Apply ship bonuses from meta-progression
+            const ship = SHIP_TYPES[Object.keys(SHIP_TYPES).find(k => SHIP_TYPES[k].id === shipId)];
+            if (ship && gameRef.current?.player) {
+              const bonuses = metaProgressionRef.current.getTotalBonuses();
+              gameRef.current.player.speed = ship.stats.speed * bonuses.speedMultiplier;
+              gameRef.current.player.maxHealth = ship.stats.maxHealth * bonuses.maxHealthMultiplier;
+            }
+          }}
+          onBack={() => setShowShipSelection(false)}
+          playerStats={{
+            ...metaProgressionRef.current.playerData,
+            highestScore: Math.max(...highScores.map(s => s.score || 0), 0)
+          }}
+          unlockedShips={unlockedShips}
+        />
+      )}
+      
+      {/* Daily Missions Panel */}
+      {showDailyMissions && (
+        <DailyMissionsPanel
+          missions={dailyMissionsRef.current.getMissions()}
+          onClose={() => setShowDailyMissions(false)}
+          onClaimReward={(missionId) => {
+            const reward = dailyMissionsRef.current.claimReward(missionId);
+            if (reward) {
+              // Add rewards to meta-progression
+              metaProgressionRef.current.addXP(reward.xp);
+              metaProgressionRef.current.addCredits(reward.credits);
+              
+              // Show notification
+              alert(`Claimed! +${reward.xp} XP, +${reward.credits} Credits`);
+            }
+          }}
+        />
+      )}
       
     </div>
   );
