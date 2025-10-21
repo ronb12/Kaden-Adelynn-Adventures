@@ -18,21 +18,25 @@ const ShipSelectionScreen = ({
   const [sortBy, setSortBy] = useState('tier'); // tier, speed, health, damage
 
   // Check if ship is unlocked
-  const isShipUnlocked = (shipId) => {
-    const ship = SHIP_TYPES[shipId.toUpperCase().replace(/-/g, '_')];
-    if (!ship) return false;
+  const isShipUnlocked = (ship) => {
+    // Check if ship has unlocked flag set to true (default ships)
+    if (ship.unlocked === true) return true;
     
-    if (ship.unlocked) return true;
-    if (unlockedShips.includes(shipId)) return true;
+    // Check if ship is in unlocked ships array
+    if (unlockedShips.includes(ship.id)) return true;
     
-    const requirements = SHIP_UNLOCK_REQUIREMENTS[shipId];
-    if (!requirements) return false;
+    // Check if requirements are met
+    const requirements = SHIP_UNLOCK_REQUIREMENTS[ship.id];
+    if (!requirements) {
+      // No requirements means it should be unlocked by default or by purchase
+      return ship.cost === 0; // Free ships are unlocked by default
+    }
     
     // Check if all requirements are met
-    if (requirements.score && playerStats.highestScore < requirements.score) return false;
-    if (requirements.level && playerStats.level < requirements.level) return false;
-    if (requirements.kills && playerStats.totalKills < requirements.kills) return false;
-    if (requirements.bossesDefeated && playerStats.bossesDefeated < requirements.bossesDefeated) return false;
+    if (requirements.score && (!playerStats.highestScore || playerStats.highestScore < requirements.score)) return false;
+    if (requirements.level && (!playerStats.level || playerStats.level < requirements.level)) return false;
+    if (requirements.kills && (!playerStats.totalKills || playerStats.totalKills < requirements.kills)) return false;
+    if (requirements.bossesDefeated && (!playerStats.bossesDefeated || playerStats.bossesDefeated < requirements.bossesDefeated)) return false;
     
     return true;
   };
@@ -41,7 +45,7 @@ const ShipSelectionScreen = ({
   const allShips = Object.entries(SHIP_TYPES).map(([key, ship]) => ({
     ...ship,
     key: key,
-    unlocked: isShipUnlocked(ship.id)
+    unlocked: isShipUnlocked(ship) // Pass the ship object, not just the ID
   }));
 
   // Filter ships
