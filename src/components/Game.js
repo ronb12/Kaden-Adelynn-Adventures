@@ -25,6 +25,7 @@ import DynamicLightingSystem from '../systems/DynamicLightingSystem.js';
 import VolumetricEffectsSystem from '../systems/VolumetricEffectsSystem.js';
 import ProceduralTextureSystem from '../systems/ProceduralTextureSystem.js';
 import { getProgressiveBackground } from '../systems/BackgroundPresetGenerator.js';
+import MenuScreen from './Game/MenuScreen.js';
 import ShipSelectionScreen from './Game/ShipSelectionScreen.js';
 import DailyMissionsPanel from './Game/DailyMissionsPanel.js';
 import ProgressionHUD from './Game/ProgressionHUD.js';
@@ -2874,120 +2875,26 @@ const Game = () => {
         )}
 
         {gameState === 'menu' && (
-          <div className="game-menu">
-            <div className="menu-header">
-              <h1 className="menu-title">🚀 Kaden & Adelynn Space Adventures 🚀</h1>
-              <div className="menu-subtitle-container">
-                <p className="menu-subtitle">🌟 Epic space shooter game with power-ups and fun! 🌟</p>
-                <div className="menu-characters">
-                  <span 
-                    className={`character kaden ${selectedCharacter === 'kaden' ? 'selected' : ''}`}
-                    onClick={() => {
-                      setSelectedCharacter('kaden');
-                      localStorage.setItem('kadenAdelynnCharacter', 'kaden');
-                    }}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    👨‍🚀 Kaden
-                  </span>
-                  <span 
-                    className={`character adelynn ${selectedCharacter === 'adelynn' ? 'selected' : ''}`}
-                    onClick={() => {
-                      setSelectedCharacter('adelynn');
-                      localStorage.setItem('kadenAdelynnCharacter', 'adelynn');
-                    }}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    👩‍🚀 Adelynn
-                  </span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="difficulty-selection">
-              <h3>Choose Difficulty:</h3>
-              <div className="difficulty-buttons">
-                <button 
-                  className={`difficulty-button ${difficulty === 'easy' ? 'selected' : ''}`}
-                  onClick={() => {
-                    setDifficulty('easy');
-                    localStorage.setItem('kadenAdelynnDifficulty', 'easy');
-                  }}
-                >
-                  🌟 Easy
-                </button>
-                <button 
-                  className={`difficulty-button ${difficulty === 'medium' ? 'selected' : ''}`}
-                  onClick={() => {
-                    setDifficulty('medium');
-                    localStorage.setItem('kadenAdelynnDifficulty', 'medium');
-                  }}
-                >
-                  ⚡ Medium
-                </button>
-                <button 
-                  className={`difficulty-button ${difficulty === 'hard' ? 'selected' : ''}`}
-                  onClick={() => {
-                    setDifficulty('hard');
-                    localStorage.setItem('kadenAdelynnDifficulty', 'hard');
-                  }}
-                >
-                  🔥 Hard
-                </button>
-              </div>
-            </div>
-            
-            <div className="menu-buttons">
-              <button className="menu-button primary" onClick={startGame}>
-                🎮 Start Endless Mode!
-              </button>
-              <button className="menu-button secondary" onClick={() => setShowShipSelection(true)}>
-                🛸 Ship Selection ({unlockedShips.length}/150 Ships)
-              </button>
-              <button className="menu-button secondary" onClick={() => setShowDailyMissions(true)}>
-                ⭐ Daily Missions
-              </button>
-              <button className="menu-button secondary" onClick={() => {
-                alert('Campaign Mode: 300 EPIC Levels! Coming Soon!');
-              }}>
-                📋 Campaign (300 LEVELS!)
-              </button>
-              <button className="menu-button secondary" onClick={() => setShowHighScores(true)}>
-                🏆 High Scores
-              </button>
-            <button className="menu-button secondary" onClick={() => setShowStoryModal(true)}>
-              📖 Story
-            </button>
-            <button className="menu-button secondary" onClick={() => setShowAdvancedSettings(true)}>
-              ⚙️ Advanced Settings
-            </button>
-            <button className="menu-button secondary" onClick={toggleFullscreen}>
-              {isFullscreen ? '📱 Exit Fullscreen' : '🖥️ Fullscreen'}
-            </button>
-              <button className="menu-button secondary" onClick={() => setShowSettings(true)}>
-                ⚙️ How to Play
-              </button>
-            </div>
-            
-            <div className="menu-features">
-              <div className="feature-item">
-                <span className="feature-emoji">⚡</span>
-                <span>Power-ups</span>
-              </div>
-              <div className="feature-item">
-                <span className="feature-emoji">🎵</span>
-                <span>Sound Effects</span>
-              </div>
-              <div className="feature-item">
-                <span className="feature-emoji">📱</span>
-                <span>Mobile Friendly</span>
-              </div>
-              <div className="feature-item">
-                <span className="feature-emoji">🌟</span>
-                <span>Fun for Kids</span>
-              </div>
-            </div>
-          </div>
+          <MenuScreen
+            onStartGame={startGame}
+            onShowControls={() => setShowSettings(true)}
+            onShowHighScores={() => setShowHighScores(true)}
+            onShowSettings={() => setShowSettings(true)}
+            onShowAdvancedSettings={() => setShowAdvancedSettings(true)}
+            onShowShipSelection={() => setShowShipSelection(true)}
+            onShowDailyMissions={() => setShowDailyMissions(true)}
+            onStartCampaign={() => alert('Campaign Mode: 300 EPIC Levels! Coming Soon!')}
+            onToggleFullscreen={toggleFullscreen}
+            onShowStarbase={null}
+            onShowTutorial={() => setShowTutorial(true)}
+            highScore={Math.max(...highScores, 0)}
+            unlockedShipsCount={unlockedShips.length}
+            totalShips={150}
+            totalCampaignLevels={300}
+            isFullscreen={isFullscreen}
+            playerLevel={playerLevel}
+            playerXP={playerXP}
+          />
         )}
 
         {gameState === 'paused' && (
