@@ -142,12 +142,27 @@
   box-shadow: none;
 }
 
-.lock-icon {
+.lock-overlay {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  font-size: 1.5em;
-  z-index: 2;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #ff4444;
+  z-index: 5;
+  border-radius: 12px;
+  backdrop-filter: blur(2px);
+}
+
+.ship-visual {
+  filter: drop-shadow(0 0 10px currentColor);
+  animation: float 3s ease-in-out infinite;
 }
 
 .ship-preview {
@@ -157,11 +172,6 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 15px;
-}
-
-.ship-icon {
-  font-size: 3em;
-  animation: float 3s ease-in-out infinite;
 }
 
 @keyframes float {

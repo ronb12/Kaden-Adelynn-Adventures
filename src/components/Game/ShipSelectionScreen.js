@@ -122,30 +122,65 @@ const ShipSelectionScreen = ({
               className={`ship-card ${selectedShip === ship.id ? 'selected' : ''} ${!ship.unlocked ? 'locked' : ''}`}
               onClick={() => handleSelect(ship.id, ship.unlocked)}
             >
-              {!ship.unlocked && <div className="lock-icon">🔒</div>}
+              {!ship.unlocked && <div className="lock-overlay">🔒 LOCKED</div>}
               
               <div className="ship-preview" style={{ backgroundColor: ship.color + '22', border: `2px solid ${ship.color}` }}>
-                <div className="ship-icon" style={{ color: ship.color }}>
-                  {ship.unlocked ? '🚀' : '❓'}
-                </div>
+                <svg className="ship-visual" viewBox="0 0 40 40" width="60" height="60">
+                  {/* Ship body */}
+                  <path
+                    d="M 20 5 L 25 15 L 25 30 L 20 35 L 15 30 L 15 15 Z"
+                    fill={ship.color}
+                    stroke={ship.unlocked ? '#ffffff' : '#666666'}
+                    strokeWidth="1.5"
+                    opacity={ship.unlocked ? '1' : '0.7'}
+                  />
+                  {/* Ship wings */}
+                  <path
+                    d="M 15 20 L 5 22 L 10 25 L 15 23 Z"
+                    fill={ship.color}
+                    opacity={ship.unlocked ? '0.8' : '0.5'}
+                  />
+                  <path
+                    d="M 25 20 L 35 22 L 30 25 L 25 23 Z"
+                    fill={ship.color}
+                    opacity={ship.unlocked ? '0.8' : '0.5'}
+                  />
+                  {/* Ship cockpit */}
+                  <circle
+                    cx="20"
+                    cy="15"
+                    r="3"
+                    fill={ship.unlocked ? '#00ffff' : '#444444'}
+                    opacity={ship.unlocked ? '1' : '0.6'}
+                  />
+                  {/* Engine glow */}
+                  {ship.unlocked && (
+                    <circle
+                      cx="20"
+                      cy="33"
+                      r="4"
+                      fill={ship.color}
+                      opacity="0.6"
+                      filter="blur(2px)"
+                    />
+                  )}
+                </svg>
               </div>
               
               <div className="ship-info">
-                <h3>{ship.unlocked ? ship.name : '???'}</h3>
+                <h3 style={{ color: ship.unlocked ? ship.color : '#888888' }}>{ship.name}</h3>
                 <p className="ship-character">{ship.character}</p>
                 
-                {ship.unlocked && (
-                  <>
-                    <div className="ship-stats-mini">
-                      <span title="Speed">⚡ {ship.stats.speed}</span>
-                      <span title="Health">❤️ {ship.stats.maxHealth}</span>
-                      <span title="Damage">⚔️ {ship.stats.damageMultiplier}x</span>
-                    </div>
-                    <div className="ship-cost">
-                      {ship.cost > 0 ? `${ship.cost} credits` : 'Default'}
-                    </div>
-                  </>
-                )}
+                {/* Show stats for ALL ships (locked and unlocked) */}
+                <div className="ship-stats-mini" style={{ opacity: ship.unlocked ? 1 : 0.7 }}>
+                  <span title="Speed">⚡ {ship.stats.speed}</span>
+                  <span title="Health">❤️ {ship.stats.maxHealth}</span>
+                  <span title="Damage">⚔️ {ship.stats.damageMultiplier}x</span>
+                </div>
+                
+                <div className="ship-cost" style={{ opacity: ship.unlocked ? 1 : 0.7 }}>
+                  {ship.cost > 0 ? `${ship.cost.toLocaleString()} credits` : 'Default'}
+                </div>
                 
                 {!ship.unlocked && SHIP_UNLOCK_REQUIREMENTS[ship.id] && (
                   <div className="unlock-requirements">
