@@ -41,6 +41,7 @@ let audioContext = null;
 let backgroundMusicOscillator = null;
 // let backgroundMusicGain = null; // Removed unused variable
 let isMusicPlaying = false;
+let audioInitialized = false;
 
 // Initialize audio context
 const initAudio = () => {
@@ -547,6 +548,11 @@ const Game = () => {
   };
 
   const startGame = () => {
+    // Initialize audio on user gesture (prevents warnings)
+    if (!audioInitialized) {
+      initAudio();
+    }
+    
     setGameState('playing');
     // Score is reset in gameRef.current.score = 0 above
     // Screen shake disabled
@@ -767,7 +773,7 @@ const Game = () => {
     if (gameState !== 'playing') return;
 
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true }); // Performance optimization
     const game = gameRef.current;
     
     // Frame rate limiting to 60fps
@@ -2829,9 +2835,6 @@ const Game = () => {
         
         {gameState === 'playing' && (
           <div className="game-ui">
-            {/* Progression HUD */}
-            <ProgressionHUD metaProgression={metaProgressionRef.current} />
-            
             <div className="game-stats">
               <div className="stat-item">
                 <span>Score: {gameRef.current?.score || 0}</span>
@@ -2842,9 +2845,38 @@ const Game = () => {
               <div className="stat-item">
                 <span>Health: {Math.round(((gameRef.current?.player?.health || 0) / (gameRef.current?.player?.maxHealth || 100)) * 100)}%</span>
               </div>
-              <div className="stat-item level-display">
-                <span>LVL: {playerLevel} | XP: {playerXP}/{playerLevel * 100}</span>
+              
+              {/* Level & XP Progress - Integrated into scoreboard */}
+              <div className="stat-item level-display-integrated">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ color: '#00ccff', fontWeight: 'bold' }}>
+                    LVL {playerLevel}
+                  </span>
+                  <span style={{ color: '#ffaa00', fontSize: '0.9em' }}>
+                    💰 {metaProgressionRef.current?.playerData?.credits?.toLocaleString() || 0}
+                  </span>
+                </div>
+                <div style={{
+                  width: '100%',
+                  height: '6px',
+                  background: 'rgba(0, 0, 0, 0.5)',
+                  borderRadius: '3px',
+                  overflow: 'hidden',
+                  marginTop: '4px'
+                }}>
+                  <div style={{
+                    width: `${Math.min(100, (playerXP / (playerLevel * 100)) * 100)}%`,
+                    height: '100%',
+                    background: 'linear-gradient(90deg, #00ff88, #00ccff)',
+                    boxShadow: '0 0 8px rgba(0, 255, 136, 0.5)',
+                    transition: 'width 0.3s ease'
+                  }} />
+                </div>
+                <div style={{ fontSize: '0.7em', color: '#aaa', textAlign: 'right', marginTop: '2px' }}>
+                  {playerXP}/{playerLevel * 100} XP
+                </div>
               </div>
+              
               <div className="stat-item">
                 <span>Weapon: {currentWeapon.toUpperCase()}</span>
               </div>

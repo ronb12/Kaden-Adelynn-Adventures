@@ -1167,7 +1167,7 @@ body {
   }
   
   /* Hide less critical stats on mobile to save space */
-  .stat-item.level-display,
+  .stat-item.level-display-integrated,
   .stat-item.combo-display,
   .stat-item.streak-display,
   .stat-item.special-event-display {
@@ -1831,7 +1831,7 @@ body {
   }
   
   /* Show all stats in vertical portrait mode */
-  .stat-item.level-display,
+  .stat-item.level-display-integrated,
   .stat-item.combo-display,
   .stat-item.streak-display,
   .stat-item.special-event-display {
