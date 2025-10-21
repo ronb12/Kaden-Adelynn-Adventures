@@ -30,6 +30,8 @@ import ShipSelectionScreen from './Game/ShipSelectionScreen.js';
 import DailyMissionsPanel from './Game/DailyMissionsPanel.js';
 import ProgressionHUD from './Game/ProgressionHUD.js';
 import OnboardingTutorial from './Game/OnboardingTutorial.js';
+import GameOverScreen from './Game/GameOverScreen.js';
+import PausedScreen from './Game/PausedScreen.js';
 import { SHIP_TYPES } from '../constants/ShipConstants.js';
 import { ALL_CAMPAIGN_LEVELS } from '../constants/CampaignConstants.js';
 
@@ -2898,37 +2900,20 @@ const Game = () => {
         )}
 
         {gameState === 'paused' && (
-          <div className="game-paused">
-            <h2>Game Paused</h2>
-            <div className="score-display">
-              <p>Current Score: {gameRef.current?.score || 0}</p>
-            </div>
-            <div className="menu-buttons">
-              <button className="menu-button primary" onClick={resumeGame}>
-                Resume Game
-              </button>
-              <button className="menu-button secondary" onClick={() => setGameState('menu')}>
-                Main Menu
-              </button>
-            </div>
-          </div>
+          <PausedScreen
+            onResume={resumeGame}
+            onMainMenu={() => setGameState('menu')}
+          />
         )}
 
         {gameState === 'gameOver' && (
-          <div className="game-over">
-            <h2>Game Over!</h2>
-            <div className="score-display">
-              <p>Final Score: {gameRef.current?.score || 0}</p>
-            </div>
-            <div className="menu-buttons">
-              <button className="menu-button primary" onClick={startGame}>
-                Play Again
-              </button>
-              <button className="menu-button secondary" onClick={() => setGameState('menu')}>
-                Main Menu
-              </button>
-            </div>
-          </div>
+          <GameOverScreen
+            score={gameRef.current?.score || 0}
+            highScore={Math.max(...highScores.map(s => s.score || 0), 0)}
+            wave={gameRef.current?.waveNumber || 0}
+            onRestart={startGame}
+            onMainMenu={() => setGameState('menu')}
+          />
         )}
         
         {/* Achievement Notification */}
