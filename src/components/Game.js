@@ -18,6 +18,9 @@ import ParallaxBackgroundSystem from '../systems/ParallaxBackgroundSystem.js';
 import DailyMissionSystem from '../systems/DailyMissionSystem.js';
 import AdvancedShipRenderer from '../systems/AdvancedShipRenderer.js';
 import EnhancedBackgroundRenderer from '../systems/EnhancedBackgroundRenderer.js';
+import AdvancedWeaponRenderer from '../systems/AdvancedWeaponRenderer.js';
+import PostProcessingEffects from '../systems/PostProcessingEffects.js';
+import WebGLBloomShader from '../systems/WebGLBloomShader.js';
 import ShipSelectionScreen from './Game/ShipSelectionScreen.js';
 import DailyMissionsPanel from './Game/DailyMissionsPanel.js';
 import ProgressionHUD from './Game/ProgressionHUD.js';
@@ -257,6 +260,9 @@ const Game = () => {
   const dailyMissionsRef = useRef(new DailyMissionSystem());
   const shipRendererRef = useRef(new AdvancedShipRenderer());
   const enhancedBgRef = useRef(null); // Initialize in useEffect
+  const weaponRendererRef = useRef(new AdvancedWeaponRenderer());
+  const postProcessingRef = useRef(new PostProcessingEffects());
+  const bloomShaderRef = useRef(null); // WebGL bloom (optional)
   
   // New Feature States
   const [selectedShip, setSelectedShip] = useState(() => {
@@ -2461,6 +2467,16 @@ const Game = () => {
 
     // Restore canvas transform
     ctx.restore();
+
+    // Apply AAA post-processing effects
+    if (advancedSettings.visualEffects) {
+      postProcessingRef.current.applyAllEffects(ctx, canvas, {
+        motionBlur: false, // Disabled for performance, enable for ultra-quality
+        vignette: true,
+        colorGrading: 'space',
+        intensity: 0.7
+      });
+    }
 
     requestAnimationFrame(gameLoop);
   }, [gameState, saveHighScore, playerPowerUps, touchControls, getDifficultySettings, difficulty, currentWeapon, achievements, checkAchievement, pauseGame, resumeGame]);

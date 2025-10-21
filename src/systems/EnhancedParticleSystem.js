@@ -48,6 +48,10 @@ export class Particle {
     ctx.translate(this.x, this.y);
     ctx.rotate(this.rotation);
     
+    // Add glow for all particles
+    ctx.shadowColor = this.color;
+    ctx.shadowBlur = this.size * 2;
+    
     switch (this.type) {
       case 'circle':
         ctx.beginPath();
@@ -64,11 +68,52 @@ export class Particle {
         break;
         
       case 'spark':
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(-this.size, 0);
         ctx.lineTo(this.size, 0);
+        ctx.stroke();
+        break;
+        
+      case 'diamond':
+        ctx.beginPath();
+        ctx.moveTo(0, -this.size);
+        ctx.lineTo(this.size, 0);
+        ctx.lineTo(0, this.size);
+        ctx.lineTo(-this.size, 0);
+        ctx.closePath();
+        ctx.fill();
+        break;
+        
+      case 'hexagon':
+        for (let i = 0; i < 6; i++) {
+          const angle = (Math.PI * 2 / 6) * i;
+          const x = Math.cos(angle) * this.size;
+          const y = Math.sin(angle) * this.size;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fill();
+        break;
+        
+      case 'ring':
         ctx.strokeStyle = this.color;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = this.size / 3;
+        ctx.beginPath();
+        ctx.arc(0, 0, this.size, 0, Math.PI * 2);
+        ctx.stroke();
+        break;
+        
+      case 'cross':
+        ctx.lineWidth = this.size / 2;
+        ctx.strokeStyle = this.color;
+        ctx.beginPath();
+        ctx.moveTo(-this.size, 0);
+        ctx.lineTo(this.size, 0);
+        ctx.moveTo(0, -this.size);
+        ctx.lineTo(0, this.size);
         ctx.stroke();
         break;
         
@@ -111,25 +156,38 @@ export class EnhancedParticleSystem {
    * Create explosion effect
    */
   createExplosion(x, y, size = 'medium', color = '#ff6600') {
-    const particleCounts = { small: 10, medium: 25, large: 50, huge: 100 };
-    const count = particleCounts[size] || 25;
+    const particleCounts = { small: 10, medium: 30, large: 60, huge: 120 };
+    const count = particleCounts[size] || 30;
     
     const colors = this.getExplosionColors(color);
+    const particleTypes = ['circle', 'star', 'diamond', 'square', 'hexagon', 'spark'];
     
     for (let i = 0; i < count; i++) {
       const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
-      const speed = 2 + Math.random() * 4;
+      const speed = 2 + Math.random() * 5;
       const vx = Math.cos(angle) * speed;
       const vy = Math.sin(angle) * speed;
       
       const particleColor = colors[Math.floor(Math.random() * colors.length)];
-      const particleSize = 2 + Math.random() * 4;
-      const life = 20 + Math.random() * 20;
-      const type = Math.random() > 0.7 ? 'star' : 'circle';
+      const particleSize = 2 + Math.random() * 5;
+      const life = 25 + Math.random() * 25;
+      const type = particleTypes[Math.floor(Math.random() * particleTypes.length)];
       
       const particle = new Particle(x, y, vx, vy, particleColor, life, particleSize, type);
       particle.gravity = 0.1;
       this.particles.push(particle);
+    }
+    
+    // Add ring wave effect for large explosions
+    if (size === 'large' || size === 'huge') {
+      for (let i = 0; i < 5; i++) {
+        setTimeout(() => {
+          const ringSize = 5 + i * 3;
+          const particle = new Particle(x, y, 0, 0, colors[0], 15, ringSize, 'ring');
+          particle.shrink = false;
+          this.particles.push(particle);
+        }, i * 50);
+      }
     }
     
     // Screen shake
