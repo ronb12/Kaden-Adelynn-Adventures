@@ -19,11 +19,7 @@ import DailyMissionSystem from '../systems/DailyMissionSystem.js';
 import AdvancedShipRenderer from '../systems/AdvancedShipRenderer.js';
 import EnhancedBackgroundRenderer from '../systems/EnhancedBackgroundRenderer.js';
 import AdvancedWeaponRenderer from '../systems/AdvancedWeaponRenderer.js';
-import PostProcessingEffects from '../systems/PostProcessingEffects.js';
-import WebGLBloomShader from '../systems/WebGLBloomShader.js';
-import DynamicLightingSystem from '../systems/DynamicLightingSystem.js';
-import VolumetricEffectsSystem from '../systems/VolumetricEffectsSystem.js';
-import ProceduralTextureSystem from '../systems/ProceduralTextureSystem.js';
+// Removed 3D/WebGL systems for 2D game
 import { getProgressiveBackground } from '../systems/BackgroundPresetGenerator.js';
 import MenuScreen from './Game/MenuScreen.js';
 import ShipSelectionScreen from './Game/ShipSelectionScreen.js';
@@ -270,11 +266,7 @@ const Game = () => {
   const shipRendererRef = useRef(new AdvancedShipRenderer());
   const enhancedBgRef = useRef(null); // Initialize in useEffect
   const weaponRendererRef = useRef(new AdvancedWeaponRenderer());
-  const postProcessingRef = useRef(new PostProcessingEffects());
-  const bloomShaderRef = useRef(null); // WebGL bloom (optional)
-  const lightingSystemRef = useRef(new DynamicLightingSystem());
-  const volumetricRef = useRef(new VolumetricEffectsSystem());
-  const textureSystemRef = useRef(new ProceduralTextureSystem());
+  // Removed 3D/WebGL system references for 2D game
   
   // New Feature States
   const [selectedShip, setSelectedShip] = useState(() => {
@@ -1523,27 +1515,10 @@ const Game = () => {
                   'huge',
                   '#ff00ff'
                 );
-                volumetricRef.current.createVolumetricExplosion(
-                  enemy.x + enemy.width / 2,
-                  enemy.y + enemy.height / 2,
-                  'huge',
-                  '#ff00ff'
-                );
+                // Removed volumetric explosion (3D system)
                 particleSystemRef.current.addScreenShake(15);
                 
-                // Multiple light flashes for epic effect
-                for (let i = 0; i < 3; i++) {
-                  setTimeout(() => {
-                    const light = lightingSystemRef.current.addLight(
-                      enemy.x + enemy.width / 2,
-                      enemy.y + enemy.height / 2,
-                      i === 0 ? '#ffffff' : i === 1 ? '#ff00ff' : '#00ffff',
-                      1.0,
-                      200 + i * 50
-                    );
-                    setTimeout(() => lightingSystemRef.current.removeLight(light), 300);
-                  }, i * 100);
-                }
+                // Removed dynamic lighting system (3D system)
               }
               
               // Reward XP and credits for boss
@@ -1582,22 +1557,7 @@ const Game = () => {
               'medium', 
               enemy.color || '#ff4444'
             );
-            // Add volumetric explosion cloud for AAA quality
-            volumetricRef.current.createVolumetricExplosion(
-              enemy.x + enemy.width / 2,
-              enemy.y + enemy.height / 2,
-              'medium',
-              enemy.color || '#ff6600'
-            );
-            // Add dynamic light flash
-            const light = lightingSystemRef.current.addLight(
-              enemy.x + enemy.width / 2,
-              enemy.y + enemy.height / 2,
-              '#ff8800',
-              1.0,
-              100
-            );
-            setTimeout(() => lightingSystemRef.current.removeLight(light), 200);
+            // Removed volumetric explosion and dynamic lighting (3D systems)
           }
           
           // Story event: enemy killed
@@ -2561,39 +2521,18 @@ const Game = () => {
     });
     ctx.globalAlpha = 1;
 
-    // Update and draw volumetric effects
-    volumetricRef.current.update();
-    volumetricRef.current.draw(ctx);
+    // Removed volumetric effects (3D system)
 
     // Update and draw enhanced particle system
     particleSystemRef.current.update();
     particleSystemRef.current.draw(ctx);
 
-    // Update and render dynamic lighting
-    lightingSystemRef.current.update();
+    // Removed dynamic lighting (3D system)
     
     // Restore canvas transform
     ctx.restore();
 
-    // Apply dynamic lighting (before post-processing)
-    if (advancedSettings.visualEffects) {
-      lightingSystemRef.current.render(ctx, canvas);
-    }
-
-    // Apply AAA post-processing effects
-    if (advancedSettings.visualEffects) {
-      postProcessingRef.current.applyAllEffects(ctx, canvas, {
-        motionBlur: false, // Can enable for ultra-quality
-        vignette: true,
-        colorGrading: 'space',
-        intensity: 0.8,
-        lightRays: game.player ? {
-          x: game.player.x + game.player.width / 2,
-          y: game.player.y,
-          intensity: 0.15
-        } : null
-      });
-    }
+    // Removed dynamic lighting and post-processing effects (3D systems)
 
     requestAnimationFrame(gameLoop);
   }, [gameState, saveHighScore, playerPowerUps, touchControls, getDifficultySettings, difficulty, currentWeapon, achievements, checkAchievement, pauseGame, resumeGame]);
