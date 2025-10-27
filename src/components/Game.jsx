@@ -34,6 +34,7 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     player: { x: 400, y: 550, width: 40, height: 40, speed: 5 },
     enemies: [],
     bullets: [],
+    currentScore: 0,
     missiles: [],
     powerUps: [],
     particles: [],
@@ -376,10 +377,11 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
             bullet.x < enemy.x + 30 && bullet.x + 5 > enemy.x &&
             bullet.y < enemy.y + 30 && bullet.y + 5 > enemy.y) {
           
-          // Update score - with logging for debugging
+          // Update score - sync with gameState
           const points = Math.floor(10 * state.scoreMultiplier)
           setScore(s => {
             const newScore = s + points
+            state.currentScore = newScore // Sync to gameState
             console.log('Score update:', s, '->', newScore)
             return newScore
           })
@@ -906,7 +908,8 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     
     ctx.font = 'bold 18px Arial'
     ctx.fillStyle = '#fff'
-    const scoreText = score.toString().padStart(8, '0')
+    const currentScore = state.currentScore || score
+    const scoreText = currentScore.toString().padStart(8, '0')
     ctx.fillText(scoreText, 10, 50)
     
     // Lives indicator
