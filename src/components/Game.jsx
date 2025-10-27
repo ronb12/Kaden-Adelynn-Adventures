@@ -207,10 +207,11 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     // Update player position
     updatePlayer(state)
     
-    // Handle rapid fire on touch for mobile (iOS fix)
+    // Handle rapid fire on touch for mobile (iOS fix) - ALWAYS fire when touching
     if (state.isTouching) {
       const now = Date.now()
-      if (now - state.touchShootTimer > 50) { // 50ms = rapid fire (20 shots/sec)
+      // Every 50ms shoot a bullet
+      if (now - state.touchShootTimer >= 50) {
         shootBullet(state)
         state.touchShootTimer = now
       }
