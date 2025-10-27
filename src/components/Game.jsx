@@ -124,6 +124,10 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
       gameState.current.player.x = canvasX - gameState.current.player.width / 2
       gameState.current.player.y = canvasY - gameState.current.player.height / 2
       
+      // Enable rapid fire on touch
+      gameState.current.isTouching = true
+      gameState.current.touchShootTimer = Date.now()
+      
       // Shoot on touch
       shootBullet(gameState.current)
     }
