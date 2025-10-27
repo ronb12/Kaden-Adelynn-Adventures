@@ -3,7 +3,7 @@ import './Game.css'
 import { ParticleSystem } from '../utils/particles'
 import { powerUpTypes, createPowerUp, applyPowerUp } from '../utils/powerups'
 import { achievements, checkAchievement } from '../utils/achievements'
-import { bossTypes, spawnBoss, updateBossPattern } from '../utils/bosses'
+import { bossTypes, spawnBoss, updateBossPattern, loadBossImages, getBossImage } from '../utils/bosses'
 import { enemyVarieties, spawnEnemy, updateEnemyMovement } from '../utils/enemyTypes'
 import { sounds, playSound } from '../utils/sounds'
 import { getPersonalBest } from '../utils/scoreTracking'
@@ -84,6 +84,9 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
   useEffect(() => {
     const canvas = canvasRef.current
     const ctx = canvas.getContext('2d')
+    
+    // Load boss images
+    loadBossImages()
     
     // Set canvas size
     canvas.width = 800
@@ -891,61 +894,74 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     const pulse = Math.sin(time * 2) * 0.1 + 0.9
     const rotation = time * 0.1
     
+    // Try to load and use boss ship image
+    const bossImg = getBossImage(state.boss.type || 'asteroid')
+    
     ctx.save()
     ctx.translate(state.boss.x, state.boss.y)
-    ctx.rotate(rotation)
-    ctx.scale(pulse, pulse)
     
-    // Main body - hexagonal sci-fi ship
-    const gradient = ctx.createLinearGradient(-state.boss.width/2, -state.boss.height/2, state.boss.width/2, state.boss.height/2)
-    gradient.addColorStop(0, state.boss.color)
-    gradient.addColorStop(0.5, '#000000')
-    gradient.addColorStop(1, state.boss.color)
-    ctx.fillStyle = gradient
-    
-    ctx.beginPath()
-    // Hexagonal shape
-    for (let i = 0; i < 6; i++) {
-      const angle = (Math.PI / 3) * i
-      const x = Math.cos(angle) * state.boss.width / 2
-      const y = Math.sin(angle) * state.boss.height / 2
-      if (i === 0) ctx.moveTo(x, y)
-      else ctx.lineTo(x, y)
-    }
-    ctx.closePath()
-    ctx.fill()
-    ctx.strokeStyle = '#ffff00'
-    ctx.lineWidth = 3
-    ctx.stroke()
-    
-    // Inner core
-    ctx.fillStyle = '#ff0080'
-    ctx.globalAlpha = 0.6
-    ctx.beginPath()
-    ctx.arc(0, 0, state.boss.width / 4, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.globalAlpha = 1
-    
-    // Weapon arrays
-    ctx.strokeStyle = '#00ffff'
-    ctx.lineWidth = 2
-    for (let i = 0; i < 8; i++) {
-      const angle = (Math.PI / 4) * i
-      const dist = state.boss.width / 2 - 5
+    if (bossImg && bossImg.width) {
+      // Draw using loaded image
+      ctx.rotate(rotation)
+      ctx.globalAlpha = 0.9 + Math.sin(time * 3) * 0.1
+      ctx.drawImage(bossImg, -state.boss.width / 2, -state.boss.height / 2, state.boss.width, state.boss.height)
+      ctx.globalAlpha = 1
+    } else {
+      // Fallback to drawn boss if image not loaded
+      ctx.rotate(rotation)
+      ctx.scale(pulse, pulse)
+      
+      // Main body - hexagonal sci-fi ship
+      const gradient = ctx.createLinearGradient(-state.boss.width/2, -state.boss.height/2, state.boss.width/2, state.boss.height/2)
+      gradient.addColorStop(0, state.boss.color)
+      gradient.addColorStop(0.5, '#000000')
+      gradient.addColorStop(1, state.boss.color)
+      ctx.fillStyle = gradient
+      
       ctx.beginPath()
-      ctx.moveTo(0, 0)
-      ctx.lineTo(Math.cos(angle) * dist, Math.sin(angle) * dist)
-    ctx.stroke()
+      // Hexagonal shape
+      for (let i = 0; i < 6; i++) {
+        const angle = (Math.PI / 3) * i
+        const x = Math.cos(angle) * state.boss.width / 2
+        const y = Math.sin(angle) * state.boss.height / 2
+        if (i === 0) ctx.moveTo(x, y)
+        else ctx.lineTo(x, y)
+      }
+      ctx.closePath()
+      ctx.fill()
+      ctx.strokeStyle = '#ffff00'
+      ctx.lineWidth = 3
+      ctx.stroke()
+      
+      // Inner core
+      ctx.fillStyle = '#ff0080'
+      ctx.globalAlpha = 0.6
+      ctx.beginPath()
+      ctx.arc(0, 0, state.boss.width / 4, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.globalAlpha = 1
+      
+      // Weapon arrays
+      ctx.strokeStyle = '#00ffff'
+      ctx.lineWidth = 2
+      for (let i = 0; i < 8; i++) {
+        const angle = (Math.PI / 4) * i
+        const dist = state.boss.width / 2 - 5
+        ctx.beginPath()
+        ctx.moveTo(0, 0)
+        ctx.lineTo(Math.cos(angle) * dist, Math.sin(angle) * dist)
+        ctx.stroke()
+      }
+      
+      // Glow effect
+      ctx.shadowBlur = 20
+      ctx.shadowColor = '#ff0080'
+      ctx.fillStyle = '#ff0080'
+      ctx.beginPath()
+      ctx.arc(0, 0, state.boss.width / 6, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.shadowBlur = 0
     }
-    
-    // Glow effect
-    ctx.shadowBlur = 20
-    ctx.shadowColor = '#ff0080'
-    ctx.fillStyle = '#ff0080'
-    ctx.beginPath()
-    ctx.arc(0, 0, state.boss.width / 6, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.shadowBlur = 0
     
     ctx.restore()
     
