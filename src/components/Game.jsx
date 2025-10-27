@@ -357,16 +357,21 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
         if (bullet.owner === 'player' && 
             bullet.x < enemy.x + 30 && bullet.x + 5 > enemy.x &&
             bullet.y < enemy.y + 30 && bullet.y + 5 > enemy.y) {
+          
+          // Calculate score gain BEFORE removing bullets
+          const currentCombo = combo
+          const baseScore = 10
+          const comboBonus = Math.min(currentCombo * 2, 50)
+          const scoreGain = (baseScore + comboBonus) * state.scoreMultiplier
+          
+          // Update score immediately
+          setScore(prevScore => prevScore + Math.floor(scoreGain))
+          setCombo(prevCombo => prevCombo + 1)
+          setKillStreak(prevKills => prevKills + 1)
+          
           state.enemies.splice(j, 1)
           state.bullets.splice(i, 1)
           
-          // Enhanced scoring with combo multiplier
-          const baseScore = 10
-          const comboBonus = Math.min(combo * 2, 50)
-          const scoreGain = (baseScore + comboBonus) * state.scoreMultiplier
-          setScore(s => s + Math.floor(scoreGain))
-          setCombo(c => c + 1)
-          setKillStreak(k => k + 1)
           break
         }
       }
@@ -718,19 +723,93 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
 
   const drawBoss = (ctx, state) => {
     if (!state.boss) return
-    ctx.fillStyle = state.boss.color
+    
+    const time = Date.now() / 1000
+    const pulse = Math.sin(time * 2) * 0.1 + 0.9
+    const rotation = time * 0.1
+    
+    ctx.save()
+    ctx.translate(state.boss.x, state.boss.y)
+    ctx.rotate(rotation)
+    ctx.scale(pulse, pulse)
+    
+    // Main body - hexagonal sci-fi ship
+    const gradient = ctx.createLinearGradient(-state.boss.width/2, -state.boss.height/2, state.boss.width/2, state.boss.height/2)
+    gradient.addColorStop(0, state.boss.color)
+    gradient.addColorStop(0.5, '#000000')
+    gradient.addColorStop(1, state.boss.color)
+    ctx.fillStyle = gradient
+    
     ctx.beginPath()
-    ctx.ellipse(state.boss.x, state.boss.y, state.boss.width / 2, state.boss.height / 2, 0, 0, Math.PI * 2)
+    // Hexagonal shape
+    for (let i = 0; i < 6; i++) {
+      const angle = (Math.PI / 3) * i
+      const x = Math.cos(angle) * state.boss.width / 2
+      const y = Math.sin(angle) * state.boss.height / 2
+      if (i === 0) ctx.moveTo(x, y)
+      else ctx.lineTo(x, y)
+    }
+    ctx.closePath()
     ctx.fill()
-    ctx.strokeStyle = '#fff'
-    ctx.lineWidth = 2
+    ctx.strokeStyle = '#ffff00'
+    ctx.lineWidth = 3
     ctx.stroke()
     
-    // Boss health bar
-    ctx.fillStyle = 'red'
-    ctx.fillRect(state.boss.x - 50, state.boss.y - 70, 100, 8)
-    ctx.fillStyle = 'green'
-    ctx.fillRect(state.boss.x - 50, state.boss.y - 70, (state.boss.health / state.boss.health) * 100, 8)
+    // Inner core
+    ctx.fillStyle = '#ff0080'
+    ctx.globalAlpha = 0.6
+    ctx.beginPath()
+    ctx.arc(0, 0, state.boss.width / 4, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.globalAlpha = 1
+    
+    // Weapon arrays
+    ctx.strokeStyle = '#00ffff'
+    ctx.lineWidth = 2
+    for (let i = 0; i < 8; i++) {
+      const angle = (Math.PI / 4) * i
+      const dist = state.boss.width / 2 - 5
+      ctx.beginPath()
+      ctx.moveTo(0, 0)
+      ctx.lineTo(Math.cos(angle) * dist, Math.sin(angle) * dist)
+      ctx.stroke()
+    }
+    
+    // Glow effect
+    ctx.shadowBlur = 20
+    ctx.shadowColor = '#ff0080'
+    ctx.fillStyle = '#ff0080'
+    ctx.beginPath()
+    ctx.arc(0, 0, state.boss.width / 6, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.shadowBlur = 0
+    
+    ctx.restore()
+    
+    // Boss health bar - better design
+    const barWidth = 120
+    const barHeight = 10
+    const barX = state.boss.x - barWidth / 2
+    const barY = state.boss.y - state.boss.height / 2 - 40
+    
+    // Background
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
+    ctx.fillRect(barX - 2, barY - 2, barWidth + 4, barHeight + 4)
+    
+    // Red bar
+    ctx.fillStyle = '#ff0000'
+    ctx.fillRect(barX, barY, barWidth, barHeight)
+    
+    // Green bar (health)
+    const maxHealth = state.boss.maxHealth || state.boss.health
+    const healthPercent = state.boss.health / maxHealth
+    ctx.fillStyle = healthPercent > 0.5 ? '#00ff00' : healthPercent > 0.25 ? '#ffff00' : '#ff0000'
+    ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight)
+    
+    // Border
+    ctx.strokeStyle = '#ffffff'
+    ctx.lineWidth = 2
+    ctx.strokeRect(barX - 2, barY - 2, barWidth + 4, barHeight + 4)
   }
 
   
