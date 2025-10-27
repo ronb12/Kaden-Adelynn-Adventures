@@ -54,7 +54,7 @@
   z-index: 1;
   max-width: 700px;
   width: 90%;
-  padding: 60px 40px 50px 40px;
+  padding: 80px 40px 50px 40px;
   border-radius: 30px;
   text-align: center;
   background: rgba(15, 15, 30, 0.6);
@@ -65,7 +65,7 @@
   box-shadow: 
     0 20px 60px rgba(0, 0, 0, 0.5),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* Animated border glow */
@@ -105,19 +105,22 @@
 }
 
 .game-title {
-  font-size: 3.5rem;
+  font-size: 2.8rem;
   margin-bottom: 15px;
   margin-top: 0;
+  padding-top: 20px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   font-weight: 900;
-  letter-spacing: -1px;
+  letter-spacing: -0.5px;
   text-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
   animation: titlePulse 3s ease-in-out infinite;
-  line-height: 1.1;
+  line-height: 1.2;
   position: relative;
+  overflow: visible;
+  white-space: nowrap;
 }
 
 .game-title::after {
@@ -141,13 +144,15 @@
 
 @media (max-width: 768px) {
   .game-title {
-    font-size: 2.5rem;
+    font-size: 2rem;
+    white-space: normal;
   }
 }
 
 @media (max-width: 480px) {
   .game-title {
-    font-size: 2rem;
+    font-size: 1.6rem;
+    white-space: normal;
   }
 }
 

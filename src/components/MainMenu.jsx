@@ -13,7 +13,7 @@ function MainMenu({ onStartGame }) {
     <div className="main-menu">
       <div className="menu-container glass">
         <h1 className="game-title">🌟 Kaden & Adelynn<br />Space Adventures 🌟</h1>
-        <p className="game-subtitle">Epic Space Shooter Game</p>
+        <p className="game-subtitle">Epic Space Shooter</p>
         
         <div className="menu-section">
           <h3>Select Ship</h3>

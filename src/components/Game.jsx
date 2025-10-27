@@ -237,6 +237,13 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
       onGameOver(score)
       return
     }
+    
+    // Save score when game ends
+    if (lives <= 0 && score > 0) {
+      import('../utils/scoreTracking').then(module => {
+        module.saveScore(score)
+      })
+    }
 
     setTimePlayed(t => t + 1)
 
