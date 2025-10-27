@@ -69,7 +69,9 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     explosions: [],
     trails: [],
     plasmaBeams: [],
-    enemyBullets: []
+    enemyBullets: [],
+    lastFrameTime: 0,
+    deltaTime: 16.67  // 60fps = 16.67ms per frame
   })
 
   useEffect(() => {
@@ -144,10 +146,27 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     }
   }, [isPaused, onPause])
 
-  const gameLoop = useCallback(() => {
+  const gameLoop = useCallback((currentTime) => {
     const canvas = canvasRef.current
     const ctx = canvas.getContext('2d')
     const state = gameState.current
+
+    // Calculate delta time for frame-rate independent movement (60fps)
+    if (state.lastFrameTime === 0) {
+      state.lastFrameTime = currentTime
+    }
+    const deltaTime = currentTime - state.lastFrameTime
+    state.lastFrameTime = currentTime
+    
+    // Throttle to 60fps max (16.67ms per frame)
+    if (deltaTime < 16.67) {
+      gameLoopRef.current = requestAnimationFrame(gameLoop)
+      return
+    }
+    
+    // Normalize delta time to 60fps (multiplier)
+    const timeScale = deltaTime / 16.67
+    state.deltaTime = deltaTime
 
     // Update timers
     updatePowerUpTimers(state)
@@ -228,10 +247,12 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
   // Game functions (simplified versions - space saving)
   const updatePlayer = (state) => {
     const speed = state.slowMotion ? state.player.speed * 0.5 : state.player.speed
-    if (state.keys['a'] || state.keys['A'] || state.keys['ArrowLeft']) state.player.x = Math.max(20, state.player.x - speed)
-    if (state.keys['d'] || state.keys['D'] || state.keys['ArrowRight']) state.player.x = Math.min(canvasRef.current.width - 20, state.player.x + speed)
-    if (state.keys['w'] || state.keys['W'] || state.keys['ArrowUp']) state.player.y = Math.max(50, state.player.y - speed)
-    if (state.keys['s'] || state.keys['S'] || state.keys['ArrowDown']) state.player.y = Math.min(canvasRef.current.height - 20, state.player.y + speed)
+    const timeScale = Math.min(state.deltaTime / 16.67, 2) // Cap at 2x speed for stability
+    
+    if (state.keys['a'] || state.keys['A'] || state.keys['ArrowLeft']) state.player.x = Math.max(20, state.player.x - speed * timeScale)
+    if (state.keys['d'] || state.keys['D'] || state.keys['ArrowRight']) state.player.x = Math.min(canvasRef.current.width - 20, state.player.x + speed * timeScale)
+    if (state.keys['w'] || state.keys['W'] || state.keys['ArrowUp']) state.player.y = Math.max(50, state.player.y - speed * timeScale)
+    if (state.keys['s'] || state.keys['S'] || state.keys['ArrowDown']) state.player.y = Math.min(canvasRef.current.height - 20, state.player.y + speed * timeScale)
     
     // Shoot bullets
     const now = Date.now()
@@ -277,27 +298,30 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
   }
 
   const updateBullets = (state) => {
+    const timeScale = Math.min(state.deltaTime / 16.67, 2)
     state.bullets = state.bullets.filter(bullet => {
-      bullet.y -= bullet.speed
+      bullet.y -= bullet.speed * timeScale
       return bullet.y > -10 && bullet.y < canvasRef.current.height + 10
     })
   }
 
   const updateEnemies = (state) => {
+    const timeScale = Math.min(state.deltaTime / 16.67, 2)
     state.enemies = state.enemies.filter(enemy => {
-      enemy.y += enemy.speed
-      if (enemy.pattern === 'zigzag') enemy.x += Math.sin(enemy.y / 10) * 2
+      enemy.y += enemy.speed * timeScale
+      if (enemy.pattern === 'zigzag') enemy.x += Math.sin(enemy.y / 10) * 2 * timeScale
       return enemy.y < canvasRef.current.height + 50
     })
   }
 
   const spawnEnemies = (state) => {
     const now = Date.now()
-    if (now - state.lastEnemySpawn > 1500 / difficultyModifier()) {
+    const spawnRate = 1500 / difficultyModifier()
+    if (now - state.lastEnemySpawn > spawnRate) {
       const enemy = {
         x: Math.random() * (canvasRef.current.width - 40) + 20,
         y: -30,
-        speed: difficultyModifier(),
+        speed: difficultyModifier() * 0.8, // Slightly slower for 60fps
         pattern: Math.random() > 0.7 ? 'zigzag' : 'normal',
         health: 1,
         type: 'normal'
@@ -441,8 +465,9 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
   }
 
   const updatePowerUps = (state) => {
+    const timeScale = Math.min(state.deltaTime / 16.67, 2)
     state.powerUps = state.powerUps.filter(powerUp => {
-      powerUp.y += powerUp.speed
+      powerUp.y += powerUp.speed * timeScale
       
       // Check collision with player
       if (state.player.x < powerUp.x + powerUp.width && 
@@ -504,23 +529,26 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
   }
 
   const updateMissiles = (state) => {
+    const timeScale = Math.min(state.deltaTime / 16.67, 2)
     state.missiles = state.missiles.filter(missile => {
-      missile.y -= missile.speed
-      missile.speed = Math.min(15, missile.speed + 0.5)
+      missile.y -= missile.speed * timeScale
+      missile.speed = Math.min(15, missile.speed + 0.5 * timeScale)
       return missile.y > -50 && missile.y < canvasRef.current.height + 50
     })
   }
 
   const updateEnemyBullets = (state) => {
+    const timeScale = Math.min(state.deltaTime / 16.67, 2)
     state.enemyBullets = state.enemyBullets.filter(bullet => {
-      bullet.y += bullet.speed
+      bullet.y += bullet.speed * timeScale
       return bullet.y < canvasRef.current.height + 50
     })
   }
 
   const updatePlasmaBeams = (state) => {
+    const timeScale = Math.min(state.deltaTime / 16.67, 2)
     state.plasmaBeams = state.plasmaBeams.filter(beam => {
-      beam.y -= 12
+      beam.y -= 12 * timeScale
       beam.life--
       return beam.life > 0 && beam.y > -50
     })
