@@ -250,7 +250,7 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     if (!isPaused) {
       gameLoopRef.current = requestAnimationFrame(gameLoop)
     }
-  }, [isPaused, lives, score, onGameOver])
+  }, [isPaused, lives, onGameOver])
 
   useEffect(() => {
     if (!isPaused && canvasRef.current) {
@@ -376,25 +376,13 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
             bullet.x < enemy.x + 30 && bullet.x + 5 > enemy.x &&
             bullet.y < enemy.y + 30 && bullet.y + 5 > enemy.y) {
           
-          // Calculate and update score with functional updates
-          setScore(prevScore => {
-            setCombo(prevCombo => {
-              const baseScore = 10
-              const comboBonus = Math.min(prevCombo * 2, 50)
-              const scoreGain = (baseScore + comboBonus) * state.scoreMultiplier
-              const newScore = prevScore + Math.floor(scoreGain)
-              
-              // Update combo and kill streak
-              setKillStreak(prevKills => prevKills + 1)
-              
-              return prevCombo + 1
-            })
-            
-            return prevScore // This will be recalculated in next render
+          // Update score - with logging for debugging
+          const points = Math.floor(10 * state.scoreMultiplier)
+          setScore(s => {
+            const newScore = s + points
+            console.log('Score update:', s, '->', newScore)
+            return newScore
           })
-          
-          // Quick score update
-          setScore(s => s + Math.floor(10 * state.scoreMultiplier))
           setCombo(c => c + 1)
           setKillStreak(k => k + 1)
           
