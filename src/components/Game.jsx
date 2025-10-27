@@ -448,6 +448,58 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
           break
         }
       }
+      
+      // Bullet-boss collisions
+      if (state.boss && bullet.owner === 'player') {
+        const bulletBox = {
+          x: bullet.x,
+          y: bullet.y,
+          width: bullet.width || 5,
+          height: bullet.height || 10
+        }
+        
+        const bossBox = {
+          x: state.boss.x - state.boss.width / 2,
+          y: state.boss.y - state.boss.height / 2,
+          width: state.boss.width,
+          height: state.boss.height
+        }
+        
+        // Check collision
+        if (bulletBox.x < bossBox.x + bossBox.width &&
+            bulletBox.x + bulletBox.width > bossBox.x &&
+            bulletBox.y < bossBox.y + bossBox.height &&
+            bulletBox.y + bulletBox.height > bossBox.y) {
+          
+          // Boss takes damage
+          state.boss.health -= 20
+          console.log('Boss hit! Health:', state.boss.health)
+          
+          // Remove bullet unless it's piercing
+          if (!bullet.pierce) {
+            state.bullets.splice(i, 1)
+          }
+          
+          // Add hit effect
+          playSound('hit', 0.3)
+          state.particles.push(...ParticleSystem.createExplosion(bullet.x, bullet.y, '#ff0080', 10))
+          
+          // Boss defeated?
+          if (state.boss.health <= 0) {
+            console.log('Boss defeated!')
+            playSound('bossSpawn', 0.6)
+            // Give bonus score
+            const bossPoints = Math.floor(500 * state.scoreMultiplier)
+            setScore(s => {
+              const newScore = s + bossPoints
+              state.currentScore = newScore
+              return newScore
+            })
+            state.boss = null
+            state.isBossFight = false
+          }
+        }
+      }
     }
 
     // Enemy-player collisions
