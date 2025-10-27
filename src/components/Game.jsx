@@ -141,12 +141,9 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
       gameState.current.player.x = Math.max(0, Math.min(800 - gameState.current.player.width, canvasX - gameState.current.player.width / 2))
       gameState.current.player.y = Math.max(0, Math.min(600 - gameState.current.player.height, canvasY - gameState.current.player.height / 2))
       
-      // Rapid fire while moving on mobile
-      const now = Date.now()
-      if (now - gameState.current.touchShootTimer > 50) { // 50ms = rapid fire
-        shootBullet(gameState.current)
-        gameState.current.touchShootTimer = now
-      }
+      // Rapid fire while moving on mobile - improved for iOS
+      gameState.current.isTouching = true
+      gameState.current.touchShootTimer = Date.now()
     }
     
     const handleTouchEnd = () => {
@@ -206,6 +203,15 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
 
     // Update player position
     updatePlayer(state)
+    
+    // Handle rapid fire on touch for mobile (iOS fix)
+    if (state.isTouching) {
+      const now = Date.now()
+      if (now - state.touchShootTimer > 50) { // 50ms = rapid fire (20 shots/sec)
+        shootBullet(state)
+        state.touchShootTimer = now
+      }
+    }
 
     // Update all game objects
     updateBullets(state)
