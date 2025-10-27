@@ -97,13 +97,50 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
       gameState.current.keys[e.key] = false
     }
 
+    // Touch controls for mobile
+    const handleTouchStart = (e) => {
+      e.preventDefault()
+      const touch = e.touches[0]
+      const rect = canvas.getBoundingClientRect()
+      const touchX = touch.clientX - rect.left
+      const touchY = touch.clientY - rect.top
+      
+      // Convert screen coords to canvas coords
+      const canvasX = (touchX / rect.width) * 800
+      const canvasY = (touchY / rect.height) * 600
+      
+      gameState.current.player.x = canvasX - gameState.current.player.width / 2
+      gameState.current.player.y = canvasY - gameState.current.player.height / 2
+      
+      // Shoot on touch
+      shootBullet(gameState.current)
+    }
+
+    const handleTouchMove = (e) => {
+      e.preventDefault()
+      const touch = e.touches[0]
+      const rect = canvas.getBoundingClientRect()
+      const touchX = touch.clientX - rect.left
+      const touchY = touch.clientY - rect.top
+      
+      const canvasX = (touchX / rect.width) * 800
+      const canvasY = (touchY / rect.height) * 600
+      
+      gameState.current.player.x = Math.max(0, Math.min(800 - gameState.current.player.width, canvasX - gameState.current.player.width / 2))
+      gameState.current.player.y = Math.max(0, Math.min(600 - gameState.current.player.height, canvasY - gameState.current.player.height / 2))
+    }
+
     window.addEventListener('keydown', handleKeyDown)
     window.addEventListener('keyup', handleKeyUp)
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false })
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false })
 
     return () => {
       if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current)
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)
+      canvas.removeEventListener('touchstart', handleTouchStart)
+      canvas.removeEventListener('touchmove', handleTouchMove)
     }
   }, [isPaused, onPause])
 
