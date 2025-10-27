@@ -264,7 +264,7 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
 
     // Check game over
     if (lives <= 0) {
-      onGameOver(score)
+      onGameOver(score, wave, level, killStreak, combo)
       return
     }
     
@@ -465,10 +465,37 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
             const newScore = s + points
             state.currentScore = newScore // Sync to gameState
             console.log('Score update:', s, '->', newScore)
+            
+            // Check achievements
+            if (enemiesKilled === 0) {
+              const achievement = checkAchievement('firstKill', setUnlockedAchievements)
+              if (achievement) {
+                playSound('achievement', 1.0)
+              }
+            }
+            
             return newScore
           })
-          setCombo(c => c + 1)
+          
+          const newCombo = combo + 1
+          setCombo(newCombo)
           setKillStreak(k => k + 1)
+          setEnemiesKilled(e => e + 1)
+          
+          // Check achievements
+          if (newCombo >= 10 && !achievements.combo10.unlocked) {
+            const achievement = checkAchievement('combo10', setUnlockedAchievements)
+            if (achievement) {
+              playSound('achievement', 1.0)
+            }
+          }
+          
+          if (enemiesKilled === 100) {
+            const achievement = checkAchievement('survivor', setUnlockedAchievements)
+            if (achievement) {
+              playSound('achievement', 1.0)
+            }
+          }
           
           state.enemies.splice(j, 1)
           state.bullets.splice(i, 1)
@@ -521,6 +548,15 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
             setScore(s => {
               const newScore = s + bossPoints
               state.currentScore = newScore
+              
+              // Check for perfect boss achievement (no damage)
+              if (health >= 100) {
+                const achievement = checkAchievement('noDamageBoss', setUnlockedAchievements)
+                if (achievement) {
+                  playSound('achievement', 1.0)
+                }
+              }
+              
               return newScore
             })
             state.boss = null

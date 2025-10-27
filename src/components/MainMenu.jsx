@@ -1,13 +1,47 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './MainMenu.css'
 
 function MainMenu({ onStartGame }) {
   const [selectedDifficulty, setSelectedDifficulty] = useState('medium')
   const [selectedShip, setSelectedShip] = useState('kaden')
   const [showSettings, setShowSettings] = useState(false)
+  const [soundVolume, setSoundVolume] = useState(() => {
+    const saved = localStorage.getItem('soundVolume')
+    return saved ? parseInt(saved) : 100
+  })
+  const [musicVolume, setMusicVolume] = useState(() => {
+    const saved = localStorage.getItem('musicVolume')
+    return saved ? parseInt(saved) : 50
+  })
+  const [fullscreen, setFullscreen] = useState(false)
+
+  useEffect(() => {
+    // Save sound volume to localStorage
+    localStorage.setItem('soundVolume', soundVolume.toString())
+  }, [soundVolume])
+
+  useEffect(() => {
+    // Save music volume to localStorage
+    localStorage.setItem('musicVolume', musicVolume.toString())
+  }, [musicVolume])
 
   const handleStart = () => {
     onStartGame(selectedDifficulty, selectedShip)
+  }
+
+  const handleFullscreen = (e) => {
+    const isFullscreen = e.target.checked
+    setFullscreen(isFullscreen)
+    
+    if (isFullscreen) {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen()
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen()
+      }
+    }
   }
 
   return (
@@ -73,16 +107,32 @@ function MainMenu({ onStartGame }) {
             <h4>⚙️ Game Settings</h4>
             <div className="settings-content">
               <div className="setting-item">
-                <label>Sound Effects</label>
-                <input type="range" min="0" max="100" defaultValue="100" />
+                <label>Sound Effects: {soundVolume}%</label>
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="100" 
+                  value={soundVolume} 
+                  onChange={(e) => setSoundVolume(parseInt(e.target.value))}
+                />
               </div>
               <div className="setting-item">
-                <label>Music</label>
-                <input type="range" min="0" max="100" defaultValue="50" />
+                <label>Music: {musicVolume}%</label>
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="100" 
+                  value={musicVolume} 
+                  onChange={(e) => setMusicVolume(parseInt(e.target.value))}
+                />
               </div>
               <div className="setting-item">
                 <label>Fullscreen</label>
-                <input type="checkbox" />
+                <input 
+                  type="checkbox" 
+                  checked={fullscreen}
+                  onChange={handleFullscreen}
+                />
               </div>
             </div>
           </div>
