@@ -924,7 +924,7 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
       gradient.addColorStop(1, state.boss.color)
       ctx.fillStyle = gradient
       
-      ctx.beginPath()
+    ctx.beginPath()
       // Hexagonal shape
       for (let i = 0; i < 6; i++) {
         const angle = (Math.PI / 3) * i
@@ -934,7 +934,7 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
         else ctx.lineTo(x, y)
       }
       ctx.closePath()
-      ctx.fill()
+    ctx.fill()
       ctx.strokeStyle = '#ffff00'
       ctx.lineWidth = 3
       ctx.stroke()
@@ -949,14 +949,14 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
       
       // Weapon arrays
       ctx.strokeStyle = '#00ffff'
-      ctx.lineWidth = 2
+    ctx.lineWidth = 2
       for (let i = 0; i < 8; i++) {
         const angle = (Math.PI / 4) * i
         const dist = state.boss.width / 2 - 5
         ctx.beginPath()
         ctx.moveTo(0, 0)
         ctx.lineTo(Math.cos(angle) * dist, Math.sin(angle) * dist)
-        ctx.stroke()
+    ctx.stroke()
       }
       
       // Glow effect
