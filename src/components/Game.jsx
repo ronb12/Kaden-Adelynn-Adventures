@@ -6,6 +6,7 @@ import { achievements, checkAchievement } from '../utils/achievements'
 import { bossTypes, spawnBoss, updateBossPattern } from '../utils/bosses'
 import { enemyVarieties, spawnEnemy, updateEnemyMovement } from '../utils/enemyTypes'
 import { sounds, playSound } from '../utils/sounds'
+import { getPersonalBest } from '../utils/scoreTracking'
 
 function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
   const canvasRef = useRef(null)
@@ -292,17 +293,70 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     }
     
     switch(state.currentWeapon) {
+      case 'laser':
+        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2 })
+        break
       case 'spread':
         state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2 })
         state.bullets.push({ ...baseBullet, x: state.player.x - 10, angle: -0.3 })
         state.bullets.push({ ...baseBullet, x: state.player.x + 20, angle: 0.3 })
         break
       case 'plasma':
+      case 'plasmaRifle':
         state.plasmaBeams.push({ x: state.player.x, y: state.player.y, width: 8, height: 15, life: 50 })
         break
       case 'missile':
+      case 'rocket':
         state.missiles.push({ x: state.player.x, y: state.player.y, speed: 8, target: null, explosion: false })
         playSound('missile', 0.3)
+        break
+      case 'shotgun':
+        for (let i = 0; i < 5; i++) {
+          state.bullets.push({ ...baseBullet, x: state.player.x + i * 8, angle: (i - 2) * 0.2 })
+        }
+        break
+      case 'minigun':
+      case 'machinegun':
+        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2 })
+        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2 + 5, speed: 12 })
+        break
+      case 'flamethrower':
+      case 'fireMode':
+        for (let i = 0; i < 3; i++) {
+          state.bullets.push({ ...baseBullet, x: state.player.x + i * 10, angle: (i - 1) * 0.15 })
+        }
+        break
+      case 'electric':
+      case 'lightning':
+        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2, speed: 15 })
+        // Electric effect bullets
+        for (let i = 0; i < 3; i++) {
+          state.bullets.push({ ...baseBullet, x: state.player.x + i * 15, angle: (i - 1) * 0.1 })
+        }
+        break
+      case 'piercing':
+        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2, pierce: true })
+        break
+      case 'homing':
+        const nearestEnemy = state.enemies[0]
+        state.missiles.push({ x: state.player.x, y: state.player.y, speed: 8, target: nearestEnemy, explosion: false, homing: true })
+        break
+      case 'cluster':
+      case 'grenade':
+        state.missiles.push({ x: state.player.x, y: state.player.y, speed: 8, cluster: true, explosion: false })
+        break
+      case 'beam':
+      case 'laserBeam':
+        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2, width: 15, height: 20, speed: 15 })
+        break
+      case 'flak':
+        for (let i = 0; i < 4; i++) {
+          state.bullets.push({ ...baseBullet, x: state.player.x + i * 10, angle: (i - 1.5) * 0.4 })
+        }
+        break
+      case 'railgun':
+      case 'sniper':
+        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2, width: 8, height: 25, speed: 20 })
         break
       default:
         state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2 })
@@ -909,6 +963,7 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     ctx.font = 'bold 18px Arial'
     ctx.fillStyle = '#fff'
     const currentScore = state.currentScore || score
+    console.log('DrawUI score:', currentScore, 'state.currentScore:', state.currentScore, 'React score:', score)
     const scoreText = currentScore.toString().padStart(8, '0')
     ctx.fillText(scoreText, 10, 50)
     
@@ -916,6 +971,11 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     ctx.fillStyle = '#ff6b6b'
     ctx.font = 'bold 16px Arial'
     ctx.fillText('❤️ × ' + lives, 10, 75)
+    
+    // High score
+    ctx.font = '12px Arial'
+    ctx.fillStyle = '#ffff00'
+    ctx.fillText(`BEST: ${getPersonalBest().toString().padStart(8, '0')}`, 10, 95)
     
     // Health bar
     ctx.fillStyle = 'rgba(255, 255, 255, 0.3)'
