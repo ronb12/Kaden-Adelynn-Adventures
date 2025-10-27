@@ -376,16 +376,27 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
             bullet.x < enemy.x + 30 && bullet.x + 5 > enemy.x &&
             bullet.y < enemy.y + 30 && bullet.y + 5 > enemy.y) {
           
-          // Calculate score gain BEFORE removing bullets
-          const currentCombo = combo
-          const baseScore = 10
-          const comboBonus = Math.min(currentCombo * 2, 50)
-          const scoreGain = (baseScore + comboBonus) * state.scoreMultiplier
+          // Calculate and update score with functional updates
+          setScore(prevScore => {
+            setCombo(prevCombo => {
+              const baseScore = 10
+              const comboBonus = Math.min(prevCombo * 2, 50)
+              const scoreGain = (baseScore + comboBonus) * state.scoreMultiplier
+              const newScore = prevScore + Math.floor(scoreGain)
+              
+              // Update combo and kill streak
+              setKillStreak(prevKills => prevKills + 1)
+              
+              return prevCombo + 1
+            })
+            
+            return prevScore // This will be recalculated in next render
+          })
           
-          // Update score immediately
-          setScore(prevScore => prevScore + Math.floor(scoreGain))
-          setCombo(prevCombo => prevCombo + 1)
-          setKillStreak(prevKills => prevKills + 1)
+          // Quick score update
+          setScore(s => s + Math.floor(10 * state.scoreMultiplier))
+          setCombo(c => c + 1)
+          setKillStreak(k => k + 1)
           
           state.enemies.splice(j, 1)
           state.bullets.splice(i, 1)
@@ -813,7 +824,7 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
       ctx.beginPath()
       ctx.moveTo(0, 0)
       ctx.lineTo(Math.cos(angle) * dist, Math.sin(angle) * dist)
-      ctx.stroke()
+    ctx.stroke()
     }
     
     // Glow effect
