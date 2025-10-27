@@ -328,6 +328,17 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
       const formationOffset = state.enemiesSpawned % 5 * 40
       enemy.x = Math.sin((enemy.y + formationOffset) / 30) * 50 + canvasRef.current.width / 2
     }
+      
+      // Make enemies shoot back!
+      if (Math.random() < 0.003 && enemy.y > 50 && enemy.y < canvasRef.current.height - 100) {
+        state.enemyBullets.push({
+          x: enemy.x + 15,
+          y: enemy.y + 30,
+          speed: 4 * timeScale,
+          owner: 'enemy'
+        })
+      }
+      
       return enemy.y < canvasRef.current.height + 50
     })
   }
@@ -385,7 +396,7 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     }
 
     // Enemy-player collisions
-    if (!state.invulnerable) {
+    if (!state.invulnerable && !state.shield) {
       for (let enemy of state.enemies) {
         if (state.player.x < enemy.x + 30 && state.player.x + state.player.width > enemy.x &&
             state.player.y < enemy.y + 30 && state.player.y + state.player.height > enemy.y) {
@@ -401,6 +412,29 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
           })
           state.enemies.splice(state.enemies.indexOf(enemy), 1)
           break
+        }
+      }
+      
+      // Check enemy bullet collisions with player
+      for (let i = state.enemyBullets.length - 1; i >= 0; i--) {
+        const bullet = state.enemyBullets[i]
+        if (bullet.x < state.player.x + state.player.width && 
+            bullet.x + 5 > state.player.x &&
+            bullet.y < state.player.y + state.player.height && 
+            bullet.y + 5 > state.player.y) {
+          setHealth(h => {
+            const newHealth = h - 20
+            if (newHealth <= 0) {
+              setLives(l => l - 1)
+              state.invulnerable = true
+              setTimeout(() => { state.invulnerable = false }, 2000)
+              return 100
+            }
+            return newHealth
+          })
+          state.enemyBullets.splice(i, 1)
+          state.shakeIntensity = 5
+          playSound('hit', 0.5)
         }
       }
     }
@@ -617,8 +651,8 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
   }
 
   const spawnPowerUps = (state) => {
-    const chance = 0.001
-    if (Math.random() < chance && !state.isBossFight) {
+    const chance = 0.05  // 5% chance per frame - collectibles will spawn
+    if (Math.random() < chance && !state.isBossFight && state.powerUps.length < 5) {
       const x = Math.random() * (canvasRef.current.width - 50) + 25
       const y = -30
       state.powerUps.push(createPowerUp(x, y))

@@ -2,6 +2,16 @@
 export const sounds = {
   shoot: { name: 'laser-shoot', volume: 0.3 },
   hit: { name: 'explosion', volume: 0.5 },
+  'laser-shoot': { name: 'laser-shoot', volume: 0.2 },
+  'explosion': { name: 'explosion', volume: 0.5 },
+  'powerup-pickup': { name: 'powerup-pickup', volume: 0.4 },
+  'enemy-destroy': { name: 'enemy-destroy', volume: 0.4 },
+  'boss-scream': { name: 'boss-scream', volume: 0.6 },
+  'game-over': { name: 'game-over', volume: 0.5 },
+  'level-complete': { name: 'level-complete', volume: 0.6 },
+  'achievement': { name: 'achievement', volume: 0.5 },
+  'missile-launch': { name: 'missile-launch', volume: 0.4 },
+  'shield-up': { name: 'shield-up', volume: 0.4 },
   powerup: { name: 'powerup-pickup', volume: 0.4 },
   enemyDestroy: { name: 'enemy-destroy', volume: 0.4 },
   bossSpawn: { name: 'boss-scream', volume: 0.6 },
@@ -35,6 +45,10 @@ export const playSound = (soundName, volume = 0.5) => {
     case 'powerup-pickup':
       oscillator.frequency.value = 523.25
       oscillator.type = 'sine'
+      break
+    case 'hit':
+      oscillator.frequency.value = 200
+      oscillator.type = 'sawtooth'
       break
     default:
       oscillator.frequency.value = 330
