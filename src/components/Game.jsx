@@ -36,6 +36,8 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     enemies: [],
     bullets: [],
     currentScore: 0,
+    isTouching: false,
+    touchShootTimer: 0,
     missiles: [],
     powerUps: [],
     particles: [],
@@ -135,12 +137,24 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
       
       gameState.current.player.x = Math.max(0, Math.min(800 - gameState.current.player.width, canvasX - gameState.current.player.width / 2))
       gameState.current.player.y = Math.max(0, Math.min(600 - gameState.current.player.height, canvasY - gameState.current.player.height / 2))
+      
+      // Rapid fire while moving on mobile
+      const now = Date.now()
+      if (now - gameState.current.touchShootTimer > 50) { // 50ms = rapid fire
+        shootBullet(gameState.current)
+        gameState.current.touchShootTimer = now
+      }
+    }
+    
+    const handleTouchEnd = () => {
+      gameState.current.isTouching = false
     }
 
     window.addEventListener('keydown', handleKeyDown)
     window.addEventListener('keyup', handleKeyUp)
     canvas.addEventListener('touchstart', handleTouchStart, { passive: false })
     canvas.addEventListener('touchmove', handleTouchMove, { passive: false })
+    canvas.addEventListener('touchend', handleTouchEnd, { passive: false })
 
     return () => {
       if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current)
@@ -148,6 +162,7 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
       window.removeEventListener('keyup', handleKeyUp)
       canvas.removeEventListener('touchstart', handleTouchStart)
       canvas.removeEventListener('touchmove', handleTouchMove)
+      canvas.removeEventListener('touchend', handleTouchEnd)
     }
   }, [isPaused, onPause])
 

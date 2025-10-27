@@ -4,6 +4,7 @@ import './MainMenu.css'
 function MainMenu({ onStartGame }) {
   const [selectedDifficulty, setSelectedDifficulty] = useState('medium')
   const [selectedShip, setSelectedShip] = useState('kaden')
+  const [showSettings, setShowSettings] = useState(false)
 
   const handleStart = () => {
     onStartGame(selectedDifficulty, selectedShip)
@@ -60,6 +61,32 @@ function MainMenu({ onStartGame }) {
         <button className="start-button" onClick={handleStart}>
           🎮 Start Game
         </button>
+
+        <div className="button-row">
+          <button className="settings-button" onClick={() => setShowSettings(!showSettings)}>
+            ⚙️ Settings
+          </button>
+        </div>
+
+        {showSettings && (
+          <div className="settings-panel">
+            <h4>⚙️ Game Settings</h4>
+            <div className="settings-content">
+              <div className="setting-item">
+                <label>Sound Effects</label>
+                <input type="range" min="0" max="100" defaultValue="100" />
+              </div>
+              <div className="setting-item">
+                <label>Music</label>
+                <input type="range" min="0" max="100" defaultValue="50" />
+              </div>
+              <div className="setting-item">
+                <label>Fullscreen</label>
+                <input type="checkbox" />
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="game-features">
           <h4>🌟 100+ Features Included</h4>
