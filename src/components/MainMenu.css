@@ -1,0 +1,138 @@
+.main-menu {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.main-menu::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="1" fill="white" opacity="0.3"/></svg>') repeat;
+  animation: starfield 50s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes starfield {
+  from { transform: translateY(0); }
+  to { transform: translateY(100px); }
+}
+
+.menu-container {
+  position: relative;
+  z-index: 1;
+  max-width: 600px;
+  width: 90%;
+  padding: 40px;
+  border-radius: 20px;
+  text-align: center;
+}
+
+.game-title {
+  font-size: 3rem;
+  margin-bottom: 10px;
+  background: linear-gradient(45deg, #fff, #ff6b6b, #4ecdc4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from { filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5)); }
+  to { filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.8)); }
+}
+
+.game-subtitle {
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.menu-section {
+  margin-bottom: 30px;
+}
+
+.menu-section h3 {
+  margin-bottom: 15px;
+  font-size: 1.5rem;
+}
+
+.ship-selector, .difficulty-selector {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.ship-option, .diff-btn {
+  padding: 15px 30px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.ship-option:hover, .diff-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.ship-option.active, .diff-btn.active {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+}
+
+.start-button {
+  padding: 20px 50px;
+  font-size: 1.5rem;
+  background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+  border: none;
+  border-radius: 15px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin: 30px 0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.start-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+}
+
+.game-features {
+  margin-top: 30px;
+  text-align: left;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.game-features h4 {
+  margin-bottom: 10px;
+}
+
+.game-features ul {
+  list-style: none;
+  padding: 0;
+}
+
+.game-features li {
+  padding: 5px 0;
+  font-size: 0.9rem;
+}
+
