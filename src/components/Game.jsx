@@ -49,6 +49,7 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     wingFighters: [],
     boss: null,
     isBossFight: false,
+    gameMode: 'classic',  // classic, arcade, survival, bossRush
     wave: 1,
     level: 1,
     comboMultiplier: 1,
@@ -70,6 +71,8 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     trails: [],
     plasmaBeams: [],
     enemyBullets: [],
+    asteroids: [],
+    lastAsteroidSpawn: 0,
     lastFrameTime: 0,
     deltaTime: 16.67  // 60fps = 16.67ms per frame
   })
@@ -193,6 +196,8 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     updateParticles(state)
     updateWingFighters(state)
     updatePlasmaBeams(state)
+    updateAsteroids(state)
+    spawnAsteroids(state)
     updateBoss(state)
 
     // Check collisions
@@ -206,6 +211,7 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
 
     // Draw everything with layer order
     drawBackgroundElements(ctx, state)
+    drawAsteroids(ctx, state)
     drawEnemies(ctx, state)
     drawPowerUps(ctx, state)
     drawBullets(ctx, state)
@@ -224,6 +230,7 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
 
     // Check level progression
     checkLevelProgression(state)
+    processGameMode(state)
 
     // Check game over
     if (lives <= 0) {
@@ -310,6 +317,10 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     state.enemies = state.enemies.filter(enemy => {
       enemy.y += enemy.speed * timeScale
       if (enemy.pattern === 'zigzag') enemy.x += Math.sin(enemy.y / 10) * 2 * timeScale
+    if (enemy.pattern === 'formation') {
+      const formationOffset = state.enemiesSpawned % 5 * 40
+      enemy.x = Math.sin((enemy.y + formationOffset) / 30) * 50 + canvasRef.current.width / 2
+    }
       return enemy.y < canvasRef.current.height + 50
     })
   }
@@ -322,7 +333,8 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
         x: Math.random() * (canvasRef.current.width - 40) + 20,
         y: -30,
         speed: difficultyModifier() * 0.8, // Slightly slower for 60fps
-        pattern: Math.random() > 0.7 ? 'zigzag' : 'normal',
+        pattern: Math.random() > 0.3 ? 'normal' : Math.random() > 0.5 ? 'zigzag' : 'formation',
+    formation: Math.random() > 0.5 ? 'v' : 'line',
         health: 1,
         type: 'normal'
       }
@@ -347,7 +359,12 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
             bullet.y < enemy.y + 30 && bullet.y + 5 > enemy.y) {
           state.enemies.splice(j, 1)
           state.bullets.splice(i, 1)
-          setScore(s => s + 10)
+          
+          // Enhanced scoring with combo multiplier
+          const baseScore = 10
+          const comboBonus = Math.min(combo * 2, 50)
+          const scoreGain = (baseScore + comboBonus) * state.scoreMultiplier
+          setScore(s => s + Math.floor(scoreGain))
           setCombo(c => c + 1)
           setKillStreak(k => k + 1)
           break
@@ -554,6 +571,39 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     })
   }
 
+  
+  const updateAsteroids = (state) => {
+    const timeScale = Math.min(state.deltaTime / 16.67, 2)
+    state.asteroids = state.asteroids.filter(asteroid => {
+      asteroid.x += asteroid.vx * timeScale
+      asteroid.y += asteroid.vy * timeScale
+      asteroid.rotation += 0.02 * timeScale
+      
+      // Wrap around screen
+      if (asteroid.x < -50) asteroid.x = canvasRef.current.width + 50
+      if (asteroid.x > canvasRef.current.width + 50) asteroid.x = -50
+      if (asteroid.y < -50) asteroid.y = canvasRef.current.height + 50
+      if (asteroid.y > canvasRef.current.height + 50) asteroid.y = -50
+      
+      return true
+    })
+  }
+
+  const spawnAsteroids = (state) => {
+    if (state.enemies.length === 0 && Math.random() < 0.01) {
+      const asteroid = {
+        x: Math.random() * canvasRef.current.width,
+        y: Math.random() * canvasRef.current.height,
+        size: 20 + Math.random() * 30,
+        vx: (Math.random() - 0.5) * 2,
+        vy: (Math.random() - 0.5) * 2,
+        rotation: Math.random() * Math.PI * 2,
+        health: 2
+      }
+      state.asteroids.push(asteroid)
+    }
+  }
+
   const spawnPowerUps = (state) => {
     const chance = 0.001
     if (Math.random() < chance && !state.isBossFight) {
@@ -643,6 +693,29 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     })
   }
 
+  
+  const drawAsteroids = (ctx, state) => {
+    state.asteroids.forEach(asteroid => {
+      ctx.save()
+      ctx.translate(asteroid.x, asteroid.y)
+      ctx.rotate(asteroid.rotation)
+      ctx.fillStyle = '#8B4513'
+      ctx.beginPath()
+      ctx.moveTo(0, -asteroid.size)
+      ctx.lineTo(asteroid.size * 0.7, -asteroid.size * 0.5)
+      ctx.lineTo(asteroid.size * 0.8, asteroid.size * 0.5)
+      ctx.lineTo(0, asteroid.size)
+      ctx.lineTo(-asteroid.size * 0.8, asteroid.size * 0.5)
+      ctx.lineTo(-asteroid.size * 0.7, -asteroid.size * 0.5)
+      ctx.closePath()
+      ctx.fill()
+      ctx.strokeStyle = '#654321'
+      ctx.lineWidth = 2
+      ctx.stroke()
+      ctx.restore()
+    })
+  }
+
   const drawBoss = (ctx, state) => {
     if (!state.boss) return
     ctx.fillStyle = state.boss.color
@@ -660,6 +733,25 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     ctx.fillRect(state.boss.x - 50, state.boss.y - 70, (state.boss.health / state.boss.health) * 100, 8)
   }
 
+  
+  const processGameMode = (state) => {
+    if (state.gameMode === 'arcade') {
+      // Faster spawns in arcade mode
+      state.lastEnemySpawn = Math.max(0, state.lastEnemySpawn - 200)
+    } else if (state.gameMode === 'survival') {
+      // Endless mode - increase difficulty over time
+      if (state.enemiesSpawned % 20 === 0) {
+        state.scoreMultiplier += 0.1
+      }
+    } else if (state.gameMode === 'bossRush') {
+      // Spawn bosses more frequently
+      if (state.enemiesSpawned % 30 === 0 && !state.isBossFight) {
+        state.isBossFight = true
+        state.boss = spawnBoss('asteroid', canvasRef.current.width / 2, 100)
+      }
+    }
+  }
+
   const checkLevelProgression = (state) => {
     if (state.enemiesSpawned % 50 === 0 && state.enemiesSpawned > 0) {
       state.wave++
@@ -674,39 +766,98 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
   }
 
   const drawUI = (ctx, state) => {
-    ctx.fillStyle = 'white'
-    ctx.font = 'bold 16px Arial'
-    ctx.fillText(`Score: ${score}`, 10, 25)
-    ctx.fillText(`Lives: ${lives}`, 10, 50)
-    ctx.fillText(`Health: ${health}/100`, 10, 75)
-    ctx.fillText(`Wave: ${wave}`, 10, 100)
-    ctx.fillText(`Level: ${level}`, 10, 125)
-    ctx.fillText(`Combo: ${combo}x`, 10, 150)
-    ctx.fillText(`Kills: ${killStreak}`, 10, 175)
-    ctx.fillText(`Coins: ${state.coins}`, 10, 200)
-    ctx.fillText(`Weapon: ${state.currentWeapon.toUpperCase()}`, 10, 225)
+    // Professional scoreboard background
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
+    ctx.fillRect(0, 0, 200, 280)
     
-    // Power-up indicators
-    let yPos = 250
+    // Top border with gradient
+    const bgGradient = ctx.createLinearGradient(0, 0, 200, 0)
+    bgGradient.addColorStop(0, 'rgba(102, 126, 234, 0.5)')
+    bgGradient.addColorStop(1, 'rgba(118, 75, 162, 0.5)')
+    ctx.fillStyle = bgGradient
+    ctx.fillRect(0, 0, 200, 4)
+    
+    // Score with glow effect
+    ctx.shadowBlur = 10
+    ctx.shadowColor = '#4ecdc4'
+    ctx.fillStyle = '#4ecdc4'
+    ctx.font = 'bold 20px Arial'
+    ctx.fillText(`SCORE`, 10, 25)
+    ctx.shadowBlur = 0
+    
+    ctx.font = 'bold 18px Arial'
+    ctx.fillStyle = '#fff'
+    const scoreText = score.toString().padStart(8, '0')
+    ctx.fillText(scoreText, 10, 50)
+    
+    // Lives indicator
+    ctx.fillStyle = '#ff6b6b'
+    ctx.font = 'bold 16px Arial'
+    ctx.fillText('❤️ × ' + lives, 10, 75)
+    
+    // Health bar
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)'
+    ctx.fillRect(10, 85, 100, 8)
+    const healthPercent = health / 100
+    ctx.fillStyle = healthPercent > 0.5 ? '#2ecc71' : healthPercent > 0.25 ? '#f39c12' : '#e74c3c'
+    ctx.fillRect(10, 85, 100 * healthPercent, 8)
+    ctx.strokeStyle = '#fff'
+    ctx.lineWidth = 1
+    ctx.strokeRect(10, 85, 100, 8)
+    
+    // Status section
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
+    ctx.fillRect(0, 100, 200, 1)
+    
+    // Wave and Level
+    ctx.font = '14px Arial'
+    ctx.fillStyle = '#ffd700'
+    ctx.fillText(`Wave: ${wave} | Level: ${level}`, 10, 120)
+    
+    // Combo with animation
+    if (combo > 0) {
+      const pulse = Math.sin(Date.now() / 100) * 0.3 + 0.7
+      ctx.fillStyle = `rgba(255, 215, 0, ${pulse})`
+      ctx.font = 'bold 16px Arial'
+      ctx.fillText(`⚡ COMBO × ${combo}`, 10, 145)
+    }
+    
+    // Kills and Coins
+    ctx.fillStyle = '#95a5a6'
+    ctx.font = '12px Arial'
+    ctx.fillText(`Kills: ${killStreak}`, 10, 170)
+    ctx.fillText(`💰 ${state.coins}`, 110, 170)
+    
+    // Current weapon
+    ctx.fillStyle = '#4ecdc4'
+    ctx.font = 'bold 11px Arial'
+    ctx.fillText(`⚔️ ${state.currentWeapon.toUpperCase()}`, 10, 195)
+    
+    // Power-up indicators with icons
+    let yPos = 210
     if (state.shield) {
       ctx.fillStyle = '#00ffff'
-      ctx.fillText('🛡️ SHIELD', 10, yPos)
-      yPos += 20
+      ctx.font = '14px Arial'
+      ctx.fillText('🛡️ Shield Active', 10, yPos)
+      yPos += 18
     }
     if (state.rapidFire) {
       ctx.fillStyle = '#ff6b6b'
-      ctx.fillText('⚡ RAPID FIRE', 10, yPos)
-      yPos += 20
+      ctx.font = '14px Arial'
+      ctx.fillText('⚡ Rapid Fire', 10, yPos)
+      yPos += 18
     }
     if (state.slowMotion) {
       ctx.fillStyle = '#9b59b6'
-      ctx.fillText('⏰ SLOW MOTION', 10, yPos)
-      yPos += 20
+      ctx.font = '14px Arial'
+      ctx.fillText('⏰ Slow Motion', 10, yPos)
+      yPos += 18
     }
     if (state.coinDoubler) {
       ctx.fillStyle = '#2ecc71'
-      ctx.fillText('💰 DOUBLE SCORE', 10, yPos)
-      yPos += 20
+      ctx.font = '14px Arial'
+      ctx.fillText('💰 Score Doubler', 10, yPos)
+      yPos += 18
     }
   }
 
