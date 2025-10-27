@@ -145,9 +145,8 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
       gameState.current.player.x = Math.max(0, Math.min(800 - gameState.current.player.width, canvasX - gameState.current.player.width / 2))
       gameState.current.player.y = Math.max(0, Math.min(600 - gameState.current.player.height, canvasY - gameState.current.player.height / 2))
       
-      // Rapid fire while moving on mobile - improved for iOS
+      // Keep isTouching true while moving (timer is managed in game loop)
       gameState.current.isTouching = true
-      gameState.current.touchShootTimer = Date.now()
     }
     
     const handleTouchEnd = () => {
