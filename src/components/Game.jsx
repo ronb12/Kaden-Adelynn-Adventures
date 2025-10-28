@@ -615,24 +615,68 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
 
   const drawPlayer = (ctx, state) => {
     ctx.save()
+    
+    const shipColor = selectedShip === 'kaden' ? '#4ecdc4' : '#ff6b6b'
+    const accentColor = selectedShip === 'kaden' ? '#00ffff' : '#ff00ff'
+    
     if (state.invulnerable) {
       ctx.globalAlpha = 0.5
     }
-    ctx.fillStyle = selectedShip === 'kaden' ? '#4ecdc4' : '#ff6b6b'
+    
+    // Glow effect
+    ctx.shadowBlur = 20
+    ctx.shadowColor = shipColor
+    
+    // Main body
+    ctx.fillStyle = shipColor
     ctx.beginPath()
-    ctx.moveTo(state.player.x, state.player.y + state.player.height)
-    ctx.lineTo(state.player.x + state.player.width / 2, state.player.y)
-    ctx.lineTo(state.player.x + state.player.width, state.player.y + state.player.height)
+    ctx.moveTo(state.player.x + state.player.width / 2, state.player.y)
+    ctx.lineTo(state.player.x + state.player.width, state.player.y + state.player.height - 10)
+    ctx.lineTo(state.player.x + state.player.width * 0.8, state.player.y + state.player.height)
+    ctx.lineTo(state.player.x + state.player.width * 0.2, state.player.y + state.player.height)
+    ctx.lineTo(state.player.x, state.player.y + state.player.height - 10)
     ctx.closePath()
     ctx.fill()
+    
+    // Accent details
+    ctx.fillStyle = accentColor
+    ctx.fillRect(state.player.x + state.player.width * 0.35, state.player.y + state.player.height * 0.5, 
+                  state.player.width * 0.3, state.player.height * 0.3)
+    
+    // Engine glow
+    const engineGlow = ctx.createLinearGradient(
+      state.player.x + state.player.width * 0.35, 
+      state.player.y + state.player.height,
+      state.player.x + state.player.width * 0.65,
+      state.player.y + state.player.height
+    )
+    engineGlow.addColorStop(0, 'yellow')
+    engineGlow.addColorStop(0.5, shipColor)
+    engineGlow.addColorStop(1, 'yellow')
+    ctx.fillStyle = engineGlow
+    ctx.fillRect(state.player.x + state.player.width * 0.25, state.player.y + state.player.height * 0.9,
+                 state.player.width * 0.5, state.player.height * 0.1)
+    
+    // Wing details
+    ctx.strokeStyle = accentColor
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    ctx.moveTo(state.player.x + state.player.width * 0.3, state.player.y + state.player.height * 0.6)
+    ctx.lineTo(state.player.x, state.player.y + state.player.height * 0.8)
+    ctx.moveTo(state.player.x + state.player.width * 0.7, state.player.y + state.player.height * 0.6)
+    ctx.lineTo(state.player.x + state.player.width, state.player.y + state.player.height * 0.8)
+    ctx.stroke()
     
     if (state.shield) {
       ctx.strokeStyle = 'cyan'
       ctx.lineWidth = 3
+      ctx.globalAlpha = 0.5
       ctx.beginPath()
       ctx.arc(state.player.x + state.player.width / 2, state.player.y + state.player.height / 2, 30, 0, Math.PI * 2)
       ctx.stroke()
+      ctx.globalAlpha = 1
     }
+    
     ctx.restore()
   }
 
@@ -645,29 +689,86 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
 
   const drawEnemies = (ctx, state) => {
     state.enemies.forEach(enemy => {
-      ctx.fillStyle = '#ff4757'
+      ctx.save()
+      
+      // Enemy type-based styling
+      const enemyColor = enemy.type === 'tank' ? '#8b0000' : 
+                        enemy.type === 'shooter' ? '#ff6b8a' : 
+                        enemy.type === 'kamikaze' ? '#ff0000' : '#ff4757'
+      
+      // Glow effect
+      ctx.shadowBlur = 15
+      ctx.shadowColor = enemyColor
+      
+      // Main body
+      ctx.fillStyle = enemyColor
       ctx.beginPath()
       ctx.moveTo(enemy.x + 15, enemy.y)
-      ctx.lineTo(enemy.x, enemy.y + 30)
-      ctx.lineTo(enemy.x + 30, enemy.y + 30)
+      ctx.lineTo(enemy.x + 5, enemy.y + 25)
+      ctx.lineTo(enemy.x + 25, enemy.y + 25)
+      ctx.lineTo(enemy.x + 30, enemy.y)
       ctx.closePath()
       ctx.fill()
+      
+      // Details
+      ctx.strokeStyle = '#000000'
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.moveTo(enemy.x + 15, enemy.y + 5)
+      ctx.lineTo(enemy.x + 15, enemy.y + 15)
+      ctx.stroke()
+      
+      // Cockpit
+      ctx.fillStyle = '#ffffff'
+      ctx.beginPath()
+      ctx.arc(enemy.x + 15, enemy.y + 8, 4, 0, Math.PI * 2)
+      ctx.fill()
+      
+      // Wings
+      ctx.fillStyle = enemyColor
+      ctx.fillRect(enemy.x + 5, enemy.y + 20, 20, 8)
+      
+      ctx.restore()
     })
   }
 
   const drawPowerUps = (ctx, state) => {
     state.powerUps.forEach(powerUp => {
-      ctx.save()
+      const time = Date.now() / 1000
+      powerUp.pulse = powerUp.pulse || 0
       powerUp.pulse += 0.1
+      powerUp.rotation = powerUp.rotation || 0
       powerUp.rotation += 0.05
       
-      // Glow effect
-      ctx.shadowBlur = 20
-      ctx.shadowColor = powerUp.color
+      ctx.save()
       
+      const pulseScale = 1 + Math.sin(powerUp.pulse) * 0.2
+      const glowIntensity = 0.7 + Math.sin(powerUp.pulse * 2) * 0.3
+      
+      // Outer glow effect
+      const gradient = ctx.createRadialGradient(powerUp.x, powerUp.y, 0, powerUp.x, powerUp.y, 30)
+      gradient.addColorStop(0, powerUp.color)
+      gradient.addColorStop(0.3, powerUp.color + '00')
+      gradient.addColorStop(1, 'transparent')
+      
+      ctx.globalAlpha = glowIntensity * 0.5
+      ctx.fillStyle = gradient
+      ctx.fillRect(powerUp.x - 30, powerUp.y - 30, 60, 60)
+      ctx.globalAlpha = 1
+      
+      // Main body with rotating shape
       ctx.translate(powerUp.x, powerUp.y)
+      ctx.scale(pulseScale, pulseScale)
       ctx.rotate(powerUp.rotation)
       
+      // Draw outer ring
+      ctx.strokeStyle = powerUp.color
+      ctx.lineWidth = 3
+      ctx.beginPath()
+      ctx.arc(0, 0, powerUp.width / 2 + 3, 0, Math.PI * 2)
+      ctx.stroke()
+      
+      // Draw inner shape
       ctx.fillStyle = powerUp.color
       ctx.beginPath()
       ctx.moveTo(0, -powerUp.width / 2)
@@ -676,11 +777,39 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
       ctx.lineTo(-powerUp.width / 2, 0)
       ctx.closePath()
       ctx.fill()
+      
+      // Inner glow core
+      const coreGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, powerUp.width / 3)
+      coreGradient.addColorStop(0, '#ffffff')
+      coreGradient.addColorStop(1, powerUp.color)
+      ctx.fillStyle = coreGradient
+      ctx.beginPath()
+      ctx.arc(0, 0, powerUp.width / 4, 0, Math.PI * 2)
+      ctx.fill()
+      
       ctx.restore()
       
-      // Draw icon
-      ctx.font = `${20 + Math.sin(powerUp.pulse) * 5}px Arial`
-      ctx.fillText(powerUp.icon, powerUp.x - 10, powerUp.y + 5)
+      // Draw icon with better positioning
+      ctx.save()
+      ctx.font = 'bold 28px Arial'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillStyle = '#ffffff'
+      ctx.strokeStyle = '#000000'
+      ctx.lineWidth = 2
+      ctx.strokeText(powerUp.icon, powerUp.x, powerUp.y)
+      ctx.fillText(powerUp.icon, powerUp.x, powerUp.y)
+      ctx.restore()
+      
+      // Draw trails
+      ctx.strokeStyle = powerUp.color
+      ctx.lineWidth = 2
+      ctx.globalAlpha = 0.5
+      ctx.beginPath()
+      ctx.moveTo(powerUp.x, powerUp.y - 15)
+      ctx.lineTo(powerUp.x, powerUp.y - 35)
+      ctx.stroke()
+      ctx.globalAlpha = 1
     })
   }
 
