@@ -528,9 +528,16 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
       for (let j = state.enemies.length - 1; j >= 0; j--) {
         const bullet = state.bullets[i]
         const enemy = state.enemies[j]
+        
+        // Use bullet's actual width and height (with defaults for compatibility)
+        const bulletWidth = bullet.width || 5
+        const bulletHeight = bullet.height || 10
+        const enemyWidth = 30
+        const enemyHeight = 30
+        
         if (bullet.owner === 'player' && 
-            bullet.x < enemy.x + 30 && bullet.x + 5 > enemy.x &&
-            bullet.y < enemy.y + 30 && bullet.y + 5 > enemy.y) {
+            bullet.x < enemy.x + enemyWidth && bullet.x + bulletWidth > enemy.x &&
+            bullet.y < enemy.y + enemyHeight && bullet.y + bulletHeight > enemy.y) {
           
           // Update score - sync with gameState
           const points = Math.floor(10 * state.scoreMultiplier)
