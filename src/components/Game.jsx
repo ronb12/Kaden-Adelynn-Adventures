@@ -129,8 +129,8 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
       const touchY = touch.clientY - rect.top
       
       // Convert screen coords to canvas coords
-      const canvasX = (touchX / rect.width) * 800
-      const canvasY = (touchY / rect.height) * 600
+      const canvasX = (touchX / rect.width) * canvas.width
+      const canvasY = (touchY / rect.height) * canvas.height
       
       gameState.current.player.x = canvasX - gameState.current.player.width / 2
       gameState.current.player.y = canvasY - gameState.current.player.height / 2
@@ -150,11 +150,11 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
       const touchX = touch.clientX - rect.left
       const touchY = touch.clientY - rect.top
       
-      const canvasX = (touchX / rect.width) * 800
-      const canvasY = (touchY / rect.height) * 600
+      const canvasX = (touchX / rect.width) * canvas.width
+      const canvasY = (touchY / rect.height) * canvas.height
       
-      gameState.current.player.x = Math.max(0, Math.min(800 - gameState.current.player.width, canvasX - gameState.current.player.width / 2))
-      gameState.current.player.y = Math.max(0, Math.min(600 - gameState.current.player.height, canvasY - gameState.current.player.height / 2))
+      gameState.current.player.x = Math.max(0, Math.min(canvas.width - gameState.current.player.width, canvasX - gameState.current.player.width / 2))
+      gameState.current.player.y = Math.max(0, Math.min(canvas.height - gameState.current.player.height, canvasY - gameState.current.player.height / 2))
       
       // Keep isTouching true while moving (timer is managed in game loop)
       gameState.current.isTouching = true
@@ -305,9 +305,9 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     const timeScale = Math.min(state.deltaTime / 16.67, 2) // Cap at 2x speed for stability
     
     if (state.keys['a'] || state.keys['A'] || state.keys['ArrowLeft']) state.player.x = Math.max(20, state.player.x - speed * timeScale)
-    if (state.keys['d'] || state.keys['D'] || state.keys['ArrowRight']) state.player.x = Math.min(canvasRef.current.width - 20, state.player.x + speed * timeScale)
+    if (state.keys['d'] || state.keys['D'] || state.keys['ArrowRight']) state.player.x = Math.min(canvasRef.current.width - state.player.width - 20, state.player.x + speed * timeScale)
     if (state.keys['w'] || state.keys['W'] || state.keys['ArrowUp']) state.player.y = Math.max(50, state.player.y - speed * timeScale)
-    if (state.keys['s'] || state.keys['S'] || state.keys['ArrowDown']) state.player.y = Math.min(canvasRef.current.height - 20, state.player.y + speed * timeScale)
+    if (state.keys['s'] || state.keys['S'] || state.keys['ArrowDown']) state.player.y = Math.min(canvasRef.current.height - state.player.height - 20, state.player.y + speed * timeScale)
     
     // Shoot bullets
     const now = Date.now()
