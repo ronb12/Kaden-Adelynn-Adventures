@@ -490,19 +490,21 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     const timeScale = Math.min(state.deltaTime / 16.67, 2)
     state.enemies = state.enemies.filter(enemy => {
       enemy.y += enemy.speed * timeScale
-      if (enemy.pattern === 'zigzag') enemy.x += Math.sin(enemy.y / 10) * 2 * timeScale
-    if (enemy.pattern === 'formation') {
-      const formationOffset = state.enemiesSpawned % 5 * 40
-      enemy.x = Math.sin((enemy.y + formationOffset) / 30) * 50 + canvasRef.current.width / 2
-    }
       
-      // Make enemies shoot back!
-      if (Math.random() < 0.003 && enemy.y > 50 && enemy.y < canvasRef.current.height - 100) {
+      // Simple movement patterns
+      if (enemy.pattern === 'zigzag') {
+        enemy.x += Math.sin(enemy.y / 20) * 2 * timeScale
+      }
+      
+      // Make enemies shoot more frequently!
+      if (Math.random() < 0.01 && enemy.y > 50 && enemy.y < canvasRef.current.height - 100) {
         state.enemyBullets.push({
           x: enemy.x + 15,
           y: enemy.y + 30,
-          speed: 4 * timeScale,
-          owner: 'enemy'
+          speed: 3 * timeScale,
+          owner: 'enemy',
+          width: 3,
+          height: 8
         })
       }
       
@@ -512,16 +514,15 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
 
   const spawnEnemies = (state) => {
     const now = Date.now()
-    const spawnRate = 1500 / difficultyModifier()
+    const spawnRate = 2000 / difficultyModifier() // Slower spawn rate
     if (now - state.lastEnemySpawn > spawnRate) {
       const enemy = {
-        x: Math.random() * (canvasRef.current.width - 40) + 20,
+        x: Math.random() * (canvasRef.current.width - 30) + 15,
         y: -30,
-        speed: difficultyModifier() * 0.8, // Slightly slower for 60fps
-        pattern: Math.random() > 0.3 ? 'normal' : Math.random() > 0.5 ? 'zigzag' : 'formation',
-    formation: Math.random() > 0.5 ? 'v' : 'line',
+        speed: difficultyModifier() * 1.2, // Faster movement
+        pattern: Math.random() > 0.5 ? 'normal' : 'zigzag',
         health: 1,
-        type: 'normal'
+        type: 'shooter' // All enemies can shoot
       }
       state.enemies.push(enemy)
       state.lastEnemySpawn = now
@@ -803,42 +804,25 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     state.enemies.forEach(enemy => {
       ctx.save()
       
-      // Enemy type-based styling
-      const enemyColor = enemy.type === 'tank' ? '#8b0000' : 
-                        enemy.type === 'shooter' ? '#ff6b8a' : 
-                        enemy.type === 'kamikaze' ? '#ff0000' : '#ff4757'
+      // Simple red triangle enemies
+      ctx.fillStyle = '#ff0000' // Bright red
+      ctx.strokeStyle = '#cc0000' // Darker red outline
+      ctx.lineWidth = 2
       
-      // Glow effect
-      ctx.shadowBlur = 15
-      ctx.shadowColor = enemyColor
-      
-      // Main body
-      ctx.fillStyle = enemyColor
+      // Draw triangle pointing down
       ctx.beginPath()
-      ctx.moveTo(enemy.x + 15, enemy.y)
-      ctx.lineTo(enemy.x + 5, enemy.y + 25)
-      ctx.lineTo(enemy.x + 25, enemy.y + 25)
-      ctx.lineTo(enemy.x + 30, enemy.y)
+      ctx.moveTo(enemy.x + 15, enemy.y) // Top point
+      ctx.lineTo(enemy.x + 5, enemy.y + 25) // Bottom left
+      ctx.lineTo(enemy.x + 25, enemy.y + 25) // Bottom right
       ctx.closePath()
       ctx.fill()
-      
-      // Details
-      ctx.strokeStyle = '#000000'
-      ctx.lineWidth = 2
-      ctx.beginPath()
-      ctx.moveTo(enemy.x + 15, enemy.y + 5)
-      ctx.lineTo(enemy.x + 15, enemy.y + 15)
       ctx.stroke()
       
-      // Cockpit
-      ctx.fillStyle = '#ffffff'
+      // Add a small cockpit detail
+      ctx.fillStyle = '#ff6666'
       ctx.beginPath()
-      ctx.arc(enemy.x + 15, enemy.y + 8, 4, 0, Math.PI * 2)
+      ctx.arc(enemy.x + 15, enemy.y + 8, 3, 0, Math.PI * 2)
       ctx.fill()
-      
-      // Wings
-      ctx.fillStyle = enemyColor
-      ctx.fillRect(enemy.x + 5, enemy.y + 20, 20, 8)
       
       ctx.restore()
     })
