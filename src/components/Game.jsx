@@ -322,69 +322,142 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     
     switch(state.currentWeapon) {
       case 'laser':
-        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2 })
+      case 'laserRifle':
+      case 'weapon_laser':
+        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2, color: '#00ffff' })
         break
       case 'spread':
-        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2 })
-        state.bullets.push({ ...baseBullet, x: state.player.x - 10, angle: -0.3 })
-        state.bullets.push({ ...baseBullet, x: state.player.x + 20, angle: 0.3 })
+      case 'weapon_spread':
+        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2, color: '#ffd700' })
+        state.bullets.push({ ...baseBullet, x: state.player.x - 10, angle: -0.3, color: '#ffd700' })
+        state.bullets.push({ ...baseBullet, x: state.player.x + 20, angle: 0.3, color: '#ffd700' })
         break
       case 'plasma':
       case 'plasmaRifle':
+      case 'weapon_plasma':
+      case 'weapon_plasma_rifle':
         state.plasmaBeams.push({ x: state.player.x, y: state.player.y, width: 8, height: 15, life: 50 })
         break
       case 'missile':
       case 'rocket':
+      case 'weapon_missile':
+      case 'weapon_rocket':
         state.missiles.push({ x: state.player.x, y: state.player.y, speed: 8, target: null, explosion: false })
         playSound('missile', 0.3)
         break
       case 'shotgun':
+      case 'weapon_shotgun':
         for (let i = 0; i < 5; i++) {
-          state.bullets.push({ ...baseBullet, x: state.player.x + i * 8, angle: (i - 2) * 0.2 })
+          state.bullets.push({ ...baseBullet, x: state.player.x + i * 8, angle: (i - 2) * 0.2, color: '#ff6347' })
         }
         break
       case 'minigun':
       case 'machinegun':
-        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2 })
-        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2 + 5, speed: 12 })
+      case 'weapon_minigun':
+      case 'weapon_machinegun':
+        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2, color: '#e74c3c' })
+        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2 + 5, speed: 12, color: '#e74c3c' })
         break
       case 'flamethrower':
       case 'fireMode':
+      case 'weapon_fire':
+      case 'weapon_flamethrower':
         for (let i = 0; i < 3; i++) {
-          state.bullets.push({ ...baseBullet, x: state.player.x + i * 10, angle: (i - 1) * 0.15 })
+          state.bullets.push({ ...baseBullet, x: state.player.x + i * 10, angle: (i - 1) * 0.15, color: '#ff4500' })
         }
+        break
+      case 'freeze':
+      case 'weapon_freeze':
+      case 'ice':
+      case 'weapon_ice':
+        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2, color: '#00bfff', freeze: true })
         break
       case 'electric':
       case 'lightning':
-        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2, speed: 15 })
-        // Electric effect bullets
+      case 'weapon_electric':
+      case 'weapon_lightning':
+        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2, speed: 15, color: '#ffff00' })
         for (let i = 0; i < 3; i++) {
-          state.bullets.push({ ...baseBullet, x: state.player.x + i * 15, angle: (i - 1) * 0.1 })
+          state.bullets.push({ ...baseBullet, x: state.player.x + i * 15, angle: (i - 1) * 0.1, color: '#ffff00' })
         }
         break
+      case 'poison':
+      case 'weapon_poison':
+        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2, color: '#7bff00', poison: true })
+        break
+      case 'explosive':
+      case 'weapon_explosive':
+        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2, color: '#ff8c00', explosive: true })
+        break
       case 'piercing':
-        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2, pierce: true })
+      case 'weapon_piercing':
+        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2, pierce: true, color: '#9370db' })
         break
       case 'homing':
+      case 'weapon_homing':
         const nearestEnemy = state.enemies[0]
         state.missiles.push({ x: state.player.x, y: state.player.y, speed: 8, target: nearestEnemy, explosion: false, homing: true })
         break
-      case 'cluster':
-      case 'grenade':
-        state.missiles.push({ x: state.player.x, y: state.player.y, speed: 8, cluster: true, explosion: false })
+      case 'bounce':
+      case 'weapon_bounce':
+        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2, bounce: true, color: '#00ff00' })
         break
       case 'beam':
       case 'laserBeam':
-        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2, width: 15, height: 20, speed: 15 })
+      case 'weapon_beam':
+      case 'weapon_laserBeam':
+        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2, width: 15, height: 20, speed: 15, color: '#00ff00' })
+        break
+      case 'cluster':
+      case 'grenade':
+      case 'weapon_cluster':
+      case 'weapon_grenade':
+        state.missiles.push({ x: state.player.x, y: state.player.y, speed: 8, cluster: true, explosion: false })
         break
       case 'flak':
+      case 'weapon_flak':
         for (let i = 0; i < 4; i++) {
-          state.bullets.push({ ...baseBullet, x: state.player.x + i * 10, angle: (i - 1.5) * 0.4 })
+          state.bullets.push({ ...baseBullet, x: state.player.x + i * 10, angle: (i - 1.5) * 0.4, color: '#e67e22' })
         }
         break
       case 'railgun':
       case 'sniper':
-        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2, width: 8, height: 25, speed: 20 })
+      case 'weapon_railgun':
+      case 'weapon_sniper':
+        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2, width: 8, height: 25, speed: 20, color: '#3498db' })
+        break
+      case 'shockwave':
+      case 'weapon_shockwave':
+        for (let i = 0; i < 8; i++) {
+          const angle = (Math.PI * 2 / 8) * i
+          state.bullets.push({ ...baseBullet, x: state.player.x, y: state.player.y, vx: Math.cos(angle) * 8, vy: Math.sin(angle) * 8, color: '#1abc9c' })
+        }
+        break
+      case 'cryo':
+      case 'weapon_cryo':
+        state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2, color: '#3498db', cryo: true })
+        break
+      case 'acid':
+      case 'weapon_acid':
+        for (let i = 0; i < 3; i++) {
+          state.bullets.push({ ...baseBullet, x: state.player.x + i * 10, angle: (i - 1) * 0.2, color: '#2ecc71', acid: true })
+        }
+        break
+      case 'volcano':
+      case 'weapon_volcano':
+        for (let i = 0; i < 5; i++) {
+          state.bullets.push({ ...baseBullet, x: state.player.x + i * 8, angle: (i - 2) * 0.3, color: '#e67e22', explosive: true })
+        }
+        break
+      case 'ultimate':
+      case 'weapon_ultimate':
+        // Ultimate weapon - combination of multiple types
+        for (let i = 0; i < 12; i++) {
+          const angle = (Math.PI * 2 / 12) * i
+          state.bullets.push({ ...baseBullet, x: state.player.x, y: state.player.y, vx: Math.cos(angle) * 10, vy: Math.sin(angle) * 10, 
+                               width: 10, height: 15, color: '#ff1493', pierce: true })
+        }
+        state.missiles.push({ x: state.player.x, y: state.player.y, speed: 10, target: null, explosion: true })
         break
       default:
         state.bullets.push({ ...baseBullet, x: state.player.x + state.player.width / 2 })
@@ -682,8 +755,29 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
 
   const drawBullets = (ctx, state) => {
     state.bullets.forEach(bullet => {
-      ctx.fillStyle = bullet.owner === 'player' ? 'cyan' : 'red'
-      ctx.fillRect(bullet.x, bullet.y, 5, 10)
+      const color = bullet.color || (bullet.owner === 'player' ? 'cyan' : 'red')
+      
+      // Apply special effects based on weapon type
+      if (bullet.freeze) {
+        ctx.strokeStyle = '#00bfff'
+        ctx.lineWidth = 3
+        ctx.beginPath()
+        ctx.arc(bullet.x, bullet.y, bullet.width, 0, Math.PI * 2)
+        ctx.stroke()
+      }
+      
+      ctx.fillStyle = color
+      ctx.fillRect(bullet.x, bullet.y, bullet.width || 5, bullet.height || 10)
+      
+      // Add glow effect for special weapons
+      if (bullet.pierce || bullet.explosive) {
+        ctx.globalAlpha = 0.5
+        ctx.shadowBlur = 10
+        ctx.shadowColor = color
+        ctx.fillRect(bullet.x, bullet.y, bullet.width || 5, bullet.height || 10)
+        ctx.globalAlpha = 1
+        ctx.shadowBlur = 0
+      }
     })
   }
 
@@ -850,7 +944,8 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
   }
 
   const updateParticles = (state) => {
-    state.particles = state.particles.filter(p => p.life > 0)
+    // Optimized: Limit particle count to 200 for performance
+    state.particles = state.particles.slice(0, 200).filter(p => p.life > 0)
     state.particles.forEach(p => p.life--)
   }
 
@@ -979,8 +1074,9 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
   }
 
   const drawStarfield = (ctx, offset = 0) => {
+    // Optimized: Reduced star count from 150 to 80 for better performance
     ctx.fillStyle = 'white'
-    for (let i = 0; i < 150; i++) {
+    for (let i = 0; i < 80; i++) {
       const x = (i * 83) % 800
       const y = ((i * 73) % 600) + (offset % 600)
       const brightness = Math.random()
@@ -1082,18 +1178,30 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
       ctx.drawImage(bossImg, -state.boss.width / 2, -state.boss.height / 2, state.boss.width, state.boss.height)
       ctx.globalAlpha = 1
     } else {
-      // Fallback to drawn boss if image not loaded
+      // Enhanced fallback boss design
       ctx.rotate(rotation)
       ctx.scale(pulse, pulse)
+      
+      // Outer glow ring
+      ctx.shadowBlur = 30
+      ctx.shadowColor = state.boss.color
+      ctx.strokeStyle = state.boss.color
+      ctx.lineWidth = 5
+      ctx.beginPath()
+      ctx.arc(0, 0, state.boss.width / 2 + 10, 0, Math.PI * 2)
+      ctx.stroke()
+      ctx.shadowBlur = 0
       
       // Main body - hexagonal sci-fi ship
       const gradient = ctx.createLinearGradient(-state.boss.width/2, -state.boss.height/2, state.boss.width/2, state.boss.height/2)
       gradient.addColorStop(0, state.boss.color)
+      gradient.addColorStop(0.3, state.boss.color + '80')
       gradient.addColorStop(0.5, '#000000')
+      gradient.addColorStop(0.7, state.boss.color + '80')
       gradient.addColorStop(1, state.boss.color)
       ctx.fillStyle = gradient
       
-    ctx.beginPath()
+      ctx.beginPath()
       // Hexagonal shape
       for (let i = 0; i < 6; i++) {
         const angle = (Math.PI / 3) * i
@@ -1103,39 +1211,55 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
         else ctx.lineTo(x, y)
       }
       ctx.closePath()
-    ctx.fill()
+      ctx.fill()
+      
+      // Outer rim
       ctx.strokeStyle = '#ffff00'
-      ctx.lineWidth = 3
+      ctx.lineWidth = 4
       ctx.stroke()
       
-      // Inner core
-      ctx.fillStyle = '#ff0080'
-      ctx.globalAlpha = 0.6
+      // Inner energy core
+      const coreGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, state.boss.width / 4)
+      coreGradient.addColorStop(0, '#ffffff')
+      coreGradient.addColorStop(0.5, '#ff0080')
+      coreGradient.addColorStop(1, state.boss.color)
+      ctx.fillStyle = coreGradient
+      ctx.globalAlpha = 0.8 + Math.sin(time * 4) * 0.2
       ctx.beginPath()
       ctx.arc(0, 0, state.boss.width / 4, 0, Math.PI * 2)
       ctx.fill()
       ctx.globalAlpha = 1
       
-      // Weapon arrays
+      // Weapon arrays with enhanced design
       ctx.strokeStyle = '#00ffff'
-    ctx.lineWidth = 2
+      ctx.lineWidth = 3
       for (let i = 0; i < 8; i++) {
         const angle = (Math.PI / 4) * i
         const dist = state.boss.width / 2 - 5
         ctx.beginPath()
         ctx.moveTo(0, 0)
         ctx.lineTo(Math.cos(angle) * dist, Math.sin(angle) * dist)
-    ctx.stroke()
+        ctx.stroke()
+        
+        // Turret mounts
+        const turretX = Math.cos(angle) * (dist - 10)
+        const turretY = Math.sin(angle) * (dist - 10)
+        ctx.fillStyle = '#444444'
+        ctx.beginPath()
+        ctx.arc(turretX, turretY, 4, 0, Math.PI * 2)
+        ctx.fill()
       }
       
-      // Glow effect
-      ctx.shadowBlur = 20
-      ctx.shadowColor = '#ff0080'
-      ctx.fillStyle = '#ff0080'
+      // Pulsing center glow
+      ctx.shadowBlur = 25
+      ctx.shadowColor = state.boss.color
+      ctx.fillStyle = state.boss.color
+      ctx.globalAlpha = 0.6 + Math.sin(time * 5) * 0.4
       ctx.beginPath()
       ctx.arc(0, 0, state.boss.width / 6, 0, Math.PI * 2)
       ctx.fill()
       ctx.shadowBlur = 0
+      ctx.globalAlpha = 1
     }
     
     ctx.restore()
