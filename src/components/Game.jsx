@@ -88,9 +88,20 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     // Load boss images
     loadBossImages()
     
-    // Set canvas size
-    canvas.width = 800
-    canvas.height = 600
+    // Set canvas size to full viewport
+    const updateCanvasSize = () => {
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+    }
+    
+    updateCanvasSize()
+    
+    // Update canvas size on window resize
+    window.addEventListener('resize', updateCanvasSize)
+    
+    return () => {
+      window.removeEventListener('resize', updateCanvasSize)
+    }
 
     // Start game loop
     if (!isPaused) {
@@ -1083,9 +1094,11 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
   const drawStarfield = (ctx, offset = 0) => {
     // Optimized: Reduced star count from 150 to 80 for better performance
     ctx.fillStyle = 'white'
+    const canvasWidth = canvasRef.current.width
+    const canvasHeight = canvasRef.current.height
     for (let i = 0; i < 80; i++) {
-      const x = (i * 83) % 800
-      const y = ((i * 73) % 600) + (offset % 600)
+      const x = (i * 83) % canvasWidth
+      const y = ((i * 73) % canvasHeight) + (offset % canvasHeight)
       const brightness = Math.random()
       ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`
       ctx.fillRect(x, y, 1 + brightness, 1 + brightness)
