@@ -114,6 +114,20 @@ export const applyPowerUp = (gameState, powerUp) => {
       gameState.coinDoubler = true
       gameState.coinDoublerTimer = powerUp.duration
       break
+    case 'weapon':
+      // Change weapon when collecting weapon power-up
+      if (powerUp.weapon) {
+        gameState.currentWeapon = powerUp.weapon
+        console.log('Weapon changed to:', powerUp.weapon)
+      }
+      break
+    default:
+      // Handle weapon changes
+      if (powerUp.weapon) {
+        gameState.currentWeapon = powerUp.weapon
+        console.log('Weapon changed to:', powerUp.weapon)
+      }
+      break
   }
 }
 
