@@ -1,5 +1,5 @@
 // Service Worker for PWA
-const CACHE_NAME = 'kaden-adventures-v1'
+const CACHE_NAME = 'kaden-adventures-v2'
 const urlsToCache = [
   '/',
   '/index.html',
