@@ -19,14 +19,9 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
   const [wave, setWave] = useState(1)
   const [level, setLevel] = useState(1)
   const [coins, setCoins] = useState(0)
-  const [activePowerUps, setActivePowerUps] = useState([])
   const [unlockedAchievements, setUnlockedAchievements] = useState([])
   const [enemiesKilled, setEnemiesKilled] = useState(0)
   const [timePlayed, setTimePlayed] = useState(0)
-  const [bestCombo, setBestCombo] = useState(0)
-  const [perfectWaves, setPerfectWaves] = useState(0)
-  const [screenShake, setScreenShake] = useState({ x: 0, y: 0 })
-  const [hitStop, setHitStop] = useState(false)
   const [scoreMultiplier, setScoreMultiplier] = useState(1)
   
   // Game state
@@ -99,10 +94,6 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     // Update canvas size on window resize
     window.addEventListener('resize', updateCanvasSize)
     
-    return () => {
-      window.removeEventListener('resize', updateCanvasSize)
-    }
-
     // Start game loop
     if (!isPaused) {
       gameLoopRef.current = requestAnimationFrame(gameLoop)
@@ -123,6 +114,10 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     // Touch controls for mobile
     const handleTouchStart = (e) => {
       e.preventDefault()
+      e.stopPropagation()
+      
+      if (!e.touches || e.touches.length === 0) return
+      
       const touch = e.touches[0]
       const rect = canvas.getBoundingClientRect()
       const touchX = touch.clientX - rect.left
@@ -132,8 +127,9 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
       const canvasX = (touchX / rect.width) * canvas.width
       const canvasY = (touchY / rect.height) * canvas.height
       
-      gameState.current.player.x = canvasX - gameState.current.player.width / 2
-      gameState.current.player.y = canvasY - gameState.current.player.height / 2
+      // Constrain to canvas bounds
+      gameState.current.player.x = Math.max(0, Math.min(canvas.width - gameState.current.player.width, canvasX - gameState.current.player.width / 2))
+      gameState.current.player.y = Math.max(0, Math.min(canvas.height - gameState.current.player.height, canvasY - gameState.current.player.height / 2))
       
       // Enable rapid fire on touch
       gameState.current.isTouching = true
@@ -145,6 +141,10 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
 
     const handleTouchMove = (e) => {
       e.preventDefault()
+      e.stopPropagation()
+      
+      if (!e.touches || e.touches.length === 0) return
+      
       const touch = e.touches[0]
       const rect = canvas.getBoundingClientRect()
       const touchX = touch.clientX - rect.left
@@ -172,6 +172,7 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
 
     return () => {
       if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current)
+      window.removeEventListener('resize', updateCanvasSize)
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)
       canvas.removeEventListener('touchstart', handleTouchStart)
@@ -182,7 +183,11 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
 
   const gameLoop = useCallback((currentTime) => {
     const canvas = canvasRef.current
+    if (!canvas) return
+    
     const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    
     const state = gameState.current
 
     // Calculate delta time for frame-rate independent movement (60fps)
@@ -281,9 +286,15 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     
     // Save score when game ends
     if (lives <= 0 && score > 0) {
-      import('../utils/scoreTracking').then(module => {
-        module.saveScore(score)
-      })
+      try {
+        import('../utils/scoreTracking').then(module => {
+          module.saveScore(score)
+        }).catch(error => {
+          console.error('Failed to save score:', error)
+        })
+      } catch (error) {
+        console.error('Failed to import score tracking:', error)
+      }
     }
 
     setTimePlayed(t => t + 1)
@@ -301,13 +312,16 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
 
   // Game functions (simplified versions - space saving)
   const updatePlayer = (state) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    
     const speed = state.slowMotion ? state.player.speed * 0.5 : state.player.speed
     const timeScale = Math.min(state.deltaTime / 16.67, 2) // Cap at 2x speed for stability
     
     if (state.keys['a'] || state.keys['A'] || state.keys['ArrowLeft']) state.player.x = Math.max(20, state.player.x - speed * timeScale)
-    if (state.keys['d'] || state.keys['D'] || state.keys['ArrowRight']) state.player.x = Math.min(canvasRef.current.width - state.player.width - 20, state.player.x + speed * timeScale)
+    if (state.keys['d'] || state.keys['D'] || state.keys['ArrowRight']) state.player.x = Math.min(canvas.width - state.player.width - 20, state.player.x + speed * timeScale)
     if (state.keys['w'] || state.keys['W'] || state.keys['ArrowUp']) state.player.y = Math.max(50, state.player.y - speed * timeScale)
-    if (state.keys['s'] || state.keys['S'] || state.keys['ArrowDown']) state.player.y = Math.min(canvasRef.current.height - state.player.height - 20, state.player.y + speed * timeScale)
+    if (state.keys['s'] || state.keys['S'] || state.keys['ArrowDown']) state.player.y = Math.min(canvas.height - state.player.height - 20, state.player.y + speed * timeScale)
     
     // Shoot bullets
     const now = Date.now()
@@ -479,14 +493,20 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
   }
 
   const updateBullets = (state) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    
     const timeScale = Math.min(state.deltaTime / 16.67, 2)
     state.bullets = state.bullets.filter(bullet => {
       bullet.y -= bullet.speed * timeScale
-      return bullet.y > -10 && bullet.y < canvasRef.current.height + 10
+      return bullet.y > -10 && bullet.y < canvas.height + 10
     })
   }
 
   const updateEnemies = (state) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    
     const timeScale = Math.min(state.deltaTime / 16.67, 2)
     state.enemies = state.enemies.filter(enemy => {
       enemy.y += enemy.speed * timeScale
@@ -497,7 +517,7 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
       }
       
       // Make enemies shoot more frequently!
-      if (Math.random() < 0.01 && enemy.y > 50 && enemy.y < canvasRef.current.height - 100) {
+      if (Math.random() < 0.01 && enemy.y > 50 && enemy.y < canvas.height - 100) {
         state.enemyBullets.push({
           x: enemy.x + 15,
           y: enemy.y + 30,
@@ -508,16 +528,19 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
         })
       }
       
-      return enemy.y < canvasRef.current.height + 50
+      return enemy.y < canvas.height + 50
     })
   }
 
   const spawnEnemies = (state) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    
     const now = Date.now()
     const spawnRate = 2000 / difficultyModifier() // Slower spawn rate
     if (now - state.lastEnemySpawn > spawnRate) {
       const enemy = {
-        x: Math.random() * (canvasRef.current.width - 30) + 15,
+        x: Math.random() * (canvas.width - 30) + 15,
         y: -30,
         speed: difficultyModifier() * 1.2, // Faster movement
         pattern: Math.random() > 0.5 ? 'normal' : 'zigzag',
@@ -535,10 +558,15 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
   }
 
   const checkCollisions = (state) => {
-    // Bullet-enemy collisions
-    for (let i = state.bullets.length - 1; i >= 0; i--) {
-      for (let j = state.enemies.length - 1; j >= 0; j--) {
-        const bullet = state.bullets[i]
+    // Bullet-enemy collisions - use safer iteration
+    const bulletsToRemove = []
+    const enemiesToRemove = []
+    
+    for (let i = 0; i < state.bullets.length; i++) {
+      const bullet = state.bullets[i]
+      if (bullet.owner !== 'player') continue
+      
+      for (let j = 0; j < state.enemies.length; j++) {
         const enemy = state.enemies[j]
         
         // Use bullet's actual width and height (with defaults for compatibility)
@@ -547,8 +575,7 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
         const enemyWidth = 30
         const enemyHeight = 30
         
-        if (bullet.owner === 'player' && 
-            bullet.x < enemy.x + enemyWidth && bullet.x + bulletWidth > enemy.x &&
+        if (bullet.x < enemy.x + enemyWidth && bullet.x + bulletWidth > enemy.x &&
             bullet.y < enemy.y + enemyHeight && bullet.y + bulletHeight > enemy.y) {
           
           // Update score - sync with gameState
@@ -556,7 +583,6 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
           setScore(s => {
             const newScore = s + points
             state.currentScore = newScore // Sync to gameState
-            console.log('Score update:', s, '->', newScore)
             
             // Check achievements
             if (enemiesKilled === 0) {
@@ -589,9 +615,8 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
             }
           }
           
-          state.enemies.splice(j, 1)
-          state.bullets.splice(i, 1)
-          
+          enemiesToRemove.push(j)
+          bulletsToRemove.push(i)
           break
         }
       }
@@ -620,11 +645,10 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
           
           // Boss takes damage
           state.boss.health -= 20
-          console.log('Boss hit! Health:', state.boss.health)
           
           // Remove bullet unless it's piercing
           if (!bullet.pierce) {
-            state.bullets.splice(i, 1)
+            bulletsToRemove.push(i)
           }
           
           // Add hit effect
@@ -633,7 +657,6 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
           
           // Boss defeated?
           if (state.boss.health <= 0) {
-            console.log('Boss defeated!')
             playSound('bossSpawn', 0.6)
             // Give bonus score
             const bossPoints = Math.floor(500 * state.scoreMultiplier)
@@ -657,10 +680,21 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
         }
       }
     }
+    
+    // Remove bullets and enemies safely (in reverse order to maintain indices)
+    bulletsToRemove.sort((a, b) => b - a).forEach(index => {
+      state.bullets.splice(index, 1)
+    })
+    enemiesToRemove.sort((a, b) => b - a).forEach(index => {
+      state.enemies.splice(index, 1)
+    })
 
     // Enemy-player collisions
     if (!state.invulnerable && !state.shield) {
-      for (let enemy of state.enemies) {
+      const enemiesToRemove = []
+      
+      for (let i = 0; i < state.enemies.length; i++) {
+        const enemy = state.enemies[i]
         if (state.player.x < enemy.x + 30 && state.player.x + state.player.width > enemy.x &&
             state.player.y < enemy.y + 30 && state.player.y + state.player.height > enemy.y) {
           setHealth(h => {
@@ -673,13 +707,19 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
             }
             return newHealth
           })
-          state.enemies.splice(state.enemies.indexOf(enemy), 1)
+          enemiesToRemove.push(i)
           break
         }
       }
       
+      // Remove enemies safely (in reverse order)
+      enemiesToRemove.sort((a, b) => b - a).forEach(index => {
+        state.enemies.splice(index, 1)
+      })
+      
       // Check enemy bullet collisions with player
-      for (let i = state.enemyBullets.length - 1; i >= 0; i--) {
+      const bulletsToRemove = []
+      for (let i = 0; i < state.enemyBullets.length; i++) {
         const bullet = state.enemyBullets[i]
         if (bullet.x < state.player.x + state.player.width && 
             bullet.x + 5 > state.player.x &&
@@ -695,11 +735,16 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
             }
             return newHealth
           })
-          state.enemyBullets.splice(i, 1)
+          bulletsToRemove.push(i)
           state.shakeIntensity = 5
           playSound('hit', 0.5)
         }
       }
+      
+      // Remove bullets safely (in reverse order)
+      bulletsToRemove.sort((a, b) => b - a).forEach(index => {
+        state.enemyBullets.splice(index, 1)
+      })
     }
   }
 
@@ -924,6 +969,9 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
   }
 
   const updatePowerUps = (state) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    
     const timeScale = Math.min(state.deltaTime / 16.67, 2)
     state.powerUps = state.powerUps.filter(powerUp => {
       powerUp.y += powerUp.speed * timeScale
@@ -941,7 +989,7 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
         return false
       }
       
-      return powerUp.y < canvasRef.current.height + 50
+      return powerUp.y < canvas.height + 50
     })
   }
 
@@ -989,19 +1037,25 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
   }
 
   const updateMissiles = (state) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    
     const timeScale = Math.min(state.deltaTime / 16.67, 2)
     state.missiles = state.missiles.filter(missile => {
       missile.y -= missile.speed * timeScale
       missile.speed = Math.min(15, missile.speed + 0.5 * timeScale)
-      return missile.y > -50 && missile.y < canvasRef.current.height + 50
+      return missile.y > -50 && missile.y < canvas.height + 50
     })
   }
 
   const updateEnemyBullets = (state) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    
     const timeScale = Math.min(state.deltaTime / 16.67, 2)
     state.enemyBullets = state.enemyBullets.filter(bullet => {
       bullet.y += bullet.speed * timeScale
-      return bullet.y < canvasRef.current.height + 50
+      return bullet.y < canvas.height + 50
     })
   }
 
@@ -1016,6 +1070,9 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
 
   
   const updateAsteroids = (state) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    
     const timeScale = Math.min(state.deltaTime / 16.67, 2)
     state.asteroids = state.asteroids.filter(asteroid => {
       asteroid.x += asteroid.vx * timeScale
@@ -1023,20 +1080,23 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
       asteroid.rotation += 0.02 * timeScale
       
       // Wrap around screen
-      if (asteroid.x < -50) asteroid.x = canvasRef.current.width + 50
-      if (asteroid.x > canvasRef.current.width + 50) asteroid.x = -50
-      if (asteroid.y < -50) asteroid.y = canvasRef.current.height + 50
-      if (asteroid.y > canvasRef.current.height + 50) asteroid.y = -50
+      if (asteroid.x < -50) asteroid.x = canvas.width + 50
+      if (asteroid.x > canvas.width + 50) asteroid.x = -50
+      if (asteroid.y < -50) asteroid.y = canvas.height + 50
+      if (asteroid.y > canvas.height + 50) asteroid.y = -50
       
       return true
     })
   }
 
   const spawnAsteroids = (state) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    
     if (state.enemies.length === 0 && Math.random() < 0.01) {
       const asteroid = {
-        x: Math.random() * canvasRef.current.width,
-        y: Math.random() * canvasRef.current.height,
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
         size: 20 + Math.random() * 30,
         vx: (Math.random() - 0.5) * 2,
         vy: (Math.random() - 0.5) * 2,
@@ -1048,9 +1108,12 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
   }
 
   const spawnPowerUps = (state) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    
     const chance = 0.05  // 5% chance per frame - collectibles will spawn
     if (Math.random() < chance && !state.isBossFight && state.powerUps.length < 5) {
-      const x = Math.random() * (canvasRef.current.width - 50) + 25
+      const x = Math.random() * (canvas.width - 50) + 25
       const y = -30
       state.powerUps.push(createPowerUp(x, y))
     }
@@ -1069,17 +1132,23 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
   }
 
   const drawAnimatedBackground = (ctx, state) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    
     ctx.fillStyle = '#000'
-    ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height)
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
     drawStarfield(ctx, state.backgroundOffset)
     state.backgroundOffset += 0.5
   }
 
   const drawStarfield = (ctx, offset = 0) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    
     // Optimized: Reduced star count from 150 to 80 for better performance
     ctx.fillStyle = 'white'
-    const canvasWidth = canvasRef.current.width
-    const canvasHeight = canvasRef.current.height
+    const canvasWidth = canvas.width
+    const canvasHeight = canvas.height
     for (let i = 0; i < 80; i++) {
       const x = (i * 83) % canvasWidth
       const y = ((i * 73) % canvasHeight) + (offset % canvasHeight)
@@ -1090,20 +1159,23 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
   }
 
   const drawBackgroundElements = (ctx, state) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    
     // Draw nebula gradients
     const gradient = ctx.createRadialGradient(
-      canvasRef.current.width / 2,
-      canvasRef.current.height / 2,
+      canvas.width / 2,
+      canvas.height / 2,
       50,
-      canvasRef.current.width / 2,
-      canvasRef.current.height / 2,
+      canvas.width / 2,
+      canvas.height / 2,
       300
     )
     gradient.addColorStop(0, 'rgba(255, 107, 107, 0.1)')
     gradient.addColorStop(0.5, 'rgba(78, 205, 196, 0.1)')
     gradient.addColorStop(1, 'transparent')
     ctx.fillStyle = gradient
-    ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height)
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
   }
 
   const drawMissiles = (ctx, state) => {
@@ -1296,6 +1368,9 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
 
   
   const processGameMode = (state) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    
     if (state.gameMode === 'arcade') {
       // Faster spawns in arcade mode
       state.lastEnemySpawn = Math.max(0, state.lastEnemySpawn - 200)
@@ -1308,12 +1383,15 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
       // Spawn bosses more frequently
       if (state.enemiesSpawned % 30 === 0 && !state.isBossFight) {
         state.isBossFight = true
-        state.boss = spawnBoss('asteroid', canvasRef.current.width / 2, 100)
+        state.boss = spawnBoss('asteroid', canvas.width / 2, 100)
       }
     }
   }
 
   const checkLevelProgression = (state) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    
     if (state.enemiesSpawned % 50 === 0 && state.enemiesSpawned > 0) {
       state.wave++
       setWave(state.wave)
@@ -1321,7 +1399,7 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
         state.level++
         setLevel(state.level)
         state.isBossFight = true
-        state.boss = spawnBoss('asteroid', canvasRef.current.width / 2, 100)
+        state.boss = spawnBoss('asteroid', canvas.width / 2, 100)
       }
     }
   }
@@ -1329,7 +1407,7 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
   const drawUI = (ctx, state) => {
     // Professional scoreboard background
     ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
-    ctx.fillRect(0, 0, 200, 280)
+    ctx.fillRect(0, 0, 200, 340)
     
     // Top border with gradient
     const bgGradient = ctx.createLinearGradient(0, 0, 200, 0)
@@ -1349,7 +1427,6 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     ctx.font = 'bold 18px Arial'
     ctx.fillStyle = '#fff'
     const currentScore = state.currentScore || score
-    console.log('DrawUI score:', currentScore, 'state.currentScore:', state.currentScore, 'React score:', score)
     const scoreText = currentScore.toString().padStart(8, '0')
     ctx.fillText(scoreText, 10, 50)
     
@@ -1363,46 +1440,46 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, isPaused }) {
     ctx.fillStyle = '#ffff00'
     ctx.fillText(`BEST: ${getPersonalBest().toString().padStart(8, '0')}`, 10, 95)
     
-    // Health bar
+    // Health bar (moved below high score to prevent overlap)
     ctx.fillStyle = 'rgba(255, 255, 255, 0.3)'
-    ctx.fillRect(10, 85, 100, 8)
+    ctx.fillRect(10, 110, 100, 8)
     const healthPercent = health / 100
     ctx.fillStyle = healthPercent > 0.5 ? '#2ecc71' : healthPercent > 0.25 ? '#f39c12' : '#e74c3c'
-    ctx.fillRect(10, 85, 100 * healthPercent, 8)
+    ctx.fillRect(10, 110, 100 * healthPercent, 8)
     ctx.strokeStyle = '#fff'
     ctx.lineWidth = 1
-    ctx.strokeRect(10, 85, 100, 8)
+    ctx.strokeRect(10, 110, 100, 8)
     
     // Status section
     ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
-    ctx.fillRect(0, 100, 200, 1)
+    ctx.fillRect(0, 130, 200, 1)
     
     // Wave and Level
     ctx.font = '14px Arial'
     ctx.fillStyle = '#ffd700'
-    ctx.fillText(`Wave: ${wave} | Level: ${level}`, 10, 120)
+    ctx.fillText(`Wave: ${wave} | Level: ${level}`, 10, 150)
     
     // Combo with animation
     if (combo > 0) {
       const pulse = Math.sin(Date.now() / 100) * 0.3 + 0.7
       ctx.fillStyle = `rgba(255, 215, 0, ${pulse})`
       ctx.font = 'bold 16px Arial'
-      ctx.fillText(`⚡ COMBO × ${combo}`, 10, 145)
+      ctx.fillText(`⚡ COMBO × ${combo}`, 10, 175)
     }
     
     // Kills and Coins
     ctx.fillStyle = '#95a5a6'
     ctx.font = '12px Arial'
-    ctx.fillText(`Kills: ${killStreak}`, 10, 170)
-    ctx.fillText(`💰 ${state.coins}`, 110, 170)
+    ctx.fillText(`Kills: ${killStreak}`, 10, 200)
+    ctx.fillText(`💰 ${state.coins}`, 110, 200)
     
     // Current weapon
     ctx.fillStyle = '#4ecdc4'
     ctx.font = 'bold 11px Arial'
-    ctx.fillText(`⚔️ ${state.currentWeapon.toUpperCase()}`, 10, 195)
+    ctx.fillText(`⚔️ ${state.currentWeapon.toUpperCase()}`, 10, 225)
     
     // Power-up indicators with icons
-    let yPos = 210
+    let yPos = 240
     if (state.shield) {
       ctx.fillStyle = '#00ffff'
       ctx.font = '14px Arial'
