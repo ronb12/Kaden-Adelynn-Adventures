@@ -10,6 +10,7 @@
   overflow-x: hidden;
   padding: 80px 0 40px 0;
 }
+/* (header/nav styles removed to restore simpler layout) */
 
 /* Animated cosmic background */
 .main-menu::before {
@@ -67,6 +68,7 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   overflow: visible;
 }
+/* (hero styles removed) */
 
 /* Animated border glow */
 .menu-container::before {
@@ -161,6 +163,45 @@
   letter-spacing: 3px;
   font-weight: 600;
 }
+
+/* Topbar wallet */
+.menu-topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.menu-topbar .game-subtitle { flex: 1; text-align: center; margin: 0; }
+.wallet { margin-left: auto; }
+/* (footer removed) */
+
+.wallet { display: flex; align-items: center; gap: 10px; }
+.coin-badge {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 6px 10px;
+  border-radius: 10px;
+}
+.settings-button.small { padding: 8px 14px; border-radius: 10px; font-size: 0.9rem; }
+
+/* Card grid for selectors and store */
+.grid.selector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+.card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 14px;
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.3); border-color: rgba(102,126,234,.6); }
+.card.active { outline: 2px solid rgba(102,126,234,.8); box-shadow: 0 0 20px rgba(102,126,234,.4) inset; }
+.card.locked { filter: grayscale(0.2); opacity: 0.85; position: relative; }
+.card .price { margin-top: 6px; font-size: 0.9rem; color: #ffd700; }
+
+.store-panel .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.store-panel .card { text-align: center; }
 
 .menu-section {
   margin-bottom: 35px;
@@ -328,6 +369,7 @@
   gap: 15px;
   margin: 20px 0;
 }
+.button-row.centered { justify-content: center; }
 
 .settings-button {
   background: linear-gradient(135deg, #667eea, #764ba2);
