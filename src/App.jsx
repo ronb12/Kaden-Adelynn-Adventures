@@ -8,16 +8,21 @@ import './App.css'
 
 function App() {
   const [gameState, setGameState] = useState('menu')
-  const [gameConfig, setGameConfig] = useState({ difficulty: 'medium', ship: 'kaden' })
+  const [gameConfig, setGameConfig] = useState({ difficulty: 'medium', ship: 'kaden', character: 'kaden' })
   const [gameStats, setGameStats] = useState({ score: 0, wave: 1, level: 1, kills: 0, combo: 0 })
+  const [paused, setPaused] = useState(false)
 
-  const handleStartGame = (difficulty, ship) => {
-    setGameConfig({ difficulty, ship })
+  const handleStartGame = (difficulty, ship, character) => {
+    setGameConfig({ difficulty, ship, character })
     setGameState('story')
   }
 
   const handleStoryComplete = () => {
     setGameState('playing')
+  }
+
+  const handlePauseToggle = () => {
+    setPaused(p => !p)
   }
 
   const handleGameOver = (finalScore, wave, level, kills, combo) => {
@@ -42,11 +47,12 @@ function App() {
       {gameState === 'story' && <Story onContinue={handleStoryComplete} />}
       {gameState === 'playing' && (
         <Game 
-          onPause={() => {}}
+          onPause={handlePauseToggle}
           onGameOver={handleGameOver}
           difficulty={gameConfig.difficulty}
           selectedShip={gameConfig.ship}
-          isPaused={false}
+          selectedCharacter={gameConfig.character}
+          isPaused={paused}
         />
       )}
       {gameState === 'gameover' && (

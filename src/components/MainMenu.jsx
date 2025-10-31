@@ -1,16 +1,18 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { getCoins, spendCoins, addCoins, getOwned, ownItem } from '../utils/wallet'
+import { playMenuMusic, stopMusic } from '../utils/music'
 import './MainMenu.css'
 
 function MainMenu({ onStartGame }) {
   const [selectedDifficulty, setSelectedDifficulty] = useState('medium')
   const [selectedShip, setSelectedShip] = useState('kaden')
-  const [selectedCharacter, setSelectedCharacter] = useState('hero1')
+  const [selectedCharacter, setSelectedCharacter] = useState('kaden')
   const [showSettings, setShowSettings] = useState(false)
   const [showStore, setShowStore] = useState(false)
   const [showShips, setShowShips] = useState(false)
   const [showCharacters, setShowCharacters] = useState(false)
   const [coins, setCoins] = useState(() => getCoins())
+  const [toast, setToast] = useState('')
   const [ownedShips, setOwnedShips] = useState(() => getOwned('ownedShips'))
   const [ownedChars, setOwnedChars] = useState(() => getOwned('ownedChars'))
   const [soundVolume, setSoundVolume] = useState(() => {
@@ -33,7 +35,14 @@ function MainMenu({ onStartGame }) {
     localStorage.setItem('musicVolume', musicVolume.toString())
   }, [musicVolume])
 
+  useEffect(() => {
+    // Start menu music
+    playMenuMusic()
+    return () => stopMusic()
+  }, [])
+
   const handleStart = () => {
+    stopMusic()
     onStartGame(selectedDifficulty, selectedShip, selectedCharacter)
   }
 
@@ -68,16 +77,16 @@ function MainMenu({ onStartGame }) {
   ]
 
   const CHARACTERS = [
-    { id: 'hero1', label: '🧑‍🚀 Alex' },
-    { id: 'hero2', label: '👩‍🚀 Zaya' },
-    { id: 'hero3', label: '🧑‍🚀 Orion' },
-    { id: 'hero4', label: '👩‍🚀 Lyra' },
-    { id: 'hero5', label: '🧑‍🚀 Jax' },
-    { id: 'hero6', label: '👩‍🚀 Vega' },
-    { id: 'hero7', label: '🧑‍🚀 Kael' },
-    { id: 'hero8', label: '👩‍🚀 Nova' },
-    { id: 'hero9', label: '🧑‍🚀 Rio' },
-    { id: 'hero10', label: '👩‍🚀 Mira' },
+    { id: 'kaden', icon: '🧑🏿‍🚀', color: ['#4ecdc4','#667eea'], label: 'Kaden', weapon: 'Laser', speed: 'Medium', strength: 'Medium' },
+    { id: 'adelynn', icon: '👩‍🚀', color: ['#ff6b9a','#ff00ff'], label: 'Adelynn', weapon: 'Spread', speed: 'High', strength: 'Low' },
+    { id: 'hero3', icon: '🧑🏽‍🚀', color: ['#ffd166','#ef476f'], label: 'Orion', weapon: 'Plasma', speed: 'Medium', strength: 'High' },
+    { id: 'hero4', icon: '👩🏻‍🚀', color: ['#06d6a0','#118ab2'], label: 'Lyra', weapon: 'Lightning', speed: 'High', strength: 'Medium' },
+    { id: 'hero5', icon: '🧔‍🚀', color: ['#8d99ae','#2b2d42'], label: 'Jax', weapon: 'Shotgun', speed: 'Low', strength: 'High' },
+    { id: 'hero6', icon: '👩🏾‍🚀', color: ['#a1c4fd','#c2e9fb'], label: 'Vega', weapon: 'Homing', speed: 'Medium', strength: 'Medium' },
+    { id: 'hero7', icon: '🧑🏼‍🚀', color: ['#f7971e','#ffd200'], label: 'Kael', weapon: 'Railgun', speed: 'Low', strength: 'High' },
+    { id: 'hero8', icon: '👩🏼‍🚀', color: ['#7f00ff','#e100ff'], label: 'Nova', weapon: 'Beam', speed: 'High', strength: 'Low' },
+    { id: 'hero9', icon: '🧑🏻‍🚀', color: ['#00c6ff','#0072ff'], label: 'Rio', weapon: 'Missile', speed: 'Medium', strength: 'High' },
+    { id: 'hero10', icon: '👩🏽‍🚀', color: ['#ff9966','#ff5e62'], label: 'Mira', weapon: 'Ice', speed: 'Medium', strength: 'Medium' },
   ]
 
   const buyShip = (id, cost) => {
@@ -86,6 +95,8 @@ function MainMenu({ onStartGame }) {
       setCoins(getCoins())
       const list = ownItem('ownedShips', id)
       setOwnedShips(list)
+      setToast('Ship unlocked!')
+      setTimeout(() => setToast(''), 1500)
     }
   }
 
@@ -96,7 +107,61 @@ function MainMenu({ onStartGame }) {
       setCoins(getCoins())
       const list = ownItem('ownedChars', id)
       setOwnedChars(list)
+      setToast('Character unlocked!')
+      setTimeout(() => setToast(''), 1500)
     }
+  }
+
+  // Ship thumbnail component (draws a mini ship on canvas)
+  const ShipThumb = ({ id }) => {
+    const canvasRef = useRef(null)
+    useEffect(() => {
+      const canvas = canvasRef.current
+      if (!canvas) return
+      const ctx = canvas.getContext('2d')
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      // palette by ship id
+      const palette = {
+        kaden: ['#4ecdc4','#00ffff'],
+        adelynn: ['#ff6b9a','#ff00ff'],
+        falcon: ['#ffd166','#ef476f'],
+        phantom: ['#95a5a6','#bdc3c7'],
+        nova: ['#7f00ff','#e100ff'],
+        titan: ['#f39c12','#d35400'],
+        viper: ['#2ecc71','#27ae60'],
+        shadow: ['#34495e','#2c3e50'],
+        meteor: ['#e67e22','#d35400'],
+        comet: ['#00c6ff','#0072ff'],
+        raptor: ['#e74c3c','#c0392b'],
+        aurora: ['#a1c4fd','#c2e9fb']
+      }[id] || ['#4ecdc4','#00ffff']
+      const [body, accent] = palette
+      // draw simple triangle ship
+      ctx.save()
+      ctx.translate(32, 22)
+      ctx.shadowBlur = 10
+      ctx.shadowColor = body
+      ctx.fillStyle = body
+      ctx.beginPath()
+      ctx.moveTo(0, -16)
+      ctx.lineTo(14, 10)
+      ctx.lineTo(-14, 10)
+      ctx.closePath()
+      ctx.fill()
+      // accent cockpit
+      ctx.fillStyle = accent
+      ctx.fillRect(-5, -2, 10, 6)
+      // engine glow
+      const grad = ctx.createLinearGradient(-6, 10, 6, 10)
+      grad.addColorStop(0, 'yellow')
+      grad.addColorStop(1, accent)
+      ctx.fillStyle = grad
+      ctx.fillRect(-6, 10, 12, 3)
+      ctx.restore()
+    }, [id])
+    return (
+      <canvas ref={canvasRef} width={64} height={44} className="ship-thumb"/>
+    )
   }
 
   return (
@@ -254,7 +319,7 @@ function MainMenu({ onStartGame }) {
               </div>
               <div className="grid selector-grid" style={{ marginTop: '12px' }}>
                 {CHARACTERS.map(c => {
-                  const owned = ownedChars.includes(c.id) || c.id === 'hero1'
+                  const owned = ownedChars.includes(c.id) || c.id === 'kaden' || c.id === 'adelynn'
                   const active = selectedCharacter === c.id
                   return (
                     <button key={c.id}
@@ -267,7 +332,15 @@ function MainMenu({ onStartGame }) {
                           buyChar(c.id)
                         }
                       }}>
-                      <div style={{ fontSize: '18px', marginBottom: '6px' }}>{c.label}</div>
+                      <div className="row" style={{ marginBottom: '6px' }}>
+                        <div className="avatar" style={{ background: `linear-gradient(135deg, ${c.color[0]}, ${c.color[1]})` }}>{c.icon}</div>
+                        <div style={{ fontSize: '18px' }}>{c.label}</div>
+                      </div>
+                      <div style={{ fontSize: '12px', opacity: 0.9, lineHeight: 1.4 }}>
+                        <div>⚔️ Weapon: {c.weapon}</div>
+                        <div>🏃 Speed: {c.speed}</div>
+                        <div>💪 Strength: {c.strength}</div>
+                      </div>
                       {!owned && <div className="price">💰 150</div>}
                       {active && <div style={{ fontSize: '12px', opacity: 0.8 }}>Selected</div>}
                     </button>
@@ -317,7 +390,10 @@ function MainMenu({ onStartGame }) {
                           buyShip(s.id, s.cost)
                         }
                       }}>
-                      <div style={{ fontSize: '18px', marginBottom: '6px' }}>{s.label}</div>
+                      <div className="row" style={{ marginBottom: '6px', alignItems: 'center' }}>
+                        <ShipThumb id={s.id} />
+                        <div style={{ fontSize: '18px' }}>{s.label}</div>
+                      </div>
                       {!owned && <div className="price">💰 {s.cost}</div>}
                       {active && <div style={{ fontSize: '12px', opacity: 0.8 }}>Selected</div>}
                     </button>
@@ -342,6 +418,14 @@ function MainMenu({ onStartGame }) {
           </ul>
         </div>
       </div>
+
+      {toast && (
+        <div style={{
+          position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)',
+          background: 'rgba(0,0,0,0.7)', color: '#fff', padding: '10px 16px', borderRadius: 12,
+          boxShadow: '0 6px 20px rgba(0,0,0,0.35)', zIndex: 1100
+        }}>{toast}</div>
+      )}
 
       
     </div>

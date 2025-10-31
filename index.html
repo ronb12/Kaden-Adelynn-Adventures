@@ -2,10 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/icon-192.png" />
+    <link rel="icon" type="image/png" href="/icon-512.png" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Kaden Adventures">
     <meta name="theme-color" content="#667eea" media="(prefers-color-scheme: light)">
@@ -13,10 +14,10 @@
     <meta name="description" content="Kaden & Adelynn Space Adventures - An epic space shooter game with 100+ features!">
     <meta name="keywords" content="space shooter, arcade game, kaden, adelynn, space adventure">
     <meta name="application-name" content="Kaden Adventures">
-    <link rel="apple-touch-icon" href="/icon-192.png">
-    <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
+    <link rel="apple-touch-icon" href="/icon-512.png">
     <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
     <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
     <title>Kaden & Adelynn Space Adventures</title>
   </head>
@@ -24,18 +25,24 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
-      // Register Service Worker for PWA
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then((registration) => {
-              console.log('SW registered: ', registration);
-            })
-            .catch((registrationError) => {
-              console.log('SW registration failed: ', registrationError);
-            });
-        });
-      }
+      // Register Service Worker for PWA (disabled on localhost to avoid dev caching issues)
+      (function() {
+        const isLocal = /^(localhost|127\.|0:0:0:0:0:0:0:1|\[::1\])$/.test(location.hostname);
+        if ('serviceWorker' in navigator && !isLocal) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+              .then((registration) => {
+                console.log('SW registered: ', registration);
+              })
+              .catch((registrationError) => {
+                console.log('SW registration failed: ', registrationError);
+              });
+          });
+        } else if (isLocal && navigator.serviceWorker) {
+          // Ensure no old SW controls the page during local dev
+          navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
+        }
+      })();
     </script>
   </body>
 </html>

@@ -23,6 +23,10 @@ export const sounds = {
 }
 
 export const playSound = (soundName, volume = 0.5) => {
+  // Lightweight mix adjustments
+  if (soundName.includes('missile') || soundName.includes('explosion')) volume = Math.min(volume, 0.4)
+  if (soundName.includes('laser') || soundName.includes('shoot')) volume = Math.min(volume, 0.3)
+  if (soundName.includes('boss')) volume = Math.min(volume, 0.5)
   // Web Audio API implementation
   const audioContext = new (window.AudioContext || window.webkitAudioContext)()
   const oscillator = audioContext.createOscillator()
