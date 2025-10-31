@@ -4,8 +4,8 @@
   "description": "An epic space shooter game with 100+ features!",
   "icons": [
     {
-      "src": "/icon-192.png",
-      "sizes": "192x192",
+      "src": "/icon-512.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     },
@@ -18,7 +18,7 @@
   ],
   "start_url": "/",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "any",
   "theme_color": "#667eea",
   "background_color": "#764ba2",
   "scope": "/",
@@ -30,7 +30,7 @@
       "short_name": "Play",
       "description": "Jump into the action!",
       "url": "/?shortcut=play",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icon-512.png", "sizes": "512x512" }]
     }
   ],
   "share_target": {

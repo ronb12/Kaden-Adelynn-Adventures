@@ -610,6 +610,7 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
     // Bullet-enemy collisions - use safer iteration
     const bulletsToRemove = []
     const enemiesToRemove = []
+    const asteroidsToRemove = []
     
     for (let i = 0; i < state.bullets.length; i++) {
       const bullet = state.bullets[i]
@@ -729,6 +730,35 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
           }
         }
       }
+
+      // Bullet-asteroid collisions (approximate circle/square hitbox)
+      if (state.asteroids && state.asteroids.length > 0 && bullet.owner === 'player') {
+        for (let a = 0; a < state.asteroids.length; a++) {
+          const asteroid = state.asteroids[a]
+          const half = asteroid.size // drawn from center with size as radius-ish
+          const ax = asteroid.x - half
+          const ay = asteroid.y - half
+          const aw = half * 2
+          const ah = half * 2
+          const bw = bullet.width || 5
+          const bh = bullet.height || 10
+          if (bullet.x < ax + aw && bullet.x + bw > ax && bullet.y < ay + ah && bullet.y + bh > ay) {
+            // damage asteroid
+            asteroid.health = (asteroid.health || 2) - (state.damageMul || 1)
+            // remove bullet unless piercing
+            if (!bullet.pierce) bulletsToRemove.push(i)
+            playSound('hit', 0.3)
+            state.particles.push(...ParticleSystem.createExplosion(bullet.x, bullet.y, '#ffa502', 8))
+            if (asteroid.health <= 0) {
+              asteroidsToRemove.push(a)
+              state.particles.push(...ParticleSystem.createExplosion(asteroid.x, asteroid.y, '#ffa502', 20))
+              state.coins += 5
+              setCoins(c => c + 5)
+            }
+            break
+          }
+        }
+      }
     }
     
     // Remove bullets and enemies safely (in reverse order to maintain indices)
@@ -737,6 +767,11 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
     })
     enemiesToRemove.sort((a, b) => b - a).forEach(index => {
       state.enemies.splice(index, 1)
+    })
+
+    // Remove destroyed asteroids
+    asteroidsToRemove.sort((a, b) => b - a).forEach(index => {
+      state.asteroids.splice(index, 1)
     })
 
     // Missiles-enemy collisions (for missile/rocket weapons)
