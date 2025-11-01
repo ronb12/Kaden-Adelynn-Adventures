@@ -526,6 +526,9 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
     
     const timeScale = Math.min(state.deltaTime / 16.67, 2)
     state.bullets = state.bullets.filter(bullet => {
+      // store previous position for swept collision
+      bullet.prevX = bullet.x
+      bullet.prevY = bullet.y
       // Support directional bullets
       if (typeof bullet.vx === 'number' || typeof bullet.vy === 'number') {
         bullet.x += (bullet.vx || 0) * timeScale
@@ -672,30 +675,35 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
         }
       }
       
-      // Bullet-boss collisions
+      // Bullet-boss collisions (swept)
       if (state.boss && bullet.owner === 'player') {
-        const bulletBox = {
-          x: bullet.x,
-          y: bullet.y,
-          width: bullet.width || 5,
-          height: bullet.height || 10
-        }
-        
         const bossBox = {
           x: state.boss.x - state.boss.width / 2,
           y: state.boss.y - state.boss.height / 2,
           width: state.boss.width,
           height: state.boss.height
         }
-        
-        // Check collision
-        if (bulletBox.x < bossBox.x + bossBox.width &&
-            bulletBox.x + bulletBox.width > bossBox.x &&
-            bulletBox.y < bossBox.y + bossBox.height &&
-            bulletBox.y + bulletBox.height > bossBox.y) {
+        const bw = bullet.width || 5
+        const bh = bullet.height || 10
+        const px = bullet.prevX ?? bullet.x
+        const py = bullet.prevY ?? bullet.y
+        const dx = bullet.x - px
+        const dy = bullet.y - py
+        const dist = Math.hypot(dx, dy)
+        const steps = Math.max(1, Math.ceil(dist / 4))
+        let bossHit = false
+        for (let s = 0; s <= steps; s++) {
+          const ix = px + (dx * s) / steps
+          const iy = py + (dy * s) / steps
+          if (ix < bossBox.x + bossBox.width && ix + bw > bossBox.x && iy < bossBox.y + bossBox.height && iy + bh > bossBox.y) {
+            bossHit = true
+            break
+          }
+        }
+        if (bossHit) {
           
           // Boss takes damage
-          state.boss.health -= 20
+          state.boss.health -= Math.max(10, 20 * (state.damageMul || 1))
           
           // Remove bullet unless it's piercing
           if (!bullet.pierce) {
@@ -731,20 +739,34 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
         }
       }
 
-      // Bullet-asteroid collisions (approximate circle/square hitbox)
+      // Bullet-asteroid collisions (swept circle-rect)
       if (state.asteroids && state.asteroids.length > 0 && bullet.owner === 'player') {
         for (let a = 0; a < state.asteroids.length; a++) {
           const asteroid = state.asteroids[a]
-          const half = asteroid.size // drawn from center with size as radius-ish
-          const ax = asteroid.x - half
-          const ay = asteroid.y - half
-          const aw = half * 2
-          const ah = half * 2
+          const r = Math.max(10, asteroid.size) // radius
+          const cx = asteroid.x
+          const cy = asteroid.y
           const bw = bullet.width || 5
           const bh = bullet.height || 10
-          if (bullet.x < ax + aw && bullet.x + bw > ax && bullet.y < ay + ah && bullet.y + bh > ay) {
+          const px = bullet.prevX ?? bullet.x
+          const py = bullet.prevY ?? bullet.y
+          const dxSeg = bullet.x - px
+          const dySeg = bullet.y - py
+          const dist = Math.hypot(dxSeg, dySeg)
+          const steps = Math.max(1, Math.ceil(dist / 4))
+          let hit = false
+          for (let s = 0; s <= steps; s++) {
+            const ix = px + (dxSeg * s) / steps
+            const iy = py + (dySeg * s) / steps
+            const closestX = Math.max(ix, Math.min(cx, ix + bw))
+            const closestY = Math.max(iy, Math.min(cy, iy + bh))
+            const dx = cx - closestX
+            const dy = cy - closestY
+            if (dx*dx + dy*dy <= r*r) { hit = true; break }
+          }
+          if (hit) {
             // damage asteroid
-            asteroid.health = (asteroid.health || 2) - (state.damageMul || 1)
+            asteroid.health = ((typeof asteroid.health === 'number') ? asteroid.health : 2) - (state.damageMul || 1)
             // remove bullet unless piercing
             if (!bullet.pierce) bulletsToRemove.push(i)
             playSound('hit', 0.3)
@@ -884,6 +906,58 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
         state.enemyBullets.splice(index, 1)
       })
     }
+  }
+
+  // Missiles-asteroid collisions
+  if (state.missiles && state.missiles.length > 0 && state.asteroids.length > 0) {
+    const missilesToRemove2 = []
+    const astToRemove2 = []
+    for (let mi = 0; mi < state.missiles.length; mi++) {
+      const m = state.missiles[mi]
+      for (let a = 0; a < state.asteroids.length; a++) {
+        const ast = state.asteroids[a]
+        const r = Math.max(10, ast.size)
+        const dx = (ast.x) - m.x
+        const dy = (ast.y) - m.y
+        if (dx*dx + dy*dy <= (r+6)*(r+6)) {
+          missilesToRemove2.push(mi)
+          ast.health = ((typeof ast.health === 'number') ? ast.health : 2) - 2
+          state.particles.push(...ParticleSystem.createExplosion(ast.x, ast.y, '#ff8c00', 20))
+          if (ast.health <= 0) astToRemove2.push(a)
+          break
+        }
+      }
+    }
+    missilesToRemove2.sort((a,b)=>b-a).forEach(i=>state.missiles.splice(i,1))
+    astToRemove2.sort((a,b)=>b-a).forEach(i=>state.asteroids.splice(i,1))
+  }
+
+  // Plasma beams-asteroid collisions
+  if (state.plasmaBeams && state.plasmaBeams.length > 0 && state.asteroids.length > 0) {
+    const astToRemove3 = []
+    for (let bi = 0; bi < state.plasmaBeams.length; bi++) {
+      const beam = state.plasmaBeams[bi]
+      const bx = beam.x
+      const by = beam.y
+      const bw = beam.width || 8
+      const bh = beam.height || 15
+      for (let a = 0; a < state.asteroids.length; a++) {
+        const ast = state.asteroids[a]
+        const r = Math.max(10, ast.size)
+        const cx = ast.x
+        const cy = ast.y
+        const closestX = Math.max(bx, Math.min(cx, bx + bw))
+        const closestY = Math.max(by, Math.min(cy, by + bh))
+        const dx = cx - closestX
+        const dy = cy - closestY
+        if (dx*dx + dy*dy <= r*r) {
+          ast.health = ((typeof ast.health === 'number') ? ast.health : 2) - 1
+          state.particles.push(...ParticleSystem.createExplosion(cx, cy, '#00ffff', 10))
+          if (ast.health <= 0) astToRemove3.push(a)
+        }
+      }
+    }
+    astToRemove3.sort((a,b)=>b-a).forEach(i=>state.asteroids.splice(i,1))
   }
 
   // Draw functions - removed duplicate
