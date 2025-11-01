@@ -6,17 +6,7 @@ import globals from 'globals'
 import babelParser from '@babel/eslint-parser'
 
 export default [
-  {
-    ignores: [
-      'dist/**',
-      'public/**',
-      'node_modules/**',
-      'test*.js',
-      'test-*.js',
-      'test/**',
-      'implement-features.*',
-    ],
-  },
+  { ignores: ['dist/**', 'public/**', 'node_modules/**', 'test*.js', 'test-*.js', 'test/**', 'implement-features.*'] },
   js.configs.recommended,
   configPrettier,
   {
@@ -24,13 +14,7 @@ export default [
     plugins: { react, prettier },
     languageOptions: {
       parser: babelParser,
-      parserOptions: {
-        ecmaVersion: 2021,
-        sourceType: 'module',
-        ecmaFeatures: { jsx: true },
-        requireConfigFile: false,
-        babelOptions: { presets: ['@babel/preset-react'] },
-      },
+      parserOptions: { ecmaVersion: 2021, sourceType: 'module', ecmaFeatures: { jsx: true }, requireConfigFile: false, babelOptions: { presets: ['@babel/preset-react'] } },
       globals: { ...globals.browser, ...globals.node },
     },
     rules: {

@@ -1,5 +1,5 @@
 // Service Worker for PWA
-const CACHE_NAME = 'kaden-adventures-v4'
+const CACHE_NAME = 'kaden-adventures-v5'
 const urlsToCache = ['/', '/index.html', '/manifest.json', '/icon-192.png', '/icon-512.png']
 
 // Install event
@@ -34,7 +34,17 @@ self.addEventListener('activate', (event) => {
     })
   )
   // Take control of all clients immediately
-  return self.clients.claim()
+  event.waitUntil(self.clients.claim())
+  // Force refresh all open windows to pick up new assets
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      clients.forEach((client) => {
+        if (client && 'navigate' in client) {
+          client.navigate(client.url)
+        }
+      })
+    })
+  )
 })
 
 // Fetch event with better mobile handling
@@ -75,4 +85,12 @@ self.addEventListener('fetch', (event) => {
         })
     })
   )
+})
+
+// Allow pages to request immediate activation of a waiting SW
+self.addEventListener('message', (event) => {
+  if (!event.data) return
+  if (event.data === 'SKIP_WAITING') {
+    self.skipWaiting()
+  }
 })
