@@ -232,7 +232,7 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
       canvas.removeEventListener('touchmove', handleTouchMove)
       canvas.removeEventListener('touchend', handleTouchEnd)
     }
-  }, [isPaused, onPause])
+  }, [])
 
   // Apply character-specific traits
   useEffect(() => {
