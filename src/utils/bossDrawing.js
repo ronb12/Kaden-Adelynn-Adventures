@@ -3,69 +3,56 @@ export const drawBossShip = (ctx, boss) => {
   if (!boss) return
 
   const time = Date.now() / 1000
-  const pulse = Math.sin(time * 2) * 0.1 + 0.9
-  const rotation = time * 0.1
+  const pulse = 1 + Math.sin(time * 2) * 0.05
+  const rotation = 0
 
   ctx.save()
   ctx.translate(boss.x, boss.y)
   ctx.rotate(rotation)
   ctx.scale(pulse, pulse)
 
-  // Main body - hexagonal sci-fi ship
-  const gradient = ctx.createLinearGradient(
-    -boss.width / 2,
-    -boss.height / 2,
-    boss.width / 2,
-    boss.height / 2
-  )
-  gradient.addColorStop(0, boss.color)
-  gradient.addColorStop(0.5, '#000000')
-  gradient.addColorStop(1, boss.color)
-  ctx.fillStyle = gradient
-
+  // Main body - enemy-like triangle with cockpit
+  const bodyColor = boss.color || '#ff4444'
+  const accent = '#222'
+  ctx.fillStyle = bodyColor
+  ctx.strokeStyle = accent
+  ctx.lineWidth = 3
   ctx.beginPath()
-  // Hexagonal shape
-  for (let i = 0; i < 6; i++) {
-    const angle = (Math.PI / 3) * i
-    const x = (Math.cos(angle) * boss.width) / 2
-    const y = (Math.sin(angle) * boss.height) / 2
-    if (i === 0) ctx.moveTo(x, y)
-    else ctx.lineTo(x, y)
-  }
+  ctx.moveTo(0, -boss.height / 2) // tip
+  ctx.lineTo(boss.width / 2, boss.height / 2)
+  ctx.lineTo(-boss.width / 2, boss.height / 2)
   ctx.closePath()
   ctx.fill()
-  ctx.strokeStyle = '#ffff00'
-  ctx.lineWidth = 3
   ctx.stroke()
 
-  // Inner core
-  ctx.fillStyle = '#ff0080'
-  ctx.globalAlpha = 0.6
+  // Cockpit
+  ctx.fillStyle = 'rgba(0,0,0,0.5)'
   ctx.beginPath()
-  ctx.arc(0, 0, boss.width / 4, 0, Math.PI * 2)
+  ctx.arc(0, -boss.height / 6, boss.width / 8, 0, Math.PI * 2)
   ctx.fill()
-  ctx.globalAlpha = 1
 
-  // Weapon arrays
-  ctx.strokeStyle = '#00ffff'
-  ctx.lineWidth = 2
-  for (let i = 0; i < 8; i++) {
-    const angle = (Math.PI / 4) * i
-    const dist = boss.width / 2 - 5
-    ctx.beginPath()
-    ctx.moveTo(0, 0)
-    ctx.lineTo(Math.cos(angle) * dist, Math.sin(angle) * dist)
-    ctx.stroke()
-  }
+  // Side wings
+  ctx.fillStyle = bodyColor
+  ctx.fillRect(-boss.width / 2 - 10, 0, 20, boss.height / 3)
+  ctx.fillRect(boss.width / 2 - 10, 0, 20, boss.height / 3)
 
-  // Glow effect
-  ctx.shadowBlur = 20
-  ctx.shadowColor = '#ff0080'
-  ctx.fillStyle = '#ff0080'
+  // Guns: left/right turrets and nose cannon
+  const gunColor = '#333'
+  ctx.fillStyle = gunColor
+  // left turret
+  ctx.fillRect(-boss.width / 2 - 6, boss.height / 8, 12, 18)
+  // right turret
+  ctx.fillRect(boss.width / 2 - 6, boss.height / 8, 12, 18)
+  // nose cannon
+  ctx.fillRect(-4, -boss.height / 2, 8, 16)
+
+  // Color accents / stripes
+  ctx.strokeStyle = '#fff'
+  ctx.lineWidth = 1
   ctx.beginPath()
-  ctx.arc(0, 0, boss.width / 6, 0, Math.PI * 2)
-  ctx.fill()
-  ctx.shadowBlur = 0
+  ctx.moveTo(-boss.width / 3, boss.height / 3)
+  ctx.lineTo(boss.width / 3, boss.height / 3)
+  ctx.stroke()
 
   ctx.restore()
 }

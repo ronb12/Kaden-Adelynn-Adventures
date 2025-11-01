@@ -1782,28 +1782,24 @@ function Game({
         if (state.boss.x < 80) state.boss.x = 80
         if (state.boss.x > canvas.width - 80) state.boss.x = canvas.width - 80
       }
-      // Shooting: aimed bursts toward player
+      // Shooting: aimed bursts toward player from multiple gun mounts
       state.bossShootTimer = (state.bossShootTimer || 0) + 1
       if (state.bossShootTimer % 40 === 0) {
         const px = state.player.x + state.player.width / 2
         const py = state.player.y + state.player.height / 2
-        for (let i = -1; i <= 1; i++) {
-          const dx = px - state.boss.x + i * 20
-          const dy = py - state.boss.y
+        const mounts = [
+          { x: state.boss.x - state.boss.width / 2, y: state.boss.y + state.boss.height / 8 },
+          { x: state.boss.x + state.boss.width / 2, y: state.boss.y + state.boss.height / 8 },
+          { x: state.boss.x, y: state.boss.y - state.boss.height / 2 },
+        ]
+        mounts.forEach((m) => {
+          const dx = px - m.x
+          const dy = py - m.y
           const len = Math.max(0.001, Math.hypot(dx, dy))
-          const vx = (dx / len) * 3
-          const vy = (dy / len) * 3
-          state.enemyBullets.push({
-            x: state.boss.x,
-            y: state.boss.y,
-            vx,
-            vy,
-            speed: 0,
-            owner: 'enemy',
-            width: 4,
-            height: 4,
-          })
-        }
+          const vx = (dx / len) * 3.2
+          const vy = (dy / len) * 3.2
+          state.enemyBullets.push({ x: m.x, y: m.y, vx, vy, speed: 0, owner: 'enemy', width: 4, height: 4 })
+        })
       }
       // Advance any pattern specifics
       state.boss = updateBossPattern(state.boss, time, canvasRef.current)
