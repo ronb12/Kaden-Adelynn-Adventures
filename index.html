@@ -9,15 +9,20 @@
         var host = location.hostname;
         var onHosting = /web\.app$/.test(host) || /firebaseapp\.com$/.test(host);
         if (!onHosting) return; // skip in local dev
-        var a = document.createElement('script');
-        a.src = '/__/firebase/10.12.2/firebase-app-compat.js';
-        document.head.appendChild(a);
-        var b = document.createElement('script');
-        b.src = '/__/firebase/10.12.2/firebase-firestore-compat.js';
-        document.head.appendChild(b);
-        var c = document.createElement('script');
-        c.src = '/__/firebase/init.js';
-        document.head.appendChild(c);
+        function load(src){
+          return new Promise(function(resolve, reject){
+            var s = document.createElement('script');
+            s.src = src;
+            s.onload = resolve;
+            s.onerror = reject;
+            document.head.appendChild(s);
+          });
+        }
+        // Ensure init.js runs AFTER SDKs are available
+        load('/__/firebase/10.12.2/firebase-app-compat.js')
+          .then(function(){ return load('/__/firebase/10.12.2/firebase-firestore-compat.js'); })
+          .then(function(){ return load('/__/firebase/init.js'); })
+          .catch(function(e){ console.error('Firebase SDK load failed', e); });
       })();
     </script>
     <link rel="icon" type="image/png" href="/icon-512.png" />
