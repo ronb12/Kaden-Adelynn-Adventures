@@ -1,162 +1,161 @@
 #!/usr/bin/env node
 
 // Automated score testing with Puppeteer
-import puppeteer from 'puppeteer';
-import { spawn } from 'child_process';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import puppeteer from 'puppeteer'
+import { spawn } from 'child_process'
+import path from 'path'
+import { fileURLToPath } from 'url'
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
-let serverProcess;
-let browser;
-const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+let serverProcess
+let browser
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
-console.log('🎮 Starting Score Test with Puppeteer...\n');
+console.log('🎮 Starting Score Test with Puppeteer...\n')
 
 // Start dev server
-console.log('📡 Starting Vite dev server...');
+console.log('📡 Starting Vite dev server...')
 serverProcess = spawn('npm', ['run', 'dev'], {
   cwd: __dirname,
-  stdio: 'pipe'
-});
+  stdio: 'pipe',
+})
 
 // Wait for server to start
-await sleep(5000);
+await sleep(5000)
 
 try {
   // Launch Puppeteer
-  console.log('🤖 Launching browser...');
+  console.log('🤖 Launching browser...')
   browser = await puppeteer.launch({
     headless: false,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  })
 
-  const page = await browser.newPage();
-  console.log('🌐 Navigating to game...\n');
+  const page = await browser.newPage()
+  console.log('🌐 Navigating to game...\n')
 
-  await page.goto('http://localhost:3000', { waitUntil: 'networkidle2' });
+  await page.goto('http://localhost:3000', { waitUntil: 'networkidle2' })
 
-  console.log('✅ Game loaded\n');
-  console.log('📊 Testing game score functionality...\n');
+  console.log('✅ Game loaded\n')
+  console.log('📊 Testing game score functionality...\n')
 
   // Wait for menu to load
-  await sleep(2000);
+  await sleep(2000)
 
   // Click start game
-  console.log('1️⃣ Clicking "Start Game" button...');
+  console.log('1️⃣ Clicking "Start Game" button...')
   await page.evaluate(() => {
-    const btn = Array.from(document.querySelectorAll('button'))
-      .find(b => b.textContent && b.textContent.toLowerCase().includes('start'));
-    if (btn) btn.click();
-  });
-  await sleep(1000);
-  console.log('   ✅ Game started\n');
+    const btn = Array.from(document.querySelectorAll('button')).find(
+      (b) => b.textContent && b.textContent.toLowerCase().includes('start')
+    )
+    if (btn) btn.click()
+  })
+  await sleep(1000)
+  console.log('   ✅ Game started\n')
 
   // If story screen appears, click overlay to advance pages
-  console.log('2️⃣ Advancing story overlay if present...');
+  console.log('2️⃣ Advancing story overlay if present...')
   for (let i = 0; i < 6; i++) {
     await page.evaluate(() => {
-      const overlay = document.querySelector('.story-overlay');
-      if (overlay) overlay.click();
-    });
-    await sleep(700);
+      const overlay = document.querySelector('.story-overlay')
+      if (overlay) overlay.click()
+    })
+    await sleep(700)
   }
 
   // Wait for canvas to appear
-  console.log('3️⃣ Waiting for game canvas...');
-  await page.waitForSelector('canvas, .game-canvas');
-  console.log('   ✅ Canvas loaded\n');
+  console.log('3️⃣ Waiting for game canvas...')
+  await page.waitForSelector('canvas, .game-canvas')
+  console.log('   ✅ Canvas loaded\n')
 
   // Get initial score
-  console.log('3️⃣ Reading initial game state...');
-  await sleep(500);
-  
+  console.log('3️⃣ Reading initial game state...')
+  await sleep(500)
+
   // Inject code to get game state
   const gameState = await page.evaluate(() => {
     // Access the score from game state
     // This requires the game to expose score state
-    const canvas = document.querySelector('canvas');
-    if (!canvas) return null;
-    
+    const canvas = document.querySelector('canvas')
+    if (!canvas) return null
+
     // Try to access React state or check for score display
-    const scoreDiv = Array.from(document.querySelectorAll('*')).find(el => 
-      el.textContent && el.textContent.includes('SCORE')
-    );
-    
+    const scoreDiv = Array.from(document.querySelectorAll('*')).find(
+      (el) => el.textContent && el.textContent.includes('SCORE')
+    )
+
     return {
       canvas: !!canvas,
       hasScoreText: !!scoreDiv,
-      scoreText: scoreDiv ? scoreDiv.textContent : 'not found'
-    };
-  });
+      scoreText: scoreDiv ? scoreDiv.textContent : 'not found',
+    }
+  })
 
-  console.log('   Game state:', gameState);
+  console.log('   Game state:', gameState)
 
   // Simulate shooting
-  console.log('\n4️⃣ Simulating player actions...');
-  console.log('   - Pressing spacebar to shoot...');
-  
+  console.log('\n4️⃣ Simulating player actions...')
+  console.log('   - Pressing spacebar to shoot...')
+
   // Press spacebar multiple times to shoot
   for (let i = 0; i < 10; i++) {
-    await page.keyboard.down('Space');
-    await page.keyboard.up('Space');
-    await sleep(100);
+    await page.keyboard.down('Space')
+    await page.keyboard.up('Space')
+    await sleep(100)
   }
 
-  console.log('   - Pressing WASD keys to move...');
-  await page.keyboard.press('KeyW');
-  await sleep(50);
-  await page.keyboard.press('KeyA');
-  await sleep(50);
-  await page.keyboard.press('KeyS');
-  await sleep(50);
-  await page.keyboard.press('KeyD');
-  await sleep(50);
+  console.log('   - Pressing WASD keys to move...')
+  await page.keyboard.press('KeyW')
+  await sleep(50)
+  await page.keyboard.press('KeyA')
+  await sleep(50)
+  await page.keyboard.press('KeyS')
+  await sleep(50)
+  await page.keyboard.press('KeyD')
+  await sleep(50)
 
-  await sleep(2000);
+  await sleep(2000)
 
   // Check final score
-  console.log('\n5️⃣ Checking final score...');
+  console.log('\n5️⃣ Checking final score...')
   const finalState = await page.evaluate(() => {
-    const canvas = document.querySelector('canvas');
+    const canvas = document.querySelector('canvas')
     return {
       canvas: !!canvas,
-      timestamp: Date.now()
-    };
-  });
+      timestamp: Date.now(),
+    }
+  })
 
-  console.log('   ✅ Score system operational\n');
+  console.log('   ✅ Score system operational\n')
 
   // Take screenshot
-  console.log('6️⃣ Taking screenshot...');
-  await page.screenshot({ path: 'test-result.png', fullPage: true });
-  console.log('   ✅ Screenshot saved: test-result.png\n');
+  console.log('6️⃣ Taking screenshot...')
+  await page.screenshot({ path: 'test-result.png', fullPage: true })
+  console.log('   ✅ Screenshot saved: test-result.png\n')
 
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('✅ TEST COMPLETE');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('\nResults:');
-  console.log('  ✅ Dev server started');
-  console.log('  ✅ Game loaded');
-  console.log('  ✅ Canvas rendered');
-  console.log('  ✅ Input controls work');
-  console.log('  ✅ Score tracking active');
-  console.log('\nCheck test-result.png for visual proof\n');
-
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+  console.log('✅ TEST COMPLETE')
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+  console.log('\nResults:')
+  console.log('  ✅ Dev server started')
+  console.log('  ✅ Game loaded')
+  console.log('  ✅ Canvas rendered')
+  console.log('  ✅ Input controls work')
+  console.log('  ✅ Score tracking active')
+  console.log('\nCheck test-result.png for visual proof\n')
 } catch (error) {
-  console.error('❌ Test failed:', error);
-  process.exit(1);
+  console.error('❌ Test failed:', error)
+  process.exit(1)
 } finally {
   // Cleanup
   if (browser) {
-    await browser.close();
+    await browser.close()
   }
   if (serverProcess) {
-    serverProcess.kill();
+    serverProcess.kill()
   }
-  console.log('🏁 Test complete - server stopped');
-  process.exit(0);
+  console.log('🏁 Test complete - server stopped')
+  process.exit(0)
 }
-

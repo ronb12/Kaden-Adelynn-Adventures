@@ -72,7 +72,7 @@ function MainMenu({ onStartGame }) {
   const handleFullscreen = (e) => {
     const isFullscreen = e.target.checked
     setFullscreen(isFullscreen)
-    
+
     if (isFullscreen) {
       if (document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen()
@@ -86,7 +86,7 @@ function MainMenu({ onStartGame }) {
 
   const SHIPS = [
     { id: 'kaden', label: "🚀 Kaden's Ship", cost: 0 },
-    { id: 'adelynn', label: '✨ Adelynn\'s Ship', cost: 0 },
+    { id: 'adelynn', label: "✨ Adelynn's Ship", cost: 0 },
     { id: 'falcon', label: '🦅 Falcon', cost: 200 },
     { id: 'phantom', label: '👻 Phantom', cost: 250 },
     { id: 'nova', label: '🌟 Nova', cost: 300 },
@@ -100,16 +100,96 @@ function MainMenu({ onStartGame }) {
   ]
 
   const CHARACTERS = [
-    { id: 'kaden', icon: '🧑🏿‍🚀', color: ['#4ecdc4','#667eea'], label: 'Kaden', weapon: 'Laser', speed: 'Medium', strength: 'Medium' },
-    { id: 'adelynn', icon: '👩‍🚀', color: ['#ff6b9a','#ff00ff'], label: 'Adelynn', weapon: 'Spread', speed: 'High', strength: 'Low' },
-    { id: 'hero3', icon: '🧑🏽‍🚀', color: ['#ffd166','#ef476f'], label: 'Orion', weapon: 'Plasma', speed: 'Medium', strength: 'High' },
-    { id: 'hero4', icon: '👩🏻‍🚀', color: ['#06d6a0','#118ab2'], label: 'Lyra', weapon: 'Lightning', speed: 'High', strength: 'Medium' },
-    { id: 'hero5', icon: '🧔‍🚀', color: ['#8d99ae','#2b2d42'], label: 'Jax', weapon: 'Shotgun', speed: 'Low', strength: 'High' },
-    { id: 'hero6', icon: '👩🏾‍🚀', color: ['#a1c4fd','#c2e9fb'], label: 'Vega', weapon: 'Homing', speed: 'Medium', strength: 'Medium' },
-    { id: 'hero7', icon: '🧑🏼‍🚀', color: ['#f7971e','#ffd200'], label: 'Kael', weapon: 'Railgun', speed: 'Low', strength: 'High' },
-    { id: 'hero8', icon: '👩🏼‍🚀', color: ['#7f00ff','#e100ff'], label: 'Nova', weapon: 'Beam', speed: 'High', strength: 'Low' },
-    { id: 'hero9', icon: '🧑🏻‍🚀', color: ['#00c6ff','#0072ff'], label: 'Rio', weapon: 'Missile', speed: 'Medium', strength: 'High' },
-    { id: 'hero10', icon: '👩🏽‍🚀', color: ['#ff9966','#ff5e62'], label: 'Mira', weapon: 'Ice', speed: 'Medium', strength: 'Medium' },
+    {
+      id: 'kaden',
+      icon: '🧑🏿‍🚀',
+      color: ['#4ecdc4', '#667eea'],
+      label: 'Kaden',
+      weapon: 'Laser',
+      speed: 'Medium',
+      strength: 'Medium',
+    },
+    {
+      id: 'adelynn',
+      icon: '👩‍🚀',
+      color: ['#ff6b9a', '#ff00ff'],
+      label: 'Adelynn',
+      weapon: 'Spread',
+      speed: 'High',
+      strength: 'Low',
+    },
+    {
+      id: 'hero3',
+      icon: '🧑🏽‍🚀',
+      color: ['#ffd166', '#ef476f'],
+      label: 'Orion',
+      weapon: 'Plasma',
+      speed: 'Medium',
+      strength: 'High',
+    },
+    {
+      id: 'hero4',
+      icon: '👩🏻‍🚀',
+      color: ['#06d6a0', '#118ab2'],
+      label: 'Lyra',
+      weapon: 'Lightning',
+      speed: 'High',
+      strength: 'Medium',
+    },
+    {
+      id: 'hero5',
+      icon: '🧔‍🚀',
+      color: ['#8d99ae', '#2b2d42'],
+      label: 'Jax',
+      weapon: 'Shotgun',
+      speed: 'Low',
+      strength: 'High',
+    },
+    {
+      id: 'hero6',
+      icon: '👩🏾‍🚀',
+      color: ['#a1c4fd', '#c2e9fb'],
+      label: 'Vega',
+      weapon: 'Homing',
+      speed: 'Medium',
+      strength: 'Medium',
+    },
+    {
+      id: 'hero7',
+      icon: '🧑🏼‍🚀',
+      color: ['#f7971e', '#ffd200'],
+      label: 'Kael',
+      weapon: 'Railgun',
+      speed: 'Low',
+      strength: 'High',
+    },
+    {
+      id: 'hero8',
+      icon: '👩🏼‍🚀',
+      color: ['#7f00ff', '#e100ff'],
+      label: 'Nova',
+      weapon: 'Beam',
+      speed: 'High',
+      strength: 'Low',
+    },
+    {
+      id: 'hero9',
+      icon: '🧑🏻‍🚀',
+      color: ['#00c6ff', '#0072ff'],
+      label: 'Rio',
+      weapon: 'Missile',
+      speed: 'Medium',
+      strength: 'High',
+    },
+    {
+      id: 'hero10',
+      icon: '👩🏽‍🚀',
+      color: ['#ff9966', '#ff5e62'],
+      label: 'Mira',
+      weapon: 'Ice',
+      speed: 'Medium',
+      strength: 'Medium',
+    },
   ]
 
   const buyShip = (id, cost) => {
@@ -145,19 +225,19 @@ function MainMenu({ onStartGame }) {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       // palette by ship id
       const palette = {
-        kaden: ['#4ecdc4','#00ffff'],
-        adelynn: ['#ff6b9a','#ff00ff'],
-        falcon: ['#ffd166','#ef476f'],
-        phantom: ['#95a5a6','#bdc3c7'],
-        nova: ['#7f00ff','#e100ff'],
-        titan: ['#f39c12','#d35400'],
-        viper: ['#2ecc71','#27ae60'],
-        shadow: ['#34495e','#2c3e50'],
-        meteor: ['#e67e22','#d35400'],
-        comet: ['#00c6ff','#0072ff'],
-        raptor: ['#e74c3c','#c0392b'],
-        aurora: ['#a1c4fd','#c2e9fb']
-      }[id] || ['#4ecdc4','#00ffff']
+        kaden: ['#4ecdc4', '#00ffff'],
+        adelynn: ['#ff6b9a', '#ff00ff'],
+        falcon: ['#ffd166', '#ef476f'],
+        phantom: ['#95a5a6', '#bdc3c7'],
+        nova: ['#7f00ff', '#e100ff'],
+        titan: ['#f39c12', '#d35400'],
+        viper: ['#2ecc71', '#27ae60'],
+        shadow: ['#34495e', '#2c3e50'],
+        meteor: ['#e67e22', '#d35400'],
+        comet: ['#00c6ff', '#0072ff'],
+        raptor: ['#e74c3c', '#c0392b'],
+        aurora: ['#a1c4fd', '#c2e9fb'],
+      }[id] || ['#4ecdc4', '#00ffff']
       const [body, accent] = palette
       // draw simple triangle ship
       ctx.save()
@@ -182,52 +262,64 @@ function MainMenu({ onStartGame }) {
       ctx.fillRect(-6, 10, 12, 3)
       ctx.restore()
     }, [id])
-    return (
-      <canvas ref={canvasRef} width={64} height={44} className="ship-thumb"/>
-    )
+    return <canvas ref={canvasRef} width={64} height={44} className="ship-thumb" />
   }
 
   return (
     <div className="main-menu">
       <div className="menu-container glass">
-        <h1 className="game-title">🌟 Kaden & Adelynn<br />🌌 Space Adventures 🌌</h1>
+        <h1 className="game-title">
+          🌟 Kaden & Adelynn
+          <br />
+          🌌 Space Adventures 🌌
+        </h1>
         <div className="menu-topbar">
           <p className="game-subtitle">Epic Space Shooter</p>
           <div className="wallet">
             <span className="coin-badge">💰 {coins}</span>
-            <button className="settings-button small" onClick={() => { addCoins(100); setCoins(getCoins()) }}>+100</button>
+            <button
+              className="settings-button small"
+              onClick={() => {
+                addCoins(100)
+                setCoins(getCoins())
+              }}
+            >
+              +100
+            </button>
           </div>
         </div>
-        
-        
-
-        
 
         <div className="button-row centered">
-          <button className="settings-button" onClick={() => setShowStore(s => !s)}>
+          <button className="settings-button" onClick={() => setShowStore((s) => !s)}>
             {showStore ? 'Close Store' : '🛒 Open Store'}
           </button>
-          <button className="settings-button" onClick={() => setShowShips(true)}>🚀 Choose Ship</button>
-          <button className="settings-button" onClick={() => setShowCharacters(true)}>🧑‍🚀 Choose Character</button>
-          <button className="settings-button" onClick={() => setShowScores(true)}>🏆 Top Scores</button>
+          <button className="settings-button" onClick={() => setShowShips(true)}>
+            🚀 Choose Ship
+          </button>
+          <button className="settings-button" onClick={() => setShowCharacters(true)}>
+            🧑‍🚀 Choose Character
+          </button>
+          <button className="settings-button" onClick={() => setShowScores(true)}>
+            🏆 Top Scores
+          </button>
         </div>
 
         <div className="menu-section">
           <h3>Difficulty</h3>
           <div className="difficulty-selector">
-            <button 
+            <button
               className={`diff-btn ${selectedDifficulty === 'easy' ? 'active' : ''}`}
               onClick={() => setSelectedDifficulty('easy')}
             >
               🟢 Easy
             </button>
-            <button 
+            <button
               className={`diff-btn ${selectedDifficulty === 'medium' ? 'active' : ''}`}
               onClick={() => setSelectedDifficulty('medium')}
             >
               🟡 Medium
             </button>
-            <button 
+            <button
               className={`diff-btn ${selectedDifficulty === 'hard' ? 'active' : ''}`}
               onClick={() => setSelectedDifficulty('hard')}
             >
@@ -252,45 +344,57 @@ function MainMenu({ onStartGame }) {
             <div className="settings-content">
               <div className="setting-item">
                 <label>Sound Effects: {soundVolume}%</label>
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="100" 
-                  value={soundVolume} 
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={soundVolume}
                   onChange={(e) => setSoundVolume(parseInt(e.target.value))}
                 />
               </div>
               <div className="setting-item">
                 <label>Music: {musicVolume}%</label>
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="100" 
-                  value={musicVolume} 
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={musicVolume}
                   onChange={(e) => setMusicVolume(parseInt(e.target.value))}
                 />
               </div>
               <div className="setting-item">
                 <label>Fullscreen</label>
-                <input 
-                  type="checkbox" 
-                  checked={fullscreen}
-                  onChange={handleFullscreen}
-                />
+                <input type="checkbox" checked={fullscreen} onChange={handleFullscreen} />
               </div>
-            <div className="setting-item">
-              <label style={{ fontWeight: 700 }}>🎮 Game Controller</label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <input type="checkbox" checked={controllerEnabled} onChange={(e) => setControllerEnabled(e.target.checked)} disabled={!isGamepadSupported} />
-                Enable Handheld Game Controllers
-              </label>
-              {!isGamepadSupported && (
-                <small style={{ color: 'rgba(255,255,255,0.75)' }}>Gamepad not detected in this browser/device.</small>
-              )}
-              <label>Controller Deadzone: {controllerDeadzone.toFixed(2)}</label>
-              <input type="range" min="0" max="0.5" step="0.01" value={controllerDeadzone} onChange={(e) => setControllerDeadzone(parseFloat(e.target.value))} />
-              <small style={{ color: 'rgba(255,255,255,0.75)' }}>Left stick/D‑pad move • A/RT shoot • Start pause</small>
-            </div>
+              <div className="setting-item">
+                <label style={{ fontWeight: 700 }}>🎮 Game Controller</label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <input
+                    type="checkbox"
+                    checked={controllerEnabled}
+                    onChange={(e) => setControllerEnabled(e.target.checked)}
+                    disabled={!isGamepadSupported}
+                  />
+                  Enable Handheld Game Controllers
+                </label>
+                {!isGamepadSupported && (
+                  <small style={{ color: 'rgba(255,255,255,0.75)' }}>
+                    Gamepad not detected in this browser/device.
+                  </small>
+                )}
+                <label>Controller Deadzone: {controllerDeadzone.toFixed(2)}</label>
+                <input
+                  type="range"
+                  min="0"
+                  max="0.5"
+                  step="0.01"
+                  value={controllerDeadzone}
+                  onChange={(e) => setControllerDeadzone(parseFloat(e.target.value))}
+                />
+                <small style={{ color: 'rgba(255,255,255,0.75)' }}>
+                  Left stick/D‑pad move • A/RT shoot • Start pause
+                </small>
+              </div>
             </div>
           </div>
         )}
@@ -300,9 +404,13 @@ function MainMenu({ onStartGame }) {
             role="dialog"
             aria-modal="true"
             style={{
-              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              zIndex: 1000
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0,0,0,0.6)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000,
             }}
             onClick={() => setShowStore(false)}
           >
@@ -310,21 +418,79 @@ function MainMenu({ onStartGame }) {
               className="glass"
               style={{
                 background: 'rgba(10,14,39,0.9)',
-                borderRadius: '12px', padding: '20px', width: 'min(900px, 92vw)',
-                maxHeight: '80vh', overflow: 'auto', boxShadow: '0 10px 30px rgba(0,0,0,0.4)'
+                borderRadius: '12px',
+                padding: '20px',
+                width: 'min(900px, 92vw)',
+                maxHeight: '80vh',
+                overflow: 'auto',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
                 <h4 style={{ margin: 0 }}>🛒 Store Upgrades</h4>
-                <button className="settings-button" onClick={() => setShowStore(false)}>Close</button>
+                <button className="settings-button" onClick={() => setShowStore(false)}>
+                  Close
+                </button>
               </div>
               <div className="grid" style={{ marginTop: '12px' }}>
-                <button className="card" onClick={() => { if (spendCoins(200)) { setCoins(getCoins()); localStorage.setItem('upgrade_shield', '1') } }}>🛡️ Shield+ (200)</button>
-                <button className="card" onClick={() => { if (spendCoins(200)) { setCoins(getCoins()); localStorage.setItem('upgrade_speed', '1') } }}>💨 Speed+ (200)</button>
-                <button className="card" onClick={() => { if (spendCoins(300)) { setCoins(getCoins()); localStorage.setItem('upgrade_rapid', '1') } }}>⚡ Rapid+ (300)</button>
-                <button className="card" onClick={() => { if (spendCoins(400)) { setCoins(getCoins()); localStorage.setItem('upgrade_doubler', '1') } }}>💰 Coin Doubler (400)</button>
-                <button className="card" onClick={() => { if (spendCoins(150)) { setCoins(getCoins()); localStorage.setItem('upgrade_life', '1') } }}>❤️ Extra Life (150)</button>
+                <button
+                  className="card"
+                  onClick={() => {
+                    if (spendCoins(200)) {
+                      setCoins(getCoins())
+                      localStorage.setItem('upgrade_shield', '1')
+                    }
+                  }}
+                >
+                  🛡️ Shield+ (200)
+                </button>
+                <button
+                  className="card"
+                  onClick={() => {
+                    if (spendCoins(200)) {
+                      setCoins(getCoins())
+                      localStorage.setItem('upgrade_speed', '1')
+                    }
+                  }}
+                >
+                  💨 Speed+ (200)
+                </button>
+                <button
+                  className="card"
+                  onClick={() => {
+                    if (spendCoins(300)) {
+                      setCoins(getCoins())
+                      localStorage.setItem('upgrade_rapid', '1')
+                    }
+                  }}
+                >
+                  ⚡ Rapid+ (300)
+                </button>
+                <button
+                  className="card"
+                  onClick={() => {
+                    if (spendCoins(400)) {
+                      setCoins(getCoins())
+                      localStorage.setItem('upgrade_doubler', '1')
+                    }
+                  }}
+                >
+                  💰 Coin Doubler (400)
+                </button>
+                <button
+                  className="card"
+                  onClick={() => {
+                    if (spendCoins(150)) {
+                      setCoins(getCoins())
+                      localStorage.setItem('upgrade_life', '1')
+                    }
+                  }}
+                >
+                  ❤️ Extra Life (150)
+                </button>
               </div>
             </div>
           </div>
@@ -334,13 +500,33 @@ function MainMenu({ onStartGame }) {
         <div className="menu-section">
           <h3>Player</h3>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
-            <input 
+            <input
               value={playerName}
-              onChange={(e) => { setPlayerName(e.target.value) }}
+              onChange={(e) => {
+                setPlayerName(e.target.value)
+              }}
               placeholder="Type game name here"
-              style={{ padding: '10px 12px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)', color: '#fff', width: 240 }}
+              style={{
+                padding: '10px 12px',
+                borderRadius: 10,
+                border: '1px solid rgba(255,255,255,0.2)',
+                background: 'rgba(255,255,255,0.06)',
+                color: '#fff',
+                width: 240,
+              }}
             />
-            <button className="settings-button small" onClick={() => { try { localStorage.setItem('playerName', playerName); setToast('Name saved'); setTimeout(()=>setToast(''), 1200) } catch(_) {} }}>Save</button>
+            <button
+              className="settings-button small"
+              onClick={() => {
+                try {
+                  localStorage.setItem('playerName', playerName)
+                  setToast('Name saved')
+                  setTimeout(() => setToast(''), 1200)
+                } catch (_) {}
+              }}
+            >
+              Save
+            </button>
           </div>
         </div>
 
@@ -349,9 +535,13 @@ function MainMenu({ onStartGame }) {
             role="dialog"
             aria-modal="true"
             style={{
-              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              zIndex: 1000
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0,0,0,0.6)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000,
             }}
             onClick={() => setShowCharacters(false)}
           >
@@ -359,21 +549,30 @@ function MainMenu({ onStartGame }) {
               className="glass"
               style={{
                 background: 'rgba(10,14,39,0.9)',
-                borderRadius: '12px', padding: '20px', width: 'min(900px, 92vw)',
-                maxHeight: '80vh', overflow: 'auto', boxShadow: '0 10px 30px rgba(0,0,0,0.4)'
+                borderRadius: '12px',
+                padding: '20px',
+                width: 'min(900px, 92vw)',
+                maxHeight: '80vh',
+                overflow: 'auto',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
                 <h3 style={{ margin: 0 }}>Select Your Character</h3>
-                <button className="settings-button" onClick={() => setShowCharacters(false)}>Close</button>
+                <button className="settings-button" onClick={() => setShowCharacters(false)}>
+                  Close
+                </button>
               </div>
               <div className="grid selector-grid" style={{ marginTop: '12px' }}>
-                {CHARACTERS.map(c => {
+                {CHARACTERS.map((c) => {
                   const owned = ownedChars.includes(c.id) || c.id === 'kaden' || c.id === 'adelynn'
                   const active = selectedCharacter === c.id
                   return (
-                    <button key={c.id}
+                    <button
+                      key={c.id}
                       className={`card ${owned ? '' : 'locked'} ${active ? 'active' : ''}`}
                       onClick={() => {
                         if (owned) {
@@ -382,9 +581,17 @@ function MainMenu({ onStartGame }) {
                         } else {
                           buyChar(c.id)
                         }
-                      }}>
+                      }}
+                    >
                       <div className="row" style={{ marginBottom: '6px' }}>
-                        <div className="avatar" style={{ background: `linear-gradient(135deg, ${c.color[0]}, ${c.color[1]})` }}>{c.icon}</div>
+                        <div
+                          className="avatar"
+                          style={{
+                            background: `linear-gradient(135deg, ${c.color[0]}, ${c.color[1]})`,
+                          }}
+                        >
+                          {c.icon}
+                        </div>
                         <div style={{ fontSize: '18px' }}>{c.label}</div>
                       </div>
                       <div style={{ fontSize: '12px', opacity: 0.9, lineHeight: 1.4 }}>
@@ -406,35 +613,83 @@ function MainMenu({ onStartGame }) {
           <div
             role="dialog"
             aria-modal="true"
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0,0,0,0.6)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000,
+            }}
             onClick={() => setShowScores(false)}
           >
-            <div className="glass" style={{ background: 'rgba(10,14,39,0.9)', borderRadius: '12px', padding: '20px', width: 'min(700px, 92vw)', maxHeight: '80vh', overflow: 'auto', boxShadow: '0 10px 30px rgba(0,0,0,0.4)' }} onClick={(e) => e.stopPropagation()}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div
+              className="glass"
+              style={{
+                background: 'rgba(10,14,39,0.9)',
+                borderRadius: '12px',
+                padding: '20px',
+                width: 'min(700px, 92vw)',
+                maxHeight: '80vh',
+                overflow: 'auto',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
                 <h3 style={{ margin: 0 }}>🏆 Top Scores</h3>
-                <button className="settings-button" onClick={() => setShowScores(false)}>Close</button>
+                <button className="settings-button" onClick={() => setShowScores(false)}>
+                  Close
+                </button>
               </div>
               <div style={{ marginTop: 12 }}>
-                {(getHighScores()).map((s, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                    <div style={{ color: '#ffd700' }}>{String(i+1).padStart(2,'0')}.</div>
-                    <div style={{ flex: 1, marginLeft: 10, color: '#fff' }}>{s.player || 'Player'}</div>
-                    <div style={{ color: '#4ecdc4', fontWeight: 700 }}>{String(s.score).padStart(8,'0')}</div>
+                {getHighScores().map((s, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      padding: '8px 0',
+                      borderBottom: '1px solid rgba(255,255,255,0.08)',
+                    }}
+                  >
+                    <div style={{ color: '#ffd700' }}>{String(i + 1).padStart(2, '0')}.</div>
+                    <div style={{ flex: 1, marginLeft: 10, color: '#fff' }}>
+                      {s.player || 'Player'}
+                    </div>
+                    <div style={{ color: '#4ecdc4', fontWeight: 700 }}>
+                      {String(s.score).padStart(8, '0')}
+                    </div>
                   </div>
                 ))}
                 {getHighScores().length === 0 && (
-                  <div style={{ color: '#95a5a6' }}>No scores yet. Play a game to set a record!</div>
+                  <div style={{ color: '#95a5a6' }}>
+                    No scores yet. Play a game to set a record!
+                  </div>
                 )}
                 <div style={{ marginTop: 10 }}>
-                  <button className="settings-button small" onClick={async ()=>{
-                    const list = await getMergedTopScores()
-                    const wrap = document.createElement('div')
-                    wrap.innerHTML = list.map((s,i)=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.08)"><div style="color:#ffd700">${String(i+1).padStart(2,'0')}.</div><div style="flex:1;margin-left:10px;color:#fff">${s.player||'Player'}</div><div style="color:#4ecdc4;font-weight:700">${String(s.score).padStart(8,'0')}</div></div>`).join('')
-                    const container = event.currentTarget.parentElement.parentElement
-                    container.querySelectorAll('.dynamic-scores').forEach(n=>n.remove())
-                    wrap.className='dynamic-scores'
-                    container.appendChild(wrap)
-                  }}>Refresh from Cloud</button>
+                  <button
+                    className="settings-button small"
+                    onClick={async () => {
+                      const list = await getMergedTopScores()
+                      const wrap = document.createElement('div')
+                      wrap.innerHTML = list
+                        .map(
+                          (s, i) =>
+                            `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.08)"><div style="color:#ffd700">${String(i + 1).padStart(2, '0')}.</div><div style="flex:1;margin-left:10px;color:#fff">${s.player || 'Player'}</div><div style="color:#4ecdc4;font-weight:700">${String(s.score).padStart(8, '0')}</div></div>`
+                        )
+                        .join('')
+                      const container = event.currentTarget.parentElement.parentElement
+                      container.querySelectorAll('.dynamic-scores').forEach((n) => n.remove())
+                      wrap.className = 'dynamic-scores'
+                      container.appendChild(wrap)
+                    }}
+                  >
+                    Refresh from Cloud
+                  </button>
                 </div>
               </div>
             </div>
@@ -446,9 +701,13 @@ function MainMenu({ onStartGame }) {
             role="dialog"
             aria-modal="true"
             style={{
-              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              zIndex: 1000
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0,0,0,0.6)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000,
             }}
             onClick={() => setShowShips(false)}
           >
@@ -456,21 +715,30 @@ function MainMenu({ onStartGame }) {
               className="glass"
               style={{
                 background: 'rgba(10,14,39,0.9)',
-                borderRadius: '12px', padding: '20px', width: 'min(900px, 92vw)',
-                maxHeight: '80vh', overflow: 'auto', boxShadow: '0 10px 30px rgba(0,0,0,0.4)'
+                borderRadius: '12px',
+                padding: '20px',
+                width: 'min(900px, 92vw)',
+                maxHeight: '80vh',
+                overflow: 'auto',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
                 <h3 style={{ margin: 0 }}>Select Your Ship</h3>
-                <button className="settings-button" onClick={() => setShowShips(false)}>Close</button>
+                <button className="settings-button" onClick={() => setShowShips(false)}>
+                  Close
+                </button>
               </div>
               <div className="grid selector-grid" style={{ marginTop: '12px' }}>
-                {SHIPS.map(s => {
+                {SHIPS.map((s) => {
                   const owned = ownedShips.includes(s.id) || s.cost === 0
                   const active = selectedShip === s.id
                   return (
-                    <button key={s.id}
+                    <button
+                      key={s.id}
                       className={`card ${owned ? '' : 'locked'} ${active ? 'active' : ''}`}
                       onClick={() => {
                         if (owned) {
@@ -479,7 +747,8 @@ function MainMenu({ onStartGame }) {
                         } else {
                           buyShip(s.id, s.cost)
                         }
-                      }}>
+                      }}
+                    >
                       <div className="row" style={{ marginBottom: '6px', alignItems: 'center' }}>
                         <ShipThumb id={s.id} />
                         <div style={{ fontSize: '18px' }}>{s.label}</div>
@@ -510,17 +779,25 @@ function MainMenu({ onStartGame }) {
       </div>
 
       {toast && (
-        <div style={{
-          position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)',
-          background: 'rgba(0,0,0,0.7)', color: '#fff', padding: '10px 16px', borderRadius: 12,
-          boxShadow: '0 6px 20px rgba(0,0,0,0.35)', zIndex: 1100
-        }}>{toast}</div>
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 20,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(0,0,0,0.7)',
+            color: '#fff',
+            padding: '10px 16px',
+            borderRadius: 12,
+            boxShadow: '0 6px 20px rgba(0,0,0,0.35)',
+            zIndex: 1100,
+          }}
+        >
+          {toast}
+        </div>
       )}
-
-      
     </div>
   )
 }
 
 export default MainMenu
-

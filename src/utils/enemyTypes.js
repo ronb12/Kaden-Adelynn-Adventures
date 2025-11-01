@@ -6,7 +6,7 @@ export const enemyVarieties = {
     color: '#ff4757',
     score: 10,
     pattern: 'straight',
-    shootChance: 0
+    shootChance: 0,
   },
   shooter: {
     health: 2,
@@ -14,7 +14,7 @@ export const enemyVarieties = {
     color: '#ff6b8a',
     score: 25,
     pattern: 'straight',
-    shootChance: 0.3
+    shootChance: 0.3,
   },
   kamikaze: {
     health: 1,
@@ -22,7 +22,7 @@ export const enemyVarieties = {
     color: '#ff0000',
     score: 30,
     pattern: 'straight',
-    shootChance: 0
+    shootChance: 0,
   },
   tank: {
     health: 5,
@@ -30,7 +30,7 @@ export const enemyVarieties = {
     color: '#8b0000',
     score: 100,
     pattern: 'straight',
-    shootChance: 0.6
+    shootChance: 0.6,
   },
   fast: {
     health: 1,
@@ -38,7 +38,7 @@ export const enemyVarieties = {
     color: '#ffff00',
     score: 15,
     pattern: 'zigzag',
-    shootChance: 0
+    shootChance: 0,
   },
   zigzag: {
     health: 2,
@@ -46,7 +46,7 @@ export const enemyVarieties = {
     color: '#ff6347',
     score: 40,
     pattern: 'zigzag',
-    shootChance: 0.2
+    shootChance: 0.2,
   },
   elite: {
     health: 3,
@@ -54,7 +54,7 @@ export const enemyVarieties = {
     color: '#9370db',
     score: 75,
     pattern: 'wave',
-    shootChance: 0.4
+    shootChance: 0.4,
   },
   bomber: {
     health: 2,
@@ -62,8 +62,8 @@ export const enemyVarieties = {
     color: '#ff00ff',
     score: 60,
     pattern: 'straight',
-    shootChance: 0.7
-  }
+    shootChance: 0.7,
+  },
 }
 
 export const spawnEnemy = (type, x, y) => {
@@ -78,19 +78,19 @@ export const spawnEnemy = (type, x, y) => {
       x,
       y,
       width: 25,
-      height: 25
+      height: 25,
     },
     rotation: 0,
     shootTimer: 0,
-    trail: []
+    trail: [],
   }
 }
 
 export const updateEnemyMovement = (enemy, time) => {
   const baseSpeed = enemy.speed
   let deltaX = 0
-  
-  switch(enemy.pattern) {
+
+  switch (enemy.pattern) {
     case 'zigzag':
       deltaX = Math.sin(time * 0.1) * 3
       enemy.x += deltaX
@@ -100,17 +100,17 @@ export const updateEnemyMovement = (enemy, time) => {
       enemy.x += deltaX
       enemy.y += baseSpeed
       break
-    case 'spiral':
+    case 'spiral': {
       const angle = time * 0.2
       deltaX = Math.cos(angle) * 2
       enemy.x += deltaX
       enemy.y += baseSpeed + Math.sin(angle) * 1
       break
+    }
     default:
       enemy.y += baseSpeed
   }
-  
+
   enemy.shootTimer++
   return enemy
 }
-
