@@ -109,6 +109,21 @@ export const spawnBoss = (type, x, y) => {
 }
 
 export const updateBossPattern = (boss, time, canvas) => {
+  // Phase transitions based on remaining health
+  const maxH = boss.maxHealth || boss.health
+  const ratio = Math.max(0, boss.health / Math.max(1, maxH))
+  if (ratio <= 0.4 && boss.phase < 3) {
+    boss.phase = 3
+    boss.pattern = boss.pattern === 'zigzag' ? 'circular' : 'dive'
+    boss.color = '#ff3333'
+    boss.speed = (boss.speed || 1) + 0.5
+  } else if (ratio <= 0.7 && boss.phase < 2) {
+    boss.phase = 2
+    if (boss.pattern === 'straight') boss.pattern = 'zigzag'
+    boss.color = '#ff9900'
+    boss.speed = (boss.speed || 1) + 0.3
+  }
+
   switch (boss.pattern) {
     case 'zigzag':
       boss.x += Math.sin(time * 0.1) * boss.speed * 2
