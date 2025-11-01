@@ -330,6 +330,14 @@ function Game({
   useEffect(() => {
     const state = gameState.current
     if (!state) return
+    const override = localStorage.getItem('challengeOverride')
+    if (override !== null) {
+      const val = parseInt(override, 10)
+      if (!Number.isNaN(val)) {
+        state.dailyChallenge = Math.max(0, Math.min(2, val))
+        return
+      }
+    }
     const daySeed = new Date().toISOString().slice(0, 10)
     const hash = Array.from(daySeed).reduce((a, c) => (((a << 5) - a) + c.charCodeAt(0)) | 0, 0)
     state.dailyChallenge = Math.abs(hash) % 3 // 0..2

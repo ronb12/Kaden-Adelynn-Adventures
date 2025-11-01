@@ -37,6 +37,20 @@ function MainMenu({ onStartGame }) {
   const [fullscreen, setFullscreen] = useState(false)
   const isGamepadSupported = typeof navigator !== 'undefined' && !!navigator.getGamepads
 
+  // Daily Challenge helpers
+  const getDailyIdx = () => {
+    const override = localStorage.getItem('challengeOverride')
+    if (override !== null) {
+      const v = parseInt(override, 10)
+      if (!Number.isNaN(v)) return Math.max(0, Math.min(2, v))
+    }
+    const daySeed = new Date().toISOString().slice(0, 10)
+    const hash = Array.from(daySeed).reduce((a, c) => (((a << 5) - a) + c.charCodeAt(0)) | 0, 0)
+    return Math.abs(hash) % 3
+  }
+  const challengeIdx = getDailyIdx()
+  const challengeLabel = ['Fast Enemies', 'Low Gravity', 'Double Powerups'][challengeIdx]
+
   useEffect(() => {
     // Save sound volume to localStorage
     localStorage.setItem('soundVolume', soundVolume.toString())
@@ -302,6 +316,36 @@ function MainMenu({ onStartGame }) {
           <button className="settings-button" onClick={() => setShowScores(true)}>
             🏆 Top Scores
           </button>
+        </div>
+
+        <div className="menu-section">
+          <h3>🗓️ Daily Challenge</h3>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <div className="glass" style={{ padding: '8px 12px', borderRadius: 10 }}>
+              Active: <strong>{challengeLabel}</strong>
+            </div>
+            <button
+              className="settings-button small"
+              onClick={() => {
+                const next = (challengeIdx + 1) % 3
+                localStorage.setItem('challengeOverride', String(next))
+                setToast('Daily Challenge cycled')
+                setTimeout(() => setToast(''), 1200)
+              }}
+            >
+              Cycle
+            </button>
+            <button
+              className="settings-button small"
+              onClick={() => {
+                localStorage.removeItem('challengeOverride')
+                setToast('Daily Challenge reset')
+                setTimeout(() => setToast(''), 1200)
+              }}
+            >
+              Reset
+            </button>
+          </div>
         </div>
 
         <div className="menu-section">
