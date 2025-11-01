@@ -1216,7 +1216,7 @@ function Game({
           state.player.y + state.player.height > enemy.y
         ) {
           setHealth((h) => {
-            const newHealth = h - 10
+            const newHealth = h - 1
             if (newHealth <= 0) {
               setLives((l) => l - 1)
               state.invulnerable = true
@@ -1258,7 +1258,7 @@ function Game({
           by + bh > state.player.y
         ) {
           setHealth((h) => {
-            const newHealth = h - 8
+            const newHealth = h - 1
             console.log('HIT by enemy bullet. Health:', h, '->', Math.max(0, newHealth))
             if (newHealth <= 0) {
               setLives((l) => l - 1)
