@@ -2316,22 +2316,82 @@ function Game({
       {isPaused && (
         <div className="pause-overlay">
           <h2>Game Paused</h2>
-          <p>Press 'P' or tap Resume</p>
-          <button
-            onClick={onPause}
-            aria-label="Resume Game"
-            style={{
-              marginTop: 12,
-              background: 'rgba(0,0,0,0.6)',
-              color: '#fff',
-              border: '1px solid rgba(255,255,255,0.25)',
-              borderRadius: 10,
-              padding: '8px 16px',
-              cursor: 'pointer'
-            }}
-          >
-            ▶️ Resume
-          </button>
+          <p>Press 'P' or tap a button</p>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button
+              onClick={onPause}
+              aria-label="Resume Game"
+              style={{
+                marginTop: 12,
+                background: 'rgba(0,0,0,0.6)',
+                color: '#fff',
+                border: '1px solid rgba(255,255,255,0.25)',
+                borderRadius: 10,
+                padding: '8px 16px',
+                cursor: 'pointer'
+              }}
+            >
+              ▶️ Resume
+            </button>
+            <button
+              onClick={() => {
+                try {
+                  const s = gameState.current || {}
+                  const snapshot = {
+                    score,
+                    wave,
+                    level,
+                    combo,
+                    killStreak,
+                    lives: livesRef.current,
+                    health: healthRef.current,
+                    player: s.player,
+                    currentWeapon: s.currentWeapon,
+                    coins: s.coins || 0,
+                    upgrades: {
+                      shield: s.shield || false,
+                      rapid: s.rapidFire || false,
+                      speed: s.player?.speed || 5,
+                      coinDoubler: s.coinDoubler || false
+                    },
+                    dailyChallenge: s.dailyChallenge ?? null,
+                    timestamp: Date.now()
+                  }
+                  localStorage.setItem('savedRun', JSON.stringify(snapshot))
+                } catch (_) {}
+              }}
+              aria-label="Save Game"
+              style={{
+                marginTop: 12,
+                background: 'rgba(0,0,0,0.6)',
+                color: '#fff',
+                border: '1px solid rgba(255,255,255,0.25)',
+                borderRadius: 10,
+                padding: '8px 16px',
+                cursor: 'pointer'
+              }}
+            >
+              💾 Save
+            </button>
+            <button
+              onClick={() => {
+                const s = gameState.current || {}
+                onGameOver(score, wave, level, s.currentKills || 0, combo)
+              }}
+              aria-label="End Game"
+              style={{
+                marginTop: 12,
+                background: 'rgba(120,0,0,0.7)',
+                color: '#fff',
+                border: '1px solid rgba(255,255,255,0.25)',
+                borderRadius: 10,
+                padding: '8px 16px',
+                cursor: 'pointer'
+              }}
+            >
+              🛑 End Game
+            </button>
+          </div>
         </div>
       )}
     </div>
