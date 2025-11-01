@@ -18,9 +18,9 @@ Arcade space shooter built with React + Vite + Canvas, deployed to Firebase Host
 
 ## Deploy (Hosting-only)
 Ensure you’re logged into Firebase CLI, then:
-`bash
+```bash
 firebase deploy --only hosting
-`
+```
 
 ## Structure
 - `src/components/Game.jsx` — game loop, rendering, collisions, HUD
@@ -37,6 +37,10 @@ See `CONTRIBUTING.md`. Use provided issue/PR templates.
 
 ## Attribution
 This product is a project of Bradley Virtual Solutions, LLC.
+
+## Credits (CC0 SFX)
+- Kenney UI Audio (CC0) — `https://kenney.nl/assets/ui-audio`
+- OpenGameArt CC0 selections — `https://opengameart.org/`
 
 ## License
 Proprietary unless otherwise noted for third-party assets (CC0 SFX).
