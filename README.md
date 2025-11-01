@@ -11,27 +11,16 @@ Play the game at: **https://kaden---adelynn-adventures.web.app**
 
 ## ✨ Features
 
-### Core Gameplay Features (100+)
-- 🎯 **25 Lives System** - Extended gameplay with multiple chances
-- 🎮 **6+ Weapon Types** - Laser, Spread, Plasma, Missiles, and more
-- 👾 **Boss Battles** - Multiple boss types with unique attack patterns
-- 🏆 **Achievement System** - 10+ unlockable achievements with rewards
-- 💥 **Combo System** - Chain kills for massive score multipliers
-- 🌊 **Wave System** - Progressive difficulty with multiple levels
-- 💰 **Currency System** - Earn coins and spend on upgrades
-- 🛡️ **Shield Power** - Temporary invulnerability
-- ⚡ **Rapid Fire** - Temporary shooting speed boost
-- 🎯 **Multi-Shot** - Fire multiple projectiles at once
-- ⏰ **Slow Motion** - Time-bending power-up
-- 🚀 **Missile Pack** - Launch devastating missiles
-- 💨 **Speed Boost** - Enhanced movement speed
-- 💎 **Score Doubler** - Double your points
-- 📊 **Statistics Tracking** - Monitor your progress
-- 🎨 **Visual Effects** - Screen shake, explosions, particle effects
-- 🌠 **Animated Background** - Dynamic starfield and nebula effects
-- 💫 **Hit-Stop Effects** - Impact feedback
-- 🎭 **Perfect Wave Bonus** - Complete waves flawlessly
-- 📈 **Kill Streaks** - Consecutive kill bonuses
+### Core Gameplay Features
+- 🎯 **25 Lives System**
+- 🎮 **15+ Weapon Types** (Laser, Spread, Plasma, Missile, Shotgun, Beam, Railgun, etc.)
+- 👾 **Boss Battles** with movement and aimed shots
+- 🛡️ **Power-ups** (Shield, Rapid Fire, Slow Motion, Doubler, more)
+- 💥 **Combo System** and score multipliers
+- 🌊 **Endless Waves & Levels** (level increases every 5 waves)
+- 🟥/🟪 **Enemy Mix** including tougher silver ships
+- 📊 **Top Scores** (local) and optional **Cloud Scores** (Firestore) with player names
+- 📱 **Mobile-optimized HUD** and iOS PWA pull-to-refresh
 
 ### Enemy Types (8+)
 - 🔴 **Basic Enemy** - Standard foes
@@ -122,19 +111,15 @@ npm run preview
 7. Unlock achievements to earn coins
 8. Spend coins on permanent upgrades (coming soon!)
 
-## 🚀 Deployment
-
-The game is automatically deployed to Firebase Hosting:
+## 🚀 Deployment (Manual)
 
 ```bash
-# Install Firebase CLI (if not already installed)
+# Install Firebase CLI (once)
 npm install -g firebase-tools
 
-# Login to Firebase
-firebase login
-
-# Deploy to production
-firebase deploy
+# Build & deploy
+npm run build
+firebase deploy --only hosting
 ```
 
 ## 📁 Project Structure
@@ -180,13 +165,9 @@ firebase deploy
 - UI animations and transitions
 
 ### Audio Features
-- Laser shooting sounds
-- Explosion effects
-- Power-up collection sounds
-- Boss spawn audio
-- Achievement unlock sounds
-- Missile launch sounds
-- Shield activation sounds
+- Laser/explosion/power-up effects
+- Boss/achievement/missile/shield sounds
+- Background music (menu/gameplay/boss)
 
 ### Gameplay Mechanics
 - Multiple difficulty levels (Easy, Medium, Hard)
