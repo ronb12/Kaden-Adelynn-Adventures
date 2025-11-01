@@ -301,13 +301,14 @@ function MainMenu({ onStartGame }) {
         {/* Player name input */}
         <div className="menu-section">
           <h3>Player</h3>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
             <input 
               value={playerName}
-              onChange={(e) => { setPlayerName(e.target.value); try { localStorage.setItem('playerName', e.target.value) } catch(_) {} }}
-              placeholder="Enter name"
-              style={{ padding: '10px 12px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)', color: '#fff', width: 220 }}
+              onChange={(e) => { setPlayerName(e.target.value) }}
+              placeholder="Type game name here"
+              style={{ padding: '10px 12px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)', color: '#fff', width: 240 }}
             />
+            <button className="settings-button small" onClick={() => { try { localStorage.setItem('playerName', playerName); setToast('Name saved'); setTimeout(()=>setToast(''), 1200) } catch(_) {} }}>Save</button>
           </div>
         </div>
 
