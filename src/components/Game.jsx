@@ -1093,6 +1093,8 @@ function Game({
               ...ParticleSystem.createExplosion(bullet.x, bullet.y, '#ffa502', 8)
             )
             if (asteroid.health <= 0) {
+              // split into smaller pieces
+              splitAsteroid(state, asteroid)
               asteroidsToRemove.push(a)
               state.particles.push(
                 ...ParticleSystem.createExplosion(asteroid.x, asteroid.y, '#ffa502', 20)
@@ -1307,6 +1309,7 @@ function Game({
             ast.health = (typeof ast.health === 'number' ? ast.health : 2) - 2
             state.particles.push(...ParticleSystem.createExplosion(ast.x, ast.y, '#ff8c00', 20))
             if (ast.health <= 0) {
+              splitAsteroid(state, ast)
               astToRemove2.push(a)
               const asteroidPoints = 10
               setScore((s) => {
@@ -1345,6 +1348,7 @@ function Game({
             ast.health = (typeof ast.health === 'number' ? ast.health : 2) - 1
             state.particles.push(...ParticleSystem.createExplosion(cx, cy, '#00ffff', 10))
             if (ast.health <= 0) {
+              splitAsteroid(state, ast)
               astToRemove3.push(a)
               const asteroidPoints = 10
               setScore((s) => {
@@ -1734,6 +1738,29 @@ function Game({
       // Despawn once out of screen
       return asteroid.y < canvas.height + 60
     })
+  }
+
+  const splitAsteroid = (state, asteroid) => {
+    // Only split if big enough
+    const minSize = 18
+    if (!asteroid || (asteroid.size || 0) <= minSize) return
+    const pieces = 2 + Math.floor(Math.random() * 2) // 2-3 pieces
+    const newSize = Math.max(minSize - 4, Math.floor(asteroid.size / 2))
+    for (let i = 0; i < pieces; i++) {
+      const angle = (Math.PI * 2 * i) / pieces + Math.random() * 0.5
+      const speed = 1 + Math.random() * 1.2
+      const vx = Math.cos(angle) * speed
+      const vy = Math.sin(angle) * speed + 0.6
+      state.asteroids.push({
+        x: asteroid.x + Math.cos(angle) * 6,
+        y: asteroid.y + Math.sin(angle) * 6,
+        size: newSize,
+        vx,
+        vy,
+        rotation: Math.random() * Math.PI * 2,
+        health: 1 + Math.floor(newSize / 22),
+      })
+    }
   }
 
   const spawnAsteroids = (state) => {
