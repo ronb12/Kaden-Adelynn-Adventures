@@ -21,24 +21,25 @@ export const sounds = {
   shield: { name: 'shield-up', volume: 0.4 },
 }
 
-// Prefer sampled audio over beeps; fallback to simple tone if asset missing
+// Prefer OGG then MP3
 const audioCache = {}
 const soundFiles = {
-  'laser-shoot': '/sfx/laser.mp3',
-  'missile-launch': '/sfx/missile.mp3',
-  explosion: '/sfx/explosion.mp3',
-  'powerup-pickup': '/sfx/powerup.mp3',
-  'enemy-destroy': '/sfx/explosion.mp3',
-  'boss-scream': '/sfx/boss.mp3',
-  'game-over': '/sfx/gameover.mp3',
-  'level-complete': '/sfx/level-complete.mp3',
-  achievement: '/sfx/achievement.mp3',
-  'shield-up': '/sfx/shield.mp3',
+  'laser-shoot': ['/sfx/laser.ogg', '/sfx/laser.mp3'],
+  'missile-launch': ['/sfx/missile.ogg', '/sfx/missile.mp3'],
+  explosion: ['/sfx/explosion.ogg', '/sfx/explosion.mp3'],
+  'powerup-pickup': ['/sfx/powerup.ogg', '/sfx/powerup.mp3'],
+  'enemy-destroy': ['/sfx/explosion.ogg', '/sfx/explosion.mp3'],
+  'boss-scream': ['/sfx/boss.ogg', '/sfx/boss.mp3'],
+  'game-over': ['/sfx/gameover.ogg', '/sfx/gameover.mp3'],
+  'level-complete': ['/sfx/level-complete.ogg', '/sfx/level-complete.mp3'],
+  achievement: ['/sfx/achievement.ogg', '/sfx/achievement.mp3'],
+  'shield-up': ['/sfx/shield.ogg', '/sfx/shield.mp3'],
 }
 
 export const playSound = (soundName, volume = 0.5) => {
   try {
-    const file = soundFiles[soundName] || soundFiles[sounds[soundName]?.name]
+    const sources = soundFiles[soundName] || soundFiles[sounds[soundName]?.name]
+    const file = Array.isArray(sources) ? sources.find(Boolean) : sources
     if (file) {
       if (!audioCache[file]) {
         const a = new Audio(file)
@@ -47,8 +48,7 @@ export const playSound = (soundName, volume = 0.5) => {
       }
       const audio = audioCache[file].cloneNode()
       // mix adjustments
-      if (soundName.includes('missile') || soundName.includes('explosion'))
-        volume = Math.min(volume, 0.4)
+      if (soundName.includes('missile') || soundName.includes('explosion')) volume = Math.min(volume, 0.4)
       if (soundName.includes('laser') || soundName.includes('shoot')) volume = Math.min(volume, 0.3)
       if (soundName.includes('boss')) volume = Math.min(volume, 0.5)
       audio.volume = volume
