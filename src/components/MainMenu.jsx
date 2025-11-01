@@ -822,6 +822,21 @@ function MainMenu({ onStartGame }) {
         </div>
       </div>
 
+      <div
+        style={{
+          position: 'fixed',
+          bottom: 8,
+          left: 0,
+          right: 0,
+          textAlign: 'center',
+          color: 'rgba(255,255,255,0.75)',
+          fontSize: 12,
+          pointerEvents: 'none'
+        }}
+      >
+        This product is a project of Bradley Virtual Solutions, LLC.
+      </div>
+
       {toast && (
         <div
           style={{
