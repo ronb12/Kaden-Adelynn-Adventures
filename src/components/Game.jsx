@@ -2292,10 +2292,46 @@ function Game({
   return (
     <div className="game-container">
       <canvas ref={canvasRef} className="game-canvas" />
+      {!isPaused && (
+        <button
+          onClick={onPause}
+          aria-label="Pause Game"
+          style={{
+            position: 'fixed',
+            top: 14,
+            right: 14,
+            zIndex: 100,
+            background: 'rgba(0,0,0,0.6)',
+            color: '#fff',
+            border: '1px solid rgba(255,255,255,0.25)',
+            borderRadius: 10,
+            padding: '8px 12px',
+            cursor: 'pointer',
+            backdropFilter: 'blur(4px)'
+          }}
+        >
+          ⏸️ Pause
+        </button>
+      )}
       {isPaused && (
         <div className="pause-overlay">
           <h2>Game Paused</h2>
-          <p>Press 'P' to resume</p>
+          <p>Press 'P' or tap Resume</p>
+          <button
+            onClick={onPause}
+            aria-label="Resume Game"
+            style={{
+              marginTop: 12,
+              background: 'rgba(0,0,0,0.6)',
+              color: '#fff',
+              border: '1px solid rgba(255,255,255,0.25)',
+              borderRadius: 10,
+              padding: '8px 16px',
+              cursor: 'pointer'
+            }}
+          >
+            ▶️ Resume
+          </button>
         </div>
       )}
     </div>
