@@ -313,7 +313,27 @@ function Game({
     // apply health bonus once at start of play session
     setHealth((h) => Math.max(1, Math.min(100, h + t.healthBonus)))
     state.damageMul = t.damageMul
+    // Apply store upgrades
+    const upShield = localStorage.getItem('upgrade_shield') === '1'
+    const upSpeed = localStorage.getItem('upgrade_speed') === '1'
+    const upRapid = localStorage.getItem('upgrade_rapid') === '1'
+    const upLife = localStorage.getItem('upgrade_life') === '1'
+    const upDoubler = localStorage.getItem('upgrade_doubler') === '1'
+    if (upShield) { state.shield = true; state.shieldTimer = 600 }
+    if (upSpeed) { state.player.speed = (state.player.speed || 5) + 1 }
+    if (upRapid) { state.rapidFire = true; state.rapidFireTimer = 600 }
+    if (upLife) { setLives((l) => l + 1) }
+    if (upDoubler) { state.coinDoubler = true; state.coinDoublerTimer = 9999 }
   }, [selectedCharacter])
+
+  // Daily challenge modifier
+  useEffect(() => {
+    const state = gameState.current
+    if (!state) return
+    const daySeed = new Date().toISOString().slice(0, 10)
+    const hash = Array.from(daySeed).reduce((a, c) => (((a << 5) - a) + c.charCodeAt(0)) | 0, 0)
+    state.dailyChallenge = Math.abs(hash) % 3 // 0..2
+  }, [])
 
   const gameLoop = useCallback(
     (currentTime) => {
@@ -880,7 +900,8 @@ function Game({
 
     const now = Date.now()
     const baseRate = state.wave <= 2 ? 2600 : state.wave <= 4 ? 2200 : 1800
-    const spawnRate = baseRate / difficultyModifier()
+    let spawnRate = baseRate / difficultyModifier()
+    if (state.dailyChallenge === 0) spawnRate *= 0.8
     if (now - state.lastEnemySpawn > spawnRate) {
       const patternsEarly = ['normal', 'zigzag']
       const patternsMore = ['normal', 'zigzag', 'sway', 'dash']
@@ -893,7 +914,7 @@ function Game({
       const enemy = {
         x: Math.random() * (canvas.width - 30) + 15,
         y: -30,
-        speed: difficultyModifier() * (isSilver ? 0.95 : state.wave < 3 ? 1.0 : 1.3),
+        speed: difficultyModifier() * (isSilver ? 0.95 : state.wave < 3 ? 1.0 : 1.3) * (state.dailyChallenge === 0 ? 1.2 : 1.0),
         pattern,
         health: isSilver ? 4 : state.wave < 3 ? 1 : 2,
         type: isSilver ? 'silver' : 'red',
@@ -1791,7 +1812,8 @@ function Game({
     const canvas = canvasRef.current
     if (!canvas) return
 
-    const chance = 0.05 // 5% chance per frame - collectibles will spawn
+    let chance = 0.05 // 5% chance per frame - collectibles will spawn
+    if (state.dailyChallenge === 2) chance *= 2
     if (Math.random() < chance && !state.isBossFight && state.powerUps.length < 5) {
       const x = Math.random() * (canvas.width - 50) + 25
       const y = -30
