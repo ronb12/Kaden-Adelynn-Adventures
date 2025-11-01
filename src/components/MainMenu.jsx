@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { getCoins, spendCoins, addCoins, getOwned, ownItem } from '../utils/wallet'
 import { getHighScores, getMergedTopScores } from '../utils/scoreTracking'
-import { playMenuMusic, stopMusic } from '../utils/music'
+import { playMenuMusic, playGameplayMusic, stopMusic } from '../utils/music'
 import './MainMenu.css'
 
 function MainMenu({ onStartGame }) {
@@ -26,7 +26,16 @@ function MainMenu({ onStartGame }) {
     const saved = localStorage.getItem('musicVolume')
     return saved ? parseInt(saved) : 50
   })
+  const [controllerEnabled, setControllerEnabled] = useState(() => {
+    const saved = localStorage.getItem('controllerEnabled')
+    return saved ? saved === 'true' : true
+  })
+  const [controllerDeadzone, setControllerDeadzone] = useState(() => {
+    const saved = localStorage.getItem('controllerDeadzone')
+    return saved ? parseFloat(saved) : 0.2
+  })
   const [fullscreen, setFullscreen] = useState(false)
+  const isGamepadSupported = typeof navigator !== 'undefined' && !!navigator.getGamepads
 
   useEffect(() => {
     // Save sound volume to localStorage
@@ -39,6 +48,14 @@ function MainMenu({ onStartGame }) {
   }, [musicVolume])
 
   useEffect(() => {
+    localStorage.setItem('controllerEnabled', controllerEnabled ? 'true' : 'false')
+  }, [controllerEnabled])
+
+  useEffect(() => {
+    localStorage.setItem('controllerDeadzone', controllerDeadzone.toString())
+  }, [controllerDeadzone])
+
+  useEffect(() => {
     // Start menu music
     playMenuMusic()
     return () => stopMusic()
@@ -46,6 +63,8 @@ function MainMenu({ onStartGame }) {
 
   const handleStart = () => {
     stopMusic()
+    // start gameplay music on user gesture
+    playGameplayMusic()
     localStorage.setItem('playerName', playerName)
     onStartGame(selectedDifficulty, selectedShip, selectedCharacter, playerName)
   }
@@ -259,6 +278,19 @@ function MainMenu({ onStartGame }) {
                   onChange={handleFullscreen}
                 />
               </div>
+            <div className="setting-item">
+              <label style={{ fontWeight: 700 }}>🎮 Game Controller</label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <input type="checkbox" checked={controllerEnabled} onChange={(e) => setControllerEnabled(e.target.checked)} disabled={!isGamepadSupported} />
+                Enable Handheld Game Controllers
+              </label>
+              {!isGamepadSupported && (
+                <small style={{ color: 'rgba(255,255,255,0.75)' }}>Gamepad not detected in this browser/device.</small>
+              )}
+              <label>Controller Deadzone: {controllerDeadzone.toFixed(2)}</label>
+              <input type="range" min="0" max="0.5" step="0.01" value={controllerDeadzone} onChange={(e) => setControllerDeadzone(parseFloat(e.target.value))} />
+              <small style={{ color: 'rgba(255,255,255,0.75)' }}>Left stick/D‑pad move • A/RT shoot • Start pause</small>
+            </div>
             </div>
           </div>
         )}

@@ -22,43 +22,54 @@ export const sounds = {
   shield: { name: 'shield-up', volume: 0.4 }
 }
 
+// Prefer sampled audio over beeps; fallback to simple tone if asset missing
+const audioCache = {}
+const soundFiles = {
+  'laser-shoot': '/sfx/laser.mp3',
+  'missile-launch': '/sfx/missile.mp3',
+  'explosion': '/sfx/explosion.mp3',
+  'powerup-pickup': '/sfx/powerup.mp3',
+  'enemy-destroy': '/sfx/explosion.mp3',
+  'boss-scream': '/sfx/boss.mp3',
+  'game-over': '/sfx/gameover.mp3',
+  'level-complete': '/sfx/level-complete.mp3',
+  'achievement': '/sfx/achievement.mp3',
+  'shield-up': '/sfx/shield.mp3'
+}
+
 export const playSound = (soundName, volume = 0.5) => {
-  // Lightweight mix adjustments
-  if (soundName.includes('missile') || soundName.includes('explosion')) volume = Math.min(volume, 0.4)
-  if (soundName.includes('laser') || soundName.includes('shoot')) volume = Math.min(volume, 0.3)
-  if (soundName.includes('boss')) volume = Math.min(volume, 0.5)
-  // Web Audio API implementation
-  const audioContext = new (window.AudioContext || window.webkitAudioContext)()
-  const oscillator = audioContext.createOscillator()
-  const gainNode = audioContext.createGain()
-  
-  gainNode.gain.value = volume
-  oscillator.connect(gainNode)
-  gainNode.connect(audioContext.destination)
-  
-  // Simple tone generation for different sounds
-  switch(soundName) {
-    case 'laser-shoot':
-      oscillator.frequency.value = 440
-      oscillator.type = 'square'
-      break
-    case 'explosion':
-      oscillator.frequency.value = 150
-      oscillator.type = 'sawtooth'
-      break
-    case 'powerup-pickup':
-      oscillator.frequency.value = 523.25
-      oscillator.type = 'sine'
-      break
-    case 'hit':
-      oscillator.frequency.value = 200
-      oscillator.type = 'sawtooth'
-      break
-    default:
-      oscillator.frequency.value = 330
-  }
-  
-  oscillator.start()
-  oscillator.stop(audioContext.currentTime + 0.1)
+  try {
+    const file = soundFiles[soundName] || soundFiles[sounds[soundName]?.name]
+    if (file) {
+      if (!audioCache[file]) {
+        const a = new Audio(file)
+        a.preload = 'auto'
+        audioCache[file] = a
+      }
+      const audio = audioCache[file].cloneNode()
+      // mix adjustments
+      if (soundName.includes('missile') || soundName.includes('explosion')) volume = Math.min(volume, 0.4)
+      if (soundName.includes('laser') || soundName.includes('shoot')) volume = Math.min(volume, 0.3)
+      if (soundName.includes('boss')) volume = Math.min(volume, 0.5)
+      audio.volume = volume
+      audio.play().catch(() => {})
+      return
+    }
+  } catch (_) {}
+  // Fallback beep if assets unavailable
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext
+    const audioContext = Ctx ? new Ctx() : null
+    if (!audioContext) return
+    const oscillator = audioContext.createOscillator()
+    const gainNode = audioContext.createGain()
+    gainNode.gain.value = volume
+    oscillator.connect(gainNode)
+    gainNode.connect(audioContext.destination)
+    oscillator.frequency.value = soundName.includes('explosion') ? 150 : 440
+    oscillator.type = soundName.includes('explosion') ? 'sawtooth' : 'square'
+    oscillator.start()
+    oscillator.stop(audioContext.currentTime + 0.1)
+  } catch (_) {}
 }
 

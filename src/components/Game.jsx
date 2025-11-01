@@ -80,6 +80,54 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
   })
 
   useEffect(() => {
+    // Gamepad support
+    const controllerEnabled = (localStorage.getItem('controllerEnabled') || 'true') === 'true'
+    if (!controllerEnabled) return
+    let rafId
+    const deadzone = parseFloat(localStorage.getItem('controllerDeadzone') || '0.2')
+    const applyDeadzone = (v) => Math.abs(v) < deadzone ? 0 : v
+    const poll = () => {
+      const pads = navigator.getGamepads ? Array.from(navigator.getGamepads()).filter(Boolean) : []
+      if (pads.length) {
+        const p = pads[0]
+        if (p) {
+          const axX = applyDeadzone(p.axes?.[0] || 0)
+          const axY = applyDeadzone(p.axes?.[1] || 0)
+          // D-pad
+          const dLeft = p.buttons?.[14]?.pressed ? -1 : 0
+          const dRight = p.buttons?.[15]?.pressed ? 1 : 0
+          const dUp = p.buttons?.[12]?.pressed ? -1 : 0
+          const dDown = p.buttons?.[13]?.pressed ? 1 : 0
+          const moveX = Math.max(-1, Math.min(1, axX + dLeft + dRight))
+          const moveY = Math.max(-1, Math.min(1, axY + dUp + dDown))
+          // set player intent
+          playerInput.current = playerInput.current || { x: 0, y: 0, firing: false }
+          playerInput.current.x = moveX
+          playerInput.current.y = moveY
+          // Fire: A (0) or RT (7)
+          const fire = !!(p.buttons?.[0]?.pressed || p.buttons?.[7]?.pressed)
+          playerInput.current.firing = fire
+          // Pause: Start (9)
+          if (p.buttons?.[9]?.pressed && !pauseLatch.current) {
+            pauseLatch.current = true
+            togglePause()
+          } else if (!p.buttons?.[9]?.pressed) {
+            pauseLatch.current = false
+          }
+        }
+      }
+      rafId = requestAnimationFrame(poll)
+    }
+    const pauseLatch = { current: false }
+    const togglePause = () => {
+      if (typeof onPause === 'function') onPause()
+    }
+    poll()
+    return () => cancelAnimationFrame(rafId)
+  }, [])
+
+  // Use playerInput in update loop if present
+  const playerInput = useRef({ x: 0, y: 0, firing: false })
     const canvas = canvasRef.current
     const ctx = canvas.getContext('2d')
     
@@ -343,11 +391,21 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
     if (state.keys['d'] || state.keys['D'] || state.keys['ArrowRight']) state.player.x = Math.min(canvas.width - state.player.width - 20, state.player.x + speed * timeScale)
     if (state.keys['w'] || state.keys['W'] || state.keys['ArrowUp']) state.player.y = Math.max(50, state.player.y - speed * timeScale)
     if (state.keys['s'] || state.keys['S'] || state.keys['ArrowDown']) state.player.y = Math.min(canvas.height - state.player.height - 20, state.player.y + speed * timeScale)
+    // Gamepad analog
+    if (playerInput.current) {
+      const ax = playerInput.current.x || 0
+      const ay = playerInput.current.y || 0
+      if (ax < 0) state.player.x = Math.max(20, state.player.x + ax * speed * timeScale)
+      if (ax > 0) state.player.x = Math.min(canvas.width - state.player.width - 20, state.player.x + ax * speed * timeScale)
+      if (ay < 0) state.player.y = Math.max(50, state.player.y + ay * speed * timeScale)
+      if (ay > 0) state.player.y = Math.min(canvas.height - state.player.height - 20, state.player.y + ay * speed * timeScale)
+    }
     
     // Shoot bullets
     const now = Date.now()
     const fireRate = state.rapidFire ? 100 : 200
-    if ((state.keys[' '] || state.keys['Spacebar']) && now - state.lastBulletShot > fireRate) {
+    const padFire = playerInput.current?.firing
+    if (((state.keys[' '] || state.keys['Spacebar']) || padFire) && now - state.lastBulletShot > fireRate) {
       shootBullet(state)
       state.lastBulletShot = now
     }
@@ -780,6 +838,9 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
               state.particles.push(...ParticleSystem.createExplosion(asteroid.x, asteroid.y, '#ffa502', 20))
               state.coins += 5
               setCoins(c => c + 5)
+              // add score for asteroid destroyed
+              const asteroidPoints = 10
+              setScore(s => { const ns = s + asteroidPoints; state.currentScore = ns; return ns })
             }
             break
           }
@@ -925,7 +986,11 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
             missilesToRemove2.push(mi)
             ast.health = ((typeof ast.health === 'number') ? ast.health : 2) - 2
             state.particles.push(...ParticleSystem.createExplosion(ast.x, ast.y, '#ff8c00', 20))
-            if (ast.health <= 0) astToRemove2.push(a)
+          if (ast.health <= 0) {
+            astToRemove2.push(a)
+            const asteroidPoints = 10
+            setScore(s => { const ns = s + asteroidPoints; state.currentScore = ns; return ns })
+          }
             break
           }
         }
@@ -955,7 +1020,11 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
           if (dx*dx + dy*dy <= r*r) {
             ast.health = ((typeof ast.health === 'number') ? ast.health : 2) - 1
             state.particles.push(...ParticleSystem.createExplosion(cx, cy, '#00ffff', 10))
-            if (ast.health <= 0) astToRemove3.push(a)
+          if (ast.health <= 0) {
+            astToRemove3.push(a)
+            const asteroidPoints = 10
+            setScore(s => { const ns = s + asteroidPoints; state.currentScore = ns; return ns })
+          }
           }
         }
       }
@@ -1308,17 +1377,13 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
     
     const timeScale = Math.min(state.deltaTime / 16.67, 2)
     state.asteroids = state.asteroids.filter(asteroid => {
-      asteroid.x += asteroid.vx * timeScale
-      asteroid.y += asteroid.vy * timeScale
+      // Foreground asteroids fall like enemies and can be destroyed
+      // vx small drift, vy is main downward speed
+      asteroid.x += (asteroid.vx || 0) * timeScale
+      asteroid.y += (asteroid.vy || 1.2 * timeScale)
       asteroid.rotation += 0.02 * timeScale
-      
-      // Wrap around screen
-      if (asteroid.x < -50) asteroid.x = canvas.width + 50
-      if (asteroid.x > canvas.width + 50) asteroid.x = -50
-      if (asteroid.y < -50) asteroid.y = canvas.height + 50
-      if (asteroid.y > canvas.height + 50) asteroid.y = -50
-      
-      return true
+      // Despawn once out of screen
+      return asteroid.y < canvas.height + 60
     })
   }
 
@@ -1326,17 +1391,23 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
     const canvas = canvasRef.current
     if (!canvas) return
     
-    if (state.enemies.length === 0 && Math.random() < 0.01) {
+    // Timed spawns similar to enemies (foreground threats)
+    const now = Date.now()
+    const baseRate = 2800 / difficultyModifier()
+    if (!state.lastAsteroidSpawn) state.lastAsteroidSpawn = 0
+    if (now - state.lastAsteroidSpawn > baseRate) {
+      const size = 24 + Math.random() * 36
       const asteroid = {
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        size: 20 + Math.random() * 30,
-        vx: (Math.random() - 0.5) * 2,
-        vy: (Math.random() - 0.5) * 2,
+        x: Math.random() * (canvas.width - 2 * size) + size,
+        y: -size,
+        size,
+        vx: (Math.random() - 0.5) * 0.8, // slight drift
+        vy: 1.2 + Math.random() * 0.8,   // downward speed
         rotation: Math.random() * Math.PI * 2,
-        health: 2
+        health: 2 + Math.floor(size / 20)
       }
       state.asteroids.push(asteroid)
+      state.lastAsteroidSpawn = now
     }
   }
 
