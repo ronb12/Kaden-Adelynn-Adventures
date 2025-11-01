@@ -1218,11 +1218,15 @@ function Game({
           setHealth((h) => {
             const newHealth = h - 1
             if (newHealth <= 0) {
-              setLives((l) => l - 1)
+              setLives((l) => Math.max(0, l - 1))
               state.invulnerable = true
-              setTimeout(() => {
-                state.invulnerable = false
-              }, 2000)
+              setTimeout(() => { state.invulnerable = false }, 2000)
+              const canvas = canvasRef.current
+              if (canvas) {
+                state.player.x = Math.max(20, canvas.width / 2 - state.player.width / 2)
+                state.player.y = Math.max(50, canvas.height - state.player.height - 60)
+              }
+              state.enemyBullets = []
               return 100
             }
             return newHealth
@@ -1261,11 +1265,15 @@ function Game({
             const newHealth = h - 1
             console.log('HIT by enemy bullet. Health:', h, '->', Math.max(0, newHealth))
             if (newHealth <= 0) {
-              setLives((l) => l - 1)
+              setLives((l) => Math.max(0, l - 1))
               state.invulnerable = true
-              setTimeout(() => {
-                state.invulnerable = false
-              }, 2000)
+              setTimeout(() => { state.invulnerable = false }, 2000)
+              const canvas = canvasRef.current
+              if (canvas) {
+                state.player.x = Math.max(20, canvas.width / 2 - state.player.width / 2)
+                state.player.y = Math.max(50, canvas.height - state.player.height - 60)
+              }
+              state.enemyBullets = []
               return 100
             }
             return newHealth
