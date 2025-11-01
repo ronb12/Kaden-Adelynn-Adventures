@@ -4,24 +4,25 @@ let imagesLoaded = false
 
 export const loadBossImages = () => {
   if (imagesLoaded) return Promise.resolve()
-  
+
   const imagePromises = [
     { key: 'boss1', url: '/boss-ships/boss1.png' },
     { key: 'boss2', url: '/boss-ships/boss2.png' },
-    { key: 'boss3', url: '/boss-ships/boss3.png' }
-  ].map(({ key, url }) => 
-    new Promise((resolve, reject) => {
-      const img = new Image()
-      img.onload = () => resolve({ key, img })
-      img.onerror = () => {
-        console.warn(`Failed to load boss image: ${url}`)
-        resolve({ key, img: null })
-      }
-      img.src = url
-    })
+    { key: 'boss3', url: '/boss-ships/boss3.png' },
+  ].map(
+    ({ key, url }) =>
+      new Promise((resolve) => {
+        const img = new Image()
+        img.onload = () => resolve({ key, img })
+        img.onerror = () => {
+          console.warn(`Failed to load boss image: ${url}`)
+          resolve({ key, img: null })
+        }
+        img.src = url
+      })
   )
-  
-  return Promise.all(imagePromises).then(results => {
+
+  return Promise.all(imagePromises).then((results) => {
     results.forEach(({ key, img }) => {
       bossImages[key] = img
     })
@@ -34,7 +35,7 @@ export const getBossImage = (bossType) => {
     asteroid: bossImages.boss1,
     alien: bossImages.boss2,
     robot: bossImages.boss3,
-    dragon: bossImages.boss1
+    dragon: bossImages.boss1,
   }
   return imageMap[bossType] || imageMap.asteroid
 }
@@ -52,7 +53,7 @@ export const bossTypes = {
     phase: 1,
     width: 150,
     height: 150,
-    image: 'boss1'
+    image: 'boss1',
   },
   alien: {
     name: 'Alien Mothership',
@@ -65,7 +66,7 @@ export const bossTypes = {
     phase: 1,
     width: 180,
     height: 180,
-    image: 'boss2'
+    image: 'boss2',
   },
   robot: {
     name: 'Mechanical Overlord',
@@ -78,7 +79,7 @@ export const bossTypes = {
     phase: 1,
     width: 200,
     height: 200,
-    image: 'boss3'
+    image: 'boss3',
   },
   dragon: {
     name: 'Space Dragon',
@@ -91,8 +92,8 @@ export const bossTypes = {
     phase: 1,
     width: 220,
     height: 220,
-    image: 'boss1'
-  }
+    image: 'boss1',
+  },
 }
 
 export const spawnBoss = (type, x, y) => {
@@ -103,12 +104,12 @@ export const spawnBoss = (type, x, y) => {
     angle: 0,
     shootTimer: 0,
     phaseTimer: 0,
-    bullets: []
+    bullets: [],
   }
 }
 
 export const updateBossPattern = (boss, time, canvas) => {
-  switch(boss.pattern) {
+  switch (boss.pattern) {
     case 'zigzag':
       boss.x += Math.sin(time * 0.1) * boss.speed * 2
       boss.x = Math.max(boss.width / 2, Math.min(canvas.width - boss.width / 2, boss.x))
@@ -125,8 +126,7 @@ export const updateBossPattern = (boss, time, canvas) => {
     default:
       if (boss.y > 100) boss.y -= boss.speed
   }
-  
+
   boss.shootTimer++
   return boss
 }
-

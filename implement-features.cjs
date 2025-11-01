@@ -3,30 +3,30 @@
 // Auto-build feature implementation script
 // This script adds missing features to Game.jsx automatically
 
-const fs = require('fs');
+const fs = require('fs')
 
-const GameFile = 'src/components/Game.jsx';
+const GameFile = 'src/components/Game.jsx'
 
-console.log('🚀 Auto-Implementing Features...\n');
+console.log('🚀 Auto-Implementing Features...\n')
 
 // Read the current game file
-let gameContent = fs.readFileSync(GameFile, 'utf8');
+let gameContent = fs.readFileSync(GameFile, 'utf8')
 
 // Feature 1: Add asteroids to game state
 if (!gameContent.includes('asteroids: []')) {
-    console.log('✅ Adding asteroid system...');
-    
-    // Add asteroids to gameState
-    gameContent = gameContent.replace(
-        /enemyBullets: \[\],[\s\S]*?lastFrameTime: 0,/,
-        `enemyBullets: [],
+  console.log('✅ Adding asteroid system...')
+
+  // Add asteroids to gameState
+  gameContent = gameContent.replace(
+    /enemyBullets: \[\],[\s\S]*?lastFrameTime: 0,/,
+    `enemyBullets: [],
     asteroids: [],
     lastAsteroidSpawn: 0,
     lastFrameTime: 0,`
-    );
-    
-    // Add asteroid update function after updatePlasmaBeams
-    const asteroidCode = `
+  )
+
+  // Add asteroid update function after updatePlasmaBeams
+  const asteroidCode = `
   const updateAsteroids = (state) => {
     const timeScale = Math.min(state.deltaTime / 16.67, 2)
     state.asteroids = state.asteroids.filter(asteroid => {
@@ -57,20 +57,21 @@ if (!gameContent.includes('asteroids: []')) {
       }
       state.asteroids.push(asteroid)
     }
-  }`;
+  }`
 
-    // Insert asteroid functions after updatePlasmaBeams
-    const insertPos = gameContent.indexOf('const spawnPowerUps = (state) =>');
-    gameContent = gameContent.slice(0, insertPos) + asteroidCode + '\n\n  ' + gameContent.slice(insertPos);
-    
-    // Add asteroid updates to game loop
-    gameContent = gameContent.replace(
-        'updatePlasmaBeams(state)',
-        'updatePlasmaBeams(state)\n    updateAsteroids(state)\n    spawnAsteroids(state)'
-    );
-    
-    // Add asteroid drawing
-    const drawAsteroidCode = `
+  // Insert asteroid functions after updatePlasmaBeams
+  const insertPos = gameContent.indexOf('const spawnPowerUps = (state) =>')
+  gameContent =
+    gameContent.slice(0, insertPos) + asteroidCode + '\n\n  ' + gameContent.slice(insertPos)
+
+  // Add asteroid updates to game loop
+  gameContent = gameContent.replace(
+    'updatePlasmaBeams(state)',
+    'updatePlasmaBeams(state)\n    updateAsteroids(state)\n    spawnAsteroids(state)'
+  )
+
+  // Add asteroid drawing
+  const drawAsteroidCode = `
   const drawAsteroids = (ctx, state) => {
     state.asteroids.forEach(asteroid => {
       ctx.save()
@@ -91,52 +92,56 @@ if (!gameContent.includes('asteroids: []')) {
       ctx.stroke()
       ctx.restore()
     })
-  }`;
+  }`
 
-    const drawInsertPos = gameContent.indexOf('const drawBoss = (ctx, state) =>');
-    gameContent = gameContent.slice(0, drawInsertPos) + drawAsteroidCode + '\n\n  ' + gameContent.slice(drawInsertPos);
-    
-    gameContent = gameContent.replace(
-        'drawBackgroundElements(ctx, state)',
-        'drawBackgroundElements(ctx, state)\n    drawAsteroids(ctx, state)'
-    );
+  const drawInsertPos = gameContent.indexOf('const drawBoss = (ctx, state) =>')
+  gameContent =
+    gameContent.slice(0, drawInsertPos) +
+    drawAsteroidCode +
+    '\n\n  ' +
+    gameContent.slice(drawInsertPos)
+
+  gameContent = gameContent.replace(
+    'drawBackgroundElements(ctx, state)',
+    'drawBackgroundElements(ctx, state)\n    drawAsteroids(ctx, state)'
+  )
 }
 
 // Feature 2: Enhanced formation patterns
 if (!gameContent.includes('formation: "v"')) {
-    console.log('✅ Adding formation patterns...');
-    
-    // Update spawnEnemies to include formations
-    gameContent = gameContent.replace(
-        /pattern: Math\.random\(\) > 0\.7 \? 'zigzag' : 'normal',/,
-        `pattern: Math.random() > 0.3 ? 'normal' : Math.random() > 0.5 ? 'zigzag' : 'formation',
+  console.log('✅ Adding formation patterns...')
+
+  // Update spawnEnemies to include formations
+  gameContent = gameContent.replace(
+    /pattern: Math\.random\(\) > 0\.7 \? 'zigzag' : 'normal',/,
+    `pattern: Math.random() > 0.3 ? 'normal' : Math.random() > 0.5 ? 'zigzag' : 'formation',
     formation: Math.random() > 0.5 ? 'v' : 'line',`
-    );
-    
-    // Update enemy movement to support formations
-    const formationUpdate = `
+  )
+
+  // Update enemy movement to support formations
+  const formationUpdate = `
     if (enemy.pattern === 'formation') {
       const formationOffset = state.enemiesSpawned % 5 * 40
       enemy.x = Math.sin((enemy.y + formationOffset) / 30) * 50 + canvasRef.current.width / 2
-    }`;
-    
-    gameContent = gameContent.replace(
-        /if \(enemy\.pattern === 'zigzag'\) enemy\.x \+= Math\.sin\(enemy\.y \/ 10\) \* 2 \* timeScale/,
-        `if (enemy.pattern === 'zigzag') enemy.x += Math.sin(enemy.y / 10) * 2 * timeScale${formationUpdate}`
-    );
+    }`
+
+  gameContent = gameContent.replace(
+    /if \(enemy\.pattern === 'zigzag'\) enemy\.x \+= Math\.sin\(enemy\.y \/ 10\) \* 2 \* timeScale/,
+    `if (enemy.pattern === 'zigzag') enemy.x += Math.sin(enemy.y / 10) * 2 * timeScale${formationUpdate}`
+  )
 }
 
 // Feature 3: Game modes
 if (!gameContent.includes('gameMode: "classic"')) {
-    console.log('✅ Adding game mode system...');
-    
-    gameContent = gameContent.replace(
-        /isBossFight: false,/,
-        `isBossFight: false,
+  console.log('✅ Adding game mode system...')
+
+  gameContent = gameContent.replace(
+    /isBossFight: false,/,
+    `isBossFight: false,
     gameMode: 'classic',  // classic, arcade, survival, bossRush`
-    );
-    
-    const gameModeCode = `
+  )
+
+  const gameModeCode = `
   const processGameMode = (state) => {
     if (state.gameMode === 'arcade') {
       // Faster spawns in arcade mode
@@ -153,24 +158,24 @@ if (!gameContent.includes('gameMode: "classic"')) {
         state.boss = spawnBoss('asteroid', canvasRef.current.width / 2, 100)
       }
     }
-  }`;
+  }`
 
-    const modeInsertPos = gameContent.indexOf('const checkLevelProgression = (state) =>');
-    gameContent = gameContent.slice(0, modeInsertPos) + gameModeCode + '\n\n  ' + gameContent.slice(modeInsertPos);
-    
-    gameContent = gameContent.replace(
-        'checkLevelProgression(state)',
-        'checkLevelProgression(state)\n    processGameMode(state)'
-    );
+  const modeInsertPos = gameContent.indexOf('const checkLevelProgression = (state) =>')
+  gameContent =
+    gameContent.slice(0, modeInsertPos) + gameModeCode + '\n\n  ' + gameContent.slice(modeInsertPos)
+
+  gameContent = gameContent.replace(
+    'checkLevelProgression(state)',
+    'checkLevelProgression(state)\n    processGameMode(state)'
+  )
 }
 
 // Write back to file
-fs.writeFileSync(GameFile, gameContent, 'utf8');
+fs.writeFileSync(GameFile, gameContent, 'utf8')
 
-console.log('\n✅ Features implemented successfully!');
-console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-console.log('Next steps:');
-console.log('1. Run: npm run build');
-console.log('2. Test: npm run dev');
-console.log('3. Deploy: firebase deploy --only hosting\n');
-
+console.log('\n✅ Features implemented successfully!')
+console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n')
+console.log('Next steps:')
+console.log('1. Run: npm run build')
+console.log('2. Test: npm run dev')
+console.log('3. Deploy: firebase deploy --only hosting\n')

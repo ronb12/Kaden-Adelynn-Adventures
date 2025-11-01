@@ -11,7 +11,7 @@ export class ParticleSystem {
         life: 30,
         maxLife: 30,
         color,
-        size: Math.random() * 3 + 2
+        size: Math.random() * 3 + 2,
       })
     }
     return particles
@@ -24,7 +24,7 @@ export class ParticleSystem {
       life: 15,
       maxLife: 15,
       color,
-      size: 3
+      size: 3,
     }
   }
 
@@ -37,7 +37,7 @@ export class ParticleSystem {
       life: 60,
       maxLife: 60,
       color: '#fff',
-      size: Math.random() * 2
+      size: Math.random() * 2,
     }
   }
 
@@ -45,17 +45,16 @@ export class ParticleSystem {
     const particles = []
     for (let i = 0; i < 8; i++) {
       particles.push({
-        x: x + Math.cos(i * Math.PI / 4) * 15,
-        y: y + Math.sin(i * Math.PI / 4) * 15,
+        x: x + Math.cos((i * Math.PI) / 4) * 15,
+        y: y + Math.sin((i * Math.PI) / 4) * 15,
         vx: 0,
         vy: 0,
         life: 20,
         maxLife: 20,
         color,
-        size: 2
+        size: 2,
       })
     }
     return particles
   }
 }
-

@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { createCanvas } from 'canvas'
 import fs from 'fs'
 import path from 'path'
@@ -57,7 +56,9 @@ function gen(outPath, size) {
   } catch (e) {
     // Fallback to copy + unlink if rename across devices fails
     fs.writeFileSync(outPath, buf)
-    try { fs.unlinkSync(tmp) } catch (_) {}
+    try {
+      fs.unlinkSync(tmp)
+    } catch (_) {}
   }
   console.log('Wrote', outPath)
 }
@@ -67,5 +68,3 @@ const pub = path.join(root, 'public')
 fs.mkdirSync(pub, { recursive: true })
 gen(path.join(pub, 'icon-192.png'), 192)
 gen(path.join(pub, 'icon-512.png'), 512)
-
-

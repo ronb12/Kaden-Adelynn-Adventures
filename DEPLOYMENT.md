@@ -9,11 +9,13 @@ This project is configured to automatically deploy to GitHub and Firebase Hostin
 After making changes to the codebase:
 
 1. **Build the project:**
+
    ```bash
    npm run build
    ```
 
 2. **Commit and push to GitHub:**
+
    ```bash
    git add -A
    git commit -m "Your commit message"
@@ -59,4 +61,3 @@ Add these secrets to your GitHub repository (Settings > Secrets):
 - `public/manifest.json` - App manifest
 - `firebase.json` - Firebase configuration
 - `.github/workflows/deploy.yml` - GitHub Actions workflow (if enabled)
-

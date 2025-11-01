@@ -4,7 +4,7 @@ export const updateAsteroid = (asteroid, state, canvas) => {
   asteroid.x += asteroid.vx * timeScale
   asteroid.y += asteroid.vy * timeScale
   asteroid.rotation += 0.02 * timeScale
-  
+
   // Wrap around screen
   if (asteroid.x < -50) asteroid.x = canvas.width + 50
   if (asteroid.x > canvas.width + 50) asteroid.x = -50
@@ -16,7 +16,7 @@ export const drawAsteroid = (ctx, asteroid) => {
   ctx.save()
   ctx.translate(asteroid.x, asteroid.y)
   ctx.rotate(asteroid.rotation)
-  
+
   ctx.fillStyle = '#8B4513'
   ctx.beginPath()
   ctx.moveTo(0, -asteroid.size)
@@ -40,6 +40,5 @@ export const createAsteroid = (x, y) => ({
   vx: (Math.random() - 0.5) * 2,
   vy: (Math.random() - 0.5) * 2,
   rotation: Math.random() * Math.PI * 2,
-  health: 2
+  health: 2,
 })
-

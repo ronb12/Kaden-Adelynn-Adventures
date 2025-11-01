@@ -48,4 +48,3 @@ export function ownItem(key, id) {
   }
   return list
 }
-

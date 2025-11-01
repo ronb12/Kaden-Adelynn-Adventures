@@ -3,6 +3,7 @@
 ## Quick Deploy Commands
 
 ### Single Command - Build + Deploy
+
 ```bash
 # Build and deploy to Firebase in one go
 npm run build && firebase deploy --only hosting
@@ -12,6 +13,7 @@ npm run build && firebase deploy --only hosting
 ```
 
 ### Fast Iteration Cycle
+
 ```bash
 # 1. Make your changes
 # 2. Deploy instantly
@@ -23,6 +25,7 @@ npm run build && firebase deploy --only hosting
 ## Essential Commands
 
 ### Development
+
 ```bash
 npm run dev          # Start dev server (localhost:3000)
 npm run build        # Build for production
@@ -30,6 +33,7 @@ npm run preview      # Test production build locally
 ```
 
 ### Deployment
+
 ```bash
 firebase deploy --only hosting    # Deploy to Firebase
 git add -A                         # Stage all changes
@@ -40,6 +44,7 @@ git push origin main                # Push to GitHub
 ## Keyboard Shortcuts & Tips
 
 ### VS Code / Cursor
+
 - `Cmd+Shift+P` → "Format Document" (auto-format code)
 - `Cmd+D` → Select next occurrence (rename quickly)
 - `Cmd+K, Cmd+W` → Close all files
@@ -47,6 +52,7 @@ git push origin main                # Push to GitHub
 - `Ctrl+Shift+F` → Search across all files
 
 ### Terminal (zsh)
+
 - `Ctrl+R` → Search command history
 - `!!` → Repeat last command
 - `cd` → Go to workspace (aliases recommended)
@@ -54,17 +60,22 @@ git push origin main                # Push to GitHub
 ## Automation Scripts
 
 ### Auto-Deploy Script (deploy.sh)
+
 Already created! Just run:
+
 ```bash
 ./deploy.sh
 ```
+
 This automatically:
+
 1. Builds the project
 2. Commits changes
 3. Pushes to GitHub
 4. Deploys to Firebase
 
 ### Quick File Edits
+
 ```bash
 # Edit and save quickly
 code src/components/MainMenu.css    # Edit file
@@ -76,6 +87,7 @@ code src/components/MainMenu.css    # Edit file
 ## Common Tasks
 
 ### Fix CSS Issue
+
 ```bash
 # 1. Edit CSS file
 code src/components/[Component].css
@@ -87,6 +99,7 @@ code src/components/[Component].css
 ```
 
 ### Update Game Logic
+
 ```bash
 # 1. Edit JavaScript/JSX
 code src/components/Game.jsx
@@ -99,6 +112,7 @@ npm run dev
 ```
 
 ### Add New Features
+
 ```bash
 # 1. Create/Edit component
 code src/components/NewComponent.jsx
@@ -113,12 +127,15 @@ npm run build && npm run preview
 ## Speed Tips
 
 ### 1. Use the deploy.sh Script
+
 The fastest way - one command does everything:
+
 ```bash
 ./deploy.sh  # Build, commit, push, deploy
 ```
 
 ### 2. Test Locally First
+
 ```bash
 npm run dev    # Start dev server
 # Make changes, see live updates
@@ -127,12 +144,15 @@ npm run dev    # Start dev server
 ```
 
 ### 3. Multi-File Editing
+
 Use VS Code split editor (Cmd+\):
+
 - Edit CSS and JSX side-by-side
 - Make multiple changes at once
 - Deploy once
 
 ### 4. Quick Git Commands
+
 ```bash
 # Stage and commit quickly
 git add -A && git commit -m "fix" && git push
@@ -141,7 +161,9 @@ git add -A && git commit -m "fix" && git push
 ```
 
 ### 5. Batch Changes
+
 Make multiple file edits:
+
 1. Open all files you need to change
 2. Make all edits
 3. Deploy once with `./deploy.sh`
@@ -149,12 +171,14 @@ Make multiple file edits:
 ## Deployment Checklist
 
 ### Before Deploying
+
 - [ ] Build succeeds (`npm run build`)
 - [ ] No console errors
 - [ ] Mobile responsive
 - [ ] PWA features work (service worker)
 
 ### Quick Test
+
 ```bash
 # Build and preview locally first
 npm run build && npm run preview
@@ -185,6 +209,7 @@ dist/                    # Build output (auto-generated)
 ## Common Issues & Quick Fixes
 
 ### Issue: CSS not updating
+
 ```bash
 # Clear cache and rebuild
 npm run build
@@ -192,10 +217,12 @@ firebase deploy --only hosting
 ```
 
 ### Issue: Service worker cache
+
 - Hard refresh: `Cmd+Shift+R` (Chrome/Edge)
 - Or: DevTools → Application → Clear Storage
 
 ### Issue: Build failing
+
 ```bash
 # Clear node_modules and reinstall
 rm -rf node_modules
@@ -206,23 +233,29 @@ npm run build
 ## Time-Saving Strategies
 
 ### 1. Make Multiple Changes at Once
+
 Don't deploy after every single line change. Make all your edits, then deploy once.
 
 ### 2. Use Automated Scripts
+
 Always use `./deploy.sh` instead of manual commands - it's faster and prevents errors.
 
 ### 3. Test Locally First
+
 Use `npm run dev` to see changes instantly without deploying.
 
 ### 4. Batch Edit Files
+
 Open multiple files in split editor, make all changes, deploy once.
 
 ### 5. Keep Deploy.sh Running
+
 No need to wait for each step - the script handles everything in sequence.
 
 ## Workflow Example
 
 ### Making a Design Change
+
 ```
 1. code src/components/MainMenu.css       # 2 seconds
 2. Edit the CSS                            # 30 seconds
@@ -238,6 +271,7 @@ No need to wait for each step - the script handles everything in sequence.
 ## Emergency Quick Fixes
 
 ### Hot Fix in Production
+
 ```bash
 # Edit the file
 code src/components/[File].jsx
@@ -248,6 +282,7 @@ npm run build && firebase deploy --only hosting
 ```
 
 ### Revert Bad Deploy
+
 ```bash
 git log                    # Find previous commit
 git checkout [hash]        # Go back
@@ -265,6 +300,7 @@ git checkout [hash]        # Go back
 ## Pro Tip
 
 Set up aliases in your `~/.zshrc`:
+
 ```bash
 alias deploy='./deploy.sh'
 alias build='npm run build'
@@ -273,6 +309,7 @@ alias fix='npm run build && firebase deploy --only hosting'
 ```
 
 Then just type:
+
 ```bash
 deploy    # Instead of ./deploy.sh
 fix       # Quick fix and deploy
@@ -282,4 +319,3 @@ fix       # Quick fix and deploy
 
 **Time to deploy**: ~15 seconds with `./deploy.sh`
 **Time to make changes**: As fast as you can type! 🚀
-

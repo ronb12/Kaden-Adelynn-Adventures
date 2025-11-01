@@ -8,7 +8,11 @@ import './App.css'
 
 function App() {
   const [gameState, setGameState] = useState('menu')
-  const [gameConfig, setGameConfig] = useState({ difficulty: 'medium', ship: 'kaden', character: 'kaden' })
+  const [gameConfig, setGameConfig] = useState({
+    difficulty: 'medium',
+    ship: 'kaden',
+    character: 'kaden',
+  })
   const [playerName, setPlayerName] = useState(() => localStorage.getItem('playerName') || 'Player')
 
   useEffect(() => {
@@ -28,7 +32,7 @@ function App() {
   }
 
   const handlePauseToggle = () => {
-    setPaused(p => !p)
+    setPaused((p) => !p)
   }
 
   const handleGameOver = (finalScore, wave, level, kills, combo) => {
@@ -52,7 +56,7 @@ function App() {
       {gameState === 'menu' && <MainMenu onStartGame={handleStartGame} />}
       {gameState === 'story' && <Story onContinue={handleStoryComplete} />}
       {gameState === 'playing' && (
-        <Game 
+        <Game
           onPause={handlePauseToggle}
           onGameOver={handleGameOver}
           difficulty={gameConfig.difficulty}
@@ -63,7 +67,7 @@ function App() {
         />
       )}
       {gameState === 'gameover' && (
-        <GameOver 
+        <GameOver
           score={gameStats.score}
           wave={gameStats.wave}
           level={gameStats.level}
@@ -78,4 +82,3 @@ function App() {
 }
 
 export default App
-

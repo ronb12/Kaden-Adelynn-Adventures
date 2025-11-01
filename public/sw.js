@@ -1,17 +1,12 @@
 // Service Worker for PWA
 const CACHE_NAME = 'kaden-adventures-v5'
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png'
-]
+const urlsToCache = ['/', '/index.html', '/manifest.json', '/icon-192.png', '/icon-512.png']
 
 // Install event
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
+    caches
+      .open(CACHE_NAME)
       .then((cache) => {
         console.log('Service Worker: Cache opened')
         return cache.addAll(urlsToCache)
@@ -58,36 +53,37 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') {
     return
   }
-  
+
   event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Return cached version if available
-        if (response) {
-          return response
-        }
-        
-        // Fetch from network
-        return fetch(event.request).then((response) => {
+    caches.match(event.request).then((response) => {
+      // Return cached version if available
+      if (response) {
+        return response
+      }
+
+      // Fetch from network
+      return fetch(event.request)
+        .then((response) => {
           // Don't cache non-successful responses
           if (!response || response.status !== 200 || response.type !== 'basic') {
             return response
           }
-          
+
           // Cache successful responses
           const responseToCache = response.clone()
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseToCache)
           })
-          
+
           return response
-        }).catch(() => {
+        })
+        .catch(() => {
           // Return offline page for navigation requests
           if (event.request.mode === 'navigate') {
             return caches.match('/index.html')
           }
         })
-      })
+    })
   )
 })
 
@@ -98,4 +94,3 @@ self.addEventListener('message', (event) => {
     self.skipWaiting()
   }
 })
-

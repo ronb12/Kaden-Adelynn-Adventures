@@ -10,12 +10,12 @@ function GameOver({ score, onRestart, onMenu, wave, level, kills, combo }) {
   useEffect(() => {
     // Save the score
     saveScore(score)
-    
+
     // Check if it's a new record
     const previousBest = getPersonalBest()
     setPersonalBest(previousBest)
     setIsNewRecord(isNewHighScore(score))
-    
+
     // Load top scores
     setHighScores(getHighScores())
   }, [score])
@@ -25,9 +25,7 @@ function GameOver({ score, onRestart, onMenu, wave, level, kills, combo }) {
       <div className="game-over-container">
         <div className="game-over-header">
           <h1 className="game-over-title">Game Over!</h1>
-          {isNewRecord && (
-            <div className="new-record-badge">🎉 NEW RECORD!</div>
-          )}
+          {isNewRecord && <div className="new-record-badge">🎉 NEW RECORD!</div>}
         </div>
 
         <div className="score-display">
@@ -67,7 +65,10 @@ function GameOver({ score, onRestart, onMenu, wave, level, kills, combo }) {
             <h3>Top Scores</h3>
             <div className="leaderboard-list">
               {highScores.slice(0, 5).map((scoreEntry, index) => (
-                <div key={index} className={`leaderboard-entry ${scoreEntry.score === score ? 'current-score' : ''}`}>
+                <div
+                  key={index}
+                  className={`leaderboard-entry ${scoreEntry.score === score ? 'current-score' : ''}`}
+                >
                   <span className="leaderboard-rank">{index + 1}</span>
                   <span className="leaderboard-score">{scoreEntry.score.toLocaleString()}</span>
                   <span className="leaderboard-date">
@@ -93,4 +94,3 @@ function GameOver({ score, onRestart, onMenu, wave, level, kills, combo }) {
 }
 
 export default GameOver
-
