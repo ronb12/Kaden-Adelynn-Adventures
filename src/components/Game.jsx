@@ -29,6 +29,7 @@ function Game({
   const [score, setScore] = useState(0)
   const [lives, setLives] = useState(25)
   const [health, setHealth] = useState(100)
+  const healthRef = useRef(100)
   const [combo, setCombo] = useState(0)
   const [killStreak, setKillStreak] = useState(0)
   const [wave, setWave] = useState(1)
@@ -92,6 +93,11 @@ function Game({
     lastFrameTime: 0,
     deltaTime: 16.67, // 60fps = 16.67ms per frame
   })
+
+  // Keep a ref in sync with health so the canvas UI reads the latest value inside the gameLoop closure
+  useEffect(() => {
+    healthRef.current = health
+  }, [health])
 
   useEffect(() => {
     // Gamepad support
@@ -1237,7 +1243,10 @@ function Game({
       const bulletsToRemove = []
       for (let i = 0; i < state.enemyBullets.length; i++) {
         const bullet = state.enemyBullets[i]
-        const r = (bullet.width || bullet.height || 5)
+        const size = (bullet.width && bullet.height)
+          ? Math.max(bullet.width, bullet.height)
+          : (bullet.width || bullet.height || 10)
+        const r = size / 2
         const bx = (bullet.x || 0) - r
         const by = (bullet.y || 0) - r
         const bw = r * 2
@@ -1250,6 +1259,7 @@ function Game({
         ) {
           setHealth((h) => {
             const newHealth = h - 8
+            console.log('HIT by enemy bullet. Health:', h, '->', Math.max(0, newHealth))
             if (newHealth <= 0) {
               setLives((l) => l - 1)
               state.invulnerable = true
@@ -2146,11 +2156,12 @@ function Game({
     const bestText = `BEST: ${getPersonalBest().toString().padStart(8, '0')}`
     place(bestText)
 
-    // Health percentage inline instead of bar
-    const healthText = `HEALTH: ${Math.round(Math.max(0, Math.min(100, health)))}%`
+    // Health percentage inline instead of bar (read from ref to avoid stale closure)
+    const healthValue = Math.round(Math.max(0, Math.min(100, healthRef.current)))
+    const healthText = `HEALTH: ${healthValue}%`
     ctx.fillStyle = '#2ecc71'
-    if (health <= 50) ctx.fillStyle = '#f39c12'
-    if (health <= 25) ctx.fillStyle = '#e74c3c'
+    if (healthValue <= 50) ctx.fillStyle = '#f39c12'
+    if (healthValue <= 25) ctx.fillStyle = '#e74c3c'
     const hw = ctx.measureText(healthText).width
     ctx.fillText(healthText, x, y)
     x += hw + pad
