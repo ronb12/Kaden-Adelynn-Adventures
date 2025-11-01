@@ -1,4 +1,5 @@
 import puppeteer from 'puppeteer';
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 async function testFullscreenGameplay() {
   console.log('🚀 Starting fullscreen gameplay test...');
@@ -35,6 +36,25 @@ async function testFullscreenGameplay() {
     });
     
     console.log('✅ Page loaded successfully');
+
+    // Start game from menu
+    console.log('🎮 Clicking Start in menu...');
+    await page.evaluate(() => {
+      const btn = Array.from(document.querySelectorAll('button'))
+        .find(b => b.textContent && b.textContent.toLowerCase().includes('start'));
+      if (btn) btn.click();
+    });
+    await sleep(800);
+
+    // Advance story overlay to reach gameplay
+    console.log('📖 Advancing story overlay...');
+    for (let i = 0; i < 6; i++) {
+      await page.evaluate(() => {
+        const overlay = document.querySelector('.story-overlay');
+        if (overlay) overlay.click();
+      });
+      await sleep(500);
+    }
     
     // Check what elements are available
     const availableElements = await page.evaluate(() => {
@@ -70,10 +90,11 @@ async function testFullscreenGameplay() {
     // Test mobile viewport simulation
     console.log('📱 Testing mobile viewport (375x667)...');
     await page.setViewport({ width: 375, height: 667, isMobile: true });
+    await page.waitForSelector('.game-canvas, canvas', { timeout: 5000 });
     
     // Get canvas dimensions
     const canvasDimensions = await page.evaluate(() => {
-      const canvas = document.querySelector('.game-canvas');
+      const canvas = document.querySelector('.game-canvas') || document.querySelector('canvas');
       const container = document.querySelector('.game-container');
       
       if (!canvas || !container) return null;
@@ -112,9 +133,10 @@ async function testFullscreenGameplay() {
     
     // Test game interaction
     console.log('🎮 Testing game interaction...');
-    
-    // Click to start game
-    await page.click('.game-canvas');
+    await page.waitForSelector('.game-canvas, canvas', { timeout: 5000 });
+    const targetSelector = (await page.$('.game-canvas')) ? '.game-canvas' : 'canvas';
+    // Click to focus canvas
+    await page.click(targetSelector);
     await page.waitForTimeout(1000);
     
     // Simulate touch events for mobile
@@ -161,9 +183,10 @@ async function testFullscreenGameplay() {
     // Test desktop viewport
     console.log('🖥️ Testing desktop viewport (1920x1080)...');
     await page.setViewport({ width: 1920, height: 1080, isMobile: false });
+    await page.waitForSelector('.game-canvas, canvas', { timeout: 5000 });
     
     const desktopDimensions = await page.evaluate(() => {
-      const canvas = document.querySelector('.game-canvas');
+      const canvas = document.querySelector('.game-canvas') || document.querySelector('canvas');
       const container = document.querySelector('.game-container');
       
       if (!canvas || !container) return null;

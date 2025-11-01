@@ -11,6 +11,7 @@ const __dirname = path.dirname(__filename);
 
 let serverProcess;
 let browser;
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 console.log('🎮 Starting Score Test with Puppeteer...\n');
 
@@ -22,7 +23,7 @@ serverProcess = spawn('npm', ['run', 'dev'], {
 });
 
 // Wait for server to start
-await new Promise(resolve => setTimeout(resolve, 5000));
+await sleep(5000);
 
 try {
   // Launch Puppeteer
@@ -41,22 +42,36 @@ try {
   console.log('📊 Testing game score functionality...\n');
 
   // Wait for menu to load
-  await page.waitForTimeout(2000);
+  await sleep(2000);
 
   // Click start game
   console.log('1️⃣ Clicking "Start Game" button...');
-  await page.click('button:has-text("Start Game")');
-  await page.waitForTimeout(1000);
+  await page.evaluate(() => {
+    const btn = Array.from(document.querySelectorAll('button'))
+      .find(b => b.textContent && b.textContent.toLowerCase().includes('start'));
+    if (btn) btn.click();
+  });
+  await sleep(1000);
   console.log('   ✅ Game started\n');
 
+  // If story screen appears, click overlay to advance pages
+  console.log('2️⃣ Advancing story overlay if present...');
+  for (let i = 0; i < 6; i++) {
+    await page.evaluate(() => {
+      const overlay = document.querySelector('.story-overlay');
+      if (overlay) overlay.click();
+    });
+    await sleep(700);
+  }
+
   // Wait for canvas to appear
-  console.log('2️⃣ Waiting for game canvas...');
-  await page.waitForSelector('canvas');
+  console.log('3️⃣ Waiting for game canvas...');
+  await page.waitForSelector('canvas, .game-canvas');
   console.log('   ✅ Canvas loaded\n');
 
   // Get initial score
   console.log('3️⃣ Reading initial game state...');
-  await page.waitForTimeout(500);
+  await sleep(500);
   
   // Inject code to get game state
   const gameState = await page.evaluate(() => {
@@ -87,20 +102,20 @@ try {
   for (let i = 0; i < 10; i++) {
     await page.keyboard.down('Space');
     await page.keyboard.up('Space');
-    await page.waitForTimeout(100);
+    await sleep(100);
   }
 
   console.log('   - Pressing WASD keys to move...');
   await page.keyboard.press('KeyW');
-  await page.waitForTimeout(50);
+  await sleep(50);
   await page.keyboard.press('KeyA');
-  await page.waitForTimeout(50);
+  await sleep(50);
   await page.keyboard.press('KeyS');
-  await page.waitForTimeout(50);
+  await sleep(50);
   await page.keyboard.press('KeyD');
-  await page.waitForTimeout(50);
+  await sleep(50);
 
-  await page.waitForTimeout(2000);
+  await sleep(2000);
 
   // Check final score
   console.log('\n5️⃣ Checking final score...');

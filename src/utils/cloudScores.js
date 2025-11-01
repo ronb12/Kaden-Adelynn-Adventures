@@ -29,3 +29,4 @@ export async function fetchTopScores(limit = 10) {
     return []
   }
 }
+

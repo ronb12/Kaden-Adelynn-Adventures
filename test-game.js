@@ -9,6 +9,7 @@ import { dirname } from 'path';
 const PROJECT_DIR = process.cwd();
 let serverProcess;
 let browser;
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 console.log('🎮 Starting Automated Game Test...\n');
 
@@ -32,24 +33,29 @@ try {
   
   // Start game
   console.log('🎮 Starting game...');
-  await page.click('button:has-text("Start Game")');
-  await page.waitForTimeout(3000);
+  // Click the Start Game button by matching text content
+  await page.evaluate(() => {
+    const btn = Array.from(document.querySelectorAll('button'))
+      .find(b => b.textContent && b.textContent.toLowerCase().includes('start'));
+    if (btn) btn.click();
+  });
+  await sleep(3000);
   
   console.log('📊 Simulating gameplay...');
   
   // Shoot multiple times
   for (let i = 0; i < 20; i++) {
     await page.keyboard.press('Space');
-    await page.waitForTimeout(150);
+    await sleep(150);
   }
   
   // Move around
   await page.keyboard.press('KeyW');
-  await page.waitForTimeout(200);
+  await sleep(200);
   await page.keyboard.press('KeyD');
-  await page.waitForTimeout(200);
+  await sleep(200);
   
-  await page.waitForTimeout(2000);
+  await sleep(2000);
   
   console.log('✅ Test completed successfully');
   console.log('\nResults:');

@@ -28,3 +28,4 @@ export function playGameplayMusic() { play(tracks.gameplay) }
 export function playBossMusic() { play(tracks.boss) }
 export function stopMusic() { if (current) { current.pause(); current = null } }
 export function setMusicVolume(v) { volume = Math.max(0, Math.min(1, v)); if (current) current.volume = volume }
+

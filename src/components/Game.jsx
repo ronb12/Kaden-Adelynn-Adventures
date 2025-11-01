@@ -128,6 +128,7 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
 
   // Use playerInput in update loop if present
   const playerInput = useRef({ x: 0, y: 0, firing: false })
+  useEffect(() => {
     const canvas = canvasRef.current
     const ctx = canvas.getContext('2d')
     

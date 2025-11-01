@@ -1,0 +1,39 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="spaceGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="shipGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4ecdc4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff6b6b;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="512" height="512" fill="url(#spaceGrad)"/>
+  
+  <!-- Stars -->
+  <circle cx="100" cy="80" r="3" fill="#fff" opacity="0.9"/>
+  <circle cx="200" cy="120" r="2" fill="#fff" opacity="0.7"/>
+  <circle cx="300" cy="60" r="2.5" fill="#fff" opacity="0.8"/>
+  <circle cx="400" cy="100" r="2" fill="#fff" opacity="0.9"/>
+  <circle cx="120" cy="200" r="2" fill="#fff" opacity="0.7"/>
+  <circle cx="350" cy="180" r="3" fill="#fff" opacity="0.8"/>
+  
+  <!-- Space Ship -->
+  <g transform="translate(256, 256)">
+    <!-- Ship Body -->
+    <path d="M 0,-80 L -40,40 L 40,40 Z" fill="url(#shipGrad)" stroke="#fff" stroke-width="4"/>
+    
+    <!-- Ship Details -->
+    <circle cx="0" cy="-20" r="8" fill="#fff" opacity="0.9"/>
+    <line x1="0" y1="-40" x2="0" y2="-60" stroke="#fff" stroke-width="3"/>
+  </g>
+  
+  <!-- Title Text -->
+  <text x="256" y="450" font-family="Arial, sans-serif" font-size="24" fill="#fff" text-anchor="middle" font-weight="bold">
+    Kaden & Adelynn
+  </text>
+</svg>
+
