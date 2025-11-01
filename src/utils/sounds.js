@@ -1,4 +1,5 @@
 // Sound effects manager
+import { playSynth } from './sfxSynth'
 export const sounds = {
   shoot: { name: 'laser-shoot', volume: 0.3 },
   hit: { name: 'explosion', volume: 0.5 },
@@ -80,37 +81,21 @@ export const playSound = (soundName, volume = 0.5) => {
       }
       audio.addEventListener('playing', onPlaying, { once: true })
 
-      // Fallback timer: if not playing shortly, use beep fallback
+      // Fallback timer: if not playing shortly, use synth fallback
       setTimeout(() => {
         if (!played) {
           try { audio.pause() } catch {}
-          playBeepFallback(soundName, volume)
+          playSynth(sounds[soundName]?.name || soundName, volume)
         }
       }, 600)
 
       audio.play().catch(() => {
-        playBeepFallback(soundName, volume)
+        playSynth(sounds[soundName]?.name || soundName, volume)
       })
       return
     }
   } catch {}
-  // Fallback beep if assets unavailable
-  playBeepFallback(soundName, volume)
+  // Fallback synth if assets unavailable
+  playSynth(sounds[soundName]?.name || soundName, volume)
 }
 
-function playBeepFallback(soundName, volume) {
-  try {
-    const Ctx = window.AudioContext || window.webkitAudioContext
-    const audioContext = Ctx ? new Ctx() : null
-    if (!audioContext) return
-    const oscillator = audioContext.createOscillator()
-    const gainNode = audioContext.createGain()
-    gainNode.gain.value = volume
-    oscillator.connect(gainNode)
-    gainNode.connect(audioContext.destination)
-    oscillator.frequency.value = soundName.includes('explosion') ? 150 : 440
-    oscillator.type = soundName.includes('explosion') ? 'sawtooth' : 'square'
-    oscillator.start()
-    oscillator.stop(audioContext.currentTime + 0.1)
-  } catch {}
-}
