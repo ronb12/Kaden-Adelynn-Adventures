@@ -1,4 +1,5 @@
 import puppeteer from 'puppeteer'
+const BASE_URL = process.env.BASE_URL || 'http://localhost:4173'
 
 async function testCompleteGameFeatures() {
   console.log('🚀 Starting comprehensive gameplay test...\n')
@@ -35,8 +36,8 @@ async function testCompleteGameFeatures() {
   })
 
   try {
-    console.log('🌐 Step 1: Loading Firebase URL...')
-    await page.goto('https://kaden---adelynn-adventures.web.app', {
+    console.log('🌐 Step 1: Loading URL:', BASE_URL)
+    await page.goto(BASE_URL, {
       waitUntil: 'domcontentloaded',
       timeout: 15000,
     })
@@ -210,7 +211,7 @@ async function testCompleteGameFeatures() {
     // Test 8: Check service worker version
     console.log('🔧 Step 9: Checking service worker...')
     try {
-      const swResponse = await page.goto('https://kaden---adelynn-adventures.web.app/sw.js')
+      const swResponse = await page.goto(BASE_URL + '/sw.js')
       const swContent = await swResponse.text()
 
       if (swContent.includes('kaden-adventures-v3')) {

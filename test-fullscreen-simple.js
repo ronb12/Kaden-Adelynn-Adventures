@@ -1,4 +1,5 @@
 import puppeteer from 'puppeteer'
+const BASE_URL = process.env.BASE_URL || 'http://localhost:4173'
 
 async function testFullscreenGameplay() {
   console.log('🚀 Starting fullscreen gameplay test...')
@@ -17,8 +18,8 @@ async function testFullscreenGameplay() {
   })
 
   try {
-    console.log('🌐 Navigating to Firebase URL...')
-    await page.goto('https://kaden---adelynn-adventures.web.app', {
+    console.log('🌐 Navigating to URL:', BASE_URL)
+    await page.goto(BASE_URL, {
       waitUntil: 'domcontentloaded',
       timeout: 15000,
     })

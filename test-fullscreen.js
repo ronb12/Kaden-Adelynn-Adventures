@@ -1,4 +1,5 @@
 import puppeteer from 'puppeteer'
+const BASE_URL = process.env.BASE_URL || 'http://localhost:4173'
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
 async function testFullscreenGameplay() {
@@ -29,8 +30,8 @@ async function testFullscreenGameplay() {
   })
 
   try {
-    console.log('🌐 Navigating to local server...')
-    await page.goto('https://kaden---adelynn-adventures.web.app', {
+    console.log('🌐 Navigating to:', BASE_URL)
+    await page.goto(BASE_URL, {
       waitUntil: 'domcontentloaded',
       timeout: 30000,
     })
