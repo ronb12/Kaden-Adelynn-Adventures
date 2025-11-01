@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Game from './components/Game'
 import MainMenu from './components/MainMenu'
 import Story from './components/Story'
@@ -9,10 +9,16 @@ import './App.css'
 function App() {
   const [gameState, setGameState] = useState('menu')
   const [gameConfig, setGameConfig] = useState({ difficulty: 'medium', ship: 'kaden', character: 'kaden' })
+  const [playerName, setPlayerName] = useState(() => localStorage.getItem('playerName') || 'Player')
+
+  useEffect(() => {
+    localStorage.setItem('playerName', playerName)
+  }, [playerName])
   const [gameStats, setGameStats] = useState({ score: 0, wave: 1, level: 1, kills: 0, combo: 0 })
   const [paused, setPaused] = useState(false)
 
-  const handleStartGame = (difficulty, ship, character) => {
+  const handleStartGame = (difficulty, ship, character, name) => {
+    if (name) setPlayerName(name)
     setGameConfig({ difficulty, ship, character })
     setGameState('story')
   }
@@ -52,6 +58,7 @@ function App() {
           difficulty={gameConfig.difficulty}
           selectedShip={gameConfig.ship}
           selectedCharacter={gameConfig.character}
+          playerName={playerName}
           isPaused={paused}
         />
       )}

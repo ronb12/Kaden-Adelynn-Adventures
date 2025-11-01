@@ -2,6 +2,24 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- Firebase Hosting auto init (compat) for Firestore without bundling config -->
+    <!-- Load Firebase Hosting init only in production hosting (avoid 404s in Vite dev) -->
+    <script>
+      (function(){
+        var host = location.hostname;
+        var onHosting = /web\.app$/.test(host) || /firebaseapp\.com$/.test(host);
+        if (!onHosting) return; // skip in local dev
+        var a = document.createElement('script');
+        a.src = '/__/firebase/10.12.2/firebase-app-compat.js';
+        document.head.appendChild(a);
+        var b = document.createElement('script');
+        b.src = '/__/firebase/10.12.2/firebase-firestore-compat.js';
+        document.head.appendChild(b);
+        var c = document.createElement('script');
+        c.src = '/__/firebase/init.js';
+        document.head.appendChild(c);
+      })();
+    </script>
     <link rel="icon" type="image/png" href="/icon-512.png" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />

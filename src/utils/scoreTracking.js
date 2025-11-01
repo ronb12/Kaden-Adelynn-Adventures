@@ -1,8 +1,11 @@
-// Score tracking system with localStorage
+// Score tracking system with localStorage + optional Firestore via Hosting init
+import { saveCloudScore, fetchTopScores, cloudAvailable } from './cloudScores'
 
 const STORAGE_KEY = 'kadenAdelynnScores'
 
 export const saveScore = (score, playerName = 'Player') => {
+  // Try cloud first (fire-and-forget)
+  cloudAvailable().then((ok) => { if (ok) saveCloudScore(score, playerName) })
   const scores = getHighScores()
   const newScore = {
     score: score,
@@ -27,6 +30,17 @@ export const getHighScores = () => {
   } catch (e) {
     return []
   }
+}
+
+export const getMergedTopScores = async () => {
+  const local = getHighScores()
+  const cloud = await fetchTopScores(10)
+  const merged = [...local]
+  cloud.forEach(c => {
+    merged.push({ score: c.score || 0, player: c.player || 'Player', date: c.createdAt?.toDate?.()?.toISOString?.() || '', timestamp: 0 })
+  })
+  merged.sort((a,b)=> (b.score||0)-(a.score||0))
+  return merged.slice(0,10)
 }
 
 export const clearScores = () => {

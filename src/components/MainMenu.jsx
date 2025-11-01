@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { getCoins, spendCoins, addCoins, getOwned, ownItem } from '../utils/wallet'
+import { getHighScores, getMergedTopScores } from '../utils/scoreTracking'
 import { playMenuMusic, stopMusic } from '../utils/music'
 import './MainMenu.css'
 
@@ -11,6 +12,8 @@ function MainMenu({ onStartGame }) {
   const [showStore, setShowStore] = useState(false)
   const [showShips, setShowShips] = useState(false)
   const [showCharacters, setShowCharacters] = useState(false)
+  const [showScores, setShowScores] = useState(false)
+  const [playerName, setPlayerName] = useState(() => localStorage.getItem('playerName') || 'Player')
   const [coins, setCoins] = useState(() => getCoins())
   const [toast, setToast] = useState('')
   const [ownedShips, setOwnedShips] = useState(() => getOwned('ownedShips'))
@@ -43,7 +46,8 @@ function MainMenu({ onStartGame }) {
 
   const handleStart = () => {
     stopMusic()
-    onStartGame(selectedDifficulty, selectedShip, selectedCharacter)
+    localStorage.setItem('playerName', playerName)
+    onStartGame(selectedDifficulty, selectedShip, selectedCharacter, playerName)
   }
 
   const handleFullscreen = (e) => {
@@ -186,6 +190,7 @@ function MainMenu({ onStartGame }) {
           </button>
           <button className="settings-button" onClick={() => setShowShips(true)}>🚀 Choose Ship</button>
           <button className="settings-button" onClick={() => setShowCharacters(true)}>🧑‍🚀 Choose Character</button>
+          <button className="settings-button" onClick={() => setShowScores(true)}>🏆 Top Scores</button>
         </div>
 
         <div className="menu-section">
@@ -293,6 +298,19 @@ function MainMenu({ onStartGame }) {
           </div>
         )}
 
+        {/* Player name input */}
+        <div className="menu-section">
+          <h3>Player</h3>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
+            <input 
+              value={playerName}
+              onChange={(e) => { setPlayerName(e.target.value); try { localStorage.setItem('playerName', e.target.value) } catch(_) {} }}
+              placeholder="Enter name"
+              style={{ padding: '10px 12px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)', color: '#fff', width: 220 }}
+            />
+          </div>
+        </div>
+
         {showCharacters && (
           <div
             role="dialog"
@@ -346,6 +364,45 @@ function MainMenu({ onStartGame }) {
                     </button>
                   )
                 })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showScores && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
+            onClick={() => setShowScores(false)}
+          >
+            <div className="glass" style={{ background: 'rgba(10,14,39,0.9)', borderRadius: '12px', padding: '20px', width: 'min(700px, 92vw)', maxHeight: '80vh', overflow: 'auto', boxShadow: '0 10px 30px rgba(0,0,0,0.4)' }} onClick={(e) => e.stopPropagation()}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: 0 }}>🏆 Top Scores</h3>
+                <button className="settings-button" onClick={() => setShowScores(false)}>Close</button>
+              </div>
+              <div style={{ marginTop: 12 }}>
+                {(getHighScores()).map((s, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                    <div style={{ color: '#ffd700' }}>{String(i+1).padStart(2,'0')}.</div>
+                    <div style={{ flex: 1, marginLeft: 10, color: '#fff' }}>{s.player || 'Player'}</div>
+                    <div style={{ color: '#4ecdc4', fontWeight: 700 }}>{String(s.score).padStart(8,'0')}</div>
+                  </div>
+                ))}
+                {getHighScores().length === 0 && (
+                  <div style={{ color: '#95a5a6' }}>No scores yet. Play a game to set a record!</div>
+                )}
+                <div style={{ marginTop: 10 }}>
+                  <button className="settings-button small" onClick={async ()=>{
+                    const list = await getMergedTopScores()
+                    const wrap = document.createElement('div')
+                    wrap.innerHTML = list.map((s,i)=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.08)"><div style="color:#ffd700">${String(i+1).padStart(2,'0')}.</div><div style="flex:1;margin-left:10px;color:#fff">${s.player||'Player'}</div><div style="color:#4ecdc4;font-weight:700">${String(s.score).padStart(8,'0')}</div></div>`).join('')
+                    const container = event.currentTarget.parentElement.parentElement
+                    container.querySelectorAll('.dynamic-scores').forEach(n=>n.remove())
+                    wrap.className='dynamic-scores'
+                    container.appendChild(wrap)
+                  }}>Refresh from Cloud</button>
+                </div>
               </div>
             </div>
           </div>

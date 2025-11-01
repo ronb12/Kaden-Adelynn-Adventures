@@ -6,10 +6,10 @@ import { achievements, checkAchievement } from '../utils/achievements'
 import { bossTypes, spawnBoss, updateBossPattern, loadBossImages, getBossImage } from '../utils/bosses'
 import { enemyVarieties, spawnEnemy, updateEnemyMovement } from '../utils/enemyTypes'
 import { sounds, playSound } from '../utils/sounds'
-import { getPersonalBest } from '../utils/scoreTracking'
+import { getPersonalBest, saveScore } from '../utils/scoreTracking'
 import { playGameplayMusic, playBossMusic, stopMusic } from '../utils/music'
 
-function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter, isPaused }) {
+function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter, playerName, isPaused }) {
   const canvasRef = useRef(null)
   const gameLoopRef = useRef(null)
   const [score, setScore] = useState(0)
@@ -50,6 +50,7 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
     wingFighters: [],
     boss: null,
     isBossFight: false,
+    bossShootTimer: 0,
     gameMode: 'classic',  // classic, arcade, survival, bossRush
     wave: 1,
     level: 1,
@@ -314,15 +315,7 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
     
     // Save score when game ends
     if (lives <= 0 && score > 0) {
-      try {
-        import('../utils/scoreTracking').then(module => {
-          module.saveScore(score)
-        }).catch(error => {
-          console.error('Failed to save score:', error)
-        })
-      } catch (error) {
-        console.error('Failed to import score tracking:', error)
-      }
+      try { saveScore(score, playerName || 'Player') } catch (_) {}
     }
 
     setTimePlayed(t => t + 1)
@@ -591,10 +584,10 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
       const patternsMore = ['normal', 'zigzag', 'sway', 'dash']
       const pool = state.wave < 3 ? patternsEarly : patternsMore
       const pattern = pool[Math.floor(Math.random() * pool.length)]
-      // Increase silver spawn chance and guarantee one periodically after wave 2
+      // Mix silver with red from the start; slightly higher chance as waves progress
       const baseSilverChance = state.wave >= 4 ? 0.4 : 0.25
-      const periodicSilver = state.wave >= 2 && state.enemiesSpawned > 0 && state.enemiesSpawned % 10 === 0
-      const isSilver = periodicSilver || (Math.random() < baseSilverChance && state.wave >= 2)
+      const periodicSilver = state.enemiesSpawned > 0 && state.enemiesSpawned % 10 === 0
+      const isSilver = periodicSilver || (Math.random() < baseSilverChance)
       const enemy = {
         x: Math.random() * (canvas.width - 30) + 15,
         y: -30,
@@ -917,58 +910,57 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
         state.enemyBullets.splice(index, 1)
       })
     }
-  }
-
-  // Missiles-asteroid collisions
-  if (state.missiles && state.missiles.length > 0 && state.asteroids.length > 0) {
-    const missilesToRemove2 = []
-    const astToRemove2 = []
-    for (let mi = 0; mi < state.missiles.length; mi++) {
-      const m = state.missiles[mi]
-      for (let a = 0; a < state.asteroids.length; a++) {
-        const ast = state.asteroids[a]
-        const r = Math.max(10, ast.size)
-        const dx = (ast.x) - m.x
-        const dy = (ast.y) - m.y
-        if (dx*dx + dy*dy <= (r+6)*(r+6)) {
-          missilesToRemove2.push(mi)
-          ast.health = ((typeof ast.health === 'number') ? ast.health : 2) - 2
-          state.particles.push(...ParticleSystem.createExplosion(ast.x, ast.y, '#ff8c00', 20))
-          if (ast.health <= 0) astToRemove2.push(a)
-          break
+    // Missiles-asteroid collisions
+    if (state.missiles && state.missiles.length > 0 && state.asteroids.length > 0) {
+      const missilesToRemove2 = []
+      const astToRemove2 = []
+      for (let mi = 0; mi < state.missiles.length; mi++) {
+        const m = state.missiles[mi]
+        for (let a = 0; a < state.asteroids.length; a++) {
+          const ast = state.asteroids[a]
+          const r = Math.max(10, ast.size)
+          const dx = (ast.x) - m.x
+          const dy = (ast.y) - m.y
+          if (dx*dx + dy*dy <= (r+6)*(r+6)) {
+            missilesToRemove2.push(mi)
+            ast.health = ((typeof ast.health === 'number') ? ast.health : 2) - 2
+            state.particles.push(...ParticleSystem.createExplosion(ast.x, ast.y, '#ff8c00', 20))
+            if (ast.health <= 0) astToRemove2.push(a)
+            break
+          }
         }
       }
+      missilesToRemove2.sort((a,b)=>b-a).forEach(i=>state.missiles.splice(i,1))
+      astToRemove2.sort((a,b)=>b-a).forEach(i=>state.asteroids.splice(i,1))
     }
-    missilesToRemove2.sort((a,b)=>b-a).forEach(i=>state.missiles.splice(i,1))
-    astToRemove2.sort((a,b)=>b-a).forEach(i=>state.asteroids.splice(i,1))
-  }
 
-  // Plasma beams-asteroid collisions
-  if (state.plasmaBeams && state.plasmaBeams.length > 0 && state.asteroids.length > 0) {
-    const astToRemove3 = []
-    for (let bi = 0; bi < state.plasmaBeams.length; bi++) {
-      const beam = state.plasmaBeams[bi]
-      const bx = beam.x
-      const by = beam.y
-      const bw = beam.width || 8
-      const bh = beam.height || 15
-      for (let a = 0; a < state.asteroids.length; a++) {
-        const ast = state.asteroids[a]
-        const r = Math.max(10, ast.size)
-        const cx = ast.x
-        const cy = ast.y
-        const closestX = Math.max(bx, Math.min(cx, bx + bw))
-        const closestY = Math.max(by, Math.min(cy, by + bh))
-        const dx = cx - closestX
-        const dy = cy - closestY
-        if (dx*dx + dy*dy <= r*r) {
-          ast.health = ((typeof ast.health === 'number') ? ast.health : 2) - 1
-          state.particles.push(...ParticleSystem.createExplosion(cx, cy, '#00ffff', 10))
-          if (ast.health <= 0) astToRemove3.push(a)
+    // Plasma beams-asteroid collisions
+    if (state.plasmaBeams && state.plasmaBeams.length > 0 && state.asteroids.length > 0) {
+      const astToRemove3 = []
+      for (let bi = 0; bi < state.plasmaBeams.length; bi++) {
+        const beam = state.plasmaBeams[bi]
+        const bx = beam.x
+        const by = beam.y
+        const bw = beam.width || 8
+        const bh = beam.height || 15
+        for (let a = 0; a < state.asteroids.length; a++) {
+          const ast = state.asteroids[a]
+          const r = Math.max(10, ast.size)
+          const cx = ast.x
+          const cy = ast.y
+          const closestX = Math.max(bx, Math.min(cx, bx + bw))
+          const closestY = Math.max(by, Math.min(cy, by + bh))
+          const dx = cx - closestX
+          const dy = cy - closestY
+          if (dx*dx + dy*dy <= r*r) {
+            ast.health = ((typeof ast.health === 'number') ? ast.health : 2) - 1
+            state.particles.push(...ParticleSystem.createExplosion(cx, cy, '#00ffff', 10))
+            if (ast.health <= 0) astToRemove3.push(a)
+          }
         }
       }
+      astToRemove3.sort((a,b)=>b-a).forEach(i=>state.asteroids.splice(i,1))
     }
-    astToRemove3.sort((a,b)=>b-a).forEach(i=>state.asteroids.splice(i,1))
   }
 
   // Draw functions - removed duplicate
@@ -1363,6 +1355,28 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
   const updateBoss = (state) => {
     if (state.boss) {
       const time = Date.now()
+      // Movement: oscillate and bounce horizontally
+      const canvas = canvasRef.current
+      if (canvas) {
+        state.boss.x += Math.sin(time / 500) * 1.5
+        if (state.boss.x < 80) state.boss.x = 80
+        if (state.boss.x > canvas.width - 80) state.boss.x = canvas.width - 80
+      }
+      // Shooting: aimed bursts toward player
+      state.bossShootTimer = (state.bossShootTimer || 0) + 1
+      if (state.bossShootTimer % 40 === 0) {
+        const px = state.player.x + state.player.width / 2
+        const py = state.player.y + state.player.height / 2
+        for (let i = -1; i <= 1; i++) {
+          const dx = px - state.boss.x + i * 20
+          const dy = py - state.boss.y
+          const len = Math.max(0.001, Math.hypot(dx, dy))
+          const vx = (dx / len) * 3
+          const vy = (dy / len) * 3
+          state.enemyBullets.push({ x: state.boss.x, y: state.boss.y, vx, vy, speed: 0, owner: 'enemy', width: 4, height: 4 })
+        }
+      }
+      // Advance any pattern specifics
       state.boss = updateBossPattern(state.boss, time, canvasRef.current)
       // switch to boss music at start of fight
       if (!state._bossMusicPlayed) {
@@ -1653,105 +1667,117 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
   }
 
   const drawUI = (ctx, state) => {
-    // Professional scoreboard background
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const cw = canvas.width
+    const isMobile = cw < 520
+    const barH = isMobile ? 76 : 56
+    // Horizontal bar background
     ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
-    ctx.fillRect(0, 0, 200, 340)
-    
-    // Top border with gradient
-    const bgGradient = ctx.createLinearGradient(0, 0, 200, 0)
+    ctx.fillRect(0, 0, cw, barH)
+    const bgGradient = ctx.createLinearGradient(0, 0, cw, 0)
     bgGradient.addColorStop(0, 'rgba(102, 126, 234, 0.5)')
     bgGradient.addColorStop(1, 'rgba(118, 75, 162, 0.5)')
     ctx.fillStyle = bgGradient
-    ctx.fillRect(0, 0, 200, 4)
-    
-    // Score with glow effect
+    ctx.fillRect(0, 0, cw, 3)
+
+    // Layout left-to-right
+    let x = 10
+    let y = isMobile ? 22 : 22
+    const row2Y = isMobile ? 44 : 22 // only used when wrapping on mobile
+    const pad = isMobile ? 12 : 18
+    const rightReserve = isMobile ? 120 : 180
+
+    const place = (text, setStyle) => {
+      if (setStyle) setStyle()
+      const w = ctx.measureText(text).width
+      if (isMobile && x + w > cw - rightReserve) {
+        x = 10
+        y = row2Y
+      }
+      ctx.fillText(text, x, y)
+      x += w + pad
+    }
+
+    // SCORE label
     ctx.shadowBlur = 10
     ctx.shadowColor = '#4ecdc4'
     ctx.fillStyle = '#4ecdc4'
-    ctx.font = 'bold 20px Arial'
-    ctx.fillText(`SCORE`, 10, 25)
+    ctx.font = isMobile ? 'bold 14px Arial' : 'bold 18px Arial'
+    place('SCORE')
     ctx.shadowBlur = 0
-    
-    ctx.font = 'bold 18px Arial'
+
+    // Score value
+    ctx.font = isMobile ? 'bold 14px Arial' : 'bold 18px Arial'
     ctx.fillStyle = '#fff'
     const currentScore = state.currentScore || score
     const scoreText = currentScore.toString().padStart(8, '0')
-    ctx.fillText(scoreText, 10, 50)
-    
-    // Lives indicator
+    place(scoreText)
+
+    // Lives
     ctx.fillStyle = '#ff6b6b'
-    ctx.font = 'bold 16px Arial'
-    ctx.fillText('❤️ × ' + lives, 10, 75)
-    
-    // High score
-    ctx.font = '12px Arial'
+    ctx.font = isMobile ? 'bold 13px Arial' : 'bold 16px Arial'
+    const livesText = `❤️ × ${lives}`
+    place(livesText)
+
+    // Best
+    ctx.font = isMobile ? '11px Arial' : '12px Arial'
     ctx.fillStyle = '#ffff00'
-    ctx.fillText(`BEST: ${getPersonalBest().toString().padStart(8, '0')}`, 10, 95)
-    
-    // Health bar (moved below high score to prevent overlap)
+    const bestText = `BEST: ${getPersonalBest().toString().padStart(8, '0')}`
+    place(bestText)
+
+    // Health bar inline
+    const hbW = isMobile ? 90 : 120
+    const hbH = isMobile ? 6 : 8
+    const hbY = y - hbH + 4
     ctx.fillStyle = 'rgba(255, 255, 255, 0.3)'
-    ctx.fillRect(10, 110, 100, 8)
-    const healthPercent = health / 100
+    ctx.fillRect(x, hbY, hbW, hbH)
+    const healthPercent = Math.max(0, Math.min(1, health / 100))
     ctx.fillStyle = healthPercent > 0.5 ? '#2ecc71' : healthPercent > 0.25 ? '#f39c12' : '#e74c3c'
-    ctx.fillRect(10, 110, 100 * healthPercent, 8)
+    ctx.fillRect(x, hbY, hbW * healthPercent, hbH)
     ctx.strokeStyle = '#fff'
     ctx.lineWidth = 1
-    ctx.strokeRect(10, 110, 100, 8)
-    
-    // Status section
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
-    ctx.fillRect(0, 130, 200, 1)
-    
-    // Wave and Level
-    ctx.font = '14px Arial'
+    ctx.strokeRect(x, hbY, hbW, hbH)
+    x += hbW + pad
+
+    // Wave | Level
+    ctx.font = isMobile ? '12px Arial' : '14px Arial'
     ctx.fillStyle = '#ffd700'
-    ctx.fillText(`Wave: ${wave} | Level: ${level}`, 10, 150)
-    
-    // Combo with animation
+    const wl = `Wave: ${wave} | Level: ${level}`
+    place(wl)
+
+    // Combo (pulsing)
     if (combo > 0) {
       const pulse = Math.sin(Date.now() / 100) * 0.3 + 0.7
       ctx.fillStyle = `rgba(255, 215, 0, ${pulse})`
-      ctx.font = 'bold 16px Arial'
-      ctx.fillText(`⚡ COMBO × ${combo}`, 10, 175)
+      ctx.font = isMobile ? 'bold 12px Arial' : 'bold 14px Arial'
+      const comboText = `⚡ COMBO × ${combo}`
+      place(comboText)
     }
-    
+
     // Kills and Coins
     ctx.fillStyle = '#95a5a6'
-    ctx.font = '12px Arial'
-    ctx.fillText(`Kills: ${state.currentKills || 0}`, 10, 200)
-    ctx.fillText(`💰 ${state.coins}`, 110, 200)
-    
+    ctx.font = isMobile ? '11px Arial' : '12px Arial'
+    const killsText = `Kills: ${state.currentKills || 0}`
+    place(killsText)
+    const coinsText = `💰 ${state.coins}`
+    place(coinsText)
+
     // Current weapon
     ctx.fillStyle = '#4ecdc4'
-    ctx.font = 'bold 11px Arial'
-    ctx.fillText(`⚔️ ${state.currentWeapon.toUpperCase()}`, 10, 225)
-    
-    // Power-up indicators with icons
-    let yPos = 240
-    if (state.shield) {
-      ctx.fillStyle = '#00ffff'
-      ctx.font = '14px Arial'
-      ctx.fillText('🛡️ Shield Active', 10, yPos)
-      yPos += 18
-    }
-    if (state.rapidFire) {
-      ctx.fillStyle = '#ff6b6b'
-      ctx.font = '14px Arial'
-      ctx.fillText('⚡ Rapid Fire', 10, yPos)
-      yPos += 18
-    }
-    if (state.slowMotion) {
-      ctx.fillStyle = '#9b59b6'
-      ctx.font = '14px Arial'
-      ctx.fillText('⏰ Slow Motion', 10, yPos)
-      yPos += 18
-    }
-    if (state.coinDoubler) {
-      ctx.fillStyle = '#2ecc71'
-      ctx.font = '14px Arial'
-      ctx.fillText('💰 Score Doubler', 10, yPos)
-      yPos += 18
-    }
+    ctx.font = isMobile ? 'bold 11px Arial' : 'bold 12px Arial'
+    const weaponText = `⚔️ ${state.currentWeapon.toUpperCase()}`
+    place(weaponText)
+
+    // Power-up badges (right side)
+    let rx = cw - 10
+    ctx.textAlign = 'right'
+    ctx.font = isMobile ? '11px Arial' : '12px Arial'
+    if (state.coinDoubler) { ctx.fillStyle = '#2ecc71'; ctx.fillText('💰 Doubler', rx, midY + 14); rx -= 90 }
+    if (state.slowMotion) { ctx.fillStyle = '#9b59b6'; ctx.fillText('⏰ Slow', rx, midY + 14); rx -= 70 }
+    if (state.rapidFire) { ctx.fillStyle = '#ff6b6b'; ctx.fillText('⚡ Rapid', rx, midY + 14); rx -= 70 }
+    if (state.shield) { ctx.fillStyle = '#00ffff'; ctx.fillText('🛡️ Shield', rx, midY + 14) }
+    ctx.textAlign = 'left'
   }
 
   return (
