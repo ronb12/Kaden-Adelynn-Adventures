@@ -21,7 +21,7 @@ export const sounds = {
   shield: { name: 'shield-up', volume: 0.4 },
 }
 
-// Prefer OGG then MP3
+// Prefer codec supported by the browser (OGG/MP3)
 const audioCache = {}
 const soundFiles = {
   'laser-shoot': ['/sfx/laser.ogg', '/sfx/laser.mp3'],
@@ -36,10 +36,30 @@ const soundFiles = {
   'shield-up': ['/sfx/shield.ogg', '/sfx/shield.mp3'],
 }
 
+function pickSupportedSource(sources) {
+  try {
+    const testAudio = document.createElement('audio')
+    const oggOk = !!testAudio.canPlayType && testAudio.canPlayType('audio/ogg; codecs="vorbis"')
+    const mp3Ok = !!testAudio.canPlayType && testAudio.canPlayType('audio/mpeg')
+    // Prefer OGG if supported, else MP3
+    if (Array.isArray(sources)) {
+      const ogg = sources.find((s) => s.endsWith('.ogg'))
+      const mp3 = sources.find((s) => s.endsWith('.mp3'))
+      if (ogg && oggOk) return ogg
+      if (mp3 && mp3Ok) return mp3
+      // Fallback to first provided
+      return sources[0]
+    }
+    return sources
+  } catch {
+    return Array.isArray(sources) ? sources[0] : sources
+  }
+}
+
 export const playSound = (soundName, volume = 0.5) => {
   try {
     const sources = soundFiles[soundName] || soundFiles[sounds[soundName]?.name]
-    const file = Array.isArray(sources) ? sources.find(Boolean) : sources
+    const file = pickSupportedSource(sources)
     if (file) {
       if (!audioCache[file]) {
         const a = new Audio(file)
