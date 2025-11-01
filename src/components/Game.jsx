@@ -28,6 +28,7 @@ function Game({
   const gameLoopRef = useRef(null)
   const [score, setScore] = useState(0)
   const [lives, setLives] = useState(25)
+  const livesRef = useRef(25)
   const [health, setHealth] = useState(100)
   const healthRef = useRef(100)
   const [combo, setCombo] = useState(0)
@@ -98,6 +99,11 @@ function Game({
   useEffect(() => {
     healthRef.current = health
   }, [health])
+
+  // Keep lives ref in sync for canvas UI
+  useEffect(() => {
+    livesRef.current = lives
+  }, [lives])
 
   useEffect(() => {
     // Gamepad support
@@ -2208,7 +2214,7 @@ function Game({
     // Lives
     ctx.fillStyle = '#ff6b6b'
     ctx.font = isMobile ? 'bold 13px Arial' : 'bold 16px Arial'
-    const livesText = `❤️ × ${lives}`
+    const livesText = `❤️ × ${livesRef.current}`
     place(livesText)
 
     // Best
