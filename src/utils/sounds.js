@@ -72,11 +72,33 @@ export const playSound = (soundName, volume = 0.5) => {
       if (soundName.includes('laser') || soundName.includes('shoot')) volume = Math.min(volume, 0.3)
       if (soundName.includes('boss')) volume = Math.min(volume, 0.5)
       audio.volume = volume
-      audio.play().catch(() => {})
+
+      let played = false
+      const onPlaying = () => {
+        played = true
+        audio.removeEventListener('playing', onPlaying)
+      }
+      audio.addEventListener('playing', onPlaying, { once: true })
+
+      // Fallback timer: if not playing shortly, use beep fallback
+      setTimeout(() => {
+        if (!played) {
+          try { audio.pause() } catch {}
+          playBeepFallback(soundName, volume)
+        }
+      }, 600)
+
+      audio.play().catch(() => {
+        playBeepFallback(soundName, volume)
+      })
       return
     }
   } catch {}
   // Fallback beep if assets unavailable
+  playBeepFallback(soundName, volume)
+}
+
+function playBeepFallback(soundName, volume) {
   try {
     const Ctx = window.AudioContext || window.webkitAudioContext
     const audioContext = Ctx ? new Ctx() : null
