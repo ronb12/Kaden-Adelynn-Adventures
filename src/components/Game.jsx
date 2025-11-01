@@ -591,13 +591,17 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
       const patternsMore = ['normal', 'zigzag', 'sway', 'dash']
       const pool = state.wave < 3 ? patternsEarly : patternsMore
       const pattern = pool[Math.floor(Math.random() * pool.length)]
+      // Increase silver spawn chance and guarantee one periodically after wave 2
+      const baseSilverChance = state.wave >= 4 ? 0.4 : 0.25
+      const periodicSilver = state.wave >= 2 && state.enemiesSpawned > 0 && state.enemiesSpawned % 10 === 0
+      const isSilver = periodicSilver || (Math.random() < baseSilverChance && state.wave >= 2)
       const enemy = {
         x: Math.random() * (canvas.width - 30) + 15,
         y: -30,
-        speed: difficultyModifier() * (state.wave < 3 ? 1.0 : 1.3),
+        speed: difficultyModifier() * (isSilver ? 0.95 : (state.wave < 3 ? 1.0 : 1.3)),
         pattern,
-        health: state.wave < 3 ? 1 : 2,
-        type: 'shooter' // All enemies can shoot
+        health: isSilver ? 4 : (state.wave < 3 ? 1 : 2),
+        type: isSilver ? 'silver' : 'red'
       }
       state.enemies.push(enemy)
       state.lastEnemySpawn = now
@@ -669,8 +673,15 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
             }
           }
           
-          enemiesToRemove.push(j)
-          bulletsToRemove.push(i)
+          // Apply damage; tougher enemies survive
+          const dmg = Math.max(1, Math.round(state.damageMul || 1))
+          enemy.health = (typeof enemy.health === 'number' ? enemy.health : 1) - dmg
+          // Remove bullet unless piercing
+          if (!bullet.pierce) bulletsToRemove.push(i)
+          if (enemy.health <= 0) {
+            enemiesToRemove.push(j)
+            state.particles.push(...ParticleSystem.createExplosion(enemy.x + 15, enemy.y + 15, '#ff6666', 12))
+          }
           break
         }
       }
@@ -1067,12 +1078,23 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
   const drawEnemies = (ctx, state) => {
     state.enemies.forEach(enemy => {
       ctx.save()
-      
-      // Simple red triangle enemies
-      ctx.fillStyle = '#ff0000' // Bright red
-      ctx.strokeStyle = '#cc0000' // Darker red outline
-      ctx.lineWidth = 2
-      
+      const isSilver = enemy.type === 'silver'
+      if (isSilver) {
+        // Silver enemy: metallic gradient triangle
+        const grad = ctx.createLinearGradient(enemy.x, enemy.y, enemy.x + 30, enemy.y + 30)
+        grad.addColorStop(0, '#c0c0c0')
+        grad.addColorStop(0.5, '#8f8f8f')
+        grad.addColorStop(1, '#e0e0e0')
+        ctx.fillStyle = grad
+        ctx.strokeStyle = '#9e9e9e'
+        ctx.lineWidth = 2.5
+      } else {
+        // Red enemy
+        ctx.fillStyle = '#ff0000'
+        ctx.strokeStyle = '#cc0000'
+        ctx.lineWidth = 2
+      }
+
       // Draw triangle pointing down
       ctx.beginPath()
       ctx.moveTo(enemy.x + 15, enemy.y) // Top point
@@ -1081,13 +1103,13 @@ function Game({ onPause, onGameOver, difficulty, selectedShip, selectedCharacter
       ctx.closePath()
       ctx.fill()
       ctx.stroke()
-      
-      // Add a small cockpit detail
-      ctx.fillStyle = '#ff6666'
+
+      // Cockpit detail
+      ctx.fillStyle = isSilver ? '#d5d5d5' : '#ff6666'
       ctx.beginPath()
       ctx.arc(enemy.x + 15, enemy.y + 8, 3, 0, Math.PI * 2)
       ctx.fill()
-      
+
       ctx.restore()
     })
   }
