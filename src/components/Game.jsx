@@ -1233,18 +1233,23 @@ function Game({
           state.enemies.splice(index, 1)
         })
 
-      // Check enemy bullet collisions with player
+      // Check enemy bullet collisions with player (bullets are drawn centered)
       const bulletsToRemove = []
       for (let i = 0; i < state.enemyBullets.length; i++) {
         const bullet = state.enemyBullets[i]
+        const r = (bullet.width || bullet.height || 5)
+        const bx = (bullet.x || 0) - r
+        const by = (bullet.y || 0) - r
+        const bw = r * 2
+        const bh = r * 2
         if (
-          bullet.x < state.player.x + state.player.width &&
-          bullet.x + 5 > state.player.x &&
-          bullet.y < state.player.y + state.player.height &&
-          bullet.y + 5 > state.player.y
+          bx < state.player.x + state.player.width &&
+          bx + bw > state.player.x &&
+          by < state.player.y + state.player.height &&
+          by + bh > state.player.y
         ) {
           setHealth((h) => {
-            const newHealth = h - 20
+            const newHealth = h - 8
             if (newHealth <= 0) {
               setLives((l) => l - 1)
               state.invulnerable = true
