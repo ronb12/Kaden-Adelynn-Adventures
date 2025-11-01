@@ -2129,19 +2129,14 @@ function Game({
     const bestText = `BEST: ${getPersonalBest().toString().padStart(8, '0')}`
     place(bestText)
 
-    // Health bar inline
-    const hbW = isMobile ? 90 : 120
-    const hbH = isMobile ? 6 : 8
-    const hbY = y - hbH + 4
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)'
-    ctx.fillRect(x, hbY, hbW, hbH)
-    const healthPercent = Math.max(0, Math.min(1, health / 100))
-    ctx.fillStyle = healthPercent > 0.5 ? '#2ecc71' : healthPercent > 0.25 ? '#f39c12' : '#e74c3c'
-    ctx.fillRect(x, hbY, hbW * healthPercent, hbH)
-    ctx.strokeStyle = '#fff'
-    ctx.lineWidth = 1
-    ctx.strokeRect(x, hbY, hbW, hbH)
-    x += hbW + pad
+    // Health percentage inline instead of bar
+    const healthText = `HEALTH: ${Math.round(Math.max(0, Math.min(100, health)))}%`
+    ctx.fillStyle = '#2ecc71'
+    if (health <= 50) ctx.fillStyle = '#f39c12'
+    if (health <= 25) ctx.fillStyle = '#e74c3c'
+    const hw = ctx.measureText(healthText).width
+    ctx.fillText(healthText, x, y)
+    x += hw + pad
 
     // Wave | Level
     ctx.font = isMobile ? '12px Arial' : '14px Arial'
