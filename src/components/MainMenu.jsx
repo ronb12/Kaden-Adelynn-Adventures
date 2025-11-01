@@ -834,7 +834,7 @@ function MainMenu({ onStartGame }) {
           pointerEvents: 'none'
         }}
       >
-        This product is a project of Bradley Virtual Solutions, LLC.
+        This is a Product of Bradley Virtual Solutions, LLC.
       </div>
 
       {toast && (
