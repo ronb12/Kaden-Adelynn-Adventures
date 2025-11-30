@@ -22,6 +22,14 @@ Ensure you’re logged into Firebase CLI, then:
 firebase deploy --only hosting
 ```
 
+### GitHub Actions auto-deploy
+A workflow at `.github/workflows/firebase-hosting.yml` builds the project and deploys to Firebase Hosting whenever `main` is updated (or when triggered manually). To enable it:
+
+1. Generate a CI token with `firebase login:ci`.
+2. Add the token to the repo secrets as `FIREBASE_TOKEN`.
+
+The workflow installs the Rollup native optional dependency that Vite expects, runs `npm run build`, and then executes `firebase deploy --only hosting --project kaden---adelynn-adventures`.
+
 ## Structure
 - `src/components/Game.jsx` — game loop, rendering, collisions, HUD
 - `src/components/MainMenu.jsx` — menu, upgrades, daily challenge
