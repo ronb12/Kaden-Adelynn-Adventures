@@ -39,6 +39,10 @@ function MainMenu({ onStartGame }) {
   const [cloudScores, setCloudScores] = useState([])
   const [cloudError, setCloudError] = useState('')
   const [loadingCloudScores, setLoadingCloudScores] = useState(false)
+  const [bestScore, setBestScore] = useState(() => {
+    const currentScores = getHighScores()
+    return currentScores[0]?.score || 0
+  })
   const [dailyBonusReady, setDailyBonusReady] = useState(() => {
     try {
       const today = new Date().toISOString().slice(0, 10)
@@ -93,6 +97,10 @@ function MainMenu({ onStartGame }) {
       setLocalScores(getHighScores())
     }
   }, [showScores])
+
+  useEffect(() => {
+    setBestScore(localScores[0]?.score || 0)
+  }, [localScores])
 
   useEffect(() => {
     // Start menu music
@@ -338,103 +346,229 @@ function MainMenu({ onStartGame }) {
   return (
     <div className="main-menu">
       <div className="menu-container glass">
-        <h1 className="game-title">
-          🌟 Kaden & Adelynn
-          <br />
-          🌌 Space Adventures 🌌
-        </h1>
-        <div className="menu-topbar">
-          <p className="game-subtitle">Epic Space Shooter</p>
-          <div className="wallet">
-            <span className="coin-badge">💰 {coins}</span>
-            <button
-              className="settings-button small"
-              onClick={claimDailyBonus}
-              disabled={!dailyBonusReady}
-              title={dailyBonusReady ? 'Redeem your daily 200-coin stipend' : 'Come back tomorrow for more coins'}
-            >
-              {dailyBonusReady ? 'Claim Daily +200' : 'Bonus claimed'}
-            </button>
-          </div>
-        </div>
-
-        <div className="button-row centered">
-          <button className="settings-button" onClick={() => setShowStore((s) => !s)}>
-            {showStore ? 'Close Store' : '🛒 Open Store'}
-          </button>
-          <button className="settings-button" onClick={() => setShowShips(true)}>
-            🚀 Choose Ship
-          </button>
-          <button className="settings-button" onClick={() => setShowCharacters(true)}>
-            🧑‍🚀 Choose Character
-          </button>
-          <button className="settings-button" onClick={() => setShowScores(true)}>
-            🏆 Top Scores
-          </button>
-        </div>
-
-        <div className="menu-section">
-          <h3>🗓️ Daily Challenge</h3>
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <div className="glass" style={{ padding: '8px 12px', borderRadius: 10 }}>
-              Active: <strong>{challengeLabel}</strong>
+        <div className="menu-hero">
+          <div className="hero-copy">
+            <p className="eyebrow">Bradley Virtual Solutions</p>
+            <h1 className="game-title">Kaden & Adelynn</h1>
+            <p className="hero-subtitle">
+              Lead fearless pilots through cascading boss fights, roguelite waves, and a constantly evolving arsenal.
+            </p>
+            <div className="hero-stats">
+              <div className="stat-pill">
+                <span>Best Score</span>
+                <strong>{String(bestScore || 0).padStart(8, '0')}</strong>
+              </div>
+              <div className="stat-pill">
+                <span>Unlocked Ships</span>
+                <strong>{ownedShips.length}</strong>
+              </div>
+              <div className="stat-pill">
+                <span>Daily Challenge</span>
+                <strong>{challengeLabel}</strong>
+              </div>
             </div>
-            <button
-              className="settings-button small"
-              onClick={() => {
-                const next = (challengeIdx + 1) % 3
-                localStorage.setItem('challengeOverride', String(next))
-                setToast('Daily Challenge cycled')
-                setTimeout(() => setToast(''), 1200)
-              }}
-            >
-              Cycle
-            </button>
-            <button
-              className="settings-button small"
-              onClick={() => {
-                localStorage.removeItem('challengeOverride')
-                setToast('Daily Challenge reset')
-                setTimeout(() => setToast(''), 1200)
-              }}
-            >
-              Reset
-            </button>
+            <div className="hero-actions">
+              <button className="start-button" onClick={handleStart}>
+                Launch Mission
+              </button>
+              <button className="ghost-button" onClick={() => setShowSettings((s) => !s)}>
+                {showSettings ? 'Hide Settings' : 'Settings'}
+              </button>
+            </div>
+          </div>
+          <div className="hero-panel">
+            <div className="wallet-card">
+              <div className="wallet-card__header">
+                <span>Fleet Wallet</span>
+                <span className="coin-badge">💰 {coins}</span>
+              </div>
+              <p>Earn coins in runs or redeem your free daily stipend.</p>
+              <button
+                className="settings-button small"
+                onClick={claimDailyBonus}
+                disabled={!dailyBonusReady}
+                title={
+                  dailyBonusReady ? 'Redeem your daily 200-coin stipend' : 'Come back tomorrow for more coins'
+                }
+              >
+                {dailyBonusReady ? 'Claim Daily +200' : 'Bonus claimed'}
+              </button>
+            </div>
+            <div className="loadout-summary">
+              <div>
+                <span>Difficulty</span>
+                <strong>{selectedDifficulty}</strong>
+              </div>
+              <div>
+                <span>Ship</span>
+                <strong>{selectedShip}</strong>
+              </div>
+              <div>
+                <span>Character</span>
+                <strong>{selectedCharacter}</strong>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="menu-section">
-          <h3>Difficulty</h3>
-          <div className="difficulty-selector">
-            <button
-              className={`diff-btn ${selectedDifficulty === 'easy' ? 'active' : ''}`}
-              onClick={() => setSelectedDifficulty('easy')}
-            >
-              🟢 Easy
-            </button>
-            <button
-              className={`diff-btn ${selectedDifficulty === 'medium' ? 'active' : ''}`}
-              onClick={() => setSelectedDifficulty('medium')}
-            >
-              🟡 Medium
-            </button>
-            <button
-              className={`diff-btn ${selectedDifficulty === 'hard' ? 'active' : ''}`}
-              onClick={() => setSelectedDifficulty('hard')}
-            >
-              🔴 Hard
-            </button>
-          </div>
-        </div>
+        <div className="menu-panels">
+          <section className="panel">
+            <div className="panel-header">
+              <h3>Mission Setup</h3>
+              <p>Select your challenge level and callsign.</p>
+            </div>
+            <div className="panel-body">
+              <div className="difficulty-selector">
+                <button
+                  className={`diff-btn ${selectedDifficulty === 'easy' ? 'active' : ''}`}
+                  onClick={() => setSelectedDifficulty('easy')}
+                >
+                  🟢 Easy
+                </button>
+                <button
+                  className={`diff-btn ${selectedDifficulty === 'medium' ? 'active' : ''}`}
+                  onClick={() => setSelectedDifficulty('medium')}
+                >
+                  🟡 Medium
+                </button>
+                <button
+                  className={`diff-btn ${selectedDifficulty === 'hard' ? 'active' : ''}`}
+                  onClick={() => setSelectedDifficulty('hard')}
+                >
+                  🔴 Hard
+                </button>
+              </div>
+              <div className="player-field">
+                <label htmlFor="playerName">Callsign</label>
+                <div className="player-input-row">
+                  <input
+                    id="playerName"
+                    value={playerName}
+                    onChange={(e) => {
+                      setPlayerName(e.target.value)
+                    }}
+                    placeholder="Type game name here"
+                  />
+                  <button
+                    className="settings-button small"
+                    onClick={() => {
+                      try {
+                        localStorage.setItem('playerName', playerName)
+                        setToast('Name saved')
+                        setTimeout(() => setToast(''), 1200)
+                      } catch (_) {}
+                    }}
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
 
-        <button className="start-button" onClick={handleStart}>
-          🎮 Start Game
-        </button>
+          <section className="panel">
+            <div className="panel-header">
+              <h3>Daily Challenge</h3>
+              <p>Modifiers rotate every day — push for new scores.</p>
+            </div>
+            <div className="panel-body challenge-panel">
+              <div className="challenge-chip">{challengeLabel}</div>
+              <div className="challenge-actions">
+                <button
+                  className="settings-button small"
+                  onClick={() => {
+                    const next = (challengeIdx + 1) % 3
+                    localStorage.setItem('challengeOverride', String(next))
+                    setToast('Daily Challenge cycled')
+                    setTimeout(() => setToast(''), 1200)
+                  }}
+                >
+                  Cycle
+                </button>
+                <button
+                  className="settings-button small"
+                  onClick={() => {
+                    localStorage.removeItem('challengeOverride')
+                    setToast('Daily Challenge reset')
+                    setTimeout(() => setToast(''), 1200)
+                  }}
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+          </section>
 
-        <div className="button-row">
-          <button className="settings-button" onClick={() => setShowSettings(!showSettings)}>
-            ⚙️ Settings
-          </button>
+          <section className="panel">
+            <div className="panel-header">
+              <h3>Hangar & Records</h3>
+              <p>Manage unlocks, gear, and leaderboards.</p>
+            </div>
+            <div className="panel-body action-grid">
+              <button className="action-card" onClick={() => setShowStore((s) => !s)}>
+                <span>🛒 Store</span>
+                <small>Upgrade shields & boosts</small>
+              </button>
+              <button className="action-card" onClick={() => setShowShips(true)}>
+                <span>🚀 Ship Hangar</span>
+                <small>Select or unlock hulls</small>
+              </button>
+              <button className="action-card" onClick={() => setShowCharacters(true)}>
+                <span>🧑‍🚀 Crew</span>
+                <small>Swap playable heroes</small>
+              </button>
+              <button className="action-card" onClick={() => setShowScores(true)}>
+                <span>🏆 Top Scores</span>
+                <small>View global leaderboard</small>
+              </button>
+            </div>
+          </section>
+
+          <section className="panel">
+            <div className="panel-header">
+              <h3>Top Pilots</h3>
+              <button className="text-button" onClick={() => setShowScores(true)}>
+                View all
+              </button>
+            </div>
+            <div className="panel-body mini-leaderboard">
+              {localScores.slice(0, 3).map((s, i) => (
+                <div key={i} className="leaderboard-row">
+                  <span>{String(i + 1).padStart(2, '0')}.</span>
+                  <span>{s.player || 'Player'}</span>
+                  <span>{String(s.score || 0).padStart(8, '0')}</span>
+                </div>
+              ))}
+              {localScores.length === 0 && (
+                <div className="leaderboard-empty">No scores yet. Play a game to set a record!</div>
+              )}
+              <button className="ghost-button" onClick={refreshCloudScores} disabled={loadingCloudScores}>
+                {loadingCloudScores ? 'Refreshing…' : 'Refresh from Cloud'}
+              </button>
+              {cloudError && <small className="inline-error">{cloudError}</small>}
+            </div>
+          </section>
+
+          <section className="panel panel-features">
+            <div className="panel-header">
+              <h3>Feature Highlights</h3>
+              <p>Everything included in this build.</p>
+            </div>
+            <div className="panel-body">
+              <div className="game-features">
+                <ul>
+                  <li>25 Lives System</li>
+                  <li>15+ Weapon Types</li>
+                  <li>Boss Battles</li>
+                  <li>Achievements</li>
+                  <li>Combo System</li>
+                  <li>Power-ups and Upgrades</li>
+                  <li>Ship and Character Unlocks</li>
+                  <li>Store with Coin Economy</li>
+                </ul>
+              </div>
+            </div>
+          </section>
         </div>
 
         {showSettings && (
