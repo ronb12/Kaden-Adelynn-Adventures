@@ -441,11 +441,6 @@
 .inline-error {
   color: #ff9f43;
 }
-  color: rgba(255, 255, 255, 0.7);
-  text-transform: uppercase;
-  letter-spacing: 3px;
-  font-weight: 600;
-}
 
 /* Topbar wallet */
 .menu-topbar {

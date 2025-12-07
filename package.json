@@ -12,6 +12,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.53.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
