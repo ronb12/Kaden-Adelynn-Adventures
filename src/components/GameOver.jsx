@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getHighScores, saveScore, getPersonalBest, isNewHighScore } from '../utils/scoreTracking'
+import { getHighScores, saveScore, getPersonalBest } from '../utils/scoreTracking'
 import './GameOver.css'
 
 function GameOver({ score, onRestart, onMenu, wave, level, kills, combo }) {
@@ -8,13 +8,13 @@ function GameOver({ score, onRestart, onMenu, wave, level, kills, combo }) {
   const [isNewRecord, setIsNewRecord] = useState(false)
 
   useEffect(() => {
-    // Save the score
-    saveScore(score)
-
-    // Check if it's a new record
     const previousBest = getPersonalBest()
     setPersonalBest(previousBest)
-    setIsNewRecord(isNewHighScore(score))
+    const newRecord = score > previousBest
+    setIsNewRecord(newRecord)
+
+    // Save the score after capturing previous best
+    saveScore(score)
 
     // Load top scores
     setHighScores(getHighScores())

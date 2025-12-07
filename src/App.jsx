@@ -3,7 +3,6 @@ import Game from './components/Game'
 import MainMenu from './components/MainMenu'
 import Story from './components/Story'
 import GameOver from './components/GameOver'
-import { saveScore } from './utils/scoreTracking'
 import './App.css'
 
 function App() {
@@ -36,9 +35,6 @@ function App() {
   }
 
   const handleGameOver = (finalScore, wave, level, kills, combo) => {
-    if (finalScore > 0) {
-      saveScore(finalScore)
-    }
     setGameStats({ score: finalScore, wave, level, kills, combo })
     setGameState('gameover')
   }

@@ -717,7 +717,7 @@ function MainMenu({ onStartGame }) {
                 <div style={{ marginTop: 10 }}>
                   <button
                     className="settings-button small"
-                    onClick={async () => {
+                    onClick={async (e) => {
                       const list = await getMergedTopScores()
                       const wrap = document.createElement('div')
                       wrap.innerHTML = list
@@ -726,7 +726,7 @@ function MainMenu({ onStartGame }) {
                             `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.08)"><div style="color:#ffd700">${String(i + 1).padStart(2, '0')}.</div><div style="flex:1;margin-left:10px;color:#fff">${s.player || 'Player'}</div><div style="color:#4ecdc4;font-weight:700">${String(s.score).padStart(8, '0')}</div></div>`
                         )
                         .join('')
-                      const container = event.currentTarget.parentElement.parentElement
+                      const container = e.currentTarget.parentElement.parentElement
                       container.querySelectorAll('.dynamic-scores').forEach((n) => n.remove())
                       wrap.className = 'dynamic-scores'
                       container.appendChild(wrap)
