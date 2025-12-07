@@ -15,6 +15,31 @@ import { sounds, playSound } from '../utils/sounds'
 import { getPersonalBest, saveScore } from '../utils/scoreTracking'
 import { playGameplayMusic, playBossMusic, stopMusic } from '../utils/music'
 
+const DIFFICULTY_PRESETS = {
+  easy: { lives: 10, health: 120, scoreMultiplier: 0.9 },
+  medium: { lives: 6, health: 100, scoreMultiplier: 1 },
+  hard: { lives: 3, health: 90, scoreMultiplier: 1.2 },
+}
+
+const limitEntityCount = (collection, max) => {
+  if (!Array.isArray(collection) || collection.length <= max) return
+  collection.splice(0, collection.length - max)
+}
+
+const enforceEntityBudgets = (state) => {
+  limitEntityCount(state.bullets, 400)
+  limitEntityCount(state.enemyBullets, 400)
+  limitEntityCount(state.missiles, 120)
+  limitEntityCount(state.powerUps, 25)
+  limitEntityCount(state.particles, 600)
+  limitEntityCount(state.explosions, 120)
+  limitEntityCount(state.trails, 180)
+  limitEntityCount(state.wingFighters, 12)
+  limitEntityCount(state.enemies, 160)
+  limitEntityCount(state.asteroids, 80)
+  limitEntityCount(state.plasmaBeams, 40)
+}
+
 function Game({
   onPause,
   onGameOver,
@@ -40,6 +65,73 @@ function Game({
   const [enemiesKilled, setEnemiesKilled] = useState(0)
   const [timePlayed, setTimePlayed] = useState(0)
   const [scoreMultiplier, setScoreMultiplier] = useState(1)
+  const [showGuide, setShowGuide] = useState(() => {
+    if (typeof window === 'undefined') return true
+    try {
+      return localStorage.getItem('tutorialSeen') !== '1'
+    } catch {
+      return true
+    }
+  })
+  const dismissGuide = useCallback(() => {
+    setShowGuide(false)
+    try {
+      localStorage.setItem('tutorialSeen', '1')
+    } catch (_) {}
+  }, [])
+  const reopenGuide = useCallback(() => {
+    setShowGuide(true)
+  }, [])
+  const [controlContext, setControlContext] = useState({
+    touchCapable: false,
+    gamepadConnected: false,
+  })
+
+  useEffect(() => {
+    const config = DIFFICULTY_PRESETS[difficulty] || DIFFICULTY_PRESETS.medium
+    setLives(config.lives)
+    livesRef.current = config.lives
+    setHealth(config.health)
+    healthRef.current = config.health
+    setScoreMultiplier(config.scoreMultiplier)
+    const state = gameState.current
+    if (state) {
+      state.scoreMultiplier = config.scoreMultiplier
+    }
+  }, [difficulty])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined
+    const media = window.matchMedia('(pointer: coarse)')
+    const updateTouch = (matches) => {
+      setControlContext((ctx) => ({ ...ctx, touchCapable: matches }))
+    }
+    updateTouch(media.matches)
+    const mediaListener = (event) => updateTouch(event.matches)
+    if (media.addEventListener) {
+      media.addEventListener('change', mediaListener)
+    } else if (media.addListener) {
+      media.addListener(mediaListener)
+    }
+
+    const handleGamepadConnect = () =>
+      setControlContext((ctx) => ({ ...ctx, gamepadConnected: true }))
+    const handleGamepadDisconnect = () =>
+      setControlContext((ctx) => ({ ...ctx, gamepadConnected: false }))
+
+    window.addEventListener('gamepadconnected', handleGamepadConnect)
+    window.addEventListener('gamepaddisconnected', handleGamepadDisconnect)
+
+    return () => {
+      if (media.removeEventListener) {
+        media.removeEventListener('change', mediaListener)
+      } else if (media.removeListener) {
+        media.removeListener(mediaListener)
+      }
+      window.removeEventListener('gamepadconnected', handleGamepadConnect)
+      window.removeEventListener('gamepaddisconnected', handleGamepadDisconnect)
+    }
+  }, [])
 
   // Game state
   const gameState = useRef({
@@ -93,6 +185,7 @@ function Game({
     lastAsteroidSpawn: 0,
     lastFrameTime: 0,
     deltaTime: 16.67, // 60fps = 16.67ms per frame
+    _bossMusicPlayed: false,
   })
 
   // Keep a ref in sync with health so the canvas UI reads the latest value inside the gameLoop closure
@@ -426,6 +519,7 @@ function Game({
 
       // Spawn power-ups
       spawnPowerUps(state)
+      enforceEntityBudgets(state)
 
       // Draw everything with layer order
       drawBackgroundElements(ctx, state)
@@ -1878,6 +1972,10 @@ function Game({
         playGameplayMusic()
         state._bossMusicPlayed = false
       }
+    } else if (state._bossMusicPlayed) {
+      // ensure gameplay music resumes if boss despawns unexpectedly
+      playGameplayMusic()
+      state._bossMusicPlayed = false
     }
   }
 
@@ -2292,6 +2390,53 @@ function Game({
   return (
     <div className="game-container">
       <canvas ref={canvasRef} className="game-canvas" />
+      <button
+        onClick={reopenGuide}
+        aria-label="Show control guide"
+        style={{
+          position: 'fixed',
+          top: 14,
+          left: 14,
+          zIndex: 100,
+          background: 'rgba(0,0,0,0.55)',
+          color: '#fff',
+          border: '1px solid rgba(255,255,255,0.25)',
+          borderRadius: 10,
+          padding: '8px 12px',
+          cursor: 'pointer',
+          backdropFilter: 'blur(4px)'
+        }}
+      >
+        ❔ Controls
+      </button>
+      <div
+        aria-live="polite"
+        style={{
+          position: 'fixed',
+          bottom: 16,
+          left: 16,
+          right: 16,
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 12,
+          zIndex: 90,
+          background: 'rgba(0,0,0,0.45)',
+          borderRadius: 12,
+          padding: '10px 14px',
+          color: '#e0f7ff',
+          fontSize: 13,
+          lineHeight: 1.4,
+          border: '1px solid rgba(255,255,255,0.12)',
+          pointerEvents: 'none',
+        }}
+      >
+        <span>⌨️ Move: WASD / Arrows</span>
+        <span>␣ Fire: Space or Z</span>
+        <span>📱 {controlContext.touchCapable ? 'Drag + hold to shoot' : 'Touch ready'}</span>
+        <span>
+          🎮 {controlContext.gamepadConnected ? 'Gamepad connected' : 'Connect a controller for dual-stick play'}
+        </span>
+      </div>
       {!isPaused && (
         <button
           onClick={onPause}
@@ -2312,6 +2457,83 @@ function Game({
         >
           ⏸️ Pause
         </button>
+      )}
+      {showGuide && (
+        <div
+          className="guide-overlay"
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(3, 8, 20, 0.75)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 200
+          }}
+        >
+          <div
+            style={{
+              background: 'rgba(12, 18, 45, 0.95)',
+              borderRadius: 18,
+              padding: '24px 28px',
+              maxWidth: 520,
+              width: '90vw',
+              color: '#fff',
+              boxShadow: '0 20px 50px rgba(0,0,0,0.45)',
+              border: '1px solid rgba(255,255,255,0.12)'
+            }}
+          >
+            <h2 style={{ marginTop: 0, marginBottom: 12 }}>How to Play</h2>
+            <p style={{ marginTop: 0, color: 'rgba(255,255,255,0.85)' }}>
+              Move to dodge, hold fire to keep combos alive, and grab power-ups for upgrades.
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12 }}>
+              <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.05)' }}>
+                <strong>Keyboard</strong>
+                <ul>
+                  <li>WASD or Arrow Keys to move</li>
+                  <li>Space / Z to fire</li>
+                  <li>P to pause</li>
+                </ul>
+              </div>
+              <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.05)' }}>
+                <strong>Touch</strong>
+                <ul>
+                  <li>Drag to steer ship</li>
+                  <li>Hold anywhere to rapid fire</li>
+                  <li>Two-finger tap to pause</li>
+                </ul>
+              </div>
+              <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.05)' }}>
+                <strong>Controller</strong>
+                <ul>
+                  <li>Left stick or D-pad to move</li>
+                  <li>A / RT to fire</li>
+                  <li>Start to pause</li>
+                </ul>
+              </div>
+            </div>
+            <button
+              onClick={dismissGuide}
+              aria-label="Dismiss guide"
+              style={{
+                marginTop: 18,
+                background: '#4ecdc4',
+                color: '#031220',
+                border: 'none',
+                borderRadius: 999,
+                padding: '10px 18px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                width: '100%'
+              }}
+            >
+              Got it, let’s play!
+            </button>
+          </div>
+        </div>
       )}
       {isPaused && (
         <div className="pause-overlay">

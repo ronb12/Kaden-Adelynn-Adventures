@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react'
-import { getCoins, spendCoins, addCoins, getOwned, ownItem } from '../utils/wallet'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { getCoins, spendCoins, addCoins, getOwned, ownItem, ensureWalletSchema } from '../utils/wallet'
 import { getHighScores, getMergedTopScores } from '../utils/scoreTracking'
 import { playMenuMusic, playGameplayMusic, stopMusic } from '../utils/music'
 import './MainMenu.css'
@@ -35,6 +35,18 @@ function MainMenu({ onStartGame }) {
     return saved ? parseFloat(saved) : 0.2
   })
   const [fullscreen, setFullscreen] = useState(false)
+  const [localScores, setLocalScores] = useState(() => getHighScores())
+  const [cloudScores, setCloudScores] = useState([])
+  const [cloudError, setCloudError] = useState('')
+  const [loadingCloudScores, setLoadingCloudScores] = useState(false)
+  const [dailyBonusReady, setDailyBonusReady] = useState(() => {
+    try {
+      const today = new Date().toISOString().slice(0, 10)
+      return localStorage.getItem('dailyBonusClaimed') !== today
+    } catch {
+      return false
+    }
+  })
   const isGamepadSupported = typeof navigator !== 'undefined' && !!navigator.getGamepads
 
   // Daily Challenge helpers
@@ -68,6 +80,19 @@ function MainMenu({ onStartGame }) {
   useEffect(() => {
     localStorage.setItem('controllerDeadzone', controllerDeadzone.toString())
   }, [controllerDeadzone])
+
+  useEffect(() => {
+    ensureWalletSchema()
+    setCoins(getCoins())
+    setOwnedShips(getOwned('ownedShips'))
+    setOwnedChars(getOwned('ownedChars'))
+  }, [])
+
+  useEffect(() => {
+    if (showScores) {
+      setLocalScores(getHighScores())
+    }
+  }, [showScores])
 
   useEffect(() => {
     // Start menu music
@@ -229,6 +254,37 @@ function MainMenu({ onStartGame }) {
     }
   }
 
+  const claimDailyBonus = () => {
+    if (!dailyBonusReady) return
+    const reward = 200
+    addCoins(reward)
+    setCoins(getCoins())
+    try {
+      const today = new Date().toISOString().slice(0, 10)
+      localStorage.setItem('dailyBonusClaimed', today)
+    } catch (_) {}
+    setDailyBonusReady(false)
+    setToast(`Daily bonus +${reward}!`)
+    setTimeout(() => setToast(''), 1500)
+  }
+
+  const refreshCloudScores = useCallback(async () => {
+    setCloudError('')
+    setLoadingCloudScores(true)
+    try {
+      const merged = await getMergedTopScores()
+      setCloudScores(merged)
+      if (merged.length === 0) {
+        setCloudError('No cloud scores yet. Play a game online to seed the board!')
+      }
+    } catch (err) {
+      console.warn(err)
+      setCloudError('Unable to reach cloud leaderboard right now.')
+    } finally {
+      setLoadingCloudScores(false)
+    }
+  }, [])
+
   // Ship thumbnail component (draws a mini ship on canvas)
   const ShipThumb = ({ id }) => {
     const canvasRef = useRef(null)
@@ -293,12 +349,11 @@ function MainMenu({ onStartGame }) {
             <span className="coin-badge">💰 {coins}</span>
             <button
               className="settings-button small"
-              onClick={() => {
-                addCoins(100)
-                setCoins(getCoins())
-              }}
+              onClick={claimDailyBonus}
+              disabled={!dailyBonusReady}
+              title={dailyBonusReady ? 'Redeem your daily 200-coin stipend' : 'Come back tomorrow for more coins'}
             >
-              +100
+              {dailyBonusReady ? 'Claim Daily +200' : 'Bonus claimed'}
             </button>
           </div>
         </div>
@@ -690,7 +745,7 @@ function MainMenu({ onStartGame }) {
                 </button>
               </div>
               <div style={{ marginTop: 12 }}>
-                {getHighScores().map((s, i) => (
+                {localScores.map((s, i) => (
                   <div
                     key={i}
                     style={{
@@ -709,31 +764,49 @@ function MainMenu({ onStartGame }) {
                     </div>
                   </div>
                 ))}
-                {getHighScores().length === 0 && (
+                {localScores.length === 0 && (
                   <div style={{ color: '#95a5a6' }}>
                     No scores yet. Play a game to set a record!
                   </div>
                 )}
-                <div style={{ marginTop: 10 }}>
+                <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <button
                     className="settings-button small"
-                    onClick={async (e) => {
-                      const list = await getMergedTopScores()
-                      const wrap = document.createElement('div')
-                      wrap.innerHTML = list
-                        .map(
-                          (s, i) =>
-                            `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.08)"><div style="color:#ffd700">${String(i + 1).padStart(2, '0')}.</div><div style="flex:1;margin-left:10px;color:#fff">${s.player || 'Player'}</div><div style="color:#4ecdc4;font-weight:700">${String(s.score).padStart(8, '0')}</div></div>`
-                        )
-                        .join('')
-                      const container = e.currentTarget.parentElement.parentElement
-                      container.querySelectorAll('.dynamic-scores').forEach((n) => n.remove())
-                      wrap.className = 'dynamic-scores'
-                      container.appendChild(wrap)
-                    }}
+                    onClick={refreshCloudScores}
+                    disabled={loadingCloudScores}
                   >
-                    Refresh from Cloud
+                    {loadingCloudScores ? 'Refreshing…' : 'Refresh from Cloud'}
                   </button>
+                  {cloudError && (
+                    <div style={{ color: '#ff9f43', fontSize: 12, textAlign: 'center' }}>{cloudError}</div>
+                  )}
+                  {cloudScores.length > 0 && (
+                    <div
+                      className="dynamic-scores"
+                      style={{
+                        borderTop: '1px solid rgba(255,255,255,0.08)',
+                        paddingTop: 6,
+                      }}
+                    >
+                      {cloudScores.map((s, i) => (
+                        <div
+                          key={`${s.player || 'player'}-${s.score || 0}-${i}`}
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            padding: '6px 0',
+                            borderBottom: '1px solid rgba(255,255,255,0.04)',
+                          }}
+                        >
+                          <div style={{ color: '#ffd700' }}>{String(i + 1).padStart(2, '0')}.</div>
+                          <div style={{ flex: 1, marginLeft: 10, color: '#fff' }}>{s.player || 'Player'}</div>
+                          <div style={{ color: '#4ecdc4', fontWeight: 700 }}>
+                            {String(s.score || 0).padStart(8, '0')}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
