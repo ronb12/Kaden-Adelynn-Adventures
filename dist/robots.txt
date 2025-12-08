@@ -1,5 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://kaden---adelynn-adventures.web.app/sitemap.xml
-
