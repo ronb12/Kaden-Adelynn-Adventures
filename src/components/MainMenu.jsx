@@ -43,6 +43,8 @@ function MainMenu({ onStartGame }) {
     const currentScores = getHighScores()
     return currentScores[0]?.score || 0
   })
+  const [showTerms, setShowTerms] = useState(false)
+  const [showPrivacy, setShowPrivacy] = useState(false)
   const [dailyBonusReady, setDailyBonusReady] = useState(() => {
     try {
       const today = new Date().toISOString().slice(0, 10)
@@ -571,6 +573,16 @@ function MainMenu({ onStartGame }) {
           </section>
         </div>
 
+        <div className="legal-links">
+          <button type="button" onClick={() => setShowTerms(true)}>
+            Terms of Service
+          </button>
+          <span>•</span>
+          <button type="button" onClick={() => setShowPrivacy(true)}>
+            Privacy Policy
+          </button>
+        </div>
+
         {showSettings && (
           <div className="settings-panel">
             <h4>⚙️ Game Settings</h4>
@@ -627,6 +639,108 @@ function MainMenu({ onStartGame }) {
                 <small style={{ color: 'rgba(255,255,255,0.75)' }}>
                   Left stick/D‑pad move • A/RT shoot • Start pause
                 </small>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showTerms && (
+          <div className="legal-modal" role="dialog" aria-modal="true" onClick={() => setShowTerms(false)}>
+            <div className="legal-modal__card glass" onClick={(e) => e.stopPropagation()}>
+              <div className="legal-modal__header">
+                <h3>Terms of Service</h3>
+                <button className="settings-button small" onClick={() => setShowTerms(false)}>
+                  Close
+                </button>
+              </div>
+              <div className="legal-modal__content">
+                <section>
+                  <h4>1. Acceptance</h4>
+                  <p>
+                    By launching this build you agree to play fairly, respect other players, and adhere to applicable
+                    laws. If you disagree with these terms, do not use the software.
+                  </p>
+                </section>
+                <section>
+                  <h4>2. License</h4>
+                  <p>
+                    You receive a personal, non-transferable license to access the game for entertainment. Reverse
+                    engineering, resale, and automated exploitation are prohibited.
+                  </p>
+                </section>
+                <section>
+                  <h4>3. Gameplay Data</h4>
+                  <p>
+                    Scores, upgrades, and settings saved locally or to the cloud may be reset during updates. We are not
+                    responsible for loss of progress caused by tampering or hardware failure.
+                  </p>
+                </section>
+                <section>
+                  <h4>4. Updates & Availability</h4>
+                  <p>
+                    Features may change without notice. Online services such as leaderboards are provided on a
+                    best-effort basis and may be suspended for maintenance.
+                  </p>
+                </section>
+                <section>
+                  <h4>5. Liability</h4>
+                  <p>
+                    This game is provided “as-is” with no warranties. To the fullest extent permitted by law, Bradley
+                    Virtual Solutions, LLC disclaims liability for damages arising from use of the software.
+                  </p>
+                </section>
+                <p className="legal-note">Questions? Contact support@bradleyvirtual.com.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showPrivacy && (
+          <div className="legal-modal" role="dialog" aria-modal="true" onClick={() => setShowPrivacy(false)}>
+            <div className="legal-modal__card glass" onClick={(e) => e.stopPropagation()}>
+              <div className="legal-modal__header">
+                <h3>Privacy Policy</h3>
+                <button className="settings-button small" onClick={() => setShowPrivacy(false)}>
+                  Close
+                </button>
+              </div>
+              <div className="legal-modal__content">
+                <section>
+                  <h4>1. Data We Store</h4>
+                  <p>
+                    Local storage keeps settings such as coins, unlocks, difficulty, and controller preferences. If you
+                    opt in to cloud leaderboards we store your display name and score history.
+                  </p>
+                </section>
+                <section>
+                  <h4>2. Analytics</h4>
+                  <p>
+                    We may use anonymous analytics to understand performance (crash logs, loading times, device type).
+                    This information is aggregated and not sold.
+                  </p>
+                </section>
+                <section>
+                  <h4>3. Third Parties</h4>
+                  <p>
+                    Firebase Hosting and optional Firestore services provide infrastructure. Their policies govern how
+                    data is processed on their systems.
+                  </p>
+                </section>
+                <section>
+                  <h4>4. Your Choices</h4>
+                  <p>
+                    You can reset local data at any time from your browser storage settings. To remove cloud leaderboard
+                    entries, reach us at privacy@bradleyvirtual.com with your player name.
+                  </p>
+                </section>
+                <section>
+                  <h4>5. Children</h4>
+                  <p>
+                    The game targets general audiences but collects minimal personal information. Guardians should
+                    supervise minors and disable cloud features if desired.
+                  </p>
+                </section>
+                <p className="legal-note">Effective Date: Dec 7, 2025</p>
               </div>
             </div>
           </div>

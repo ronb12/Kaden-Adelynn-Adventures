@@ -442,6 +442,76 @@
   color: #ff9f43;
 }
 
+.legal-links {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+.legal-links button {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.75);
+  text-transform: uppercase;
+  letter-spacing: 0.12rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.legal-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 8, 20, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 20px;
+}
+.legal-modal__card {
+  max-width: 720px;
+  width: min(92vw, 720px);
+  max-height: 80vh;
+  overflow: hidden;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+}
+.legal-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.legal-modal__content {
+  overflow-y: auto;
+  padding-right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.legal-modal__content section {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 10px;
+}
+.legal-modal__content h4 {
+  margin: 0 0 6px 0;
+  color: #4ecdc4;
+  text-transform: uppercase;
+  letter-spacing: 0.08rem;
+  font-size: 0.85rem;
+}
+.legal-modal__content p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+.legal-note {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
 /* Topbar wallet */
 .menu-topbar {
   display: flex;
