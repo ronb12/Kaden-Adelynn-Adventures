@@ -1287,6 +1287,89 @@ function Game({
           state.enemies.splice(index, 1)
         })
 
+      // Asteroid-player collisions (circle-rectangle collision)
+      if (state.asteroids && state.asteroids.length > 0) {
+        const asteroidsToRemove = []
+        for (let i = 0; i < state.asteroids.length; i++) {
+          const asteroid = state.asteroids[i]
+          const asteroidRadius = Math.max(10, asteroid.size)
+          const asteroidX = asteroid.x
+          const asteroidY = asteroid.y
+          
+          // Player ship bounding box
+          const playerLeft = state.player.x
+          const playerRight = state.player.x + state.player.width
+          const playerTop = state.player.y
+          const playerBottom = state.player.y + state.player.height
+          
+          // Find closest point on player rectangle to asteroid center
+          const closestX = Math.max(playerLeft, Math.min(asteroidX, playerRight))
+          const closestY = Math.max(playerTop, Math.min(asteroidY, playerBottom))
+          
+          // Calculate distance from asteroid center to closest point
+          const dx = asteroidX - closestX
+          const dy = asteroidY - closestY
+          const distanceSquared = dx * dx + dy * dy
+          
+          // Check if asteroid overlaps with player (circle-rectangle collision)
+          if (distanceSquared <= asteroidRadius * asteroidRadius) {
+            // Player takes hull damage
+            setHealth((h) => {
+              const newHealth = h - 5 // Asteroids do more damage than enemies
+              if (newHealth <= 0) {
+                setLives((l) => Math.max(0, l - 1))
+                state.invulnerable = true
+                setTimeout(() => { state.invulnerable = false }, 2000)
+                const canvas = canvasRef.current
+                if (canvas) {
+                  state.player.x = Math.max(20, canvas.width / 2 - state.player.width / 2)
+                  state.player.y = Math.max(50, canvas.height - state.player.height - 60)
+                }
+                state.enemyBullets = []
+                return 100
+              }
+              return newHealth
+            })
+            
+            // Visual feedback
+            state.shakeIntensity = 8 // Stronger shake for asteroid impact
+            playSound('hit', 0.6)
+            state.particles.push(
+              ...ParticleSystem.createExplosion(asteroidX, asteroidY, '#ff8c00', 15)
+            )
+            
+            // Damage the asteroid (but don't remove it - let it continue)
+            asteroid.health = (typeof asteroid.health === 'number' ? asteroid.health : 2) - 1
+            
+            // Only remove asteroid if it's destroyed
+            if (asteroid.health <= 0) {
+              splitAsteroid(state, asteroid)
+              asteroidsToRemove.push(i)
+              state.particles.push(
+                ...ParticleSystem.createExplosion(asteroidX, asteroidY, '#ffa502', 20)
+              )
+              // Award coins and score for destroying asteroid
+              state.coins += 5
+              setCoins((c) => c + 5)
+              const asteroidPoints = 10
+              setScore((s) => {
+                const ns = s + asteroidPoints
+                state.currentScore = ns
+                return ns
+              })
+            }
+            break // Only process one collision per frame
+          }
+        }
+        
+        // Remove destroyed asteroids safely
+        asteroidsToRemove
+          .sort((a, b) => b - a)
+          .forEach((index) => {
+            state.asteroids.splice(index, 1)
+          })
+      }
+
       // Check enemy bullet collisions with player (bullets are drawn centered)
       const bulletsToRemove = []
       for (let i = 0; i < state.enemyBullets.length; i++) {
