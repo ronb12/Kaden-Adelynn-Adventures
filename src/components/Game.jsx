@@ -12,7 +12,7 @@ import {
 } from '../utils/bosses'
 import { enemyVarieties, spawnEnemy, updateEnemyMovement } from '../utils/enemyTypes'
 import { sounds, playSound } from '../utils/sounds'
-import { getPersonalBest, saveScore } from '../utils/scoreTracking'
+import { getPersonalBest } from '../utils/scoreTracking'
 import { playGameplayMusic, playBossMusic, stopMusic } from '../utils/music'
 
 function Game({
@@ -220,9 +220,11 @@ function Game({
       const touchX = touch.clientX - rect.left
       const touchY = touch.clientY - rect.top
 
-      // Convert screen coords to canvas coords
-      const canvasX = (touchX / rect.width) * canvas.width
-      const canvasY = (touchY / rect.height) * canvas.height
+      // Convert screen coords to canvas coords (prevent division by zero)
+      const rectWidth = rect.width || canvas.width || 1
+      const rectHeight = rect.height || canvas.height || 1
+      const canvasX = (touchX / rectWidth) * canvas.width
+      const canvasY = (touchY / rectHeight) * canvas.height
 
       // Constrain to canvas bounds
       gameState.current.player.x = Math.max(
@@ -259,8 +261,11 @@ function Game({
       const touchX = touch.clientX - rect.left
       const touchY = touch.clientY - rect.top
 
-      const canvasX = (touchX / rect.width) * canvas.width
-      const canvasY = (touchY / rect.height) * canvas.height
+      // Prevent division by zero
+      const rectWidth = rect.width || canvas.width || 1
+      const rectHeight = rect.height || canvas.height || 1
+      const canvasX = (touchX / rectWidth) * canvas.width
+      const canvasY = (touchY / rectHeight) * canvas.height
 
       gameState.current.player.x = Math.max(
         0,
@@ -465,20 +470,13 @@ function Game({
         return
       }
 
-      // Save score when game ends
-      if (lives <= 0 && score > 0) {
-        try {
-          saveScore(score, playerName || 'Player')
-        } catch (_) {}
-      }
-
       setTimePlayed((t) => t + 1)
 
       if (!isPaused) {
         gameLoopRef.current = requestAnimationFrame(gameLoop)
       }
     },
-    [isPaused, lives, onGameOver]
+    [isPaused, lives, onGameOver, score, wave, level, killStreak, combo, playerName]
   )
 
   useEffect(() => {

@@ -65,18 +65,42 @@ function GameOver({ score, onRestart, onMenu, wave, level, kills, combo }) {
           <div className="leaderboard">
             <h3>Top Scores</h3>
             <div className="leaderboard-list">
-              {highScores.slice(0, 5).map((scoreEntry, index) => (
-                <div
-                  key={index}
-                  className={`leaderboard-entry ${scoreEntry.score === score ? 'current-score' : ''}`}
-                >
-                  <span className="leaderboard-rank">{index + 1}</span>
-                  <span className="leaderboard-score">{scoreEntry.score.toLocaleString()}</span>
-                  <span className="leaderboard-date">
-                    {new Date(scoreEntry.date).toLocaleDateString()}
-                  </span>
-                </div>
-              ))}
+              {highScores.slice(0, 5).map((scoreEntry, index) => {
+                // Safe date parsing with fallback
+                let dateString = 'N/A'
+                try {
+                  if (scoreEntry.date) {
+                    const date = new Date(scoreEntry.date)
+                    if (!isNaN(date.getTime())) {
+                      dateString = date.toLocaleDateString()
+                    }
+                  }
+                } catch {
+                  // Fallback to timestamp if date parsing fails
+                  if (scoreEntry.timestamp) {
+                    try {
+                      dateString = new Date(scoreEntry.timestamp).toLocaleDateString()
+                    } catch {
+                      dateString = 'N/A'
+                    }
+                  }
+                }
+                
+                // Safe score formatting
+                const displayScore = (scoreEntry.score || 0).toLocaleString()
+                const entryKey = `${scoreEntry.timestamp || index}-${scoreEntry.score || 0}`
+                
+                return (
+                  <div
+                    key={entryKey}
+                    className={`leaderboard-entry ${scoreEntry.score === score ? 'current-score' : ''}`}
+                  >
+                    <span className="leaderboard-rank">{index + 1}</span>
+                    <span className="leaderboard-score">{displayScore}</span>
+                    <span className="leaderboard-date">{dateString}</span>
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}
