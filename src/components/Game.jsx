@@ -40,6 +40,14 @@ const enforceEntityBudgets = (state) => {
   limitEntityCount(state.plasmaBeams, 40)
 }
 
+const circleRectCollide = (cx, cy, radius, rx, ry, rw, rh) => {
+  const closestX = Math.max(rx, Math.min(cx, rx + rw))
+  const closestY = Math.max(ry, Math.min(cy, ry + rh))
+  const dx = cx - closestX
+  const dy = cy - closestY
+  return dx * dx + dy * dy <= radius * radius
+}
+
 function Game({
   onPause,
   onGameOver,
@@ -1038,10 +1046,31 @@ function Game({
   }
 
   const checkCollisions = (state) => {
+    if (!state) return
     // Bullet-enemy collisions - use safer iteration
     const bulletsToRemove = []
     const enemiesToRemove = []
     const asteroidsToRemove = []
+    const applyPlayerDamage = (damage = 5) => {
+      setHealth((h) => {
+        const newHealth = h - damage
+        if (newHealth <= 0) {
+          setLives((l) => Math.max(0, l - 1))
+          state.invulnerable = true
+          setTimeout(() => {
+            state.invulnerable = false
+          }, 2000)
+          const canvas = canvasRef.current
+          if (canvas) {
+            state.player.x = Math.max(20, canvas.width / 2 - state.player.width / 2)
+            state.player.y = Math.max(50, canvas.height - state.player.height - 60)
+          }
+          state.enemyBullets = []
+          return 100
+        }
+        return newHealth
+      })
+    }
 
     for (let i = 0; i < state.bullets.length; i++) {
       const bullet = state.bullets[i]
@@ -1421,6 +1450,39 @@ function Game({
         .forEach((index) => {
           state.enemyBullets.splice(index, 1)
         })
+    }
+
+    // Asteroid-player collisions (front damage)
+    if (!state.invulnerable && state.asteroids.length > 0) {
+      const px = state.player.x
+      const py = state.player.y
+      const pw = state.player.width
+      const ph = state.player.height
+      for (let i = 0; i < state.asteroids.length; i++) {
+        const asteroid = state.asteroids[i]
+        const radius = Math.max(asteroid.size || 24, 18)
+        if (circleRectCollide(asteroid.x, asteroid.y, radius, px, py, pw, ph)) {
+          const impactDamage = Math.max(8, Math.round(radius / 2))
+          applyPlayerDamage(impactDamage)
+          state.shakeIntensity = Math.min(25, state.shakeIntensity + 8)
+          state.particles.push(
+            ...ParticleSystem.createExplosion(
+              px + pw / 2,
+              py + ph / 3,
+              '#ffa502',
+              Math.min(20, Math.round(radius / 2))
+            )
+          )
+          if (!asteroidsToRemove.includes(i)) {
+            asteroidsToRemove.push(i)
+          }
+          state.invulnerable = true
+          setTimeout(() => {
+            state.invulnerable = false
+          }, 800)
+          break
+        }
+      }
     }
     // Missiles-asteroid collisions
     if (state.missiles && state.missiles.length > 0 && state.asteroids.length > 0) {
