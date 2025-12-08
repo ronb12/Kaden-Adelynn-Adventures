@@ -35,16 +35,8 @@ self.addEventListener('activate', (event) => {
   )
   // Take control of all clients immediately
   event.waitUntil(self.clients.claim())
-  // Force refresh all open windows to pick up new assets
-  event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
-      clients.forEach((client) => {
-        if (client && 'navigate' in client) {
-          client.navigate(client.url)
-        }
-      })
-    })
-  )
+  // Note: Removed forced refresh to prevent constant reloading
+  // Clients will get new assets on next navigation naturally
 })
 
 // Fetch event with better mobile handling

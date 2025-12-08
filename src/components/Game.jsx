@@ -161,10 +161,19 @@ function Game({
     // Load boss images
     loadBossImages()
 
-    // Set canvas size to full viewport
+    // Set canvas size to full viewport (respecting safe areas)
     const updateCanvasSize = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
+      if (!canvas) return
+      const rect = canvas.getBoundingClientRect()
+      // Ensure we have valid dimensions
+      if (rect.width > 0 && rect.height > 0) {
+        canvas.width = rect.width
+        canvas.height = rect.height
+      } else {
+        // Fallback to window dimensions if bounding rect is invalid
+        canvas.width = window.innerWidth
+        canvas.height = window.innerHeight
+      }
     }
 
     updateCanvasSize()
