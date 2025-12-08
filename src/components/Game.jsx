@@ -14,6 +14,7 @@ import { enemyVarieties, spawnEnemy, updateEnemyMovement } from '../utils/enemyT
 import { sounds, playSound } from '../utils/sounds'
 import { getPersonalBest, saveScore } from '../utils/scoreTracking'
 import { playGameplayMusic, playBossMusic, stopMusic } from '../utils/music'
+import { storageGet, storageSet } from '../utils/storage'
 
 const DIFFICULTY_PRESETS = {
   easy: { lives: 10, health: 120, scoreMultiplier: 0.9 },
@@ -73,19 +74,10 @@ function Game({
   const [enemiesKilled, setEnemiesKilled] = useState(0)
   const [timePlayed, setTimePlayed] = useState(0)
   const [scoreMultiplier, setScoreMultiplier] = useState(1)
-  const [showGuide, setShowGuide] = useState(() => {
-    if (typeof window === 'undefined') return true
-    try {
-      return localStorage.getItem('tutorialSeen') !== '1'
-    } catch {
-      return true
-    }
-  })
+  const [showGuide, setShowGuide] = useState(() => storageGet('tutorialSeen') !== '1')
   const dismissGuide = useCallback(() => {
     setShowGuide(false)
-    try {
-      localStorage.setItem('tutorialSeen', '1')
-    } catch (_) {}
+    storageSet('tutorialSeen', '1')
   }, [])
   const reopenGuide = useCallback(() => {
     setShowGuide(true)
@@ -208,10 +200,10 @@ function Game({
 
   useEffect(() => {
     // Gamepad support
-    const controllerEnabled = (localStorage.getItem('controllerEnabled') || 'true') === 'true'
+    const controllerEnabled = (storageGet('controllerEnabled', 'true') || 'true') === 'true'
     if (!controllerEnabled) return
     let rafId
-    const deadzone = parseFloat(localStorage.getItem('controllerDeadzone') || '0.2')
+    const deadzone = parseFloat(storageGet('controllerDeadzone', '0.2') || '0.2')
     const applyDeadzone = (v) => (Math.abs(v) < deadzone ? 0 : v)
     const poll = () => {
       const pads = navigator.getGamepads ? Array.from(navigator.getGamepads()).filter(Boolean) : []
@@ -421,11 +413,11 @@ function Game({
     setHealth((h) => Math.max(1, Math.min(100, h + t.healthBonus)))
     state.damageMul = t.damageMul
     // Apply store upgrades
-    const upShield = localStorage.getItem('upgrade_shield') === '1'
-    const upSpeed = localStorage.getItem('upgrade_speed') === '1'
-    const upRapid = localStorage.getItem('upgrade_rapid') === '1'
-    const upLife = localStorage.getItem('upgrade_life') === '1'
-    const upDoubler = localStorage.getItem('upgrade_doubler') === '1'
+    const upShield = storageGet('upgrade_shield') === '1'
+    const upSpeed = storageGet('upgrade_speed') === '1'
+    const upRapid = storageGet('upgrade_rapid') === '1'
+    const upLife = storageGet('upgrade_life') === '1'
+    const upDoubler = storageGet('upgrade_doubler') === '1'
     if (upShield) { state.shield = true; state.shieldTimer = 600 }
     if (upSpeed) { state.player.speed = (state.player.speed || 5) + 1 }
     if (upRapid) { state.rapidFire = true; state.rapidFireTimer = 600 }
@@ -437,7 +429,7 @@ function Game({
   useEffect(() => {
     const state = gameState.current
     if (!state) return
-    const override = localStorage.getItem('challengeOverride')
+    const override = storageGet('challengeOverride')
     if (override !== null) {
       const val = parseInt(override, 10)
       if (!Number.isNaN(val)) {
@@ -2641,7 +2633,7 @@ function Game({
                     dailyChallenge: s.dailyChallenge ?? null,
                     timestamp: Date.now()
                   }
-                  localStorage.setItem('savedRun', JSON.stringify(snapshot))
+                  storageSet('savedRun', JSON.stringify(snapshot))
                 } catch (_) {}
               }}
               aria-label="Save Game"

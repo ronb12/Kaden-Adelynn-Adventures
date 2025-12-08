@@ -4,6 +4,7 @@ import MainMenu from './components/MainMenu'
 import Story from './components/Story'
 import GameOver from './components/GameOver'
 import './App.css'
+import { storageGet, storageSet } from './utils/storage'
 
 function App() {
   const [gameState, setGameState] = useState('menu')
@@ -12,10 +13,10 @@ function App() {
     ship: 'kaden',
     character: 'kaden',
   })
-  const [playerName, setPlayerName] = useState(() => localStorage.getItem('playerName') || 'Player')
+  const [playerName, setPlayerName] = useState(() => storageGet('playerName', 'Player'))
 
   useEffect(() => {
-    localStorage.setItem('playerName', playerName)
+    storageSet('playerName', playerName)
   }, [playerName])
   const [gameStats, setGameStats] = useState({ score: 0, wave: 1, level: 1, kills: 0, combo: 0 })
   const [paused, setPaused] = useState(false)

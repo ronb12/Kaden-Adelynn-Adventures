@@ -3,6 +3,7 @@ import { getCoins, spendCoins, addCoins, getOwned, ownItem, ensureWalletSchema }
 import { getHighScores, getMergedTopScores } from '../utils/scoreTracking'
 import { playMenuMusic, playGameplayMusic, stopMusic } from '../utils/music'
 import './MainMenu.css'
+import { storageGet, storageSet, storageRemove } from '../utils/storage'
 
 function MainMenu({ onStartGame }) {
   const [selectedDifficulty, setSelectedDifficulty] = useState('medium')
@@ -13,25 +14,25 @@ function MainMenu({ onStartGame }) {
   const [showShips, setShowShips] = useState(false)
   const [showCharacters, setShowCharacters] = useState(false)
   const [showScores, setShowScores] = useState(false)
-  const [playerName, setPlayerName] = useState(() => localStorage.getItem('playerName') || 'Player')
+  const [playerName, setPlayerName] = useState(() => storageGet('playerName', 'Player'))
   const [coins, setCoins] = useState(() => getCoins())
   const [toast, setToast] = useState('')
   const [ownedShips, setOwnedShips] = useState(() => getOwned('ownedShips'))
   const [ownedChars, setOwnedChars] = useState(() => getOwned('ownedChars'))
   const [soundVolume, setSoundVolume] = useState(() => {
-    const saved = localStorage.getItem('soundVolume')
-    return saved ? parseInt(saved) : 100
+    const saved = storageGet('soundVolume')
+    return saved ? parseInt(saved, 10) : 100
   })
   const [musicVolume, setMusicVolume] = useState(() => {
-    const saved = localStorage.getItem('musicVolume')
-    return saved ? parseInt(saved) : 50
+    const saved = storageGet('musicVolume')
+    return saved ? parseInt(saved, 10) : 50
   })
   const [controllerEnabled, setControllerEnabled] = useState(() => {
-    const saved = localStorage.getItem('controllerEnabled')
+    const saved = storageGet('controllerEnabled')
     return saved ? saved === 'true' : true
   })
   const [controllerDeadzone, setControllerDeadzone] = useState(() => {
-    const saved = localStorage.getItem('controllerDeadzone')
+    const saved = storageGet('controllerDeadzone')
     return saved ? parseFloat(saved) : 0.2
   })
   const [fullscreen, setFullscreen] = useState(false)
@@ -48,7 +49,7 @@ function MainMenu({ onStartGame }) {
   const [dailyBonusReady, setDailyBonusReady] = useState(() => {
     try {
       const today = new Date().toISOString().slice(0, 10)
-      return localStorage.getItem('dailyBonusClaimed') !== today
+      return storageGet('dailyBonusClaimed') !== today
     } catch {
       return false
     }
@@ -57,7 +58,7 @@ function MainMenu({ onStartGame }) {
 
   // Daily Challenge helpers
   const getDailyIdx = () => {
-    const override = localStorage.getItem('challengeOverride')
+    const override = storageGet('challengeOverride')
     if (override !== null) {
       const v = parseInt(override, 10)
       if (!Number.isNaN(v)) return Math.max(0, Math.min(2, v))
@@ -71,20 +72,20 @@ function MainMenu({ onStartGame }) {
 
   useEffect(() => {
     // Save sound volume to localStorage
-    localStorage.setItem('soundVolume', soundVolume.toString())
+    storageSet('soundVolume', soundVolume.toString())
   }, [soundVolume])
 
   useEffect(() => {
     // Save music volume to localStorage
-    localStorage.setItem('musicVolume', musicVolume.toString())
+    storageSet('musicVolume', musicVolume.toString())
   }, [musicVolume])
 
   useEffect(() => {
-    localStorage.setItem('controllerEnabled', controllerEnabled ? 'true' : 'false')
+    storageSet('controllerEnabled', controllerEnabled ? 'true' : 'false')
   }, [controllerEnabled])
 
   useEffect(() => {
-    localStorage.setItem('controllerDeadzone', controllerDeadzone.toString())
+    storageSet('controllerDeadzone', controllerDeadzone.toString())
   }, [controllerDeadzone])
 
   useEffect(() => {
@@ -114,7 +115,7 @@ function MainMenu({ onStartGame }) {
     stopMusic()
     // start gameplay music on user gesture
     playGameplayMusic()
-    localStorage.setItem('playerName', playerName)
+    storageSet('playerName', playerName)
     onStartGame(selectedDifficulty, selectedShip, selectedCharacter, playerName)
   }
 
@@ -271,7 +272,7 @@ function MainMenu({ onStartGame }) {
     setCoins(getCoins())
     try {
       const today = new Date().toISOString().slice(0, 10)
-      localStorage.setItem('dailyBonusClaimed', today)
+      storageSet('dailyBonusClaimed', today)
     } catch (_) {}
     setDailyBonusReady(false)
     setToast(`Daily bonus +${reward}!`)
@@ -455,7 +456,7 @@ function MainMenu({ onStartGame }) {
                     className="settings-button small"
                     onClick={() => {
                       try {
-                        localStorage.setItem('playerName', playerName)
+                        storageSet('playerName', playerName)
                         setToast('Name saved')
                         setTimeout(() => setToast(''), 1200)
                       } catch (_) {}
@@ -480,7 +481,7 @@ function MainMenu({ onStartGame }) {
                   className="settings-button small"
                   onClick={() => {
                     const next = (challengeIdx + 1) % 3
-                    localStorage.setItem('challengeOverride', String(next))
+                    storageSet('challengeOverride', String(next))
                     setToast('Daily Challenge cycled')
                     setTimeout(() => setToast(''), 1200)
                   }}
@@ -490,7 +491,7 @@ function MainMenu({ onStartGame }) {
                 <button
                   className="settings-button small"
                   onClick={() => {
-                    localStorage.removeItem('challengeOverride')
+                    storageRemove('challengeOverride')
                     setToast('Daily Challenge reset')
                     setTimeout(() => setToast(''), 1200)
                   }}
@@ -788,7 +789,7 @@ function MainMenu({ onStartGame }) {
                   onClick={() => {
                     if (spendCoins(200)) {
                       setCoins(getCoins())
-                      localStorage.setItem('upgrade_shield', '1')
+                      storageSet('upgrade_shield', '1')
                     }
                   }}
                 >
@@ -799,7 +800,7 @@ function MainMenu({ onStartGame }) {
                   onClick={() => {
                     if (spendCoins(200)) {
                       setCoins(getCoins())
-                      localStorage.setItem('upgrade_speed', '1')
+                      storageSet('upgrade_speed', '1')
                     }
                   }}
                 >
@@ -810,7 +811,7 @@ function MainMenu({ onStartGame }) {
                   onClick={() => {
                     if (spendCoins(300)) {
                       setCoins(getCoins())
-                      localStorage.setItem('upgrade_rapid', '1')
+                      storageSet('upgrade_rapid', '1')
                     }
                   }}
                 >
@@ -821,7 +822,7 @@ function MainMenu({ onStartGame }) {
                   onClick={() => {
                     if (spendCoins(400)) {
                       setCoins(getCoins())
-                      localStorage.setItem('upgrade_doubler', '1')
+                      storageSet('upgrade_doubler', '1')
                     }
                   }}
                 >
@@ -832,7 +833,7 @@ function MainMenu({ onStartGame }) {
                   onClick={() => {
                     if (spendCoins(150)) {
                       setCoins(getCoins())
-                      localStorage.setItem('upgrade_life', '1')
+                      storageSet('upgrade_life', '1')
                     }
                   }}
                 >
@@ -866,7 +867,7 @@ function MainMenu({ onStartGame }) {
               className="settings-button small"
               onClick={() => {
                 try {
-                  localStorage.setItem('playerName', playerName)
+                  storageSet('playerName', playerName)
                   setToast('Name saved')
                   setTimeout(() => setToast(''), 1200)
                 } catch (_) {}
