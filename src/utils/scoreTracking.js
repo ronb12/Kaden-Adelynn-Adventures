@@ -35,19 +35,15 @@ export const getHighScores = () => {
 }
 
 export const getMergedTopScores = async () => {
-  const local = getHighScores()
-  const cloud = await fetchTopScores(10)
-  const merged = [...local]
-  cloud.forEach((c) => {
-    merged.push({
-      score: c.score || 0,
-      player: c.player || 'Player',
-      date: c.createdAt?.toDate?.()?.toISOString?.() || '',
-      timestamp: 0,
-    })
-  })
-  merged.sort((a, b) => (b.score || 0) - (a.score || 0))
-  return merged.slice(0, 10)
+  const cloud = await fetchTopScores(100)
+  // Return only cloud scores for true global ranking
+  return cloud.map((c) => ({
+    score: c.score || 0,
+    player: c.player || 'Player',
+    date: c.createdAt?.toDate?.()?.toISOString?.() || c.createdAt || '',
+    timestamp: c.createdAt?.toDate?.()?.getTime() || 0,
+    id: c.id,
+  }))
 }
 
 export const clearScores = () => {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { getHighScores, saveScore, getPersonalBest } from '../utils/scoreTracking'
 import './GameOver.css'
 
@@ -6,8 +6,12 @@ function GameOver({ score, onRestart, onMenu, wave, level, kills, combo }) {
   const [highScores, setHighScores] = useState([])
   const [personalBest, setPersonalBest] = useState(0)
   const [isNewRecord, setIsNewRecord] = useState(false)
+  const hasSavedScore = useRef(false)
 
   useEffect(() => {
+    // Prevent duplicate score saving - only save once per component mount
+    if (hasSavedScore.current) return
+    
     // Check previous best BEFORE saving to ensure correct "NEW RECORD" logic
     const previousBest = getPersonalBest()
     setPersonalBest(previousBest)
@@ -16,6 +20,7 @@ function GameOver({ score, onRestart, onMenu, wave, level, kills, combo }) {
 
     // Save the score after capturing previous best
     saveScore(score)
+    hasSavedScore.current = true
 
     // Load top scores
     setHighScores(getHighScores())

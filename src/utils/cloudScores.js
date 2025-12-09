@@ -23,7 +23,7 @@ export async function saveCloudScore(score, player) {
   }
 }
 
-export async function fetchTopScores(limit = 10) {
+export async function fetchTopScores(limit = 100) {
   if (!(await cloudAvailable())) return []
   try {
     const db = window.firebase.firestore()
@@ -32,5 +32,20 @@ export async function fetchTopScores(limit = 10) {
   } catch (e) {
     console.warn('Fetch cloud scores failed', e)
     return []
+  }
+}
+
+export async function fetchPlayerRank(playerName, playerBestScore) {
+  if (!(await cloudAvailable()) || !playerName || !playerBestScore) return null
+  try {
+    const db = window.firebase.firestore()
+    // Count how many scores are higher than the player's best
+    const higherScores = await db.collection('highScores')
+      .where('score', '>', playerBestScore)
+      .get()
+    return higherScores.size + 1 // Rank is position after all higher scores
+  } catch (e) {
+    console.warn('Fetch player rank failed', e)
+    return null
   }
 }

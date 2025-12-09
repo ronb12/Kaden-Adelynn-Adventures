@@ -311,7 +311,7 @@ function Game({
     }
   }, [])
 
-  // Apply character-specific traits
+  // Apply character-specific traits and ship-specific weapons
   useEffect(() => {
     const state = gameState.current
     if (!state) return
@@ -327,9 +327,27 @@ function Game({
       hero9: { speed: 5, weapon: 'missile', healthBonus: 10, damageMul: 1.1 },
       hero10: { speed: 5, weapon: 'freeze', healthBonus: 0, damageMul: 1.0 },
     }
+    
+    // Ship-specific default weapons (can be overridden by power-ups)
+    const shipWeapons = {
+      kaden: 'laser',
+      adelynn: 'spread',
+      falcon: 'homing',
+      phantom: 'electric',
+      nova: 'plasma',
+      titan: 'railgun',
+      viper: 'shotgun',
+      shadow: 'beam',
+      meteor: 'missile',
+      comet: 'freeze',
+      raptor: 'laserRifle',
+      aurora: 'plasmaRifle',
+    }
+    
     const t = traits[selectedCharacter] || traits.kaden
     state.player.speed = t.speed
-    state.currentWeapon = t.weapon
+    // Ship weapon takes priority over character weapon, but both can be changed by power-ups
+    state.currentWeapon = shipWeapons[selectedShip] || t.weapon
     // apply health bonus once at start of play session
     setHealth((h) => Math.max(1, Math.min(100, h + t.healthBonus)))
     state.damageMul = t.damageMul

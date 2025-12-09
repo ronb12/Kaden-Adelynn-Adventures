@@ -1,47 +1,54 @@
 import { useState, useEffect } from 'react'
 import './Story.css'
 
+const storyPages = [
+  {
+    title: '🌌 The Distress Signal',
+    content:
+      'A desperate transmission echoes across the void: "The Shadow Fleet has returned! They\'re consuming entire star systems! We need help!" Kaden and Adelynn, legendary space pilots, receive the call.',
+    character: '📡',
+  },
+  {
+    title: '👾 The Ancient Enemy',
+    content:
+      'The Shadow Fleet - thought destroyed centuries ago - has awakened. Led by the mysterious Dark Commander, they seek to extinguish all light in the galaxy. Their armada grows stronger with each planet they consume.',
+    character: '👾',
+  },
+  {
+    title: '⚔️ The Last Stand',
+    content:
+      'With the Galactic Defense Force scattered, Kaden and Adelynn are the galaxy\'s last hope. Kaden\'s precision strikes and Adelynn\'s devastating barrages must work in perfect harmony to survive the onslaught.',
+    character: '⚔️',
+  },
+  {
+    title: '💎 The Power Within',
+    content:
+      'Ancient power crystals scattered across the battlefield can turn the tide. Collect them to unlock devastating weapons, shields, and abilities. But beware - the Shadow Fleet seeks them too.',
+    character: '💎',
+  },
+  {
+    title: '👑 The Final Boss',
+    content:
+      'At the heart of the invasion, the Dark Commander awaits. A massive warship capable of destroying entire fleets. Only by mastering every weapon, every power-up, and every strategy can victory be achieved.',
+    character: '👑',
+  },
+  {
+    title: '🚀 Your Destiny Awaits',
+    content:
+      'The battle begins now. Choose your ship, select your difficulty, and prepare for the fight of your life. The galaxy\'s future depends on your skill, courage, and determination. Let\'s show them what heroes are made of!',
+    character: '🚀',
+  },
+]
+
 function Story({ onContinue }) {
   const [currentPage, setCurrentPage] = useState(0)
-
-  const storyPages = [
-    {
-      title: '🌟 The Adventure Begins',
-      content:
-        'Kaden and Adelynn are two young space explorers on a mission to save their galaxy from an alien invasion.',
-      character: '👨‍🚀',
-    },
-    {
-      title: '🔴 The Threat',
-      content:
-        'Ancient evil forces have awakened and are destroying planets across the galaxy. Only our brave heroes can stop them!',
-      character: '👾',
-    },
-    {
-      title: '🚀 The Mission',
-      content:
-        'Kaden pilots the Blue Thunder with precision lasers. Adelynn commands the Pink Princess with devastating spread shots.',
-      character: '⚔️',
-    },
-    {
-      title: '💫 Their Quest',
-      content:
-        'Collect power-ups, defeat enemies, and battle massive bosses to restore peace to the galaxy!',
-      character: '🎯',
-    },
-    {
-      title: '🌟 Ready?',
-      content: 'Choose your ship and difficulty. The fate of the galaxy rests in your hands!',
-      character: '🚀',
-    },
-  ]
 
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (currentPage < storyPages.length - 1) {
         setCurrentPage(currentPage + 1)
       }
-    }, 3000)
+    }, 4000) // Increased time to read the more detailed story
     return () => clearTimeout(timeout)
   }, [currentPage])
 
