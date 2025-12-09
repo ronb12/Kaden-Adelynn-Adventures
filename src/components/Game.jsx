@@ -2952,12 +2952,14 @@ function Game({
     x += hw + pad
 
     // Shooting Accuracy
-    const accuracy = state.shotsFired > 0 
-      ? Math.round((state.shotsHit / state.shotsFired) * 100) 
+    const shotsFired = state.shotsFired || 0
+    const shotsHit = state.shotsHit || 0
+    const accuracy = shotsFired > 0 
+      ? Math.round((shotsHit / shotsFired) * 100) 
       : 0
-    ctx.font = isMobile ? '11px Arial' : '12px Arial'
+    ctx.font = isMobile ? 'bold 11px Arial' : 'bold 12px Arial'
     ctx.fillStyle = accuracy >= 70 ? '#2ecc71' : accuracy >= 50 ? '#f39c12' : '#e74c3c'
-    const accuracyText = `ACC: ${accuracy}%`
+    const accuracyText = `🎯 ACC: ${accuracy}%`
     place(accuracyText)
 
     // Wave | Level
