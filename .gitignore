@@ -5,9 +5,21 @@ build/
 *.log
 .env
 .env.local
+.env.*.local
 coverage/
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+
+# API Keys and Secrets
+*.key
+*.pem
+secrets.json
+config.json

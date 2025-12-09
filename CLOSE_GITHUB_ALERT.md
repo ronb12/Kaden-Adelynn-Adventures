@@ -7,7 +7,7 @@
 1. Go to your repository: https://github.com/ronb12/Kaden-Adelynn-Adventures
 2. Click on **"Security"** tab (top navigation)
 3. Click on **"Secret scanning alerts"** in the left sidebar
-4. Find the alert for the Google API key (`AIzaSyC1b-JWvBRGti5LFKk7LqSS8p1QFbP_D88`)
+4. Find the alert for the Google API key (check the alert details for the specific key)
 5. Click on the alert
 6. Click **"Dismiss"** button (top right)
 7. Select **"Mark as false positive"**

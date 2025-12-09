@@ -37,9 +37,15 @@ You **don't need to rotate** for security reasons. However, you may want to:
    - Copy the new API key
 8. **Important:** After rotation, redeploy to Firebase Hosting so the new config takes effect
 
-### Current Exposed Key (to be replaced):
+### Getting Your API Key:
 ```
-API Key: AIzaSyC1b-JWvBRGti5LFKk7LqSS8p1QFbP_D88
+⚠️ IMPORTANT: Never commit API keys to the repository!
+1. Go to Firebase Console → Project Settings → Your apps
+2. Find your Web app configuration
+3. Copy the API key and other values
+4. Store them in .env file (see .env.example for template)
+5. The .env file is gitignored and will not be committed
+
 Project ID: kaden---adelynn-adventures
 ```
 
