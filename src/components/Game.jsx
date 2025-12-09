@@ -2951,16 +2951,35 @@ function Game({
     ctx.fillText(healthText, x, y)
     x += hw + pad
 
-    // Shooting Accuracy
+    // Shooting Accuracy - Always show, even at 0%
     const shotsFired = state.shotsFired || 0
     const shotsHit = state.shotsHit || 0
-    const accuracy = shotsFired > 0 
-      ? Math.round((shotsHit / shotsFired) * 100) 
-      : 0
-    ctx.font = isMobile ? 'bold 11px Arial' : 'bold 12px Arial'
-    ctx.fillStyle = accuracy >= 70 ? '#2ecc71' : accuracy >= 50 ? '#f39c12' : '#e74c3c'
-    const accuracyText = `🎯 ACC: ${accuracy}%`
-    place(accuracyText)
+    let accuracy = 0
+    if (shotsFired > 0) {
+      accuracy = Math.round((shotsHit / shotsFired) * 100)
+      accuracy = Math.max(0, Math.min(100, accuracy)) // Clamp between 0-100
+    }
+    
+    // Set font and color
+    ctx.font = isMobile ? 'bold 12px Arial' : 'bold 13px Arial'
+    if (accuracy >= 70) {
+      ctx.fillStyle = '#2ecc71' // Green
+    } else if (accuracy >= 50) {
+      ctx.fillStyle = '#f39c12' // Orange
+    } else {
+      ctx.fillStyle = '#e74c3c' // Red
+    }
+    
+    // Always display accuracy
+    const accuracyText = `ACC: ${accuracy}%`
+    const accWidth = ctx.measureText(accuracyText).width
+    // Ensure it's visible - use fillText directly to guarantee it renders
+    if (isMobile && x + accWidth > cw - rightReserve) {
+      x = 10
+      y = row2Y
+    }
+    ctx.fillText(accuracyText, x, y)
+    x += accWidth + pad
 
     // Wave | Level
     ctx.font = isMobile ? '12px Arial' : '14px Arial'
