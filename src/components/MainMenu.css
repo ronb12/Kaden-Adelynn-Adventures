@@ -9,6 +9,9 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding: 80px 0 100px 0;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
 }
 /* (header/nav styles removed to restore simpler layout) */
 

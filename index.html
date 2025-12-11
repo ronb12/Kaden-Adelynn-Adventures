@@ -40,6 +40,13 @@
         height: 100%;
         width: 100%;
         overflow: hidden;
+        position: relative;
+      }
+      
+      /* Allow scrolling on main menu */
+      .main-menu,
+      .main-menu * {
+        -webkit-overflow-scrolling: touch;
       }
       
       /* Prevent text selection on iOS */
@@ -56,22 +63,69 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
-      // Register service worker for PWA
+      // Register service worker for PWA with update checking
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then((registration) => {
-              console.log('SW registered:', registration)
+        let refreshing = false
+        
+        // Register service worker
+        navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
+          .then((registration) => {
+            console.log('SW registered:', registration)
+            
+            // Check for updates every hour
+            setInterval(() => {
+              registration.update()
+            }, 3600000) // 1 hour
+            
+            // Listen for updates
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing
+              console.log('SW update found, installing new version')
+              
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  // New service worker is ready, prompt user to refresh
+                  console.log('New SW installed, ready to activate')
+                  // Optionally show update notification to user
+                  if (confirm('A new version is available! Reload to update?')) {
+                    newWorker.postMessage({ type: 'SKIP_WAITING' })
+                    window.location.reload()
+                  }
+                }
+              })
             })
-            .catch((error) => {
-              console.log('SW registration failed:', error)
+            
+            // Listen for messages from service worker
+            navigator.serviceWorker.addEventListener('message', (event) => {
+              if (event.data && event.data.type === 'SW_UPDATED') {
+                console.log('SW updated to version:', event.data.version)
+                if (!refreshing) {
+                  refreshing = true
+                  window.location.reload()
+                }
+              }
             })
+          })
+          .catch((error) => {
+            console.log('SW registration failed:', error)
+          })
+        
+        // Check for updates on page visibility change
+        document.addEventListener('visibilitychange', () => {
+          if (!document.hidden && 'serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistration().then((registration) => {
+              if (registration) {
+                registration.update()
+              }
+            })
+          }
         })
       }
       
-      // Prevent iOS Safari bounce scrolling
+      // Prevent iOS Safari bounce scrolling (but allow menu scrolling)
       document.addEventListener('touchmove', (e) => {
-        if (e.target.closest('.scrollable')) {
+        // Allow scrolling on main menu and scrollable elements
+        if (e.target.closest('.main-menu') || e.target.closest('.scrollable') || e.target.closest('.menu-container')) {
           return
         }
         e.preventDefault()
