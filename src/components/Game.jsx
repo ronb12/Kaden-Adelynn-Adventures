@@ -3578,11 +3578,18 @@ function Game({
     const coinsText = `💰 ${state.coins}`
     place(coinsText)
 
-    // Current weapon
+    // Current weapon - Force to new row on mobile if needed to avoid overlap
     ctx.fillStyle = '#4ecdc4'
     ctx.font = isMobile ? 'bold 11px Arial' : 'bold 12px Arial'
     const weaponText = `⚔️ ${state.currentWeapon.toUpperCase()}`
-    place(weaponText)
+    const weaponWidth = ctx.measureText(weaponText).width
+    // On mobile, always put weapon on second row to avoid overlap with accuracy
+    if (isMobile && x + weaponWidth > cw - rightReserve) {
+      x = 10
+      y = row2Y
+    }
+    ctx.fillText(weaponText, x, y)
+    x += weaponWidth + pad
 
     // Power-up badges (right side)
     let rx = cw - 10
@@ -3618,6 +3625,7 @@ function Game({
         <button
           onClick={onPause}
           aria-label="Pause Game"
+          className="pause-button"
           style={{
             position: 'fixed',
             top: 14,
