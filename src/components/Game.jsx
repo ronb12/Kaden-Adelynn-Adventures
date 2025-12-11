@@ -103,6 +103,7 @@ function Game({
     shotsFired: 0, // Total shots fired by player
     shotsHit: 0, // Total shots that hit enemies/bosses/asteroids
     lastWaveMilestone: 0, // Track last wave milestone to prevent multiple triggers
+    nextFormationId: 1, // Unique ID for each formation
   })
 
   // Keep a ref in sync with health so the canvas UI reads the latest value inside the gameLoop closure
@@ -982,16 +983,71 @@ function Game({
     const timeScale = Math.min(state.deltaTime / 16.67, 2)
     // Limit enemies to prevent performance issues
     const MAX_ENEMIES = 50
+    
+    // Group enemies by formation for coordinated movement
+    const formationGroups = {}
+    state.enemies.forEach((enemy) => {
+      if (enemy.formationId) {
+        if (!formationGroups[enemy.formationId]) {
+          formationGroups[enemy.formationId] = []
+        }
+        formationGroups[enemy.formationId].push(enemy)
+      }
+    })
+    
     state.enemies = state.enemies.slice(0, MAX_ENEMIES).filter((enemy) => {
-      enemy.y += enemy.speed * timeScale
+      // Handle formation movement
+      if (enemy.formationId && !enemy.isFormationLeader) {
+        // Find the formation leader
+        const formation = formationGroups[enemy.formationId]
+        if (formation) {
+          const leader = formation.find((e) => e.isFormationLeader)
+          if (leader) {
+            // Maintain relative position to leader
+            const targetX = leader.x + enemy.formationOffsetX
+            const targetY = leader.y + enemy.formationOffsetY
+            
+            // Smooth movement toward formation position
+            const dx = targetX - enemy.x
+            const dy = targetY - enemy.y
+            const distance = Math.hypot(dx, dy)
+            
+            if (distance > 5) {
+              // Move toward formation position
+              enemy.x += (dx / distance) * enemy.speed * timeScale * 0.5
+              enemy.y += (dy / distance) * enemy.speed * timeScale * 0.5
+            } else {
+              // Close enough, just follow leader's movement
+              enemy.y += enemy.speed * timeScale
+            }
+          } else {
+            // Leader destroyed, continue normal movement
+            enemy.y += enemy.speed * timeScale
+          }
+        } else {
+          // Formation broken, continue normal movement
+          enemy.y += enemy.speed * timeScale
+        }
+      } else {
+        // Normal enemy movement (single enemy or formation leader)
+        enemy.y += enemy.speed * timeScale
+        
+        // Formation leaders can have special movement
+        if (enemy.isFormationLeader && enemy.formationType === 'v') {
+          // V-formation leaders can zigzag slightly
+          enemy.x += Math.sin(enemy.y / 40) * 1.5 * timeScale
+        }
+      }
 
-      // Simple movement patterns
-      if (enemy.pattern === 'zigzag') {
-        enemy.x += Math.sin(enemy.y / 20) * 2 * timeScale
-      } else if (enemy.pattern === 'sway') {
-        enemy.x += Math.sin(enemy.y / 30) * 3 * timeScale
-      } else if (enemy.pattern === 'dash') {
-        if (Math.random() < 0.02) enemy.y += 20 * timeScale
+      // Simple movement patterns (for non-formation enemies or additional movement)
+      if (!enemy.formationId || enemy.isFormationLeader) {
+        if (enemy.pattern === 'zigzag') {
+          enemy.x += Math.sin(enemy.y / 20) * 2 * timeScale
+        } else if (enemy.pattern === 'sway') {
+          enemy.x += Math.sin(enemy.y / 30) * 3 * timeScale
+        } else if (enemy.pattern === 'dash') {
+          if (Math.random() < 0.02) enemy.y += 20 * timeScale
+        }
       }
 
       // Make enemies shoot more frequently based on difficulty!
@@ -1015,6 +1071,101 @@ function Game({
     })
   }
 
+  // Spawn a formation of enemies
+  const spawnFormation = (state, formationType, centerX, startY) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    
+    const formationId = state.nextFormationId++
+    const baseSilverChance = state.wave >= 4 ? 0.4 : 0.25
+    const baseSpeed = difficultyModifier() * (state.wave < 3 ? 1.0 : 1.3) * (state.dailyChallenge === 0 ? 1.2 : 1.0)
+    const formationEnemies = []
+    
+    let positions = []
+    let count = 3 // Default formation size
+    
+    switch (formationType) {
+      case 'v': // V-formation (3-5 enemies)
+        count = state.wave >= 3 ? 5 : 3
+        for (let i = 0; i < count; i++) {
+          const offset = (i - Math.floor(count / 2)) * 50
+          const depth = Math.abs(offset) * 0.3
+          positions.push({ x: centerX + offset, y: startY - depth })
+        }
+        break
+      case 'line': // Horizontal line (3-5 enemies)
+        count = state.wave >= 3 ? 5 : 3
+        for (let i = 0; i < count; i++) {
+          const offset = (i - Math.floor(count / 2)) * 60
+          positions.push({ x: centerX + offset, y: startY })
+        }
+        break
+      case 'diamond': // Diamond formation (5 enemies)
+        count = 5
+        positions = [
+          { x: centerX, y: startY - 40 }, // Top
+          { x: centerX - 40, y: startY }, // Left
+          { x: centerX, y: startY }, // Center
+          { x: centerX + 40, y: startY }, // Right
+          { x: centerX, y: startY + 40 }, // Bottom
+        ]
+        break
+      case 'circle': // Circle formation (5-7 enemies)
+        count = state.wave >= 4 ? 7 : 5
+        const radius = 60
+        for (let i = 0; i < count; i++) {
+          const angle = (i / count) * Math.PI * 2
+          positions.push({
+            x: centerX + Math.cos(angle) * radius,
+            y: startY + Math.sin(angle) * radius,
+          })
+        }
+        break
+      case 'arrow': // Arrow formation (4-6 enemies)
+        count = state.wave >= 3 ? 6 : 4
+        for (let i = 0; i < count; i++) {
+          if (i === 0) {
+            positions.push({ x: centerX, y: startY - 30 }) // Leader
+          } else {
+            const side = i % 2 === 0 ? 1 : -1
+            const row = Math.floor((i - 1) / 2) + 1
+            positions.push({
+              x: centerX + side * 40,
+              y: startY + row * 30,
+            })
+          }
+        }
+        break
+      default:
+        return // Unknown formation type
+    }
+    
+    // Create enemies for the formation
+    positions.forEach((pos, index) => {
+      const isSilver = index === 0 || Math.random() < baseSilverChance // Leader or random
+      const pattern = index === 0 ? 'normal' : ['normal', 'zigzag', 'sway'][Math.floor(Math.random() * 3)]
+      
+      const enemy = {
+        x: Math.max(30, Math.min(canvas.width - 30, pos.x)),
+        y: pos.y,
+        speed: baseSpeed * (isSilver ? 0.95 : 1.0),
+        pattern,
+        health: isSilver ? 4 : state.wave < 3 ? 1 : 2,
+        type: isSilver ? 'silver' : 'red',
+        formationId,
+        formationType,
+        formationIndex: index,
+        isFormationLeader: index === 0,
+        formationOffsetX: pos.x - centerX,
+        formationOffsetY: pos.y - startY,
+      }
+      formationEnemies.push(enemy)
+    })
+    
+    state.enemies.push(...formationEnemies)
+    state.enemiesSpawned += formationEnemies.length
+  }
+
   const spawnEnemies = (state) => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -1023,26 +1174,43 @@ function Game({
     const baseRate = state.wave <= 2 ? 2600 : state.wave <= 4 ? 2200 : 1800
     let spawnRate = baseRate / difficultyModifier()
     if (state.dailyChallenge === 0) spawnRate *= 0.8
+    
+    // Formation spawn chance increases with wave
+    const formationChance = state.wave >= 3 ? 0.35 : state.wave >= 2 ? 0.2 : 0.1
+    
     if (now - state.lastEnemySpawn > spawnRate) {
-      const patternsEarly = ['normal', 'zigzag']
-      const patternsMore = ['normal', 'zigzag', 'sway', 'dash']
-      const pool = state.wave < 3 ? patternsEarly : patternsMore
-      const pattern = pool[Math.floor(Math.random() * pool.length)]
-      // Mix silver with red from the start; slightly higher chance as waves progress
-      const baseSilverChance = state.wave >= 4 ? 0.4 : 0.25
-      const periodicSilver = state.enemiesSpawned > 0 && state.enemiesSpawned % 10 === 0
-      const isSilver = periodicSilver || Math.random() < baseSilverChance
-      const enemy = {
-        x: Math.random() * (canvas.width - 30) + 15,
-        y: -30,
-        speed: difficultyModifier() * (isSilver ? 0.95 : state.wave < 3 ? 1.0 : 1.3) * (state.dailyChallenge === 0 ? 1.2 : 1.0),
-        pattern,
-        health: isSilver ? 4 : state.wave < 3 ? 1 : 2,
-        type: isSilver ? 'silver' : 'red',
+      // Decide whether to spawn a formation or single enemy
+      if (Math.random() < formationChance && state.wave >= 2) {
+        // Spawn a formation
+        const formationTypes = ['v', 'line', 'diamond', 'circle', 'arrow']
+        const formationType = formationTypes[Math.floor(Math.random() * formationTypes.length)]
+        const centerX = Math.random() * (canvas.width - 200) + 100
+        const startY = -50
+        
+        spawnFormation(state, formationType, centerX, startY)
+      } else {
+        // Spawn a single enemy (original logic)
+        const patternsEarly = ['normal', 'zigzag']
+        const patternsMore = ['normal', 'zigzag', 'sway', 'dash']
+        const pool = state.wave < 3 ? patternsEarly : patternsMore
+        const pattern = pool[Math.floor(Math.random() * pool.length)]
+        // Mix silver with red from the start; slightly higher chance as waves progress
+        const baseSilverChance = state.wave >= 4 ? 0.4 : 0.25
+        const periodicSilver = state.enemiesSpawned > 0 && state.enemiesSpawned % 10 === 0
+        const isSilver = periodicSilver || Math.random() < baseSilverChance
+        const enemy = {
+          x: Math.random() * (canvas.width - 30) + 15,
+          y: -30,
+          speed: difficultyModifier() * (isSilver ? 0.95 : state.wave < 3 ? 1.0 : 1.3) * (state.dailyChallenge === 0 ? 1.2 : 1.0),
+          pattern,
+          health: isSilver ? 4 : state.wave < 3 ? 1 : 2,
+          type: isSilver ? 'silver' : 'red',
+        }
+        state.enemies.push(enemy)
+        state.enemiesSpawned++
       }
-      state.enemies.push(enemy)
+      
       state.lastEnemySpawn = now
-      state.enemiesSpawned++
     }
   }
 
