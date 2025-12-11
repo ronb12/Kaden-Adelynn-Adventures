@@ -3553,7 +3553,8 @@ function Game({
       y = row2Y
     }
     ctx.fillText(accuracyText, x, y)
-    x += accWidth + pad
+    const accuracyEndX = x + accWidth + pad
+    x = accuracyEndX
 
     // Wave | Level
     ctx.font = isMobile ? '12px Arial' : '14px Arial'
@@ -3578,15 +3579,25 @@ function Game({
     const coinsText = `💰 ${state.coins}`
     place(coinsText)
 
-    // Current weapon - Force to new row on mobile if needed to avoid overlap
+    // Current weapon - ALWAYS put on second row on mobile to avoid overlap with accuracy
     ctx.fillStyle = '#4ecdc4'
     ctx.font = isMobile ? 'bold 11px Arial' : 'bold 12px Arial'
     const weaponText = `⚔️ ${state.currentWeapon.toUpperCase()}`
     const weaponWidth = ctx.measureText(weaponText).width
-    // On mobile, always put weapon on second row to avoid overlap with accuracy
-    if (isMobile && x + weaponWidth > cw - rightReserve) {
-      x = 10
-      y = row2Y
+    // On mobile, force weapon to second row to ensure no overlap with accuracy
+    if (isMobile) {
+      // Check if we're still on first row and if weapon would overlap
+      const currentRow = (y === row2Y) ? 2 : 1
+      if (currentRow === 1 || x + weaponWidth > cw - rightReserve) {
+        x = 10
+        y = row2Y
+      }
+    } else {
+      // Desktop: normal placement
+      if (x + weaponWidth > cw - rightReserve) {
+        x = 10
+        y = row2Y
+      }
     }
     ctx.fillText(weaponText, x, y)
     x += weaponWidth + pad
