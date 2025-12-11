@@ -13,7 +13,7 @@ import {
 import { enemyVarieties, spawnEnemy, updateEnemyMovement } from '../utils/enemyTypes'
 import { sounds, playSound } from '../utils/sounds'
 import { getPersonalBest } from '../utils/scoreTracking'
-import { playGameplayMusic, playBossMusic, stopMusic } from '../utils/music'
+import { playGameplayMusic, playBossMusic, stopMusic, ensureMusicPlaying } from '../utils/music'
 
 function Game({
   onPause,
@@ -27,6 +27,7 @@ function Game({
   const canvasRef = useRef(null)
   const gameLoopRef = useRef(null)
   const timeoutRefs = useRef([]) // Track setTimeout calls for cleanup
+  const musicCheckIntervalRef = useRef(null) // Track music check interval
   const [score, setScore] = useState(0)
   const [lives, setLives] = useState(25)
   const livesRef = useRef(25)
@@ -94,6 +95,7 @@ function Game({
     lastAsteroidSpawn: 0,
     lastFrameTime: 0,
     deltaTime: 16.67, // 60fps = 16.67ms per frame
+    frameCount: 0, // Frame counter for periodic checks
     engineTrails: [], // Player engine trail particles
     scorePopups: [], // Floating score numbers
     comboEffects: [], // Combo visual effects
@@ -193,8 +195,16 @@ function Game({
       gameLoopRef.current = requestAnimationFrame(gameLoop)
     }
     // Start music only after a user gesture to satisfy autoplay policies
+    let musicStarted = false
     const startMusicOnGesture = () => {
-      playGameplayMusic()
+      if (!musicStarted) {
+        playGameplayMusic()
+        musicStarted = true
+        // Also ensure music keeps playing - check every 2 seconds
+        musicCheckIntervalRef.current = setInterval(() => {
+          ensureMusicPlaying()
+        }, 2000)
+      }
       window.removeEventListener('pointerdown', startMusicOnGesture)
       window.removeEventListener('keydown', startMusicOnGesture)
       window.removeEventListener('touchstart', startMusicOnGesture)
@@ -306,6 +316,11 @@ function Game({
     return () => {
       if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current)
       stopMusic()
+      // Clear music check interval if it exists
+      if (musicCheckIntervalRef.current) {
+        clearInterval(musicCheckIntervalRef.current)
+        musicCheckIntervalRef.current = null
+      }
       // Clear all setTimeout timers to prevent memory leaks
       timeoutRefs.current.forEach((timerId) => {
         if (timerId) clearTimeout(timerId)
@@ -427,6 +442,12 @@ function Game({
 
       // Update timers
       updatePowerUpTimers(state)
+
+      // Ensure music keeps playing (check every 60 frames ~1 second)
+      if (state.frameCount % 60 === 0) {
+        ensureMusicPlaying()
+      }
+      state.frameCount = (state.frameCount || 0) + 1
 
       // Apply screen shake
       if (state.shakeIntensity > 0) {
