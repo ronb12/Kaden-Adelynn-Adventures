@@ -102,6 +102,7 @@ function Game({
     waveTransition: null, // Wave transition effect
     shotsFired: 0, // Total shots fired by player
     shotsHit: 0, // Total shots that hit enemies/bosses/asteroids
+    lastWaveMilestone: 0, // Track last wave milestone to prevent multiple triggers
   })
 
   // Keep a ref in sync with health so the canvas UI reads the latest value inside the gameLoop closure
@@ -764,15 +765,28 @@ function Game({
         break
       case 'homing':
       case 'weapon_homing': {
-        const nearestEnemy = state.enemies[0]
-        state.missiles.push({
-          x: state.player.x,
-          y: state.player.y,
-          speed: 8,
-          target: nearestEnemy,
-          explosion: false,
-          homing: true,
-        })
+        // Find nearest enemy for homing
+        let nearestEnemy = null
+        let nearestDist = Infinity
+        for (const enemy of state.enemies) {
+          const dx = enemy.x - state.player.x
+          const dy = enemy.y - state.player.y
+          const dist = Math.hypot(dx, dy)
+          if (dist < nearestDist) {
+            nearestDist = dist
+            nearestEnemy = enemy
+          }
+        }
+        if (nearestEnemy) {
+          state.missiles.push({
+            x: state.player.x,
+            y: state.player.y,
+            speed: 8,
+            target: nearestEnemy,
+            explosion: false,
+            homing: true,
+          })
+        }
         break
       }
       case 'bounce':
@@ -1078,8 +1092,8 @@ function Game({
             const newScore = s + points
             state.currentScore = newScore // Sync to gameState
 
-            // Check achievements
-            if (enemiesKilled === 0) {
+            // Check achievements - use state.currentKills to avoid stale closure
+            if ((state.currentKills || 0) === 0) {
               const achievement = checkAchievement('firstKill', setUnlockedAchievements)
               if (achievement) {
                 playSound('achievement', 1.0)
@@ -1170,11 +1184,11 @@ function Game({
             break
           }
         }
-        if (bossHit) {
+        if (bossHit && state.boss) {
           // Track hit
           state.shotsHit++
-          // Boss takes damage
-          state.boss.health -= Math.max(10, 20 * (state.damageMul || 1))
+          // Boss takes damage (ensure health doesn't go negative)
+          state.boss.health = Math.max(0, state.boss.health - Math.max(10, 20 * (state.damageMul || 1)))
 
           // Remove bullet unless it's piercing
           if (!bullet.pierce) {
@@ -1197,8 +1211,8 @@ function Game({
               const newScore = s + bossPoints
               state.currentScore = newScore
 
-              // Check for perfect boss achievement (no damage)
-              if (health >= 100) {
+              // Check for perfect boss achievement (no damage) - use healthRef to avoid stale closure
+              if (healthRef.current >= 100) {
                 const achievement = checkAchievement('noDamageBoss', setUnlockedAchievements)
                 if (achievement) {
                   playSound('achievement', 1.0)
@@ -1304,6 +1318,7 @@ function Game({
     // Missiles-enemy collisions (for missile/rocket weapons)
     if (state.missiles && state.missiles.length > 0 && state.enemies.length > 0) {
       const missilesToRemove = []
+      const missileEnemiesToRemove = []
       for (let mi = 0; mi < state.missiles.length; mi++) {
         const m = state.missiles[mi]
         for (let j = 0; j < state.enemies.length; j++) {
@@ -1318,6 +1333,19 @@ function Game({
           ) {
             // Track hit
             state.shotsHit++
+            // Update score - sync with gameState
+            const points = Math.floor(10 * state.scoreMultiplier)
+            setScore((s) => {
+              const newScore = s + points
+              state.currentScore = newScore
+              return newScore
+            })
+            // Update combo and kills
+            const newCombo = combo + 1
+            setCombo(newCombo)
+            setKillStreak((k) => k + 1)
+            setEnemiesKilled((e) => e + 1)
+            state.currentKills = (state.currentKills || 0) + 1
             // Explosion feedback
             playSound('hit', 0.5)
             // Limit particle creation to prevent overflow
@@ -1326,7 +1354,7 @@ function Game({
                 ...ParticleSystem.createExplosion(enemy.x + 15, enemy.y + 15, '#ff8c00', 15)
               )
             }
-            enemiesToRemove.push(j)
+            missileEnemiesToRemove.push(j)
             missilesToRemove.push(mi)
             break
           }
@@ -1338,7 +1366,7 @@ function Game({
         .forEach((index) => {
           state.missiles.splice(index, 1)
         })
-      enemiesToRemove
+      missileEnemiesToRemove
         .sort((a, b) => b - a)
         .forEach((index) => {
           state.enemies.splice(index, 1)
@@ -1347,7 +1375,7 @@ function Game({
 
     // Plasma beams-enemy collisions (for plasma weapons)
     if (state.plasmaBeams && state.plasmaBeams.length > 0 && state.enemies.length > 0) {
-      const beamsToRemove = []
+      const beamEnemiesToRemove = []
       for (let bi = 0; bi < state.plasmaBeams.length; bi++) {
         const beam = state.plasmaBeams[bi]
         for (let j = 0; j < state.enemies.length; j++) {
@@ -1362,6 +1390,19 @@ function Game({
           ) {
             // Track hit
             state.shotsHit++
+            // Update score - sync with gameState
+            const points = Math.floor(10 * state.scoreMultiplier)
+            setScore((s) => {
+              const newScore = s + points
+              state.currentScore = newScore
+              return newScore
+            })
+            // Update combo and kills
+            const newCombo = combo + 1
+            setCombo(newCombo)
+            setKillStreak((k) => k + 1)
+            setEnemiesKilled((e) => e + 1)
+            state.currentKills = (state.currentKills || 0) + 1
             playSound('hit', 0.4)
             // Limit particle creation to prevent overflow
             if (state.particles.length < 120) {
@@ -1369,13 +1410,14 @@ function Game({
                 ...ParticleSystem.createExplosion(enemy.x + 15, enemy.y + 15, '#00ffff', 10)
               )
             }
-            enemiesToRemove.push(j)
+            beamEnemiesToRemove.push(j)
             // beams can persist; optionally remove after a hit
+            break // Only hit one enemy per beam per frame
           }
         }
       }
       // Remove enemies hit by beams
-      enemiesToRemove
+      beamEnemiesToRemove
         .sort((a, b) => b - a)
         .forEach((index) => {
           state.enemies.splice(index, 1)
@@ -1547,7 +1589,6 @@ function Game({
         ) {
           setHealth((h) => {
             const newHealth = h - 1
-            console.log('HIT by enemy bullet. Health:', h, '->', Math.max(0, newHealth))
             if (newHealth <= 0) {
               setLives((l) => Math.max(0, l - 1))
               state.invulnerable = true
@@ -2750,7 +2791,9 @@ function Game({
     const time = Date.now() / 1000
     const pulse = Math.sin(time * 2) * 0.05 + 0.95 // Subtle pulse
     const rotation = time * 0.05 // Slower rotation
-    const healthRatio = state.boss.health / (state.boss.maxHealth || state.boss.health)
+    // Calculate health ratio safely (avoid division by zero)
+    const bossMaxHealthForRatio = state.boss.maxHealth || state.boss.health || 1
+    const healthRatio = Math.max(0, Math.min(1, (state.boss.health || 0) / bossMaxHealthForRatio))
     const isDamaged = healthRatio < 0.5
 
     // Try to load and use boss ship image
@@ -2798,8 +2841,8 @@ function Game({
     const barX = state.boss.x - barWidth / 2
     const barY = state.boss.y - state.boss.height / 2 - 50
 
-    const maxHealth = state.boss.maxHealth || state.boss.health
-    const healthPercent = Math.max(0, Math.min(1, state.boss.health / maxHealth))
+    const bossMaxHealth = state.boss.maxHealth || state.boss.health || 1
+    const healthPercent = Math.max(0, Math.min(1, (state.boss.health || 0) / bossMaxHealth))
 
     // Outer glow
     ctx.shadowBlur = 20
@@ -2880,7 +2923,12 @@ function Game({
     const canvas = canvasRef.current
     if (!canvas) return
 
-    if (state.enemiesSpawned % 50 === 0 && state.enemiesSpawned > 0) {
+    // Only trigger wave progression once per milestone (prevent multiple triggers)
+    const waveMilestone = Math.floor(state.enemiesSpawned / 50)
+    const lastWaveMilestone = state.lastWaveMilestone || 0
+    
+    if (waveMilestone > lastWaveMilestone && state.enemiesSpawned > 0) {
+      state.lastWaveMilestone = waveMilestone
       const oldWave = state.wave
       state.wave++
       setWave(state.wave)
