@@ -94,10 +94,13 @@
           .then((registration) => {
             console.log('SW registered:', registration)
             
-            // Check for updates every hour
+            // Check for updates more frequently (every 5 minutes)
             setInterval(() => {
-              registration.update()
-            }, 3600000) // 1 hour
+              registration.update().catch(err => console.log('Update check failed:', err))
+            }, 300000) // 5 minutes
+            
+            // Force immediate update check on registration
+            registration.update()
             
             // Listen for updates
             registration.addEventListener('updatefound', () => {
@@ -105,13 +108,18 @@
               console.log('SW update found, installing new version')
               
               newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  // New service worker is ready, prompt user to refresh
-                  console.log('New SW installed, ready to activate')
-                  // Optionally show update notification to user
-                  if (confirm('A new version is available! Reload to update?')) {
-                    newWorker.postMessage({ type: 'SKIP_WAITING' })
-                    window.location.reload()
+                if (newWorker.state === 'installed') {
+                  if (navigator.serviceWorker.controller) {
+                    // New service worker is ready, prompt user to refresh
+                    console.log('New SW installed, ready to activate')
+                    // Auto-reload after short delay to ensure update
+                    setTimeout(() => {
+                      newWorker.postMessage({ type: 'SKIP_WAITING' })
+                      window.location.reload()
+                    }, 1000)
+                  } else {
+                    // First install, no reload needed
+                    console.log('SW installed for first time')
                   }
                 }
               })

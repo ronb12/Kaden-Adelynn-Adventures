@@ -1,6 +1,6 @@
 // Service Worker for PWA offline support
-// Version: 2 - Updated for proper cache invalidation
-const CACHE_VERSION = 'v2'
+// Version: 3 - Force update for weapon/accuracy fix
+const CACHE_VERSION = 'v3'
 const CACHE_NAME = `space-adventures-${CACHE_VERSION}`
 const RUNTIME_CACHE = `runtime-cache-${CACHE_VERSION}`
 
