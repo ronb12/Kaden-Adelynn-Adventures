@@ -9,10 +9,18 @@ import CharacterSelector from './components/CharacterSelector'
 import TopScores from './components/TopScores'
 import TermsOfService from './components/TermsOfService'
 import PrivacyPolicy from './components/PrivacyPolicy'
+import StatisticsDashboard from './components/StatisticsDashboard'
+import SaveLoadMenu from './components/SaveLoadMenu'
+import WeaponUpgrades from './components/WeaponUpgrades'
+import Customization from './components/Customization'
 import './App.css'
 
 function App() {
-  const [gameState, setGameState] = useState('menu')
+  // Always start with menu - ensure it's never overridden
+  const [gameState, setGameState] = useState(() => {
+    // Force menu state on initial load
+    return 'menu'
+  })
   const [gameConfig, setGameConfig] = useState({
     difficulty: 'medium',
     ship: 'kaden',
@@ -23,6 +31,11 @@ function App() {
   useEffect(() => {
     localStorage.setItem('playerName', playerName)
   }, [playerName])
+  
+  // Debug: Log gameState changes
+  useEffect(() => {
+    console.log('App gameState:', gameState)
+  }, [gameState])
   const [gameStats, setGameStats] = useState({ score: 0, wave: 1, level: 1, kills: 0, combo: 0 })
   const [paused, setPaused] = useState(false)
 
@@ -111,6 +124,38 @@ function App() {
     setGameState('menu')
   }
 
+  const handleOpenStats = () => {
+    setGameState('stats')
+  }
+
+  const handleCloseStats = () => {
+    setGameState('menu')
+  }
+
+  const handleOpenSaveLoad = () => {
+    setGameState('saveload')
+  }
+
+  const handleCloseSaveLoad = () => {
+    setGameState('menu')
+  }
+
+  const handleOpenWeaponUpgrades = () => {
+    setGameState('weaponupgrades')
+  }
+
+  const handleCloseWeaponUpgrades = () => {
+    setGameState('menu')
+  }
+
+  const handleOpenCustomization = () => {
+    setGameState('customization')
+  }
+
+  const handleCloseCustomization = () => {
+    setGameState('menu')
+  }
+
   return (
     <div className="app">
       {gameState === 'menu' && (
@@ -122,6 +167,10 @@ function App() {
           onOpenScores={handleOpenScores}
           onOpenTerms={handleOpenTerms}
           onOpenPrivacy={handleOpenPrivacy}
+          onOpenStats={handleOpenStats}
+          onOpenSaveLoad={handleOpenSaveLoad}
+          onOpenWeaponUpgrades={handleOpenWeaponUpgrades}
+          onOpenCustomization={handleOpenCustomization}
         />
       )}
       {gameState === 'store' && <Store onClose={handleCloseStore} />}
@@ -142,6 +191,10 @@ function App() {
       {gameState === 'scores' && <TopScores onClose={handleCloseScores} />}
       {gameState === 'terms' && <TermsOfService onClose={handleCloseTerms} />}
       {gameState === 'privacy' && <PrivacyPolicy onClose={handleClosePrivacy} />}
+      {gameState === 'stats' && <StatisticsDashboard onClose={handleCloseStats} />}
+      {gameState === 'saveload' && <SaveLoadMenu onClose={handleCloseSaveLoad} />}
+      {gameState === 'weaponupgrades' && <WeaponUpgrades onClose={handleCloseWeaponUpgrades} />}
+      {gameState === 'customization' && <Customization onClose={handleCloseCustomization} />}
       {gameState === 'story' && <Story onContinue={handleStoryComplete} />}
       {gameState === 'playing' && (
         <Game

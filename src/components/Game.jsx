@@ -14,6 +14,16 @@ import { enemyVarieties, spawnEnemy, updateEnemyMovement } from '../utils/enemyT
 import { sounds, playSound } from '../utils/sounds'
 import { getPersonalBest } from '../utils/scoreTracking'
 import { playGameplayMusic, playBossMusic, stopMusic, ensureMusicPlaying } from '../utils/music'
+import { updateStats, getSessionStats, saveSessionStats } from '../utils/gameStats'
+import { saveCheckpoint, loadCheckpoint, clearCheckpoint } from '../utils/saveLoad'
+import { getWeaponUpgradeMultipliers } from '../utils/weaponUpgrades'
+import { getCustomization } from '../utils/customization'
+import { ReplayRecorder } from '../utils/replaySystem'
+import { updateChallengeProgress } from '../utils/dailyChallenges'
+import { startBossRush, updateBossRush } from '../utils/bossRush'
+import { spawnHazard, updateHazards, checkHazardCollision } from '../utils/environmentalHazards'
+import { createComboEffect, updateComboEffects as updateComboEffectsUtil, getComboPowerUp, calculateComboMultiplier } from '../utils/comboExpansion'
+import { getShipSkinColors, applyShipSkinEffects } from '../utils/shipSkins'
 
 function Game({
   onPause,
@@ -72,7 +82,7 @@ function Game({
     gameMode: 'classic', // classic, arcade, survival, bossRush
     wave: 1,
     level: 1,
-    comboMultiplier: 1,
+    comboMultiplier: 1.0,
     scoreMultiplier: 1,
     slowMotion: false,
     slowMotionTimer: 0,
@@ -104,6 +114,11 @@ function Game({
     shotsHit: 0, // Total shots that hit enemies/bosses/asteroids
     lastWaveMilestone: 0, // Track last wave milestone to prevent multiple triggers
     nextFormationId: 1, // Unique ID for each formation
+    hazards: [], // Environmental hazards
+    lastHazardSpawn: 0, // Last hazard spawn time
+    weaponKills: {}, // Track kills per weapon for stats
+    powerUpsCollected: {}, // Track power-ups collected for stats
+    bossesDefeated: 0, // Track bosses defeated
   })
 
   // Keep a ref in sync with health so the canvas UI reads the latest value inside the gameLoop closure
@@ -396,7 +411,12 @@ function Game({
     if (upRapid) { state.rapidFire = true; state.rapidFireTimer = 600 }
     if (upLife) { setLives((l) => l + 1) }
     if (upDoubler) { state.coinDoubler = true; state.coinDoublerTimer = 9999 }
-  }, [selectedCharacter])
+    
+    // Initialize customization (ensure it's loaded)
+    if (!state.customization) {
+      state.customization = getCustomization()
+    }
+  }, [selectedCharacter, selectedShip])
 
   // Daily challenge modifier
   useEffect(() => {
@@ -493,15 +513,73 @@ function Game({
       updateScorePopups(state)
       updateComboEffects(state)
       updateWaveTransition(state)
+      
+      // Update environmental hazards
+      if (canvas) {
+        state.hazards = updateHazards(state.hazards || [], canvas)
+      }
+      
+      // Spawn environmental hazards
+      if (canvas && state.wave >= 3) {
+        const now = Date.now()
+        if (now - (state.lastHazardSpawn || 0) > 10000) { // Every 10 seconds
+          const hazard = spawnHazard(state.wave, canvas)
+          if (hazard) {
+            if (!state.hazards) state.hazards = []
+            state.hazards.push(hazard)
+            state.lastHazardSpawn = now
+          }
+        }
+      }
 
       // Check collisions
       checkCollisions(state)
+      
+      // Check hazard collisions with player
+      if (state.hazards && state.hazards.length > 0) {
+        const collidingHazard = checkHazardCollision(state.player, state.hazards)
+        if (collidingHazard && !state.invulnerable && !state.shield) {
+          const damage = collidingHazard.damage || 10
+          setHealth((h) => Math.max(0, h - damage))
+          healthRef.current = Math.max(0, healthRef.current - damage)
+          if (healthRef.current <= 0 && lives > 0) {
+            setLives((l) => l - 1)
+            livesRef.current = livesRef.current - 1
+            setHealth(100)
+            healthRef.current = 100
+            state.invulnerable = true
+            if (state.invulnerableTimer) clearTimeout(state.invulnerableTimer)
+            state.invulnerableTimer = setTimeout(() => {
+              state.invulnerable = false
+            }, 2000)
+          }
+          // Remove hazard after collision
+          const hazardIndex = state.hazards.indexOf(collidingHazard)
+          if (hazardIndex > -1) {
+            state.hazards.splice(hazardIndex, 1)
+          }
+          playSound('hit', 0.5)
+        }
+      }
 
       // Spawn enemies
       spawnEnemies(state)
 
       // Spawn power-ups
       spawnPowerUps(state)
+      
+      // Spawn combo-based power-ups
+      if (state.streakCombo >= 10) {
+        const comboPowerUp = getComboPowerUp(state.streakCombo)
+        if (comboPowerUp && Math.random() < 0.3 && canvas) {
+          const x = Math.random() * (canvas.width - 100) + 50
+          const y = Math.random() * (canvas.height - 200) + 100
+          const powerUp = createPowerUp(x, y)
+          powerUp.type = comboPowerUp
+          if (!state.powerUps) state.powerUps = []
+          state.powerUps.push(powerUp)
+        }
+      }
 
       // Draw everything with layer order
       drawBackgroundElements(ctx, state)
@@ -519,6 +597,7 @@ function Game({
       drawBoss(ctx, state)
       drawScorePopups(ctx, state)
       drawComboEffects(ctx, state)
+      drawHazards(ctx, state)
       drawWaveTransition(ctx, state)
       drawUI(ctx, state)
 
@@ -530,8 +609,83 @@ function Game({
       checkLevelProgression(state)
       processGameMode(state)
 
+      // Update daily challenge progress
+      if (state.frameCount % 60 === 0) { // Every second at 60fps
+        updateChallengeProgress({
+          score: state.currentScore,
+          wave: state.wave,
+          kills: state.currentKills,
+          combo: state.streakCombo,
+          maxCombo: state.streakCombo,
+          weapon: state.currentWeapon,
+          shotsFired: state.shotsFired,
+          shotsHit: state.shotsHit,
+          bossesDefeated: state.bossesDefeated || 0,
+          weaponKills: state.weaponKills || {},
+          damageTaken: 100 - (healthRef.current || 100),
+        })
+      }
+      
+      // Update boss rush if active
+      if (state.gameMode === 'bossRush' && state.bossRushState) {
+        state.bossRushState = updateBossRush(state.bossRushState, state)
+      }
+      
+      // Auto-save checkpoint every 30 seconds
+      if (state.frameCount % 1800 === 0) { // Every 30 seconds at 60fps
+        saveCheckpoint({
+          currentScore: state.currentScore,
+          wave: state.wave,
+          level: state.level,
+          kills: state.currentKills,
+          combo: state.streakCombo,
+          player: { health: healthRef.current, lives: livesRef.current },
+          currentWeapon: state.currentWeapon,
+        })
+      }
+      
+      // Record replay frame
+      if (state.replayRecorder && state.replayRecorder.isRecording) {
+        state.replayRecorder.recordFrame(state)
+      }
+      
       // Check game over
       if (lives <= 0) {
+        // Stop replay recording
+        if (state.replayRecorder && state.replayRecorder.isRecording) {
+          const replay = state.replayRecorder.stop()
+          if (replay) {
+            state.replayRecorder.saveReplay(replay)
+          }
+        }
+        
+        // Calculate play time
+        const playTime = state.sessionStartTime 
+          ? Math.floor((Date.now() - state.sessionStartTime) / 1000)
+          : 0
+        
+        // Update statistics
+        updateStats({
+          score: state.currentScore,
+          wave: state.wave,
+          level: state.level,
+          kills: state.currentKills,
+          combo: state.streakCombo,
+          playTime,
+          weapon: state.currentWeapon,
+          shotsFired: state.shotsFired,
+          shotsHit: state.shotsHit,
+          bossesDefeated: state.bossesDefeated || 0,
+          powerUpsCollected: state.powerUpsCollected || {},
+          difficulty,
+          weaponKills: state.weaponKills || {},
+          maxCombo: state.streakCombo,
+          damageTaken: 100 - (healthRef.current || 100),
+        })
+        
+        // Clear checkpoint
+        clearCheckpoint()
+        
         onGameOver(score, wave, level, killStreak, combo)
         return
       }
@@ -621,6 +775,11 @@ function Game({
     const bulletsBefore = state.bullets.length
     const missilesBefore = state.missiles.length
     const plasmaBeamsBefore = state.plasmaBeams.length
+    
+    // Get weapon upgrade multipliers
+    const upgrades = state.weaponUpgrades || getWeaponUpgradeMultipliers(state.currentWeapon)
+    const damageMultiplier = upgrades.damage || 1.0
+    const rangeMultiplier = upgrades.range || 1.0
 
     switch (state.currentWeapon) {
       case 'laser':
@@ -1245,8 +1404,9 @@ function Game({
         ) {
           // Track hit
           state.shotsHit++
-          // Update score - sync with gameState
-          const points = Math.floor(10 * state.scoreMultiplier)
+          // Update score - sync with gameState (apply combo multiplier)
+          const comboMult = state.comboMultiplier || 1.0
+          const points = Math.floor(10 * state.scoreMultiplier * comboMult)
           // Add score popup
           if (state.scorePopups.length < 10) {
             state.scorePopups.push({
@@ -1376,7 +1536,8 @@ function Game({
           if (state.boss.health <= 0) {
             playSound('bossSpawn', 0.6)
             // Give bonus score
-            const bossPoints = Math.floor(500 * state.scoreMultiplier)
+            const comboMult = state.comboMultiplier || 1.0
+            const bossPoints = Math.floor(500 * state.scoreMultiplier * comboMult)
             setScore((s) => {
               const newScore = s + bossPoints
               state.currentScore = newScore
@@ -1570,9 +1731,29 @@ function Game({
             // Update combo and kills
             const newCombo = combo + 1
             setCombo(newCombo)
+            state.streakCombo = newCombo
             setKillStreak((k) => k + 1)
             setEnemiesKilled((e) => e + 1)
             state.currentKills = (state.currentKills || 0) + 1
+            
+            // Track weapon kills
+            if (!state.weaponKills) state.weaponKills = {}
+            if (!state.weaponKills[state.currentWeapon]) {
+              state.weaponKills[state.currentWeapon] = 0
+            }
+            state.weaponKills[state.currentWeapon]++
+            
+            // Add combo effects
+            if (newCombo >= 5 && newCombo % 5 === 0) {
+              const effects = createComboEffect(
+                newCombo,
+                enemy.x + 15,
+                enemy.y + 15
+              )
+              state.comboEffects.push(...effects)
+            }
+            state.comboMultiplier = calculateComboMultiplier(newCombo)
+            
             playSound('hit', 0.4)
             // Limit particle creation to prevent overflow
             if (state.particles.length < 120) {
@@ -1876,26 +2057,56 @@ function Game({
   const drawPlayer = (ctx, state) => {
     ctx.save()
 
-    let shipColor = '#4ecdc4'
-    let accentColor = '#00ffff'
+    // Get base colors from character/ship
+    let baseShipColor = '#4ecdc4'
+    let baseAccentColor = '#00ffff'
     if (selectedCharacter === 'adelynn') {
-      shipColor = '#ff6b9a'
-      accentColor = '#ff00ff'
+      baseShipColor = '#ff6b9a'
+      baseAccentColor = '#ff00ff'
     } else if (selectedShip !== 'kaden') {
-      shipColor = '#ff6b6b'
-      accentColor = '#ff00ff'
+      baseShipColor = '#ff6b6b'
+      baseAccentColor = '#ff00ff'
     }
+    
+    // Get selected skin from customization
+    const selectedSkin = state.customization?.selectedShipSkin || 'default'
+    const skinColors = getShipSkinColors(selectedSkin, baseShipColor, baseAccentColor)
+    
+    const shipColor = skinColors.shipColor
+    const accentColor = skinColors.accentColor
+    const engineColor = skinColors.engineColor
 
     if (state.invulnerable) {
       ctx.globalAlpha = 0.5
     }
 
-    // Glow effect
-    ctx.shadowBlur = 20
-    ctx.shadowColor = shipColor
+    // Apply skin-specific effects
+    const skinGradient = applyShipSkinEffects(
+      ctx,
+      selectedSkin,
+      state.player.x,
+      state.player.y,
+      state.player.width,
+      state.player.height
+    )
+    
+    // Glow effect with skin intensity
+    ctx.shadowBlur = skinColors.glowIntensity
+    ctx.shadowColor = skinColors.glowColor
+    
+    // Pulse effect for certain skins
+    let pulseScale = 1
+    if (skinColors.hasPulse) {
+      const time = Date.now() / 1000
+      pulseScale = 1 + Math.sin(time * skinColors.pulseSpeed) * 0.05
+    }
 
-    // Main body
-    ctx.fillStyle = shipColor
+    // Main body with skin gradient if applicable
+    if (skinGradient) {
+      ctx.fillStyle = skinGradient
+    } else {
+      ctx.fillStyle = shipColor
+    }
     ctx.beginPath()
     ctx.moveTo(state.player.x + state.player.width / 2, state.player.y)
     ctx.lineTo(state.player.x + state.player.width, state.player.y + state.player.height - 10)
@@ -1904,6 +2115,14 @@ function Game({
     ctx.lineTo(state.player.x, state.player.y + state.player.height - 10)
     ctx.closePath()
     ctx.fill()
+    
+    // If gradient was used (chrome/gold), overlay base color with transparency for depth
+    if (skinGradient && (selectedSkin === 'chrome' || selectedSkin === 'gold')) {
+      ctx.fillStyle = shipColor
+      ctx.globalAlpha = 0.5
+      ctx.fill()
+      ctx.globalAlpha = state.invulnerable ? 0.5 : 1
+    }
 
     // Accent details
     ctx.fillStyle = accentColor
@@ -1913,8 +2132,43 @@ function Game({
       state.player.width * 0.3,
       state.player.height * 0.3
     )
+    
+    // Special skin details
+    if (selectedSkin === 'ice') {
+      // Ice crystal details
+      ctx.strokeStyle = 'rgba(176, 224, 230, 0.8)'
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.moveTo(state.player.x + state.player.width * 0.2, state.player.y + state.player.height * 0.3)
+      ctx.lineTo(state.player.x + state.player.width * 0.5, state.player.y + state.player.height * 0.2)
+      ctx.lineTo(state.player.x + state.player.width * 0.8, state.player.y + state.player.height * 0.3)
+      ctx.stroke()
+    } else if (selectedSkin === 'fire') {
+      // Fire details
+      const fireTime = Date.now() / 200
+      ctx.fillStyle = `hsl(${15 + Math.sin(fireTime) * 10}, 100%, 60%)`
+      ctx.fillRect(
+        state.player.x + state.player.width * 0.4,
+        state.player.y + state.player.height * 0.2,
+        state.player.width * 0.2,
+        state.player.height * 0.15
+      )
+    } else if (selectedSkin === 'rainbow') {
+      // Rainbow accent stripes
+      const rainbowTime = Date.now() / 1000
+      for (let i = 0; i < 3; i++) {
+        const hue = ((rainbowTime * 50) + i * 60) % 360
+        ctx.fillStyle = `hsl(${hue}, 100%, 60%)`
+        ctx.fillRect(
+          state.player.x + state.player.width * 0.3 + i * 5,
+          state.player.y + state.player.height * 0.4,
+          state.player.width * 0.1,
+          state.player.height * 0.2
+        )
+      }
+    }
 
-    // Enhanced engine glow with animation
+    // Enhanced engine glow with animation (skin-aware)
     const time = Date.now() / 1000
     const enginePulse = Math.sin(time * 8) * 0.3 + 0.7
     const engineGlow = ctx.createLinearGradient(
@@ -1923,10 +2177,32 @@ function Game({
       state.player.x + state.player.width * 0.65,
       state.player.y + state.player.height + 15
     )
-    engineGlow.addColorStop(0, `rgba(255, 255, 0, ${enginePulse})`)
-    engineGlow.addColorStop(0.3, shipColor)
-    engineGlow.addColorStop(0.7, shipColor)
-    engineGlow.addColorStop(1, `rgba(255, 255, 0, ${enginePulse * 0.5})`)
+    
+    // Engine color based on skin
+    let engineBaseColor = engineColor || shipColor
+    if (selectedSkin === 'fire') {
+      engineGlow.addColorStop(0, `hsl(${15 + Math.sin(time * 4) * 10}, 100%, 50%)`)
+      engineGlow.addColorStop(0.3, engineBaseColor)
+      engineGlow.addColorStop(0.7, engineBaseColor)
+      engineGlow.addColorStop(1, `hsl(${25}, 100%, 30%)`)
+    } else if (selectedSkin === 'ice') {
+      engineGlow.addColorStop(0, `rgba(176, 224, 230, ${enginePulse})`)
+      engineGlow.addColorStop(0.3, engineBaseColor)
+      engineGlow.addColorStop(0.7, engineBaseColor)
+      engineGlow.addColorStop(1, `rgba(135, 206, 235, ${enginePulse * 0.5})`)
+    } else if (selectedSkin === 'rainbow') {
+      const hue = (time * 50) % 360
+      engineGlow.addColorStop(0, `hsl(${hue}, 100%, 60%)`)
+      engineGlow.addColorStop(0.3, `hsl(${(hue + 60) % 360}, 100%, 50%)`)
+      engineGlow.addColorStop(0.7, `hsl(${(hue + 120) % 360}, 100%, 50%)`)
+      engineGlow.addColorStop(1, `hsl(${(hue + 180) % 360}, 100%, 40%)`)
+    } else {
+      engineGlow.addColorStop(0, `rgba(255, 255, 0, ${enginePulse})`)
+      engineGlow.addColorStop(0.3, engineBaseColor)
+      engineGlow.addColorStop(0.7, engineBaseColor)
+      engineGlow.addColorStop(1, `rgba(255, 255, 0, ${enginePulse * 0.5})`)
+    }
+    
     ctx.fillStyle = engineGlow
     ctx.fillRect(
       state.player.x + state.player.width * 0.25,
@@ -1935,8 +2211,18 @@ function Game({
       state.player.height * 0.15 + 10 * enginePulse
     )
     
-    // Add engine trail particles
+    // Add engine trail particles (skin-aware colors)
     if (state.engineTrails.length < 8) {
+      let trailColor = engineColor || shipColor
+      if (selectedSkin === 'rainbow') {
+        const hue = (time * 50) % 360
+        trailColor = `hsl(${hue}, 100%, 60%)`
+      } else if (selectedSkin === 'fire') {
+        trailColor = `hsl(${15 + Math.random() * 20}, 100%, 50%)`
+      } else if (selectedSkin === 'ice') {
+        trailColor = Math.random() > 0.5 ? '#87ceeb' : '#b0e0e6'
+      }
+      
       state.engineTrails.push({
         x: state.player.x + state.player.width / 2 + (Math.random() - 0.5) * state.player.width * 0.3,
         y: state.player.y + state.player.height,
@@ -1944,7 +2230,7 @@ function Game({
         vy: 2 + Math.random() * 1,
         life: 20,
         size: 2 + Math.random() * 2,
-        color: Math.random() > 0.5 ? 'yellow' : shipColor,
+        color: trailColor,
       })
     }
 
@@ -2354,15 +2640,11 @@ function Game({
     })
   }
 
-  // Update combo effects
+  // Update combo effects (using expanded system)
   const updateComboEffects = (state) => {
-    state.comboEffects = state.comboEffects.filter((effect) => {
-      effect.y -= 1
-      effect.life--
-      effect.scale = 1.5 - (90 - effect.life) / 90 * 0.5
-      effect.alpha = effect.life / 90
-      return effect.life > 0
-    })
+    if (state.comboEffects && state.comboEffects.length > 0) {
+      state.comboEffects = updateComboEffectsUtil(state.comboEffects)
+    }
   }
 
   // Update wave transition
@@ -2407,21 +2689,74 @@ function Game({
     })
   }
 
-  // Draw combo effects
+  // Draw combo effects (expanded system)
   const drawComboEffects = (ctx, state) => {
     state.comboEffects.forEach((effect) => {
       ctx.save()
-      ctx.translate(effect.x, effect.y)
-      ctx.scale(effect.scale, effect.scale)
-      ctx.globalAlpha = effect.alpha
-      ctx.font = 'bold 32px Arial'
-      ctx.fillStyle = '#ff00ff'
-      ctx.strokeStyle = '#ffffff'
-      ctx.lineWidth = 4
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.strokeText(effect.text, 0, 0)
-      ctx.fillText(effect.text, 0, 0)
+      
+      if (effect.type === 'text' || effect.type === 'milestone') {
+        ctx.translate(effect.x, effect.y)
+        const alpha = effect.life / (effect.type === 'milestone' ? 90 : 60)
+        ctx.globalAlpha = alpha
+        ctx.font = `bold ${effect.size || 20}px Arial`
+        ctx.fillStyle = effect.color || '#ff00ff'
+        ctx.strokeStyle = '#ffffff'
+        ctx.lineWidth = 4
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.strokeText(effect.text, 0, 0)
+        ctx.fillText(effect.text, 0, 0)
+      } else if (effect.type === 'particle') {
+        ctx.globalAlpha = effect.life / 30
+        ctx.fillStyle = effect.color || '#ff00ff'
+        ctx.beginPath()
+        ctx.arc(effect.x, effect.y, effect.size || 3, 0, Math.PI * 2)
+        ctx.fill()
+      }
+      
+      ctx.restore()
+    })
+  }
+  
+  // Draw environmental hazards
+  const drawHazards = (ctx, state) => {
+    if (!state.hazards || state.hazards.length === 0) return
+    state.hazards.forEach((hazard) => {
+      ctx.save()
+      
+      if (hazard.pulse) {
+        const pulseScale = 1 + Math.sin(Date.now() / 200) * 0.2
+        ctx.globalAlpha = 0.6 + Math.sin(Date.now() / 200) * 0.2
+        ctx.scale(pulseScale, pulseScale)
+      } else {
+        ctx.globalAlpha = 0.8
+      }
+      
+      ctx.fillStyle = hazard.color
+      ctx.strokeStyle = hazard.color
+      ctx.lineWidth = 2
+      
+      // Draw hazard based on type
+      if (hazard.type === 'movingObstacle') {
+        ctx.fillRect(
+          hazard.x - hazard.width / 2,
+          hazard.y - hazard.height / 2,
+          hazard.width,
+          hazard.height
+        )
+        ctx.strokeRect(
+          hazard.x - hazard.width / 2,
+          hazard.y - hazard.height / 2,
+          hazard.width,
+          hazard.height
+        )
+      } else if (hazard.type === 'damageZone' || hazard.type === 'energyField') {
+        ctx.beginPath()
+        ctx.arc(hazard.x, hazard.y, hazard.width / 2, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.stroke()
+      }
+      
       ctx.restore()
     })
   }

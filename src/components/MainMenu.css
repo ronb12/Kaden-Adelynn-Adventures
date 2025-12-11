@@ -601,16 +601,37 @@
   border-radius: 12px;
 }
 
+/* Smaller compact buttons for Statistics, Save/Load, Upgrades, Customize */
+.settings-button.compact.smaller {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  border-radius: 10px;
+  min-width: 120px;
+}
+
 /* Make all button icons more visible and animated */
 .settings-button.compact .cart-icon,
 .settings-button.compact .ship-icon,
 .settings-button.compact .character-icon,
-.settings-button.compact .trophy-icon {
+.settings-button.compact .trophy-icon,
+.settings-button.compact .stats-icon,
+.settings-button.compact .save-icon,
+.settings-button.compact .upgrade-icon,
+.settings-button.compact .custom-icon {
   font-size: 1.4rem;
   display: inline-block;
   margin-right: 6px;
   vertical-align: middle;
   animation: iconPulse 2s ease-in-out infinite;
+}
+
+/* Smaller icons for smaller buttons */
+.settings-button.compact.smaller .stats-icon,
+.settings-button.compact.smaller .save-icon,
+.settings-button.compact.smaller .upgrade-icon,
+.settings-button.compact.smaller .custom-icon {
+  font-size: 1.2rem;
+  margin-right: 5px;
 }
 
 /* Shopping cart icon - gold glow */
@@ -635,6 +656,30 @@
 .settings-button.compact .trophy-icon {
   filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.9)) brightness(1.4) contrast(1.2);
   animation-delay: 0.9s;
+}
+
+/* Statistics icon - blue glow */
+.settings-button.compact .stats-icon {
+  filter: drop-shadow(0 0 6px rgba(102, 126, 234, 0.9)) brightness(1.4) contrast(1.2);
+  animation-delay: 1.2s;
+}
+
+/* Save icon - cyan glow */
+.settings-button.compact .save-icon {
+  filter: drop-shadow(0 0 6px rgba(78, 205, 196, 0.9)) brightness(1.4) contrast(1.2);
+  animation-delay: 1.5s;
+}
+
+/* Upgrade icon - orange glow */
+.settings-button.compact .upgrade-icon {
+  filter: drop-shadow(0 0 6px rgba(255, 136, 0, 0.9)) brightness(1.4) contrast(1.2);
+  animation-delay: 1.8s;
+}
+
+/* Customize icon - purple glow */
+.settings-button.compact .custom-icon {
+  filter: drop-shadow(0 0 6px rgba(118, 75, 162, 0.9)) brightness(1.4) contrast(1.2);
+  animation-delay: 2.1s;
 }
 
 @keyframes iconPulse {
@@ -1408,6 +1453,9 @@
 }
 .button-row.centered {
   justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .settings-button {

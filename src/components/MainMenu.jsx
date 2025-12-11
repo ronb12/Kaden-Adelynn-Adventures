@@ -3,7 +3,7 @@ import { getCoins, addCoins } from '../utils/wallet'
 import { playMenuMusic, playGameplayMusic, stopMusic } from '../utils/music'
 import './MainMenu.css'
 
-function MainMenu({ onStartGame, onOpenStore, onOpenShips, onOpenCharacters, onOpenScores, onOpenTerms, onOpenPrivacy }) {
+function MainMenu({ onStartGame, onOpenStore, onOpenShips, onOpenCharacters, onOpenScores, onOpenTerms, onOpenPrivacy, onOpenStats, onOpenSaveLoad, onOpenWeaponUpgrades, onOpenCustomization }) {
   const [selectedDifficulty, setSelectedDifficulty] = useState('medium')
   const [selectedShip, setSelectedShip] = useState(() => localStorage.getItem('selectedShip') || 'kaden')
   const [selectedCharacter, setSelectedCharacter] = useState(() => localStorage.getItem('selectedCharacter') || 'kaden')
@@ -158,6 +158,21 @@ function MainMenu({ onStartGame, onOpenStore, onOpenShips, onOpenCharacters, onO
           </button>
           <button className="settings-button compact" onClick={onOpenScores}>
             <span className="trophy-icon">🏆</span> Top Scores
+          </button>
+        </div>
+
+        <div className="button-row centered">
+          <button className="settings-button compact smaller" onClick={onOpenStats}>
+            <span className="stats-icon">📊</span> Statistics
+          </button>
+          <button className="settings-button compact smaller" onClick={onOpenSaveLoad}>
+            <span className="save-icon">💾</span> Save/Load
+          </button>
+          <button className="settings-button compact smaller" onClick={onOpenWeaponUpgrades}>
+            <span className="upgrade-icon">⚔️</span> Upgrades
+          </button>
+          <button className="settings-button compact smaller" onClick={onOpenCustomization}>
+            <span className="custom-icon">🎨</span> Customize
           </button>
         </div>
 
