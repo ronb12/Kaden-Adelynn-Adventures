@@ -3547,8 +3547,8 @@ function Game({
     // Always display accuracy
     const accuracyText = `ACC: ${accuracy}%`
     const accWidth = ctx.measureText(accuracyText).width
-    // Track accuracy Y position for mobile weapon placement
-    const accuracyY = y
+    // Store accuracy Y position BEFORE drawing (for mobile weapon placement)
+    const accuracyStartY = y
     
     // Ensure it's visible - use fillText directly to guarantee it renders
     if (isMobile && x + accWidth > cw - rightReserve) {
@@ -3556,7 +3556,7 @@ function Game({
       y = row2Y
     }
     ctx.fillText(accuracyText, x, y)
-    const accuracyFinalY = y  // Store final Y position after potential wrap
+    const accuracyEndY = y  // Store Y position AFTER drawing accuracy
     x += accWidth + pad
 
     // Wave | Level
@@ -3588,17 +3588,20 @@ function Game({
     const weaponText = `⚔️ ${state.currentWeapon.toUpperCase()}`
     const weaponWidth = ctx.measureText(weaponText).width
     
-    // On mobile: ALWAYS place weapon BELOW accuracy (on a different row)
+    // On mobile: ALWAYS place weapon on a NEW ROW below accuracy
     if (isMobile) {
-      // If accuracy is on row 1 (y === initial row), weapon goes to row 2
-      // If accuracy wrapped to row 2, weapon goes to row 3 (row2Y + row height)
-      const rowHeight = row2Y - 22  // Calculate row height (row2Y - initial row)
-      if (accuracyFinalY === accuracyY) {
-        // Accuracy is on row 1, weapon goes to row 2
+      // Calculate row height (difference between row2Y and initial row)
+      const initialRowY = 22  // Initial Y position for first row
+      const rowHeight = row2Y - initialRowY
+      
+      // If accuracy is on row 1, weapon goes to row 2
+      // If accuracy wrapped to row 2, weapon goes to row 3
+      if (accuracyEndY === accuracyStartY && accuracyStartY === initialRowY) {
+        // Accuracy stayed on row 1, weapon goes to row 2
         x = 10
         y = row2Y
       } else {
-        // Accuracy wrapped to row 2, weapon goes to row 3
+        // Accuracy wrapped or is on row 2, weapon goes to row 3
         x = 10
         y = row2Y + rowHeight
       }
