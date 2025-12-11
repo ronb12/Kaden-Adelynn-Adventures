@@ -9,6 +9,15 @@
   color: white;
   position: relative;
   overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* When menu is shown, ensure app container allows scrolling */
+.app:has(.main-menu) {
+  overflow-y: auto !important;
+  height: 100vh;
+  max-height: 100vh;
 }
 
 .app h1 {

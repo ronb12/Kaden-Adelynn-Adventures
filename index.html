@@ -28,25 +28,40 @@
       /* Prevent iOS bounce scrolling and address bar issues */
       html, body {
         height: 100%;
-        overflow: hidden;
-        position: fixed;
         width: 100%;
-        -webkit-overflow-scrolling: touch;
         -webkit-tap-highlight-color: transparent;
         touch-action: manipulation;
+        margin: 0;
+        padding: 0;
+      }
+      
+      /* Allow scrolling on body when menu is present */
+      body:has(.main-menu) {
+        overflow: auto;
+        position: relative;
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      /* Prevent bounce when not on menu */
+      body:not(:has(.main-menu)) {
+        overflow: hidden;
+        position: fixed;
       }
       
       #root {
         height: 100%;
         width: 100%;
-        overflow: hidden;
         position: relative;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
       }
       
       /* Allow scrolling on main menu */
-      .main-menu,
-      .main-menu * {
+      .main-menu {
         -webkit-overflow-scrolling: touch;
+        overscroll-behavior-y: contain;
+        touch-action: pan-y;
+        position: relative;
       }
       
       /* Prevent text selection on iOS */
@@ -124,10 +139,18 @@
       
       // Prevent iOS Safari bounce scrolling (but allow menu scrolling)
       document.addEventListener('touchmove', (e) => {
-        // Allow scrolling on main menu and scrollable elements
-        if (e.target.closest('.main-menu') || e.target.closest('.scrollable') || e.target.closest('.menu-container')) {
-          return
+        // Allow scrolling on main menu, menu container, and scrollable elements
+        const target = e.target
+        const isInMenu = target.closest('.main-menu') || 
+                        target.closest('.menu-container') || 
+                        target.closest('.scrollable') ||
+                        document.querySelector('.main-menu')?.contains(target)
+        
+        if (isInMenu) {
+          return // Allow scrolling
         }
+        
+        // Only prevent default for non-scrollable areas
         e.preventDefault()
       }, { passive: false })
       
@@ -142,15 +165,40 @@
         setTimeout(setViewportHeight, 100)
       })
       
-      // Prevent double-tap zoom on iOS
+      // Prevent double-tap zoom on iOS (but allow on menu)
       let lastTouchEnd = 0
       document.addEventListener('touchend', (e) => {
+        const isInMenu = e.target.closest('.main-menu') || 
+                        e.target.closest('.menu-container')
+        if (isInMenu) {
+          return // Allow double-tap in menu
+        }
         const now = Date.now()
         if (now - lastTouchEnd <= 300) {
           e.preventDefault()
         }
         lastTouchEnd = now
       }, false)
+      
+      // Toggle body class based on menu presence
+      function updateBodyScroll() {
+        const menu = document.querySelector('.main-menu')
+        if (menu) {
+          document.body.classList.add('menu-active')
+        } else {
+          document.body.classList.remove('menu-active')
+        }
+      }
+      
+      // Watch for menu changes
+      const observer = new MutationObserver(updateBodyScroll)
+      observer.observe(document.getElementById('root'), {
+        childList: true,
+        subtree: true
+      })
+      
+      // Initial check
+      setTimeout(updateBodyScroll, 100)
     </script>
   </body>
 </html>
