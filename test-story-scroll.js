@@ -37,22 +37,61 @@ async function testStoryScrolling() {
     console.log('✅ Page loaded')
     
     // Wait for React to render
-    await page.waitForTimeout(2000)
+    await page.waitForTimeout(3000)
     
-    // Click "Start Game" or navigate to story
-    console.log('🎮 Looking for start button...')
+    // Click "Start Game" button to get to story view
+    console.log('🎮 Looking for "Start Game" button...')
     
-    // Try to find and click start button
+    // Wait for and click the start button
     try {
-      await page.waitForSelector('button:has-text("Start"), button:has-text("PLAY"), .start-button', { timeout: 5000 })
-      const startButton = await page.$('button:has-text("Start"), button:has-text("PLAY"), .start-button')
+      // Try multiple selectors for the start button
+      const startButtonSelectors = [
+        'button:has-text("Start Game")',
+        'button:has-text("Start")',
+        '.start-button',
+        'button[class*="start"]',
+        'button'
+      ]
+      
+      let startButton = null
+      for (const selector of startButtonSelectors) {
+        try {
+          await page.waitForSelector(selector, { timeout: 2000 })
+          const buttons = await page.$$(selector)
+          for (const btn of buttons) {
+            const text = await page.evaluate(el => el.textContent, btn)
+            if (text && (text.includes('Start') || text.includes('Game') || text.includes('🎮'))) {
+              startButton = btn
+              console.log(`✅ Found start button with text: "${text}"`)
+              break
+            }
+          }
+          if (startButton) break
+        } catch (e) {
+          continue
+        }
+      }
+      
       if (startButton) {
         await startButton.click()
-        console.log('✅ Clicked start button')
-        await page.waitForTimeout(1000)
+        console.log('✅ Clicked "Start Game" button')
+        await page.waitForTimeout(2000) // Wait for story to appear
+      } else {
+        // Fallback: try clicking any button that might be the start button
+        const allButtons = await page.$$('button')
+        for (const btn of allButtons) {
+          const text = await page.evaluate(el => el.textContent, btn)
+          if (text && (text.includes('Start') || text.includes('Game') || text.includes('🎮'))) {
+            await btn.click()
+            console.log(`✅ Clicked button with text: "${text}"`)
+            await page.waitForTimeout(2000)
+            break
+          }
+        }
       }
     } catch (e) {
-      console.log('⚠️  Start button not found, trying to navigate directly to story...')
+      console.log('⚠️  Could not find start button:', e.message)
+      console.log('Trying to find story overlay directly...')
     }
     
     // Wait for story overlay to appear
