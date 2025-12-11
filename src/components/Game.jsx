@@ -994,8 +994,10 @@ function Game({
         if (Math.random() < 0.02) enemy.y += 20 * timeScale
       }
 
-      // Make enemies shoot more frequently!
-      if (Math.random() < 0.01 && enemy.y > 50 && enemy.y < canvas.height - 100) {
+      // Make enemies shoot more frequently based on difficulty!
+      // Easy: 0.01 (1%), Medium: 0.015 (1.5%), Hard: 0.02 (2%)
+      const shootChance = 0.01 * difficultyModifier()
+      if (Math.random() < shootChance && enemy.y > 50 && enemy.y < canvas.height - 100) {
         // Limit enemy bullet creation
         if (state.enemyBullets.length < 180) {
           state.enemyBullets.push({
