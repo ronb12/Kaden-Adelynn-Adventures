@@ -64,21 +64,8 @@ try {
     updatedHtml = updatedHtml.replace('</head>', '    <link rel="stylesheet" href="/assets/index.css" />\n  </head>')
   }
   
-  // Remove service worker registration if it exists
-  updatedHtml = updatedHtml.replace(/<script[^>]*serviceWorker[^>]*>[\s\S]*?<\/script>/gi, '')
-  
-  // Add service worker unregistration script before the main script
-  const unregisterScript = `    <script>
-      // Unregister any old service workers to prevent caching issues
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          for(let registration of registrations) {
-            registration.unregister();
-          }
-        });
-      }
-    </script>`
-  updatedHtml = updatedHtml.replace('<script type="module"', unregisterScript + '\n    <script type="module"')
+  // Preserve service worker registration if it exists in the original HTML
+  // (Don't remove it - it's needed for PWA functionality)
   
   writeFileSync(join(__dirname, 'dist/index.html'), updatedHtml)
   
