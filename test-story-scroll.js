@@ -1,7 +1,11 @@
 import puppeteer from 'puppeteer'
 
+// Test against deployed version or localhost
+const USE_DEPLOYED = process.env.USE_DEPLOYED === 'true' || process.env.USE_DEPLOYED === '1'
 const PORT = 5173 // Vite default port
-const URL = `http://localhost:${PORT}`
+const URL = USE_DEPLOYED 
+  ? 'https://kaden---adelynn-adventures.web.app'
+  : `http://localhost:${PORT}`
 
 async function testStoryScrolling() {
   console.log('🧪 Starting story scrolling test on mobile viewport...\n')
@@ -37,7 +41,7 @@ async function testStoryScrolling() {
     console.log('✅ Page loaded')
     
     // Wait for React to render
-    await page.waitForTimeout(3000)
+    await new Promise(resolve => setTimeout(resolve, 3000))
     
     // Click "Start Game" button to get to story view
     console.log('🎮 Looking for "Start Game" button...')
@@ -75,7 +79,7 @@ async function testStoryScrolling() {
       if (startButton) {
         await startButton.click()
         console.log('✅ Clicked "Start Game" button')
-        await page.waitForTimeout(2000) // Wait for story to appear
+        await new Promise(resolve => setTimeout(resolve, 2000)) // Wait for story to appear
       } else {
         // Fallback: try clicking any button that might be the start button
         const allButtons = await page.$$('button')
@@ -84,7 +88,7 @@ async function testStoryScrolling() {
           if (text && (text.includes('Start') || text.includes('Game') || text.includes('🎮'))) {
             await btn.click()
             console.log(`✅ Clicked button with text: "${text}"`)
-            await page.waitForTimeout(2000)
+            await new Promise(resolve => setTimeout(resolve, 2000))
             break
           }
         }
@@ -224,14 +228,14 @@ async function testStoryScrolling() {
     if (storyContainerBox) {
       // Start touch at middle of container
       await page.touchscreen.tap(storyContainerBox.x + storyContainerBox.width / 2, storyContainerBox.y + storyContainerBox.height / 2)
-      await page.waitForTimeout(100)
-      
-      // Try to drag/scroll
-      await page.mouse.move(storyContainerBox.x + storyContainerBox.width / 2, storyContainerBox.y + storyContainerBox.height / 2)
-      await page.mouse.down()
-      await page.mouse.move(storyContainerBox.x + storyContainerBox.width / 2, storyContainerBox.y + storyContainerBox.height / 2 - 100)
-      await page.mouse.up()
-      await page.waitForTimeout(500)
+    await new Promise(resolve => setTimeout(resolve, 100))
+    
+    // Try to drag/scroll
+    await page.mouse.move(storyContainerBox.x + storyContainerBox.width / 2, storyContainerBox.y + storyContainerBox.height / 2)
+    await page.mouse.down()
+    await page.mouse.move(storyContainerBox.x + storyContainerBox.width / 2, storyContainerBox.y + storyContainerBox.height / 2 - 100)
+    await page.mouse.up()
+    await new Promise(resolve => setTimeout(resolve, 500))
       
       const afterGestureScroll = await page.evaluate(() => {
         const container = document.querySelector('.story-container')
@@ -268,7 +272,7 @@ async function testStoryScrolling() {
     }
     
     // Keep browser open for 3 seconds to see the result
-    await page.waitForTimeout(3000)
+    await new Promise(resolve => setTimeout(resolve, 3000))
     
     await browser.close()
     
@@ -281,7 +285,7 @@ async function testStoryScrolling() {
   }
 }
 
-// Check if dev server is running
+// Check if server is accessible
 async function checkServer() {
   try {
     const response = await fetch(URL)
@@ -293,15 +297,22 @@ async function checkServer() {
 
 // Main execution
 console.log('🚀 Story Scrolling Test for Mobile Devices\n')
-console.log('Checking if dev server is running...')
+console.log(`Testing against: ${URL}`)
+console.log('Checking if server is accessible...')
 
 checkServer().then(isRunning => {
-  if (!isRunning) {
+  if (!isRunning && !USE_DEPLOYED) {
     console.log(`❌ Dev server not running at ${URL}`)
     console.log('Please run: npm run dev')
+    console.log('Or set USE_DEPLOYED=true to test against deployed version')
     process.exit(1)
   }
   
-  console.log(`✅ Dev server is running at ${URL}\n`)
-  testStoryScrolling()
+  if (isRunning || USE_DEPLOYED) {
+    console.log(`✅ Server is accessible at ${URL}\n`)
+    testStoryScrolling()
+  } else {
+    console.log(`❌ Cannot access ${URL}`)
+    process.exit(1)
+  }
 })
