@@ -3547,14 +3547,17 @@ function Game({
     // Always display accuracy
     const accuracyText = `ACC: ${accuracy}%`
     const accWidth = ctx.measureText(accuracyText).width
+    // Track accuracy position for mobile weapon placement
+    const accuracyY = y
+    const accuracyOnRow1 = (y !== row2Y)
+    
     // Ensure it's visible - use fillText directly to guarantee it renders
     if (isMobile && x + accWidth > cw - rightReserve) {
       x = 10
       y = row2Y
     }
     ctx.fillText(accuracyText, x, y)
-    const accuracyEndX = x + accWidth + pad
-    x = accuracyEndX
+    x += accWidth + pad
 
     // Wave | Level
     ctx.font = isMobile ? '12px Arial' : '14px Arial'
@@ -3579,26 +3582,27 @@ function Game({
     const coinsText = `💰 ${state.coins}`
     place(coinsText)
 
-    // Current weapon - ALWAYS put on second row on mobile to avoid overlap with accuracy
+    // Current weapon - On mobile, ALWAYS put on second row if accuracy is on first row
     ctx.fillStyle = '#4ecdc4'
     ctx.font = isMobile ? 'bold 11px Arial' : 'bold 12px Arial'
     const weaponText = `⚔️ ${state.currentWeapon.toUpperCase()}`
     const weaponWidth = ctx.measureText(weaponText).width
-    // On mobile, force weapon to second row to ensure no overlap with accuracy
-    if (isMobile) {
-      // Check if we're still on first row and if weapon would overlap
-      const currentRow = (y === row2Y) ? 2 : 1
-      if (currentRow === 1 || x + weaponWidth > cw - rightReserve) {
-        x = 10
-        y = row2Y
-      }
-    } else {
-      // Desktop: normal placement
-      if (x + weaponWidth > cw - rightReserve) {
-        x = 10
-        y = row2Y
-      }
+    
+    // On mobile: if accuracy is on row 1, weapon MUST be on row 2 to prevent overlap
+    if (isMobile && accuracyOnRow1 && y === accuracyY) {
+      // Accuracy is on row 1, force weapon to row 2
+      x = 10
+      y = row2Y
+    } else if (isMobile && x + weaponWidth > cw - rightReserve) {
+      // Normal wrap logic
+      x = 10
+      y = row2Y
+    } else if (!isMobile && x + weaponWidth > cw - rightReserve) {
+      // Desktop: normal wrap
+      x = 10
+      y = row2Y
     }
+    
     ctx.fillText(weaponText, x, y)
     x += weaponWidth + pad
 
