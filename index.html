@@ -144,7 +144,7 @@
         })
       }
       
-      // Prevent iOS Safari bounce scrolling (but allow menu scrolling)
+      // Prevent iOS Safari bounce scrolling (but allow menu and story scrolling)
       let touchStartY = 0
       let touchStartX = 0
       
@@ -156,6 +156,8 @@
       document.addEventListener('touchmove', (e) => {
         const target = e.target
         const menu = document.querySelector('.main-menu')
+        const storyOverlay = document.querySelector('.story-overlay')
+        const storyContainer = document.querySelector('.story-container')
         
         // Always allow scrolling if we're inside the menu
         if (menu && (menu.contains(target) || target.closest('.main-menu'))) {
@@ -185,7 +187,12 @@
           return // Allow menu interactions
         }
         
-        // Prevent scrolling outside menu
+        // Always allow scrolling if we're inside the story overlay/container
+        if (storyOverlay && (storyOverlay.contains(target) || target.closest('.story-overlay') || target.closest('.story-container'))) {
+          return // Allow story scrolling
+        }
+        
+        // Prevent scrolling outside menu and story
         e.preventDefault()
       }, { passive: false })
       
