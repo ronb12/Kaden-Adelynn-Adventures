@@ -14,7 +14,7 @@
     <!-- Apple iOS PWA Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Space Adventures" />
+    <meta name="apple-mobile-web-app-title" content="Kaden & Adelynn Space Adventures" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
     <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
     <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png" />
@@ -35,33 +35,40 @@
         padding: 0;
       }
       
-      /* Allow scrolling on body when menu is present */
-      body:has(.main-menu) {
-        overflow: auto;
-        position: relative;
-        -webkit-overflow-scrolling: touch;
-      }
-      
-      /* Prevent bounce when not on menu */
-      body:not(:has(.main-menu)) {
+      /* Prevent bounce scrolling on body */
+      body {
         overflow: hidden;
         position: fixed;
+        width: 100%;
+        height: 100%;
       }
       
       #root {
         height: 100%;
         width: 100%;
-        position: relative;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
+        position: fixed;
+        top: 0;
+        left: 0;
+        overflow: hidden;
       }
       
-      /* Allow scrolling on main menu */
+      /* Main menu is the scrollable container */
       .main-menu {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
         -webkit-overflow-scrolling: touch;
         overscroll-behavior-y: contain;
+        overscroll-behavior: contain;
         touch-action: pan-y;
-        position: relative;
+        /* Prevent iOS bounce */
+        -webkit-overflow-scrolling: touch;
+        /* Ensure smooth scrolling */
+        scroll-behavior: smooth;
       }
       
       /* Prevent text selection on iOS */
@@ -138,19 +145,47 @@
       }
       
       // Prevent iOS Safari bounce scrolling (but allow menu scrolling)
+      let touchStartY = 0
+      let touchStartX = 0
+      
+      document.addEventListener('touchstart', (e) => {
+        touchStartY = e.touches[0].clientY
+        touchStartX = e.touches[0].clientX
+      }, { passive: true })
+      
       document.addEventListener('touchmove', (e) => {
-        // Allow scrolling on main menu, menu container, and scrollable elements
         const target = e.target
-        const isInMenu = target.closest('.main-menu') || 
-                        target.closest('.menu-container') || 
-                        target.closest('.scrollable') ||
-                        document.querySelector('.main-menu')?.contains(target)
+        const menu = document.querySelector('.main-menu')
         
-        if (isInMenu) {
-          return // Allow scrolling
+        // Always allow scrolling if we're inside the menu
+        if (menu && (menu.contains(target) || target.closest('.main-menu'))) {
+          const touchY = e.touches[0].clientY
+          const touchX = e.touches[0].clientX
+          const deltaY = touchY - touchStartY
+          const deltaX = touchX - touchStartX
+          
+          // Check if this is a vertical scroll gesture
+          if (Math.abs(deltaY) > Math.abs(deltaX)) {
+            const menuScrollTop = menu.scrollTop
+            const menuScrollHeight = menu.scrollHeight
+            const menuClientHeight = menu.clientHeight
+            
+            // Allow scrolling if:
+            // 1. Scrolling down and not at bottom, OR
+            // 2. Scrolling up and not at top
+            const isScrollingDown = deltaY > 0
+            const isScrollingUp = deltaY < 0
+            const isAtTop = menuScrollTop <= 0
+            const isAtBottom = menuScrollTop + menuClientHeight >= menuScrollHeight - 1
+            
+            if ((isScrollingDown && !isAtBottom) || (isScrollingUp && !isAtTop)) {
+              return // Allow the scroll
+            }
+          }
+          return // Allow menu interactions
         }
         
-        // Only prevent default for non-scrollable areas
+        // Prevent scrolling outside menu
         e.preventDefault()
       }, { passive: false })
       
@@ -180,25 +215,32 @@
         lastTouchEnd = now
       }, false)
       
-      // Toggle body class based on menu presence
-      function updateBodyScroll() {
+      // Ensure menu scrolling works on iOS
+      function ensureMenuScrolling() {
         const menu = document.querySelector('.main-menu')
         if (menu) {
-          document.body.classList.add('menu-active')
-        } else {
-          document.body.classList.remove('menu-active')
+          // Force iOS to recognize this as scrollable
+          menu.style.webkitOverflowScrolling = 'touch'
+          menu.style.overflowY = 'auto'
+          
+          // Prevent body from interfering
+          document.body.style.overflow = 'hidden'
+          document.body.style.position = 'fixed'
         }
       }
       
       // Watch for menu changes
-      const observer = new MutationObserver(updateBodyScroll)
+      const observer = new MutationObserver(() => {
+        setTimeout(ensureMenuScrolling, 50)
+      })
       observer.observe(document.getElementById('root'), {
         childList: true,
         subtree: true
       })
       
       // Initial check
-      setTimeout(updateBodyScroll, 100)
+      setTimeout(ensureMenuScrolling, 100)
+      window.addEventListener('load', ensureMenuScrolling)
     </script>
   </body>
 </html>
