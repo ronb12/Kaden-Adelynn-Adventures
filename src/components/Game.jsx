@@ -3547,9 +3547,8 @@ function Game({
     // Always display accuracy
     const accuracyText = `ACC: ${accuracy}%`
     const accWidth = ctx.measureText(accuracyText).width
-    // Track accuracy position for mobile weapon placement
+    // Track accuracy Y position for mobile weapon placement
     const accuracyY = y
-    const accuracyOnRow1 = (y !== row2Y)
     
     // Ensure it's visible - use fillText directly to guarantee it renders
     if (isMobile && x + accWidth > cw - rightReserve) {
@@ -3557,6 +3556,7 @@ function Game({
       y = row2Y
     }
     ctx.fillText(accuracyText, x, y)
+    const accuracyFinalY = y  // Store final Y position after potential wrap
     x += accWidth + pad
 
     // Wave | Level
@@ -3582,22 +3582,27 @@ function Game({
     const coinsText = `💰 ${state.coins}`
     place(coinsText)
 
-    // Current weapon - On mobile, ALWAYS put on second row if accuracy is on first row
+    // Current weapon - On mobile, ALWAYS put BELOW accuracy (on row 2) to prevent overlap
     ctx.fillStyle = '#4ecdc4'
     ctx.font = isMobile ? 'bold 11px Arial' : 'bold 12px Arial'
     const weaponText = `⚔️ ${state.currentWeapon.toUpperCase()}`
     const weaponWidth = ctx.measureText(weaponText).width
     
-    // On mobile: if accuracy is on row 1, weapon MUST be on row 2 to prevent overlap
-    if (isMobile && accuracyOnRow1 && y === accuracyY) {
-      // Accuracy is on row 1, force weapon to row 2
-      x = 10
-      y = row2Y
-    } else if (isMobile && x + weaponWidth > cw - rightReserve) {
-      // Normal wrap logic
-      x = 10
-      y = row2Y
-    } else if (!isMobile && x + weaponWidth > cw - rightReserve) {
+    // On mobile: ALWAYS place weapon BELOW accuracy (on a different row)
+    if (isMobile) {
+      // If accuracy is on row 1 (y === initial row), weapon goes to row 2
+      // If accuracy wrapped to row 2, weapon goes to row 3 (row2Y + row height)
+      const rowHeight = row2Y - 22  // Calculate row height (row2Y - initial row)
+      if (accuracyFinalY === accuracyY) {
+        // Accuracy is on row 1, weapon goes to row 2
+        x = 10
+        y = row2Y
+      } else {
+        // Accuracy wrapped to row 2, weapon goes to row 3
+        x = 10
+        y = row2Y + rowHeight
+      }
+    } else if (x + weaponWidth > cw - rightReserve) {
       // Desktop: normal wrap
       x = 10
       y = row2Y
