@@ -605,6 +605,35 @@ function Game({
         ctx.restore()
       }
 
+      // Periodic memory cleanup (every 5 seconds at 60fps = 300 frames)
+      if (state.frameCount % 300 === 0 && state.frameCount > 0) {
+        // Force cleanup of any lingering objects
+        if (state.particles && state.particles.length > 150) {
+          state.particles = state.particles.slice(-150)
+        }
+        if (state.bullets && state.bullets.length > 300) {
+          state.bullets = state.bullets.slice(0, 300)
+        }
+        if (state.enemyBullets && state.enemyBullets.length > 200) {
+          state.enemyBullets = state.enemyBullets.slice(0, 200)
+        }
+        if (state.scorePopups && state.scorePopups.length > 15) {
+          state.scorePopups = state.scorePopups.slice(-15)
+        }
+        if (state.comboEffects && state.comboEffects.length > 10) {
+          state.comboEffects = state.comboEffects.slice(-10)
+        }
+        if (state.engineTrails && state.engineTrails.length > 20) {
+          state.engineTrails = state.engineTrails.slice(-20)
+        }
+        // Clear any null/undefined entries
+        state.enemies = state.enemies.filter(e => e != null)
+        state.bullets = state.bullets.filter(b => b != null)
+        state.missiles = state.missiles.filter(m => m != null)
+        state.powerUps = state.powerUps.filter(p => p != null)
+        state.asteroids = state.asteroids.filter(a => a != null)
+      }
+
       // Check level progression
       checkLevelProgression(state)
       processGameMode(state)
@@ -1107,9 +1136,9 @@ function Game({
     if (!canvas) return
 
     const timeScale = Math.min(state.deltaTime / 16.67, 2)
-    // Limit bullets to prevent performance issues
+    // Limit bullets to prevent performance issues - filter first, then limit
     const MAX_BULLETS = 300
-    state.bullets = state.bullets.slice(0, MAX_BULLETS).filter((bullet) => {
+    state.bullets = state.bullets.filter((bullet) => {
       // store previous position for swept collision
       bullet.prevX = bullet.x
       bullet.prevY = bullet.y
@@ -1133,6 +1162,10 @@ function Game({
         bullet.x < canvas.width + 20
       )
     })
+    // Enforce hard limit after filtering
+    if (state.bullets.length > MAX_BULLETS) {
+      state.bullets = state.bullets.slice(0, MAX_BULLETS)
+    }
   }
 
   const updateEnemies = (state) => {
@@ -1228,6 +1261,10 @@ function Game({
 
       return enemy.y < canvas.height + 50
     })
+    // Enforce hard limit after filtering
+    if (state.enemies.length > MAX_ENEMIES) {
+      state.enemies = state.enemies.slice(0, MAX_ENEMIES)
+    }
   }
 
   // Spawn a formation of enemies
@@ -1378,17 +1415,25 @@ function Game({
   }
 
   const checkCollisions = (state) => {
-    // Bullet-enemy collisions - use safer iteration
+    // Bullet-enemy collisions - use safer iteration with early exits
     const bulletsToRemove = []
     const enemiesToRemove = []
     const asteroidsToRemove = []
 
-    for (let i = 0; i < state.bullets.length; i++) {
-      const bullet = state.bullets[i]
-      if (bullet.owner !== 'player') continue
+    // Early exit if no bullets or enemies
+    if (state.bullets.length === 0 || state.enemies.length === 0) {
+      // Still check other collisions (boss, asteroids, etc.)
+    } else {
+      for (let i = 0; i < state.bullets.length; i++) {
+        const bullet = state.bullets[i]
+        if (!bullet || bullet.owner !== 'player') continue
 
-      for (let j = 0; j < state.enemies.length; j++) {
-        const enemy = state.enemies[j]
+        // Quick bounds check - skip if bullet is way off screen
+        if (bullet.y < -50 || bullet.y > (canvasRef.current?.height || 1000) + 50) continue
+
+        for (let j = 0; j < state.enemies.length; j++) {
+          const enemy = state.enemies[j]
+          if (!enemy) continue
 
         // Use bullet's actual width and height (with defaults for compatibility)
         const bulletWidth = bullet.width || 5
@@ -1483,9 +1528,13 @@ function Game({
           break
         }
       }
+    }
 
-      // Bullet-boss collisions (swept)
-      if (state.boss && bullet.owner === 'player') {
+    // Bullet-boss collisions (swept) - only check if boss exists
+    if (state.boss && state.bullets.length > 0) {
+      for (let i = 0; i < state.bullets.length; i++) {
+        const bullet = state.bullets[i]
+        if (!bullet || bullet.owner !== 'player') continue
         const bossBox = {
           x: state.boss.x - state.boss.width / 2,
           y: state.boss.y - state.boss.height / 2,
@@ -1557,11 +1606,18 @@ function Game({
           }
         }
       }
+    }
 
-      // Bullet-asteroid collisions (swept circle-rect)
-      if (state.asteroids && state.asteroids.length > 0 && bullet.owner === 'player') {
+    // Bullet-asteroid collisions (swept circle-rect)
+    if (state.asteroids && state.asteroids.length > 0 && state.bullets.length > 0) {
+      for (let i = 0; i < state.bullets.length; i++) {
+        const bullet = state.bullets[i]
+        if (!bullet || bullet.owner !== 'player') continue
+        
         for (let a = 0; a < state.asteroids.length; a++) {
           const asteroid = state.asteroids[a]
+          if (!asteroid) continue
+          
           const r = Math.max(10, asteroid.size) // radius
           const cx = asteroid.x
           const cy = asteroid.y
@@ -2436,7 +2492,10 @@ function Game({
     if (!canvas) return
 
     const timeScale = Math.min(state.deltaTime / 16.67, 2)
+    const MAX_POWERUPS = 10
+    
     state.powerUps = state.powerUps.filter((powerUp) => {
+      if (!powerUp) return false
       powerUp.y += powerUp.speed * timeScale
 
       // Check collision with player
@@ -2448,14 +2507,18 @@ function Game({
       ) {
         applyPowerUp(state, powerUp)
         playSound('powerup', 0.5)
-        state.powerUps.splice(state.powerUps.indexOf(powerUp), 1)
         state.coins += 10
         setCoins((c) => c + 10)
-        return false
+        return false // Remove this power-up
       }
 
       return powerUp.y < canvas.height + 50
     })
+    
+    // Enforce hard limit after filtering
+    if (state.powerUps.length > MAX_POWERUPS) {
+      state.powerUps = state.powerUps.slice(0, MAX_POWERUPS)
+    }
   }
 
   const updateParticles = (state) => {
@@ -2509,11 +2572,16 @@ function Game({
     const timeScale = Math.min(state.deltaTime / 16.67, 2)
     // Limit missiles to prevent performance issues
     const MAX_MISSILES = 50
-    state.missiles = state.missiles.slice(0, MAX_MISSILES).filter((missile) => {
+    state.missiles = state.missiles.filter((missile) => {
+      if (!missile) return false
       missile.y -= missile.speed * timeScale
       missile.speed = Math.min(15, missile.speed + 0.5 * timeScale)
       return missile.y > -50 && missile.y < canvas.height + 50
     })
+    // Enforce hard limit after filtering
+    if (state.missiles.length > MAX_MISSILES) {
+      state.missiles = state.missiles.slice(0, MAX_MISSILES)
+    }
   }
 
   const updateEnemyBullets = (state) => {
@@ -2533,11 +2601,16 @@ function Game({
     const timeScale = Math.min(state.deltaTime / 16.67, 2)
     // Limit plasma beams to prevent performance issues
     const MAX_PLASMA_BEAMS = 30
-    state.plasmaBeams = state.plasmaBeams.slice(0, MAX_PLASMA_BEAMS).filter((beam) => {
+    state.plasmaBeams = state.plasmaBeams.filter((beam) => {
+      if (!beam || typeof beam.life !== 'number') return false
       beam.y -= 12 * timeScale
       beam.life--
       return beam.life > 0 && beam.y > -50
     })
+    // Enforce hard limit after filtering
+    if (state.plasmaBeams.length > MAX_PLASMA_BEAMS) {
+      state.plasmaBeams = state.plasmaBeams.slice(0, MAX_PLASMA_BEAMS)
+    }
   }
 
   const updateAsteroids = (state) => {
@@ -2547,7 +2620,8 @@ function Game({
     const timeScale = Math.min(state.deltaTime / 16.67, 2)
     // Limit asteroids to prevent performance issues
     const MAX_ASTEROIDS = 40
-    state.asteroids = state.asteroids.slice(0, MAX_ASTEROIDS).filter((asteroid) => {
+    state.asteroids = state.asteroids.filter((asteroid) => {
+      if (!asteroid) return false
       // Foreground asteroids fall like enemies and can be destroyed
       // vx small drift, vy is main downward speed
       asteroid.x += (asteroid.vx || 0) * timeScale
@@ -2556,6 +2630,10 @@ function Game({
       // Despawn once out of screen
       return asteroid.y < canvas.height + 60
     })
+    // Enforce hard limit after filtering
+    if (state.asteroids.length > MAX_ASTEROIDS) {
+      state.asteroids = state.asteroids.slice(0, MAX_ASTEROIDS)
+    }
   }
 
   const splitAsteroid = (state, asteroid) => {
@@ -2620,13 +2698,19 @@ function Game({
 
   // Update engine trails
   const updateEngineTrails = (state) => {
+    const MAX_TRAILS = 20
     state.engineTrails = state.engineTrails.filter((trail) => {
+      if (!trail || typeof trail.life !== 'number') return false
       trail.x += trail.vx
       trail.y += trail.vy
       trail.life--
       trail.alpha = trail.life / 20
       return trail.life > 0 && trail.y < (canvasRef.current?.height || 1000) + 50
     })
+    // Enforce hard limit after filtering
+    if (state.engineTrails.length > MAX_TRAILS) {
+      state.engineTrails = state.engineTrails.slice(-MAX_TRAILS)
+    }
   }
 
   // Update score popups
@@ -2642,8 +2726,13 @@ function Game({
 
   // Update combo effects (using expanded system)
   const updateComboEffects = (state) => {
+    const MAX_COMBO_EFFECTS = 10
     if (state.comboEffects && state.comboEffects.length > 0) {
       state.comboEffects = updateComboEffectsUtil(state.comboEffects)
+      // Enforce hard limit after updating
+      if (state.comboEffects.length > MAX_COMBO_EFFECTS) {
+        state.comboEffects = state.comboEffects.slice(-MAX_COMBO_EFFECTS)
+      }
     }
   }
 
