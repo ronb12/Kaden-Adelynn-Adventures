@@ -38,6 +38,7 @@ function Game({
   const gameLoopRef = useRef(null)
   const timeoutRefs = useRef([]) // Track setTimeout calls for cleanup
   const musicCheckIntervalRef = useRef(null) // Track music check interval
+  const starsRef = useRef(null) // Pre-calculated star data for performance
   const [score, setScore] = useState(0)
   const [lives, setLives] = useState(25)
   const livesRef = useRef(25)
@@ -605,33 +606,35 @@ function Game({
         ctx.restore()
       }
 
-      // Periodic memory cleanup (every 5 seconds at 60fps = 300 frames)
-      if (state.frameCount % 300 === 0 && state.frameCount > 0) {
-        // Force cleanup of any lingering objects
-        if (state.particles && state.particles.length > 150) {
-          state.particles = state.particles.slice(-150)
+      // Periodic memory cleanup (every 3 seconds at 60fps = 180 frames) - more frequent for better performance
+      if (state.frameCount % 180 === 0 && state.frameCount > 0) {
+        // Force cleanup of any lingering objects with stricter limits
+        if (state.particles && state.particles.length > 80) {
+          state.particles.length = 80
         }
-        if (state.bullets && state.bullets.length > 300) {
-          state.bullets = state.bullets.slice(0, 300)
+        if (state.bullets && state.bullets.length > 200) {
+          state.bullets.length = 200
         }
-        if (state.enemyBullets && state.enemyBullets.length > 200) {
-          state.enemyBullets = state.enemyBullets.slice(0, 200)
+        if (state.enemyBullets && state.enemyBullets.length > 150) {
+          state.enemyBullets.length = 150
         }
-        if (state.scorePopups && state.scorePopups.length > 15) {
-          state.scorePopups = state.scorePopups.slice(-15)
+        if (state.scorePopups && state.scorePopups.length > 10) {
+          state.scorePopups.length = 10
         }
-        if (state.comboEffects && state.comboEffects.length > 10) {
-          state.comboEffects = state.comboEffects.slice(-10)
+        if (state.comboEffects && state.comboEffects.length > 8) {
+          state.comboEffects.length = 8
         }
-        if (state.engineTrails && state.engineTrails.length > 20) {
-          state.engineTrails = state.engineTrails.slice(-20)
+        if (state.engineTrails && state.engineTrails.length > 15) {
+          state.engineTrails.length = 15
         }
-        // Clear any null/undefined entries
-        state.enemies = state.enemies.filter(e => e != null)
-        state.bullets = state.bullets.filter(b => b != null)
-        state.missiles = state.missiles.filter(m => m != null)
-        state.powerUps = state.powerUps.filter(p => p != null)
-        state.asteroids = state.asteroids.filter(a => a != null)
+        // Cleanup null entries less frequently (expensive operation)
+        if (state.frameCount % 360 === 0) {
+          state.enemies = state.enemies.filter(e => e != null)
+          state.bullets = state.bullets.filter(b => b != null)
+          state.missiles = state.missiles.filter(m => m != null)
+          state.powerUps = state.powerUps.filter(p => p != null)
+          state.asteroids = state.asteroids.filter(a => a != null)
+        }
       }
 
       // Check level progression
@@ -719,7 +722,10 @@ function Game({
         return
       }
 
-      setTimePlayed((t) => t + 1)
+      // Throttle setTimePlayed to once per second (60 frames) for performance
+      if (state.frameCount % 60 === 0) {
+        setTimePlayed((t) => t + 1)
+      }
 
       if (!isPaused) {
         gameLoopRef.current = requestAnimationFrame(gameLoop)
@@ -1118,14 +1124,14 @@ function Game({
     const plasmaBeamsAdded = state.plasmaBeams.length - plasmaBeamsBefore
     state.shotsFired += bulletsAdded + missilesAdded + plasmaBeamsAdded
 
-    // Add muzzle flash particle (limit to prevent overflow)
-    if (state.particles.length < 140) {
+    // Add muzzle flash particle (stricter limit for performance)
+    if (state.particles.length < 60) {
       state.particles.push(
         ...ParticleSystem.createExplosion(
           state.player.x + state.player.width / 2,
           state.player.y,
           '#ffd700',
-          5
+          3 // Reduced from 5
         )
       )
     }
@@ -1518,10 +1524,10 @@ function Game({
           if (!bullet.pierce) bulletsToRemove.push(i)
           if (enemy.health <= 0) {
             enemiesToRemove.push(j)
-            // Limit particle creation to prevent overflow
-            if (state.particles.length < 120) {
+            // Limit particle creation to prevent overflow (reduced for performance)
+            if (state.particles.length < 60) {
               state.particles.push(
-                ...ParticleSystem.createExplosion(enemy.x + 15, enemy.y + 15, '#ff6666', 12)
+                ...ParticleSystem.createExplosion(enemy.x + 15, enemy.y + 15, '#ff6666', 6)
               )
             }
           }
@@ -1576,9 +1582,9 @@ function Game({
 
           // Add hit effect
           playSound('hit', 0.3)
-          // Limit particle creation to prevent overflow
-          if (state.particles.length < 120) {
-            state.particles.push(...ParticleSystem.createExplosion(bullet.x, bullet.y, '#ff0080', 10))
+          // Limit particle creation to prevent overflow (reduced for performance)
+          if (state.particles.length < 60) {
+            state.particles.push(...ParticleSystem.createExplosion(bullet.x, bullet.y, '#ff0080', 5))
           }
 
           // Boss defeated?
@@ -1651,20 +1657,20 @@ function Game({
             // remove bullet unless piercing
             if (!bullet.pierce) bulletsToRemove.push(i)
             playSound('hit', 0.3)
-            // Limit particle creation to prevent overflow
-            if (state.particles.length < 120) {
+            // Limit particle creation to prevent overflow (reduced for performance)
+            if (state.particles.length < 60) {
               state.particles.push(
-                ...ParticleSystem.createExplosion(bullet.x, bullet.y, '#ffa502', 8)
+                ...ParticleSystem.createExplosion(bullet.x, bullet.y, '#ffa502', 4)
               )
             }
             if (asteroid.health <= 0) {
               // split into smaller pieces
               splitAsteroid(state, asteroid)
               asteroidsToRemove.push(a)
-              // Limit particle creation to prevent overflow
-              if (state.particles.length < 100) {
+              // Limit particle creation to prevent overflow (reduced for performance)
+              if (state.particles.length < 50) {
                 state.particles.push(
-                  ...ParticleSystem.createExplosion(asteroid.x, asteroid.y, '#ffa502', 20)
+                  ...ParticleSystem.createExplosion(asteroid.x, asteroid.y, '#ffa502', 8)
                 )
               }
               state.coins += 5
@@ -1735,10 +1741,10 @@ function Game({
             state.currentKills = (state.currentKills || 0) + 1
             // Explosion feedback
             playSound('hit', 0.5)
-            // Limit particle creation to prevent overflow
-            if (state.particles.length < 120) {
+            // Limit particle creation to prevent overflow (reduced for performance)
+            if (state.particles.length < 60) {
               state.particles.push(
-                ...ParticleSystem.createExplosion(enemy.x + 15, enemy.y + 15, '#ff8c00', 15)
+                ...ParticleSystem.createExplosion(enemy.x + 15, enemy.y + 15, '#ff8c00', 6)
               )
             }
             missileEnemiesToRemove.push(j)
@@ -1811,10 +1817,10 @@ function Game({
             state.comboMultiplier = calculateComboMultiplier(newCombo)
             
             playSound('hit', 0.4)
-            // Limit particle creation to prevent overflow
-            if (state.particles.length < 120) {
+            // Limit particle creation to prevent overflow (reduced for performance)
+            if (state.particles.length < 60) {
               state.particles.push(
-                ...ParticleSystem.createExplosion(enemy.x + 15, enemy.y + 15, '#00ffff', 10)
+                ...ParticleSystem.createExplosion(enemy.x + 15, enemy.y + 15, '#00ffff', 5)
               )
             }
             beamEnemiesToRemove.push(j)
@@ -1934,10 +1940,10 @@ function Game({
             // Visual feedback
             state.shakeIntensity = 8 // Stronger shake for asteroid impact
             playSound('hit', 0.6)
-            // Limit particle creation to prevent overflow
-            if (state.particles.length < 100) {
+            // Limit particle creation to prevent overflow (reduced for performance)
+            if (state.particles.length < 50) {
               state.particles.push(
-                ...ParticleSystem.createExplosion(asteroidX, asteroidY, '#ff8c00', 15)
+                ...ParticleSystem.createExplosion(asteroidX, asteroidY, '#ff8c00', 6)
               )
             }
             
@@ -1948,10 +1954,10 @@ function Game({
             if (asteroid.health <= 0) {
               splitAsteroid(state, asteroid)
               asteroidsToRemove.push(i)
-              // Limit particle creation to prevent overflow
-              if (state.particles.length < 100) {
+              // Limit particle creation to prevent overflow (reduced for performance)
+              if (state.particles.length < 50) {
                 state.particles.push(
-                  ...ParticleSystem.createExplosion(asteroidX, asteroidY, '#ffa502', 20)
+                  ...ParticleSystem.createExplosion(asteroidX, asteroidY, '#ffa502', 8)
                 )
               }
               // Award coins and score for destroying asteroid
@@ -2045,9 +2051,9 @@ function Game({
           if (dx * dx + dy * dy <= (r + 6) * (r + 6)) {
             missilesToRemove2.push(mi)
             ast.health = (typeof ast.health === 'number' ? ast.health : 2) - 2
-            // Limit particle creation to prevent overflow
-            if (state.particles.length < 100) {
-              state.particles.push(...ParticleSystem.createExplosion(ast.x, ast.y, '#ff8c00', 20))
+            // Limit particle creation to prevent overflow (reduced for performance)
+            if (state.particles.length < 50) {
+              state.particles.push(...ParticleSystem.createExplosion(ast.x, ast.y, '#ff8c00', 8))
             }
             if (ast.health <= 0) {
               splitAsteroid(state, ast)
@@ -2087,9 +2093,9 @@ function Game({
           const dy = cy - closestY
           if (dx * dx + dy * dy <= r * r) {
             ast.health = (typeof ast.health === 'number' ? ast.health : 2) - 1
-            // Limit particle creation to prevent overflow
-            if (state.particles.length < 100) {
-              state.particles.push(...ParticleSystem.createExplosion(cx, cy, '#00ffff', 10))
+            // Limit particle creation to prevent overflow (reduced for performance)
+            if (state.particles.length < 50) {
+              state.particles.push(...ParticleSystem.createExplosion(cx, cy, '#00ffff', 5))
             }
             if (ast.health <= 0) {
               splitAsteroid(state, ast)
@@ -2326,31 +2332,45 @@ function Game({
   }
 
   const drawBullets = (ctx, state) => {
-    state.bullets.forEach((bullet) => {
+    // Optimized: Use for loop, batch similar colors, reduce state changes
+    const bullets = state.bullets
+    const len = bullets.length
+    let lastColor = null
+    
+    for (let i = 0; i < len; i++) {
+      const bullet = bullets[i]
+      if (!bullet) continue
+      
       const color = bullet.color || (bullet.owner === 'player' ? 'cyan' : 'red')
+      const bw = bullet.width || 5
+      const bh = bullet.height || 10
 
-      // Apply special effects based on weapon type
+      // Special freeze effect (less frequent, keep it)
       if (bullet.freeze) {
         ctx.strokeStyle = '#00bfff'
         ctx.lineWidth = 3
         ctx.beginPath()
-        ctx.arc(bullet.x, bullet.y, bullet.width, 0, Math.PI * 2)
+        ctx.arc(bullet.x, bullet.y, bw, 0, Math.PI * 2)
         ctx.stroke()
       }
 
-      ctx.fillStyle = color
-      ctx.fillRect(bullet.x, bullet.y, bullet.width || 5, bullet.height || 10)
+      // Only change fillStyle when color changes
+      if (color !== lastColor) {
+        ctx.fillStyle = color
+        lastColor = color
+      }
+      ctx.fillRect(bullet.x, bullet.y, bw, bh)
 
-      // Add glow effect for special weapons
-      if (bullet.pierce || bullet.explosive) {
+      // Skip glow effects for performance (only show on every 3rd special bullet)
+      if ((bullet.pierce || bullet.explosive) && i % 3 === 0) {
         ctx.globalAlpha = 0.5
-        ctx.shadowBlur = 10
+        ctx.shadowBlur = 8
         ctx.shadowColor = color
-        ctx.fillRect(bullet.x, bullet.y, bullet.width || 5, bullet.height || 10)
+        ctx.fillRect(bullet.x, bullet.y, bw, bh)
         ctx.globalAlpha = 1
         ctx.shadowBlur = 0
       }
-    })
+    }
   }
 
   const drawEnemies = (ctx, state) => {
@@ -2474,10 +2494,22 @@ function Game({
   }
 
   const drawParticles = (ctx, state) => {
-    state.particles.forEach((particle) => {
-      ctx.fillStyle = particle.color
-      ctx.fillRect(particle.x, particle.y, 2, 2)
-    })
+    // Optimized: Use for loop instead of forEach, batch by color
+    const particles = state.particles
+    const len = particles.length
+    let lastColor = null
+    
+    for (let i = 0; i < len; i++) {
+      const p = particles[i]
+      if (!p) continue
+      
+      // Only change fillStyle when color changes (reduces state changes)
+      if (p.color !== lastColor) {
+        ctx.fillStyle = p.color
+        lastColor = p.color
+      }
+      ctx.fillRect(p.x, p.y, 2, 2)
+    }
   }
 
   const drawWingFighters = (ctx, state) => {
@@ -2522,10 +2554,25 @@ function Game({
   }
 
   const updateParticles = (state) => {
-    // Optimized: Limit particle count to 150 for better performance
-    const MAX_PARTICLES = 150
-    state.particles = state.particles.slice(0, MAX_PARTICLES).filter((p) => p.life > 0)
-    state.particles.forEach((p) => p.life--)
+    // Optimized: Stricter particle limit and combined filter+update for better performance
+    const MAX_PARTICLES = 100 // Reduced from 150
+    const particles = state.particles
+    let writeIndex = 0
+    const len = Math.min(particles.length, MAX_PARTICLES)
+    
+    for (let i = 0; i < len; i++) {
+      const p = particles[i]
+      if (p && p.life > 1) {
+        p.life--
+        // Update position if particle has velocity
+        if (p.vx !== undefined) p.x += p.vx
+        if (p.vy !== undefined) p.y += p.vy
+        particles[writeIndex++] = p
+      }
+    }
+    
+    // Trim array efficiently
+    state.particles.length = writeIndex
   }
 
   const updateWingFighters = (state) => {
@@ -2929,20 +2976,41 @@ function Game({
     state.backgroundOffset += 0.5
   }
 
+  // Pre-calculated star data for performance (avoid Math.random every frame)
+  const getStars = (canvasWidth, canvasHeight) => {
+    // Only regenerate if canvas size changed significantly or first time
+    if (!starsRef.current || 
+        Math.abs(starsRef.current.width - canvasWidth) > 100 ||
+        Math.abs(starsRef.current.height - canvasHeight) > 100) {
+      const stars = []
+      const starCount = 60 // Reduced from 80 for better performance
+      for (let i = 0; i < starCount; i++) {
+        stars.push({
+          x: (i * 83) % canvasWidth,
+          baseY: (i * 73) % canvasHeight,
+          brightness: 0.3 + Math.random() * 0.7, // Pre-calculated brightness
+          size: 1 + Math.random() * 1.5, // Pre-calculated size
+        })
+      }
+      starsRef.current = { stars, width: canvasWidth, height: canvasHeight }
+    }
+    return starsRef.current.stars
+  }
+  
   const drawStarfield = (ctx, offset = 0) => {
     const canvas = canvasRef.current
     if (!canvas) return
 
-    // Optimized: Reduced star count from 150 to 80 for better performance
-    ctx.fillStyle = 'white'
     const canvasWidth = canvas.width
     const canvasHeight = canvas.height
-    for (let i = 0; i < 80; i++) {
-      const x = (i * 83) % canvasWidth
-      const y = ((i * 73) % canvasHeight) + (offset % canvasHeight)
-      const brightness = Math.random()
-      ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`
-      ctx.fillRect(x, y, 1 + brightness, 1 + brightness)
+    const stars = getStars(canvasWidth, canvasHeight)
+    
+    // Batch draw stars with pre-calculated values
+    for (let i = 0; i < stars.length; i++) {
+      const star = stars[i]
+      const y = (star.baseY + offset) % canvasHeight
+      ctx.fillStyle = `rgba(255, 255, 255, ${star.brightness})`
+      ctx.fillRect(star.x, y, star.size, star.size)
     }
   }
 

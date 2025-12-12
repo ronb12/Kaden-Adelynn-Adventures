@@ -1,110 +1,246 @@
-let current = null
+// Music Manager - Handles background music playback with looping
+let currentMusic = null
+let musicVolume = 0.3
 let currentTrack = null
-let volume = 0.3
+let isInitialized = false
 
-const tracks = {
-  menu: '/music/menu.mp3', // place a CC0 menu track here
-  gameplay: '/music/gameplay.mp3', // place a CC0 gameplay track here
-  boss: '/music/boss.mp3', // place a CC0 boss track here
+// Audio context for better control
+let audioContext = null
+
+// Track sources
+const TRACKS = {
+  gameplay: '/music/gameplay.mp3',
+  boss: '/music/boss.mp3',
+  menu: '/music/menu.mp3',
 }
 
-function play(src) {
+// Initialize audio context on first user interaction
+const initAudio = () => {
+  if (isInitialized) return true
+  
   try {
-    if (current) {
-      current.pause()
-      current.removeEventListener('ended', handleMusicEnd)
-      current.removeEventListener('error', handleMusicError)
-      current = null
+    // Create audio context if needed
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)()
     }
-    const audio = new Audio(src)
-    audio.loop = true
-    audio.volume = volume
-    currentTrack = src
     
-    // Add event listeners to ensure continuous playback
-    audio.addEventListener('ended', handleMusicEnd)
-    audio.addEventListener('error', handleMusicError)
-    audio.addEventListener('pause', handleMusicPause)
-    
-    // Try to play and handle autoplay restrictions
-    const playPromise = audio.play()
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => {
-          // Music started successfully
-          current = audio
-        })
-        .catch((error) => {
-          // Autoplay was prevented - user interaction required
-          console.log('Music autoplay prevented, will start on user interaction')
-          // Store the audio for later play
-          current = audio
-        })
-    } else {
-      current = audio
+    // Resume audio context if suspended (browser autoplay policy)
+    if (audioContext.state === 'suspended') {
+      audioContext.resume()
     }
-  } catch (error) {
-    console.warn('Error playing music:', error)
+    
+    isInitialized = true
+    return true
+  } catch (e) {
+    console.warn('Audio initialization failed:', e)
+    return false
   }
 }
 
-function handleMusicEnd() {
-  // If music ends (shouldn't happen with loop=true, but just in case)
-  if (current && currentTrack) {
-    current.currentTime = 0
-    current.play().catch(() => {})
+// Create and configure audio element
+const createAudioElement = (src) => {
+  const audio = new Audio(src)
+  audio.volume = musicVolume
+  audio.loop = true // CRITICAL: Enable looping so music never stops
+  audio.preload = 'auto'
+  
+  // Handle errors gracefully
+  audio.onerror = () => {
+    console.warn(`Failed to load music: ${src}`)
+  }
+  
+  return audio
+}
+
+// Play a specific music track
+const playTrack = (trackName) => {
+  initAudio()
+  
+  const src = TRACKS[trackName]
+  if (!src) {
+    console.warn(`Unknown track: ${trackName}`)
+    return
+  }
+  
+  // Don't restart if already playing the same track
+  if (currentTrack === trackName && currentMusic && !currentMusic.paused) {
+    return
+  }
+  
+  // Stop current music if playing
+  if (currentMusic) {
+    currentMusic.pause()
+    currentMusic.currentTime = 0
+    currentMusic = null
+  }
+  
+  // Create new audio element
+  currentMusic = createAudioElement(src)
+  currentTrack = trackName
+  
+  // Add ended event listener as backup (even though loop is true)
+  currentMusic.addEventListener('ended', () => {
+    // Restart if loop somehow failed
+    if (currentMusic) {
+      currentMusic.currentTime = 0
+      currentMusic.play().catch(() => {})
+    }
+  })
+  
+  // Play with promise handling for autoplay policy
+  const playPromise = currentMusic.play()
+  if (playPromise !== undefined) {
+    playPromise.catch((error) => {
+      // Autoplay was prevented, will try again on user interaction
+      console.warn('Music autoplay prevented, waiting for user interaction')
+    })
   }
 }
 
-function handleMusicError(e) {
-  console.warn('Music playback error, attempting to restart:', e)
-  // Try to restart the same track
-  if (currentTrack) {
-    setTimeout(() => {
-      play(currentTrack)
-    }, 1000)
+// Public API
+
+export const playGameplayMusic = () => {
+  playTrack('gameplay')
+}
+
+export const playBossMusic = () => {
+  playTrack('boss')
+}
+
+export const playMenuMusic = () => {
+  playTrack('menu')
+}
+
+export const stopMusic = () => {
+  if (currentMusic) {
+    currentMusic.pause()
+    currentMusic.currentTime = 0
+    currentMusic = null
+    currentTrack = null
   }
 }
 
-function handleMusicPause() {
-  // If music gets paused unexpectedly, try to resume
-  if (current && current.paused && currentTrack) {
-    // Only auto-resume if it wasn't intentionally paused
-    setTimeout(() => {
-      if (current && current.paused && currentTrack) {
-        current.play().catch(() => {})
+export const pauseMusic = () => {
+  if (currentMusic && !currentMusic.paused) {
+    currentMusic.pause()
+  }
+}
+
+export const resumeMusic = () => {
+  if (currentMusic && currentMusic.paused) {
+    currentMusic.play().catch(() => {})
+  }
+}
+
+// Ensure music is playing (call this periodically to handle browser tab switching etc)
+export const ensureMusicPlaying = () => {
+  if (!currentMusic || !currentTrack) return
+  
+  // Resume audio context if suspended
+  if (audioContext && audioContext.state === 'suspended') {
+    audioContext.resume()
+  }
+  
+  // Check if music is paused or ended unexpectedly
+  if (currentMusic.paused || currentMusic.ended) {
+    // Reset to beginning if ended
+    if (currentMusic.ended) {
+      currentMusic.currentTime = 0
+    }
+    
+    // Try to play
+    currentMusic.play().catch(() => {
+      // If play fails, try recreating the audio element
+      const trackName = currentTrack
+      currentMusic = null
+      currentTrack = null
+      playTrack(trackName)
+    })
+  }
+}
+
+export const setMusicVolume = (volume) => {
+  musicVolume = Math.max(0, Math.min(1, volume))
+  if (currentMusic) {
+    currentMusic.volume = musicVolume
+  }
+}
+
+export const getMusicVolume = () => musicVolume
+
+export const isMusicPlaying = () => {
+  return currentMusic && !currentMusic.paused && !currentMusic.ended
+}
+
+// Fade out music over duration (ms)
+export const fadeOutMusic = (duration = 1000) => {
+  if (!currentMusic) return Promise.resolve()
+  
+  return new Promise((resolve) => {
+    const startVolume = currentMusic.volume
+    const startTime = Date.now()
+    
+    const fade = () => {
+      const elapsed = Date.now() - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      
+      if (currentMusic) {
+        currentMusic.volume = startVolume * (1 - progress)
+        
+        if (progress < 1) {
+          requestAnimationFrame(fade)
+        } else {
+          stopMusic()
+          resolve()
+        }
+      } else {
+        resolve()
       }
-    }, 100)
-  }
+    }
+    
+    fade()
+  })
 }
 
-export function playMenuMusic() {
-  play(tracks.menu)
-}
-export function playGameplayMusic() {
-  play(tracks.gameplay)
-}
-export function playBossMusic() {
-  play(tracks.boss)
-}
-export function stopMusic() {
-  if (current) {
-    current.pause()
-    current = null
+// Crossfade to a new track
+export const crossfadeTo = (trackName, duration = 500) => {
+  if (currentTrack === trackName) return
+  
+  const oldMusic = currentMusic
+  const oldVolume = musicVolume
+  
+  // Start new track at zero volume
+  currentMusic = null
+  currentTrack = null
+  playTrack(trackName)
+  
+  if (currentMusic) {
+    currentMusic.volume = 0
   }
-}
-export function setMusicVolume(v) {
-  volume = Math.max(0, Math.min(1, v))
-  if (current) current.volume = volume
-}
-
-export function ensureMusicPlaying() {
-  // Check if music should be playing but isn't
-  if (current && currentTrack && current.paused) {
-    current.play().catch(() => {})
+  
+  const startTime = Date.now()
+  
+  const fade = () => {
+    const elapsed = Date.now() - startTime
+    const progress = Math.min(elapsed / duration, 1)
+    
+    // Fade out old
+    if (oldMusic) {
+      oldMusic.volume = oldVolume * (1 - progress)
+      if (progress >= 1) {
+        oldMusic.pause()
+      }
+    }
+    
+    // Fade in new
+    if (currentMusic) {
+      currentMusic.volume = musicVolume * progress
+    }
+    
+    if (progress < 1) {
+      requestAnimationFrame(fade)
+    }
   }
-}
-
-export function isMusicPlaying() {
-  return current && !current.paused && !current.ended
+  
+  fade()
 }
