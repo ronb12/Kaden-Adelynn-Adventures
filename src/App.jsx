@@ -9,18 +9,10 @@ import CharacterSelector from './components/CharacterSelector'
 import TopScores from './components/TopScores'
 import TermsOfService from './components/TermsOfService'
 import PrivacyPolicy from './components/PrivacyPolicy'
-import StatisticsDashboard from './components/StatisticsDashboard'
-import SaveLoadMenu from './components/SaveLoadMenu'
-import WeaponUpgrades from './components/WeaponUpgrades'
-import Customization from './components/Customization'
 import './App.css'
 
 function App() {
-  // Always start with menu - ensure it's never overridden
-  const [gameState, setGameState] = useState(() => {
-    // Force menu state on initial load
-    return 'menu'
-  })
+  const [gameState, setGameState] = useState(() => 'menu')
   const [gameConfig, setGameConfig] = useState({
     difficulty: 'medium',
     ship: 'kaden',
@@ -32,10 +24,6 @@ function App() {
     localStorage.setItem('playerName', playerName)
   }, [playerName])
   
-  // Debug: Log gameState changes
-  useEffect(() => {
-    console.log('App gameState:', gameState)
-  }, [gameState])
   const [gameStats, setGameStats] = useState({ score: 0, wave: 1, level: 1, kills: 0, combo: 0 })
   const [paused, setPaused] = useState(false)
 
@@ -45,116 +33,40 @@ function App() {
     setGameState('story')
   }
 
-  const handleStoryComplete = () => {
-    setGameState('playing')
-  }
-
-  const handlePauseToggle = () => {
-    setPaused((p) => !p)
-  }
-
+  const handleStoryComplete = () => setGameState('playing')
+  const handlePauseToggle = () => setPaused((p) => !p)
+  
   const handleGameOver = (finalScore, wave, level, kills, combo) => {
     setGameStats({ score: finalScore, wave, level, kills, combo })
     setGameState('gameover')
   }
 
-  const handleRestart = () => {
-    setGameState('playing')
-  }
-
-  const handleReturnToMenu = () => {
-    setGameState('menu')
-  }
-
-  const handleOpenStore = () => {
-    setGameState('store')
-  }
-
-  const handleCloseStore = () => {
-    setGameState('menu')
-  }
-
-  const handleOpenShips = () => {
-    setGameState('ships')
-  }
-
-  const handleCloseShips = () => {
-    setGameState('menu')
-  }
-
+  const handleRestart = () => setGameState('playing')
+  const handleReturnToMenu = () => setGameState('menu')
+  const handleOpenStore = () => setGameState('store')
+  const handleCloseStore = () => setGameState('menu')
+  const handleOpenShips = () => setGameState('ships')
+  const handleCloseShips = () => setGameState('menu')
+  
   const handleSelectShip = (shipId) => {
     setGameConfig((prev) => ({ ...prev, ship: shipId }))
     localStorage.setItem('selectedShip', shipId)
   }
 
-  const handleOpenCharacters = () => {
-    setGameState('characters')
-  }
-
-  const handleCloseCharacters = () => {
-    setGameState('menu')
-  }
-
+  const handleOpenCharacters = () => setGameState('characters')
+  const handleCloseCharacters = () => setGameState('menu')
+  
   const handleSelectCharacter = (characterId) => {
     setGameConfig((prev) => ({ ...prev, character: characterId }))
     localStorage.setItem('selectedCharacter', characterId)
   }
 
-  const handleOpenScores = () => {
-    setGameState('scores')
-  }
-
-  const handleCloseScores = () => {
-    setGameState('menu')
-  }
-
-  const handleOpenTerms = () => {
-    setGameState('terms')
-  }
-
-  const handleCloseTerms = () => {
-    setGameState('menu')
-  }
-
-  const handleOpenPrivacy = () => {
-    setGameState('privacy')
-  }
-
-  const handleClosePrivacy = () => {
-    setGameState('menu')
-  }
-
-  const handleOpenStats = () => {
-    setGameState('stats')
-  }
-
-  const handleCloseStats = () => {
-    setGameState('menu')
-  }
-
-  const handleOpenSaveLoad = () => {
-    setGameState('saveload')
-  }
-
-  const handleCloseSaveLoad = () => {
-    setGameState('menu')
-  }
-
-  const handleOpenWeaponUpgrades = () => {
-    setGameState('weaponupgrades')
-  }
-
-  const handleCloseWeaponUpgrades = () => {
-    setGameState('menu')
-  }
-
-  const handleOpenCustomization = () => {
-    setGameState('customization')
-  }
-
-  const handleCloseCustomization = () => {
-    setGameState('menu')
-  }
+  const handleOpenScores = () => setGameState('scores')
+  const handleCloseScores = () => setGameState('menu')
+  const handleOpenTerms = () => setGameState('terms')
+  const handleCloseTerms = () => setGameState('menu')
+  const handleOpenPrivacy = () => setGameState('privacy')
+  const handleClosePrivacy = () => setGameState('menu')
 
   return (
     <div className="app">
@@ -167,10 +79,6 @@ function App() {
           onOpenScores={handleOpenScores}
           onOpenTerms={handleOpenTerms}
           onOpenPrivacy={handleOpenPrivacy}
-          onOpenStats={handleOpenStats}
-          onOpenSaveLoad={handleOpenSaveLoad}
-          onOpenWeaponUpgrades={handleOpenWeaponUpgrades}
-          onOpenCustomization={handleOpenCustomization}
         />
       )}
       {gameState === 'store' && <Store onClose={handleCloseStore} />}
@@ -191,10 +99,6 @@ function App() {
       {gameState === 'scores' && <TopScores onClose={handleCloseScores} />}
       {gameState === 'terms' && <TermsOfService onClose={handleCloseTerms} />}
       {gameState === 'privacy' && <PrivacyPolicy onClose={handleClosePrivacy} />}
-      {gameState === 'stats' && <StatisticsDashboard onClose={handleCloseStats} />}
-      {gameState === 'saveload' && <SaveLoadMenu onClose={handleCloseSaveLoad} />}
-      {gameState === 'weaponupgrades' && <WeaponUpgrades onClose={handleCloseWeaponUpgrades} />}
-      {gameState === 'customization' && <Customization onClose={handleCloseCustomization} />}
       {gameState === 'story' && <Story onContinue={handleStoryComplete} />}
       {gameState === 'playing' && (
         <Game
