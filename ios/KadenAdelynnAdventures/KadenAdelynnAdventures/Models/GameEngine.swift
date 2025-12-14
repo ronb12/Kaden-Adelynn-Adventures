@@ -1,6 +1,5 @@
 import Foundation
 import simd
-import UIKit
 
 class GameEngine {
 	private var player: Player
@@ -30,60 +29,49 @@ class GameEngine {
 		self.lastUpdateTime = Date().timeIntervalSince1970
 	}
 	
-	// MARK: - Save/Load
+	// MARK: - Save/Load (UserDefaults fallback - CloudKit requires Xcode project setup)
 	
 	func saveGame(completion: @escaping (Bool) -> Void) {
-		// Haptic feedback
-		let generator = UINotificationFeedbackGenerator()
-		generator.notificationOccurred(.success)
+		let saveData: [String: Any] = [
+			"score": gameState.score,
+			"wave": gameState.wave,
+			"level": gameState.level,
+			"lives": gameState.lives,
+			"playerX": player.position.x,
+			"playerY": player.position.y,
+			"timestamp": Date().timeIntervalSince1970
+		]
 		
-		let saveData = GameSaveData(
-			score: gameState.score,
-			wave: gameState.wave,
-			level: gameState.level,
-			lives: gameState.lives,
-			playerX: player.position.x,
-			playerY: player.position.y,
-			timestamp: Date().timeIntervalSince1970
-		)
-		
-		CloudKitManager.shared.saveSaveSlot(slotId: "current", saveData: saveData) { result in
-			switch result {
-			case .success:
-				print("💾 Game saved to iCloud!")
-				completion(true)
-			case .failure(let error):
-				print("❌ Save failed: \(error.localizedDescription)")
-				completion(false)
-			}
-		}
+		UserDefaults.standard.set(saveData, forKey: "gameSave")
+		print("💾 Game saved locally!")
+		completion(true)
 	}
 	
 	func loadGame(completion: @escaping (Bool) -> Void) {
-		// Haptic feedback
-		let generator = UINotificationFeedbackGenerator()
-		generator.notificationOccurred(.warning)
+		guard let saveData = UserDefaults.standard.dictionary(forKey: "gameSave") else {
+			print("❌ No saved game found")
+			completion(false)
+			return
+		}
 		
-		CloudKitManager.shared.loadSaveSlot(slotId: "current") { result in
-			switch result {
-			case .success(let saveData):
-				if let data = saveData {
-					self.gameState.score = data.score
-					self.gameState.wave = data.wave
-					self.gameState.level = data.level
-					self.gameState.lives = data.lives
-					self.player.position.x = data.playerX
-					self.player.position.y = data.playerY
-					print("📁 Game loaded from iCloud!")
-					completion(true)
-				} else {
-					print("❌ No saved game found")
-					completion(false)
-				}
-			case .failure(let error):
-				print("❌ Load failed: \(error.localizedDescription)")
-				completion(false)
-			}
+		if let score = saveData["score"] as? Int,
+		   let wave = saveData["wave"] as? Int,
+		   let level = saveData["level"] as? Int,
+		   let lives = saveData["lives"] as? Int,
+		   let playerX = saveData["playerX"] as? Float,
+		   let playerY = saveData["playerY"] as? Float {
+			
+			gameState.score = score
+			gameState.wave = wave
+			gameState.level = level
+			gameState.lives = lives
+			player.position.x = playerX
+			player.position.y = playerY
+			print("📁 Game loaded successfully!")
+			completion(true)
+		} else {
+			print("❌ Failed to load game data")
+			completion(false)
 		}
 	}
 

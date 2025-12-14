@@ -169,9 +169,8 @@ class GameViewController: UIViewController {
     }
     
     @objc private func togglePause() {
-        guard let engine = gameEngine else { return }
         // Toggle pause in game state
-        // engine.togglePause()
+        // gameEngine?.togglePause()
         fabMenu?.isHidden = true
     }
     
@@ -180,7 +179,7 @@ class GameViewController: UIViewController {
         gameEngine?.saveGame { [weak self] success in
             DispatchQueue.main.async {
                 if success {
-                    self?.showToast("💾 Game Saved to iCloud!")
+                    self?.showToast("💾 Game Saved!")
                 } else {
                     self?.showToast("❌ Save failed!")
                 }
@@ -193,7 +192,7 @@ class GameViewController: UIViewController {
         gameEngine?.loadGame { [weak self] success in
             DispatchQueue.main.async {
                 if success {
-                    self?.showToast("📁 Game Loaded from iCloud!")
+                    self?.showToast("📁 Game Loaded!")
                 } else {
                     self?.showToast("❌ No saved game found")
                 }
