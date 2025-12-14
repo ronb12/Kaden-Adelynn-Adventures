@@ -71,16 +71,21 @@ const createAudioElement = (src) => {
   audio.loop = true // CRITICAL: Enable looping so music never stops
   audio.preload = 'auto'
   
-  // Handle errors gracefully
-  audio.onerror = () => {
-    // Silently handle missing audio files
+  // Handle errors with logging for debugging
+  audio.onerror = (e) => {
+    console.error('Music loading error:', src, e)
+  }
+  
+  // Log when music loads successfully
+  audio.oncanplaythrough = () => {
+    console.log('Music loaded successfully:', src)
   }
   
   // Add multiple event listeners to ensure looping
   audio.addEventListener('ended', () => {
     if (audio.loop) {
       audio.currentTime = 0
-      audio.play().catch(() => {})
+      audio.play().catch((err) => console.warn('Auto-restart failed:', err))
     }
   })
   
@@ -89,7 +94,7 @@ const createAudioElement = (src) => {
     if (currentMusic === audio && currentTrack) {
       setTimeout(() => {
         if (currentMusic === audio && audio.paused) {
-          audio.play().catch(() => {})
+          audio.play().catch((err) => console.warn('Unpause failed:', err))
         }
       }, 100)
     }
@@ -100,12 +105,15 @@ const createAudioElement = (src) => {
 
 // Play a specific music track
 const playTrack = (trackName) => {
+  console.log('playTrack called:', trackName, 'hasUserGesture:', hasUserGesture)
+  
   // Only attempt to create AudioContext after user gesture
   if (hasUserGesture && !audioContext) {
     try {
       audioContext = new (window.AudioContext || window.webkitAudioContext)()
+      console.log('AudioContext created')
     } catch (e) {
-      // Can't create AudioContext yet, will retry next time
+      console.error('AudioContext creation failed:', e)
     }
   }
   
@@ -114,10 +122,12 @@ const playTrack = (trackName) => {
   
   const src = TRACKS[trackName]
   if (!src) {
+    console.error('Track not found:', trackName)
     return
   }
   // Don't restart if already playing the same track
   if (currentTrack === trackName && currentMusic && !currentMusic.paused) {
+    console.log('Track already playing:', trackName)
     return
   }
   // Stop current music if playing
@@ -131,21 +141,27 @@ const playTrack = (trackName) => {
   currentMusic = createAudioElement(src)
   currentTrack = trackName
   
+  console.log('Starting playback:', trackName)
+  
   // Add ended event listener as backup (even though loop is true)
   currentMusic.addEventListener('ended', () => {
     // Restart if loop somehow failed
     if (currentMusic) {
       currentMusic.currentTime = 0
-      currentMusic.play().catch(() => {})
+      currentMusic.play().catch((err) => console.warn('Loop restart failed:', err))
     }
   })
   
-  // Play with promise handling for autoplay policy - suppress console warnings
+  // Play with promise handling for autoplay policy
   const playPromise = currentMusic.play()
   if (playPromise !== undefined) {
-    playPromise.catch(() => {
-      // Silently handle autoplay prevention - music will start on user interaction
-    })
+    playPromise
+      .then(() => {
+        console.log('Music playing successfully:', trackName)
+      })
+      .catch((err) => {
+        console.warn('Autoplay blocked for', trackName, '- waiting for user interaction:', err.message)
+      })
   }
 }
 
