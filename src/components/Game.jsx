@@ -451,8 +451,9 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
         const popup = state.scorePopups[i]
         popup.life--
         if (popup.life <= 0) {
-          // Chance to spawn coin
-          if (Math.random() < 0.3) {
+          // Chance to spawn power-ups based on type
+          const roll = Math.random()
+          if (roll < 0.4) {
             state.coins++
             if (!state.powerUps) state.powerUps = []
             state.powerUps.push({
@@ -462,6 +463,39 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
               width: 10,
               height: 10,
               vy: -2,
+            })
+          } else if (roll < 0.5) {
+            // Health power-up
+            if (!state.powerUps) state.powerUps = []
+            state.powerUps.push({
+              x: popup.x,
+              y: popup.y,
+              type: 'health',
+              width: 12,
+              height: 12,
+              vy: -1.5,
+            })
+          } else if (roll < 0.58) {
+            // Shield power-up
+            if (!state.powerUps) state.powerUps = []
+            state.powerUps.push({
+              x: popup.x,
+              y: popup.y,
+              type: 'shield',
+              width: 14,
+              height: 14,
+              vy: -1.5,
+            })
+          } else if (roll < 0.65) {
+            // Temporary damage boost
+            if (!state.powerUps) state.powerUps = []
+            state.powerUps.push({
+              x: popup.x,
+              y: popup.y,
+              type: 'damage',
+              width: 12,
+              height: 12,
+              vy: -1.5,
             })
           }
           toRemove.push(i)
@@ -474,11 +508,44 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
 
     // Update collectibles
     if (state.powerUps && state.powerUps.length > 0) {
-      state.powerUps = state.powerUps.filter((p) => {
+      const toRemove = []
+      for (let i = 0; i < state.powerUps.length; i++) {
+        const p = state.powerUps[i]
         p.y += p.vy
         p.vy += 0.3 // gravity
-        return p.y < canvas.height + 50
-      })
+        
+        // Check if player collected the power-up
+        const distance = Math.hypot(
+          state.player.x + state.player.width / 2 - p.x,
+          state.player.y + state.player.height / 2 - p.y
+        )
+        
+        if (distance < 30) {
+          // Player collected the power-up
+          if (p.type === 'coin') {
+            state.coins++
+            playSound('coin', 0.3)
+          } else if (p.type === 'health') {
+            setHealth((h) => Math.min(100, h + 20))
+            playSound('powerup', 0.4)
+          } else if (p.type === 'shield') {
+            state.shield = true
+            state.shieldTimer = 8000 // 8 seconds
+            playSound('powerup', 0.4)
+          } else if (p.type === 'damage') {
+            state.damageMul = 2
+            state.damageBoostTimer = 5000 // 5 seconds
+            playSound('powerup', 0.5)
+          }
+          toRemove.push(i)
+        } else if (p.y > canvas.height + 50) {
+          toRemove.push(i)
+        }
+      }
+      
+      for (let i = toRemove.length - 1; i >= 0; i--) {
+        state.powerUps.splice(toRemove[i], 1)
+      }
     }
   }
 
@@ -659,6 +726,105 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
         ctx.arc(p.x, p.y, Math.abs(oscilate), 0, Math.PI * 2)
         ctx.stroke()
         ctx.globalAlpha = 1
+        
+        ctx.restore()
+      } else if (p.type === 'health') {
+        // Health power-up
+        ctx.save()
+        
+        const glow = Math.sin(Date.now() / 100 + p.x) * 5 + 12
+        ctx.shadowBlur = glow
+        ctx.shadowColor = 'rgba(0, 255, 100, 0.8)'
+        
+        // Outer glow
+        ctx.fillStyle = 'rgba(0, 255, 100, 0.2)'
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.width / 1.5, 0, Math.PI * 2)
+        ctx.fill()
+        
+        // Main health cross shape
+        ctx.fillStyle = '#00ff64'
+        const size = p.width / 2
+        ctx.fillRect(p.x - size/4, p.y - size, size/2, size*2)
+        ctx.fillRect(p.x - size, p.y - size/4, size*2, size/2)
+        
+        // Bright core
+        ctx.fillStyle = '#ffffff'
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, size/3, 0, Math.PI * 2)
+        ctx.fill()
+        
+        ctx.restore()
+      } else if (p.type === 'shield') {
+        // Shield power-up
+        ctx.save()
+        
+        const glow = Math.sin(Date.now() / 80 + p.x) * 6 + 13
+        ctx.shadowBlur = glow
+        ctx.shadowColor = 'rgba(0, 200, 255, 0.8)'
+        
+        // Outer glow
+        ctx.fillStyle = 'rgba(0, 200, 255, 0.15)'
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.width / 1.3, 0, Math.PI * 2)
+        ctx.fill()
+        
+        // Shield shape
+        ctx.strokeStyle = '#00c8ff'
+        ctx.lineWidth = 2
+        ctx.fillStyle = 'rgba(0, 200, 255, 0.4)'
+        ctx.beginPath()
+        const shieldW = p.width / 1.5
+        const shieldH = p.width * 1.2
+        ctx.moveTo(p.x - shieldW/2, p.y - shieldH/2)
+        ctx.lineTo(p.x + shieldW/2, p.y - shieldH/2)
+        ctx.lineTo(p.x + shieldW/2, p.y + shieldH/3)
+        ctx.quadraticCurveTo(p.x, p.y + shieldH/2, p.x - shieldW/2, p.y + shieldH/3)
+        ctx.closePath()
+        ctx.fill()
+        ctx.stroke()
+        
+        // Inner bright point
+        ctx.fillStyle = '#00ffff'
+        ctx.beginPath()
+        ctx.arc(p.x, p.y - 2, 2, 0, Math.PI * 2)
+        ctx.fill()
+        
+        ctx.restore()
+      } else if (p.type === 'damage') {
+        // Damage boost power-up
+        ctx.save()
+        
+        const glow = Math.sin(Date.now() / 90 + p.x) * 5 + 11
+        ctx.shadowBlur = glow
+        ctx.shadowColor = 'rgba(255, 100, 0, 0.8)'
+        
+        // Outer glow
+        ctx.fillStyle = 'rgba(255, 100, 0, 0.2)'
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.width / 1.4, 0, Math.PI * 2)
+        ctx.fill()
+        
+        // Lightning bolt
+        ctx.fillStyle = '#ff6400'
+        ctx.strokeStyle = '#ffaa00'
+        ctx.lineWidth = 1.5
+        ctx.beginPath()
+        ctx.moveTo(p.x, p.y - p.width/2)
+        ctx.lineTo(p.x + p.width/4, p.y - p.width/6)
+        ctx.lineTo(p.x + p.width/3, p.y + p.width/6)
+        ctx.lineTo(p.x, p.y + p.width/2)
+        ctx.lineTo(p.x - p.width/4, p.y + p.width/6)
+        ctx.lineTo(p.x - p.width/3, p.y - p.width/6)
+        ctx.closePath()
+        ctx.fill()
+        ctx.stroke()
+        
+        // Center glow
+        ctx.fillStyle = '#ffff99'
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2)
+        ctx.fill()
         
         ctx.restore()
       }
@@ -1120,12 +1286,33 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     if (state.showWaveAnnouncement && Date.now() - state.waveStartTime < waveDuration) {
       const elapsed = Date.now() - state.waveStartTime
       const alpha = Math.min(1, elapsed / 500) * Math.min(1, (waveDuration - elapsed) / 500)
+      const pulse = Math.sin(elapsed / 200) * 0.3 + 0.7
+      
       ctx.globalAlpha = alpha
+      
+      // Background glow
+      ctx.fillStyle = `rgba(255, 255, 0, ${alpha * 0.3})`
+      ctx.beginPath()
+      ctx.arc(canvas.width / 2, canvas.height / 2, 100 * pulse, 0, Math.PI * 2)
+      ctx.fill()
+      
+      // Main wave text
       ctx.fillStyle = '#ffff00'
+      ctx.shadowColor = '#ff6600'
+      ctx.shadowBlur = 20
       ctx.font = 'bold 48px Arial'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
       ctx.fillText(`WAVE ${state.wave}`, canvas.width / 2, canvas.height / 2)
+      
+      // Difficulty info below
+      ctx.font = 'bold 20px Arial'
+      ctx.shadowBlur = 10
+      ctx.fillStyle = '#ff9999'
+      const difficultyText = state.wave <= 3 ? 'EASY' : state.wave <= 6 ? 'MEDIUM' : state.wave <= 10 ? 'HARD' : 'BRUTAL'
+      ctx.fillText(difficultyText, canvas.width / 2, canvas.height / 2 + 50)
+      
+      ctx.shadowBlur = 0
       ctx.globalAlpha = 1
     }
 
