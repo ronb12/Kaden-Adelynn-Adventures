@@ -946,23 +946,83 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     state.enemies = state.enemies.slice(0, MAX_ENEMIES).filter((enemy) => {
       enemy.y += enemy.speed * timeScale
 
-      if (enemy.pattern === 'zigzag') {
-        enemy.x += Math.sin(enemy.y / 20) * 2 * timeScale
+      // Enhanced movement patterns based on enemy type
+      if (enemy.type === 'fast') {
+        // Fast enemies use erratic patterns
+        if (!enemy.patternTime) enemy.patternTime = 0
+        enemy.patternTime += timeScale
+        enemy.x += Math.sin(enemy.patternTime / 10) * 4 * timeScale
+        enemy.x += Math.cos(enemy.patternTime / 15) * 2 * timeScale
+      } else if (enemy.pattern === 'zigzag') {
+        enemy.x += Math.sin(enemy.y / 20) * 2.5 * timeScale
       } else if (enemy.pattern === 'sway') {
-        enemy.x += Math.sin(enemy.y / 30) * 3 * timeScale
+        enemy.x += Math.sin(enemy.y / 30) * 3.5 * timeScale
       } else if (enemy.pattern === 'dash') {
-        if (Math.random() < 0.02) enemy.y += 20 * timeScale
+        if (Math.random() < 0.02) {
+          if (!enemy.dashCooldown) enemy.dashCooldown = 0
+          if (enemy.dashCooldown <= 0) {
+            enemy.y += 30 * timeScale
+            enemy.dashCooldown = 500
+          }
+        }
+        if (enemy.dashCooldown) enemy.dashCooldown -= state.deltaTime
+      }
+
+      // Intelligent AI: Avoid bullets by moving toward clear areas
+      if (Math.random() < 0.05 && state.enemyBullets.length < 50) {
+        // Check if there's a nearby bullet
+        for (let i = 0; i < state.bullets.length; i++) {
+          const bullet = state.bullets[i]
+          if (bullet && bullet.y < enemy.y && bullet.y + 100 > enemy.y) {
+            const dist = Math.abs(bullet.x - enemy.x)
+            if (dist < 80) {
+              // Evasive maneuver
+              if (bullet.x < enemy.x) {
+                enemy.x += 8 * timeScale
+              } else {
+                enemy.x -= 8 * timeScale
+              }
+              break
+            }
+          }
+        }
       }
 
       // Keep enemies within canvas bounds (left/right)
       enemy.x = Math.max(5, Math.min(canvas.width - 35, enemy.x))
 
-      const shootChance = 0.01 * difficultyModifier()
+      // Intelligent shooting pattern
+      let shootChance = 0.01 * difficultyModifier()
+      
+      // Shield enemies shoot less often
+      if (enemy.type === 'shield') shootChance *= 0.5
+      // Tank enemies shoot more often
+      else if (enemy.type === 'tank') shootChance *= 1.5
+      // Fast enemies shoot more frequently
+      else if (enemy.type === 'fast') shootChance *= 1.2
+      
       if (Math.random() < shootChance && enemy.y > 50 && enemy.y < canvas.height - 100) {
         if (state.enemyBullets.length < 180) {
+          // Smart aim: try to shoot towards player
+          const playerX = state.player.x + state.player.width / 2
+          const playerY = state.player.y
+          const dx = playerX - (enemy.x + 15)
+          const dy = playerY - (enemy.y + 30)
+          const dist = Math.sqrt(dx * dx + dy * dy)
+          const aim = 0.6 + (state.wave > 10 ? 0.3 : 0) // Better aim at higher waves
+          
+          let vx = 0
+          let vy = 3
+          if (Math.random() < aim && dist > 0) {
+            vx = (dx / dist) * 2
+            vy = Math.min(4, (dy / dist) * 3)
+          }
+          
           state.enemyBullets.push({
             x: enemy.x + 15,
             y: enemy.y + 30,
+            vx: vx,
+            vy: vy,
             speed: 3 * timeScale,
             owner: 'enemy',
             width: 3,
@@ -1321,9 +1381,15 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     const timeScale = Math.min(state.deltaTime / 16.67, 2)
 
     state.enemyBullets = state.enemyBullets.filter((bullet) => {
-      // Move bullet straight down
-      const speed = bullet.speed || 3
-      bullet.y += speed * timeScale
+      // Move bullet with velocity support (for angled shots)
+      if (bullet.vx || bullet.vy) {
+        bullet.x += (bullet.vx || 0) * timeScale
+        bullet.y += (bullet.vy || 3) * timeScale
+      } else {
+        // Fallback to straight down movement
+        const speed = bullet.speed || 3
+        bullet.y += speed * timeScale
+      }
       
       // Remove if off-screen
       return (
