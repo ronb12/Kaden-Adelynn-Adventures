@@ -49,6 +49,9 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     showWaveAnnouncement: false,
     bossWaveNext: false,
     stars: [], // Starfield for space background
+    fps: 60,
+    frameCount: 0,
+    lastFpsUpdate: Date.now(),
   })
 
   const [score, setScore] = useState(0)
@@ -444,6 +447,10 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     // Row 3: Weapon
     const wpn = state.currentWeapon.charAt(0).toUpperCase() + state.currentWeapon.slice(1).toLowerCase()
     placeItem('⚔ WPN', wpn, '#00ff99')
+    
+    // Row 4: FPS
+    const fpsColor = state.fps >= 55 ? '#00ff00' : state.fps >= 30 ? '#ffff00' : '#ff6b6b'
+    placeItem('⚙ FPS', state.fps, fpsColor)
   }
 
   const spawnBoss = (state) => {
@@ -683,7 +690,7 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       for (let i = 0; i < state.powerUps.length; i++) {
         const p = state.powerUps[i]
         p.y += p.vy
-        p.vy += 0.3 // gravity
+        p.vy += 0.15 // gravity (reduced from 0.3 for slower fall)
         
         // Check if player collected the power-up
         const distance = Math.hypot(
@@ -1784,6 +1791,14 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     const now = Date.now()
     state.deltaTime = now - state.lastFrameTime
     state.lastFrameTime = now
+
+    // Calculate FPS
+    state.frameCount++
+    if (now - state.lastFpsUpdate >= 1000) {
+      state.fps = state.frameCount
+      state.frameCount = 0
+      state.lastFpsUpdate = now
+    }
 
     // Ensure music keeps playing
     if (!state.lastMusicCheck) state.lastMusicCheck = now
