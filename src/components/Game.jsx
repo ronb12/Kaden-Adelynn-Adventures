@@ -2021,6 +2021,60 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
     requestAnimationFrame(() => gameLoop(state))
   }
 
+  // Button handler functions (must be outside useEffect to be accessible to JSX)
+  const togglePause = () => {
+    setPaused((prev) => {
+      const next = !prev
+      pausedRef.current = next
+      return next
+    })
+  }
+
+  const saveGameState = async () => {
+    const state = gameStateRef.current
+    const saveData = {
+      score: score,
+      wave: wave,
+      level: level,
+      lives: state.player.lives,
+      playerX: state.player.x,
+      playerY: state.player.y,
+      timestamp: Date.now()
+    }
+    // Save to both Firebase and localStorage as fallback
+    await saveSaveSlot('current', saveData)
+    localStorage.setItem('kaden-adelynn-save', JSON.stringify(saveData))
+    setToast('💾 Game Saved to Cloud!')
+    setTimeout(() => setToast(''), 2000)
+    console.log('Game saved!')
+  }
+
+  const loadGameState = async () => {
+    const state = gameStateRef.current
+    try {
+      // Try Firebase first
+      const saveData = await loadSaveSlot('current')
+      if (saveData) {
+        setScore(saveData.score)
+        setWave(saveData.wave)
+        setLevel(saveData.level)
+        state.player.lives = saveData.lives
+        state.player.x = saveData.playerX
+        state.player.y = saveData.playerY
+        setToast('📁 Game Loaded from Cloud!')
+        setTimeout(() => setToast(''), 2000)
+        console.log('Game loaded!')
+      } else {
+        setToast('❌ No saved game found')
+        setTimeout(() => setToast(''), 2000)
+      }
+    } catch (e) {
+      setToast('❌ Failed to load game')
+      setTimeout(() => setToast(''), 2000)
+      console.error('Failed to load game:', e)
+    }
+  }
+
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -2041,6 +2095,11 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
     // Initial size
     resizeCanvas()
 
+    // Center player ship after canvas is sized
+    const state = gameStateRef.current
+    state.player.x = canvas.width / 2 - state.player.width / 2
+    state.player.y = canvas.height - 100
+
     // Update on window resize
     window.addEventListener('resize', resizeCanvas)
 
@@ -2050,7 +2109,6 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
     unlockEvents.forEach((evt) => window.addEventListener(evt, unlock, { once: true, passive: true }))
 
     playGameplayMusic()
-    const state = gameStateRef.current
     state.wave = wave
     state.level = level
 
@@ -2059,14 +2117,6 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
     state.canvasHeight = canvas.height
 
     const isMobileDevice = typeof window !== 'undefined' && (window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 900)
-
-    const togglePause = () => {
-      setPaused((prev) => {
-        const next = !prev
-        pausedRef.current = next
-        return next
-      })
-    }
 
     const handleKeyDown = (e) => {
       state.keys[e.key] = true
@@ -2088,51 +2138,6 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
     }
     const handleKeyUp = (e) => {
       state.keys[e.key] = false
-    }
-    
-    // Save game state
-    const saveGameState = async () => {
-      const saveData = {
-        score: score,
-        wave: wave,
-        level: level,
-        lives: state.player.lives,
-        playerX: state.player.x,
-        playerY: state.player.y,
-        timestamp: Date.now()
-      }
-      // Save to both Firebase and localStorage as fallback
-      await saveSaveSlot('current', saveData)
-      localStorage.setItem('kaden-adelynn-save', JSON.stringify(saveData))
-      setToast('💾 Game Saved to Cloud!')
-      setTimeout(() => setToast(''), 2000)
-      console.log('Game saved!')
-    }
-    
-    // Load game state
-    const loadGameState = async () => {
-      try {
-        // Try Firebase first
-        const saveData = await loadSaveSlot('current')
-        if (saveData) {
-          setScore(saveData.score)
-          setWave(saveData.wave)
-          setLevel(saveData.level)
-          state.player.lives = saveData.lives
-          state.player.x = saveData.playerX
-          state.player.y = saveData.playerY
-          setToast('📁 Game Loaded from Cloud!')
-          setTimeout(() => setToast(''), 2000)
-          console.log('Game loaded!')
-        } else {
-          setToast('❌ No saved game found')
-          setTimeout(() => setToast(''), 2000)
-        }
-      } catch (e) {
-        setToast('❌ Failed to load game')
-        setTimeout(() => setToast(''), 2000)
-        console.error('Failed to load game:', e)
-      }
     }
 
     // Touch controls for mobile with continuous movement
@@ -2307,8 +2312,16 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
             onTouchStart={() => { if (navigator && navigator.vibrate) navigator.vibrate(7) }}
           >{paused ? '▶ Resume' : '⏸ Pause'}</button>
           <button
-            onClick={() => {
-              saveGameState()
+            onClick={async () => {
+              try {
+                await saveGameState()
+                const panel = document.getElementById('fab-panel')
+                if (panel) panel.style.display = 'none'
+              } catch (e) {
+                console.error('Save failed:', e)
+                setToast('❌ Save failed!')
+                setTimeout(() => setToast(''), 2000)
+              }
             }}
             style={{
               width: '100%',
@@ -2323,8 +2336,16 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
             onTouchStart={() => { if (navigator && navigator.vibrate) navigator.vibrate(7) }}
           >💾 Save</button>
           <button
-            onClick={() => {
-              loadGameState()
+            onClick={async () => {
+              try {
+                await loadGameState()
+                const panel = document.getElementById('fab-panel')
+                if (panel) panel.style.display = 'none'
+              } catch (e) {
+                console.error('Load failed:', e)
+                setToast('❌ Load failed!')
+                setTimeout(() => setToast(''), 2000)
+              }
             }}
             style={{
               width: '100%',
