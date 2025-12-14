@@ -193,6 +193,8 @@ kaden-adelynn-space-adventures/
 ├── firebase.json            # Firebase configuration
 ├── docs/                    # Consolidated documentation (security, gameplay, music)
 └── package.json             # Dependencies
+
+Optional helpers live in `scripts/` and are not required for normal builds. See `scripts/README.md` for details.
 ```
 
 ---
