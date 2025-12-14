@@ -48,6 +48,7 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     waveStartTime: Date.now(),
     showWaveAnnouncement: false,
     bossWaveNext: false,
+    stars: [], // Starfield for space background
   })
 
   const [score, setScore] = useState(0)
@@ -108,6 +109,41 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       ultimate: '#ff00ff',
     }
     return weaponColors[weapon] || '#00ffff'
+  }
+
+  const initStarfield = (canvas) => {
+    const stars = []
+    const numStars = 150
+    for (let i = 0; i < numStars; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 2 + 0.5,
+        speed: Math.random() * 2 + 0.5,
+        brightness: Math.random() * 0.5 + 0.5,
+      })
+    }
+    return stars
+  }
+
+  const drawStarfield = (ctx, canvas, stars) => {
+    if (!stars || stars.length === 0) return
+    
+    stars.forEach((star) => {
+      // Move star downward
+      star.y += star.speed
+      
+      // Wrap around when star goes off screen
+      if (star.y > canvas.height) {
+        star.y = 0
+        star.x = Math.random() * canvas.width
+      }
+      
+      // Draw star with twinkling effect
+      const twinkle = Math.sin(Date.now() / 1000 + star.x) * 0.3 + 0.7
+      ctx.fillStyle = `rgba(255, 255, 255, ${star.brightness * twinkle})`
+      ctx.fillRect(star.x, star.y, star.size, star.size)
+    })
   }
 
   const drawPlayer = (ctx, state) => {
@@ -1766,6 +1802,15 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
 
     ctx.fillStyle = '#000'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
+    
+    // Initialize starfield if not yet initialized
+    if (!state.stars || state.stars.length === 0) {
+      state.stars = initStarfield(canvas)
+    }
+    
+    // Draw animated starfield
+    drawStarfield(ctx, canvas, state.stars)
+    
     ctx.save()
     ctx.translate(shakeX, shakeY)
 
@@ -1881,6 +1926,7 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
 
     // Touch controls for mobile
     const handleTouchStart = (e) => {
+      e.preventDefault()
       if (!e.touches) return
       const touch = e.touches[0]
       const canvas = canvasRef.current
@@ -1892,13 +1938,35 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       
       // Left half = move left, right half = move right
       if (touchX < canvas.width / 2) {
-        state.keys['a'] = true // Move left
+        state.keys['a'] = true
+        state.keys['d'] = false
       } else {
-        state.keys['d'] = true // Move right
+        state.keys['d'] = true
+        state.keys['a'] = false
       }
       
       // Enable rapid fire on touch
       state.keys[' '] = true
+    }
+
+    const handleTouchMove = (e) => {
+      e.preventDefault()
+      if (!e.touches) return
+      const touch = e.touches[0]
+      const canvas = canvasRef.current
+      if (!canvas) return
+      
+      const rect = canvas.getBoundingClientRect()
+      const touchX = touch.clientX - rect.left
+      
+      // Update movement based on touch position
+      if (touchX < canvas.width / 2) {
+        state.keys['a'] = true
+        state.keys['d'] = false
+      } else {
+        state.keys['d'] = true
+        state.keys['a'] = false
+      }
     }
 
     const handleTouchEnd = () => {
@@ -1909,7 +1977,8 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
 
     window.addEventListener('keydown', handleKeyDown)
     window.addEventListener('keyup', handleKeyUp)
-    canvas.addEventListener('touchstart', handleTouchStart)
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false })
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false })
     canvas.addEventListener('touchend', handleTouchEnd)
 
     gameLoop(state)
@@ -1918,6 +1987,7 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)
       canvas.removeEventListener('touchstart', handleTouchStart)
+      canvas.removeEventListener('touchmove', handleTouchMove)
       canvas.removeEventListener('touchend', handleTouchEnd)
       window.removeEventListener('resize', resizeCanvas)
       timeoutRefs.current.forEach(clearTimeout)
