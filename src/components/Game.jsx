@@ -2041,17 +2041,25 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
       playerY: state.player.y,
       timestamp: Date.now()
     }
+    // Visual feedback
+    if (navigator && navigator.vibrate) navigator.vibrate([50, 30, 50])
+    console.log('💾 Saving game...', saveData)
+    
     // Save to both Firebase and localStorage as fallback
     await saveSaveSlot('current', saveData)
     localStorage.setItem('kaden-adelynn-save', JSON.stringify(saveData))
     setToast('💾 Game Saved to Cloud!')
-    setTimeout(() => setToast(''), 2000)
-    console.log('Game saved!')
+    setTimeout(() => setToast(''), 3000)
+    console.log('✅ Game saved successfully!')
   }
 
   const loadGameState = async () => {
     const state = gameStateRef.current
     try {
+      // Visual feedback
+      if (navigator && navigator.vibrate) navigator.vibrate([30, 20, 30])
+      console.log('📁 Loading game...')
+      
       // Try Firebase first
       const saveData = await loadSaveSlot('current')
       if (saveData) {
@@ -2062,16 +2070,17 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
         state.player.x = saveData.playerX
         state.player.y = saveData.playerY
         setToast('📁 Game Loaded from Cloud!')
-        setTimeout(() => setToast(''), 2000)
-        console.log('Game loaded!')
+        setTimeout(() => setToast(''), 3000)
+        console.log('✅ Game loaded successfully!', saveData)
       } else {
         setToast('❌ No saved game found')
-        setTimeout(() => setToast(''), 2000)
+        setTimeout(() => setToast(''), 3000)
+        console.log('⚠️ No saved game found')
       }
     } catch (e) {
       setToast('❌ Failed to load game')
-      setTimeout(() => setToast(''), 2000)
-      console.error('Failed to load game:', e)
+      setTimeout(() => setToast(''), 3000)
+      console.error('❌ Failed to load game:', e)
     }
   }
 
@@ -2409,16 +2418,20 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
           top: '20px',
           left: '50%',
           transform: 'translateX(-50%)',
-          background: 'rgba(0,0,0,0.85)',
+          background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%)',
           color: '#fff',
-          padding: '15px 25px',
-          borderRadius: '12px',
-          fontSize: '16px',
-          fontWeight: '600',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-          zIndex: 10000,
-          animation: 'slideDown 0.3s ease-out',
-          border: '2px solid rgba(102, 126, 234, 0.5)'
+          padding: '20px 35px',
+          borderRadius: '16px',
+          fontSize: '20px',
+          fontWeight: '700',
+          boxShadow: '0 8px 32px rgba(102, 126, 234, 0.6), 0 0 0 3px rgba(255, 255, 255, 0.3)',
+          zIndex: 999999,
+          animation: 'toastPulse 0.4s ease-out',
+          border: '3px solid rgba(255, 255, 255, 0.5)',
+          backdropFilter: 'blur(10px)',
+          textAlign: 'center',
+          minWidth: '250px',
+          letterSpacing: '0.5px'
         }}>
           {toast}
         </div>
