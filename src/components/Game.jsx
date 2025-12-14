@@ -382,9 +382,10 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     const canvas = canvasRef.current
     if (!canvas) return
     const cw = canvas.width
+    const ch = canvas.height
     const isMobile = cw < 520
-    // Adjust bar height based on screen width
-    const barH = isMobile ? (cw < 400 ? 50 : 60) : 70
+    // More compact bar for mobile to prevent overflow
+    const barH = isMobile ? (cw < 400 ? 42 : 52) : 70
 
     // Enhanced scoreboard background with gradient
     const bgGrad = ctx.createLinearGradient(0, 0, 0, barH)
@@ -401,20 +402,20 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     ctx.lineTo(cw, barH)
     ctx.stroke()
 
-    // Font size scales with screen width
-    const fontSize = isMobile ? (cw < 400 ? 7 : 8) : 11
+    // Smaller font size for mobile to fit better
+    const fontSize = isMobile ? (cw < 400 ? 6.5 : 7.5) : 11
     ctx.font = `bold ${fontSize}px "Courier New"`
-    const lineHeight = isMobile ? (cw < 400 ? 15 : 20) : 22
+    const lineHeight = isMobile ? (cw < 400 ? 13 : 16) : 22
     let row = 0
     let col = 0
     // On very small screens, show 2 columns instead of 4
     const cols = isMobile && cw < 400 ? 2 : 4
     const colWidth = cw / cols
-    const padding = isMobile ? 8 : 12
+    const padding = isMobile ? 4 : 12
     
     const placeItem = (label, value, color) => {
-      const y = padding + 3 + row * lineHeight
-      const x = (isMobile && cw < 400 ? 20 : 55) + col * colWidth
+      const y = padding + 2 + row * lineHeight
+      const x = (isMobile && cw < 400 ? 8 : 45) + col * colWidth
       
       // Text shadow for better visibility
       ctx.shadowColor = 'rgba(0, 0, 0, 0.8)'
@@ -1981,6 +1982,12 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       const touch = e.touches[0]
       const canvas = canvasRef.current
       if (!canvas) return
+      
+      // Start music on first touch (user gesture required for autoplay)
+      if (!state.musicStarted) {
+        playGameplayMusic()
+        state.musicStarted = true
+      }
       
       const rect = canvas.getBoundingClientRect()
       const touchX = touch.clientX - rect.left
