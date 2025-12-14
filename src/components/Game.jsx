@@ -1924,7 +1924,7 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       state.keys[e.key] = false
     }
 
-    // Touch controls for mobile
+    // Touch controls for mobile with continuous movement
     const handleTouchStart = (e) => {
       e.preventDefault()
       if (!e.touches) return
@@ -1936,14 +1936,9 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       const touchX = touch.clientX - rect.left
       const touchY = touch.clientY - rect.top
       
-      // Left half = move left, right half = move right
-      if (touchX < canvas.width / 2) {
-        state.keys['a'] = true
-        state.keys['d'] = false
-      } else {
-        state.keys['d'] = true
-        state.keys['a'] = false
-      }
+      // Track player position directly based on touch
+      const scaledX = (touchX / rect.width) * canvas.width
+      state.player.x = Math.max(state.player.width / 2, Math.min(canvas.width - state.player.width / 2, scaledX))
       
       // Enable rapid fire on touch
       state.keys[' '] = true
@@ -1959,14 +1954,12 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       const rect = canvas.getBoundingClientRect()
       const touchX = touch.clientX - rect.left
       
-      // Update movement based on touch position
-      if (touchX < canvas.width / 2) {
-        state.keys['a'] = true
-        state.keys['d'] = false
-      } else {
-        state.keys['d'] = true
-        state.keys['a'] = false
-      }
+      // Continuous movement - directly follow touch position
+      const scaledX = (touchX / rect.width) * canvas.width
+      state.player.x = Math.max(state.player.width / 2, Math.min(canvas.width - state.player.width / 2, scaledX))
+      
+      // Keep firing while moving
+      state.keys[' '] = true
     }
 
     const handleTouchEnd = () => {
