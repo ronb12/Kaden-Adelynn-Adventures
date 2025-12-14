@@ -81,6 +81,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
   const [level, setLevel] = useState(1)
   const [coins, setCoins] = useState(0)
   const [unlockedAchievements, setUnlockedAchievements] = useState({})
+  const [toast, setToast] = useState('')
   const healthRef = useRef(100)
   const livesRef = useRef(getStartingLives())
   const scoreRef = useRef(0)
@@ -2100,6 +2101,8 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
         timestamp: Date.now()
       }
       localStorage.setItem('kaden-adelynn-save', JSON.stringify(saveData))
+      setToast('💾 Game Saved!')
+      setTimeout(() => setToast(''), 2000)
       console.log('Game saved!')
     }
     
@@ -2115,10 +2118,17 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
           state.player.lives = saveData.lives
           state.player.x = saveData.playerX
           state.player.y = saveData.playerY
+          setToast('📁 Game Loaded!')
+          setTimeout(() => setToast(''), 2000)
           console.log('Game loaded!')
         } catch (e) {
+          setToast('❌ Failed to load game')
+          setTimeout(() => setToast(''), 2000)
           console.error('Failed to load game:', e)
         }
+      } else {
+        setToast('❌ No saved game found')
+        setTimeout(() => setToast(''), 2000)
       }
     }
 
@@ -2305,6 +2315,8 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
                 timestamp: Date.now()
               }
               localStorage.setItem('kaden-adelynn-save', JSON.stringify(saveData))
+              setToast('💾 Game Saved!')
+              setTimeout(() => setToast(''), 2000)
               const panel = document.getElementById('fab-panel'); if (panel) panel.style.display = 'none'
             }}
             style={{
@@ -2331,7 +2343,15 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
                   gameStateRef.current.player.lives = saveData.lives
                   gameStateRef.current.player.x = saveData.playerX
                   gameStateRef.current.player.y = saveData.playerY
-                } catch (e) {}
+                  setToast('📁 Game Loaded!')
+                  setTimeout(() => setToast(''), 2000)
+                } catch (e) {
+                  setToast('❌ Failed to load game')
+                  setTimeout(() => setToast(''), 2000)
+                }
+              } else {
+                setToast('❌ No saved game found')
+                setTimeout(() => setToast(''), 2000)
               }
               const panel = document.getElementById('fab-panel'); if (panel) panel.style.display = 'none'
             }}
@@ -2390,6 +2410,27 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
         <div>S - Save Game</div>
         <div>L - Load Game</div>
       </div>
+      
+      {toast && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'rgba(0,0,0,0.85)',
+          color: '#fff',
+          padding: '15px 25px',
+          borderRadius: '12px',
+          fontSize: '16px',
+          fontWeight: '600',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+          zIndex: 10000,
+          animation: 'slideDown 0.3s ease-out',
+          border: '2px solid rgba(102, 126, 234, 0.5)'
+        }}>
+          {toast}
+        </div>
+      )}
     </div>
   )
 }

@@ -67,6 +67,24 @@ function App() {
   const handleCloseTerms = () => setGameState('menu')
   const handleOpenPrivacy = () => setGameState('privacy')
   const handleClosePrivacy = () => setGameState('menu')
+  
+  // Placeholder handlers for additional menu buttons
+  const handleOpenStats = () => {
+    console.log('Statistics feature coming soon!')
+    // TODO: Create Statistics component
+  }
+  const handleOpenSaveLoad = () => {
+    console.log('Save/Load feature - use in-game pause menu (P key) for now')
+    // Save/Load already works in-game via pause menu
+  }
+  const handleOpenWeaponUpgrades = () => {
+    console.log('Weapon Upgrades feature coming soon!')
+    // TODO: Create WeaponUpgrades component
+  }
+  const handleOpenCustomization = () => {
+    console.log('Customization feature coming soon!')
+    // TODO: Create Customization component
+  }
 
   return (
     <div className="app">
@@ -79,6 +97,10 @@ function App() {
           onOpenScores={handleOpenScores}
           onOpenTerms={handleOpenTerms}
           onOpenPrivacy={handleOpenPrivacy}
+          onOpenStats={handleOpenStats}
+          onOpenSaveLoad={handleOpenSaveLoad}
+          onOpenWeaponUpgrades={handleOpenWeaponUpgrades}
+          onOpenCustomization={handleOpenCustomization}
         />
       )}
       {gameState === 'store' && <Store onClose={handleCloseStore} />}

@@ -17,6 +17,7 @@
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 40px;
   background: rgba(15, 15, 30, 0.95);
   backdrop-filter: blur(20px);
@@ -24,6 +25,8 @@
   border: 2px solid rgba(102, 126, 234, 0.5);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
   animation: slideUp 0.5s ease-out;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .game-over-header {
@@ -244,6 +247,26 @@
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+/* Custom scrollbar for game over container */
+.game-over-container::-webkit-scrollbar {
+  width: 10px;
+}
+
+.game-over-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+}
+
+.game-over-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 10px;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+}
+
+.game-over-container::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
 }
 
 @media (max-width: 768px) {

@@ -84,3 +84,14 @@
   font-size: 1.5rem;
   color: rgba(255, 255, 255, 0.7);
 }
+
+@keyframes slideDown {
+  from {
+    transform: translateX(-50%) translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
