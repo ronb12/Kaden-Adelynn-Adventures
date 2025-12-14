@@ -60,13 +60,13 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
   const [enemiesKilled, setEnemiesKilled] = useState(0)
   const [paused, setPaused] = useState(false)
   const [health, setHealth] = useState(100)
-  const [lives, setLives] = useState(25)
+  const [lives, setLives] = useState(getStartingLives())
   const [wave, setWave] = useState(1)
   const [level, setLevel] = useState(1)
   const [coins, setCoins] = useState(0)
   const [unlockedAchievements, setUnlockedAchievements] = useState({})
   const healthRef = useRef(100)
-  const livesRef = useRef(25)
+  const livesRef = useRef(getStartingLives())
   const timeoutRefs = useRef([])
   const playerInput = useRef({ x: 0, y: 0, firing: false })
 
@@ -74,6 +74,16 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
 
   const difficultyModifier = () => {
     return difficulty === 'easy' ? 1 : difficulty === 'medium' ? 1.5 : 2
+  }
+
+  const getDamageAmount = () => {
+    // Easy: 5 damage per hit, Medium: 10 damage, Hard: 15 damage
+    return difficulty === 'easy' ? 5 : difficulty === 'medium' ? 10 : 15
+  }
+
+  const getStartingLives = () => {
+    // Easy: 25 lives, Medium: 15 lives, Hard: 10 lives
+    return difficulty === 'easy' ? 25 : difficulty === 'medium' ? 15 : 10
   }
 
   const getWeaponColor = (weapon) => {
@@ -464,13 +474,16 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       const bossTypes = ['type1', 'type2', 'type3']
       const bossType = bossTypes[Math.floor(state.wave / 5) % bossTypes.length]
       
+      const bossBaseHealth = 20 + state.wave * 3
+      const bossHealth = Math.round(bossBaseHealth * difficultyModifier())
+      
       state.boss = {
         x: canvas.width / 2 - 40,
         y: -80,
         width: 80,
         height: 80,
-        health: 20 + state.wave * 3,
-        maxHealth: 20 + state.wave * 3,
+        health: bossHealth,
+        maxHealth: bossHealth,
         speed: 1.5 + state.wave * 0.1,
         type: bossType,
         shootTimer: 0,
@@ -1305,7 +1318,8 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
           state.player.y + state.player.height > enemy.y
         ) {
           setHealth((h) => {
-            const newHealth = h - 1
+            const damage = getDamageAmount()
+            const newHealth = h - damage
             if (newHealth <= 0) {
               addScreenShake(state, 4)
               createExplosion(state, state.player.x + state.player.width / 2, state.player.y, 'large')
@@ -1360,7 +1374,8 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
           by + bh > state.player.y
         ) {
           setHealth((h) => {
-            const newHealth = h - 1
+            const damage = getDamageAmount()
+            const newHealth = h - damage
             if (newHealth <= 0) {
               setLives((l) => Math.max(0, l - 1))
               state.invulnerable = true
@@ -1509,7 +1524,8 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
         state.player.y + state.player.height > state.boss.y
       ) {
         setHealth((h) => {
-          const newHealth = h - 5 // Boss deals more damage
+          const damage = getDamageAmount() * 3 // Boss deals triple damage
+          const newHealth = h - damage
           if (newHealth <= 0) {
             addScreenShake(state, 4)
             createExplosion(state, state.player.x + state.player.width / 2, state.player.y, 'large')
