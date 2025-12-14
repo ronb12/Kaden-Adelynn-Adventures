@@ -141,6 +141,37 @@ firebase deploy --only hosting
 
 ---
 
+## 📱 iOS App (Native) – Build & Run
+
+The repo includes a native iOS app under `ios/KadenAdelynnAdventures/`.
+
+### Run from Xcode
+- Open Xcode and load the project at: `ios/KadenAdelynnAdventures/KadenAdelynnAdventures.xcodeproj`
+- Select the scheme: `KadenAdelynnAdventures`
+- Choose a destination: `iPhone 16 Pro Max` (or any simulator/device)
+- Click Run ▶ to build and launch.
+
+### Run from Terminal
+```bash
+cd ios/KadenAdelynnAdventures
+# Build for simulator (iPhone 16 Pro Max)
+xcodebuild -scheme KadenAdelynnAdventures -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 16 Pro Max'
+
+# Launch in Simulator (if build succeeded)
+open -a Simulator
+xcrun simctl boot "iPhone 16 Pro Max"
+APP_PATH=$(ls -d ~/Library/Developer/Xcode/DerivedData/KadenAdelynnAdventures-*/Build/Products/Debug-iphonesimulator/KadenAdelynnAdventures.app | head -1)
+xcrun simctl install booted "$APP_PATH"
+xcrun simctl launch booted com.kaden-adelynn.adventures
+```
+
+### Simulator Troubleshooting
+- If you see CoreSimulatorService interruptions, try quitting Simulator and Xcode, then relaunch.
+- Ensure the iOS Simulator runtime is installed (Xcode → Settings → Platforms).
+- As a last resort: `xcrun simctl erase "iPhone 16 Pro Max"` (will reset that device)
+
+---
+
 ## 📁 Project Structure
 
 ```
