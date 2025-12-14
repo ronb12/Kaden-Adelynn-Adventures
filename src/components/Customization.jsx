@@ -68,7 +68,7 @@ function Customization({ onClose }) {
             Loading customization...
           </div>
         ) : (
-        <div className="store-content" style={{maxHeight: '70vh', overflowY: 'auto'}}>
+        <div className="store-content">
           
           <div style={{marginBottom: '25px', padding: '20px', background: 'rgba(0,0,0,0.3)', borderRadius: '15px', border: '2px solid rgba(102, 126, 234, 0.3)'}}>
             <h3 style={{marginBottom: '15px', color: '#667eea'}}>🎨 Bullet Color</h3>

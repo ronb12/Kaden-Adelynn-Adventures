@@ -82,7 +82,7 @@ function WeaponUpgrades({ onClose }) {
             Loading upgrades...
           </div>
         ) : (
-        <div className="store-content" style={{maxHeight: '60vh', overflowY: 'auto'}}>
+        <div className="store-content">
           {Object.entries(upgradeData).map(([key, data]) => {
             const level = upgrades[key]
             const cost = level < data.max ? data.cost(level + 1) : 0

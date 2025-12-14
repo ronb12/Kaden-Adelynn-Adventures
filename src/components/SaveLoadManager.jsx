@@ -90,7 +90,7 @@ function SaveLoadManager({ onClose }) {
             Loading saves...
           </div>
         ) : (
-        <div className="store-content" style={{maxHeight: '70vh', overflowY: 'auto'}}>
+        <div className="store-content">
           
           <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(102, 126, 234, 0.1)', borderRadius: '10px', border: '2px solid rgba(102, 126, 234, 0.3)'}}>
             <p style={{marginBottom: '10px', color: 'rgba(255,255,255,0.9)'}}>

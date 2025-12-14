@@ -56,7 +56,7 @@ function Statistics({ onClose }) {
             Loading your stats...
           </div>
         ) : (
-          <div className="store-content" style={{maxHeight: '70vh', overflowY: 'auto'}}>
+          <div className="store-content">
           <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px'}}>
             
             <div className="stat-card" style={{background: 'rgba(102, 126, 234, 0.1)', padding: '20px', borderRadius: '15px', border: '2px solid rgba(102, 126, 234, 0.3)'}}>
