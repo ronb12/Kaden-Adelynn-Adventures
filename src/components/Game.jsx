@@ -2005,8 +2005,9 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       // Direct position mapping: touch position maps to player position (full 2D control)
       const playerX = (touchX / rect.width) * canvas.width
       const playerY = (touchY / rect.height) * canvas.height
-      state.player.x = Math.max(state.player.width / 2, Math.min(canvas.width - state.player.width / 2, playerX))
-      state.player.y = Math.max(state.player.height / 2, Math.min(canvas.height - state.player.height / 2, playerY))
+      // Keep player within screen bounds - match keyboard controls
+      state.player.x = Math.max(20, Math.min(canvas.width - state.player.width - 20, playerX))
+      state.player.y = Math.max(50, Math.min(canvas.height - state.player.height - 20, playerY))
       
       // Enable rapid fire on touch
       state.keys[' '] = true
@@ -2026,8 +2027,9 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       // Continuous movement - directly follow touch position with smooth mapping (full 2D)
       const playerX = (touchX / rect.width) * canvas.width
       const playerY = (touchY / rect.height) * canvas.height
-      state.player.x = Math.max(state.player.width / 2, Math.min(canvas.width - state.player.width / 2, playerX))
-      state.player.y = Math.max(state.player.height / 2, Math.min(canvas.height - state.player.height / 2, playerY))
+      // Keep player within screen bounds - match keyboard controls
+      state.player.x = Math.max(20, Math.min(canvas.width - state.player.width - 20, playerX))
+      state.player.y = Math.max(50, Math.min(canvas.height - state.player.height - 20, playerY))
       
       // Keep firing while moving
       state.keys[' '] = true
