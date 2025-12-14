@@ -383,7 +383,8 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     if (!canvas) return
     const cw = canvas.width
     const isMobile = cw < 520
-    const barH = 70
+    // Adjust bar height based on screen width
+    const barH = isMobile ? (cw < 400 ? 50 : 60) : 70
 
     // Enhanced scoreboard background with gradient
     const bgGrad = ctx.createLinearGradient(0, 0, 0, barH)
@@ -400,16 +401,20 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     ctx.lineTo(cw, barH)
     ctx.stroke()
 
-    ctx.font = isMobile ? 'bold 9px "Courier New"' : 'bold 11px "Courier New"'
-    const lineHeight = 22
+    // Font size scales with screen width
+    const fontSize = isMobile ? (cw < 400 ? 7 : 8) : 11
+    ctx.font = `bold ${fontSize}px "Courier New"`
+    const lineHeight = isMobile ? (cw < 400 ? 15 : 20) : 22
     let row = 0
     let col = 0
-    const colWidth = cw / 4
-    const padding = 12
+    // On very small screens, show 2 columns instead of 4
+    const cols = isMobile && cw < 400 ? 2 : 4
+    const colWidth = cw / cols
+    const padding = isMobile ? 8 : 12
     
     const placeItem = (label, value, color) => {
       const y = padding + 3 + row * lineHeight
-      const x = 55 + col * colWidth
+      const x = (isMobile && cw < 400 ? 20 : 55) + col * colWidth
       
       // Text shadow for better visibility
       ctx.shadowColor = 'rgba(0, 0, 0, 0.8)'
@@ -421,7 +426,7 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       ctx.shadowBlur = 0
       
       col++
-      if (col >= 4) {
+      if (col >= cols) {
         col = 0
         row++
       }
@@ -1965,11 +1970,10 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       
       const rect = canvas.getBoundingClientRect()
       const touchX = touch.clientX - rect.left
-      const touchY = touch.clientY - rect.top
       
-      // Track player position directly based on touch
-      const scaledX = (touchX / rect.width) * canvas.width
-      state.player.x = Math.max(state.player.width / 2, Math.min(canvas.width - state.player.width / 2, scaledX))
+      // Direct position mapping: touch X position maps to player X position
+      const playerX = (touchX / rect.width) * canvas.width
+      state.player.x = Math.max(state.player.width / 2, Math.min(canvas.width - state.player.width / 2, playerX))
       
       // Enable rapid fire on touch
       state.keys[' '] = true
@@ -1985,9 +1989,9 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       const rect = canvas.getBoundingClientRect()
       const touchX = touch.clientX - rect.left
       
-      // Continuous movement - directly follow touch position
-      const scaledX = (touchX / rect.width) * canvas.width
-      state.player.x = Math.max(state.player.width / 2, Math.min(canvas.width - state.player.width / 2, scaledX))
+      // Continuous movement - directly follow touch position with smooth mapping
+      const playerX = (touchX / rect.width) * canvas.width
+      state.player.x = Math.max(state.player.width / 2, Math.min(canvas.width - state.player.width / 2, playerX))
       
       // Keep firing while moving
       state.keys[' '] = true
