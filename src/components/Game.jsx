@@ -514,6 +514,16 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     const canvas = canvasRef.current
     if (!canvas) return
 
+    // Get all weapon names for random weapon selection
+    const weaponNames = [
+      'laser', 'spread', 'plasma', 'missile', 'shotgun', 'flamethrower',
+      'freeze', 'electric', 'poison', 'explosive', 'piercing', 'homing',
+      'bounce', 'beam', 'laserRifle', 'minigun', 'railgun', 'cluster',
+      'shockwave', 'flak', 'cryo', 'plasma_rifle', 'rocket', 'acid',
+      'laserBeam', 'grenade', 'sniper', 'machinegun', 'volcano', 'nuclear',
+      'ultimate'
+    ]
+
     // Spawn coins from dead enemies
     if (state.scorePopups && state.scorePopups.length > 0) {
       const toRemove = []
@@ -521,11 +531,13 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
         const popup = state.scorePopups[i]
         popup.life--
         if (popup.life <= 0) {
-          // Chance to spawn power-ups based on type
+          // Chance to spawn power-ups and weapons based on probability
           const roll = Math.random()
-          if (roll < 0.4) {
+          if (!state.powerUps) state.powerUps = []
+          
+          if (roll < 0.35) {
+            // 35% - coins
             state.coins++
-            if (!state.powerUps) state.powerUps = []
             state.powerUps.push({
               x: popup.x,
               y: popup.y,
@@ -534,9 +546,8 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
               height: 10,
               vy: -2,
             })
-          } else if (roll < 0.5) {
-            // Health power-up
-            if (!state.powerUps) state.powerUps = []
+          } else if (roll < 0.43) {
+            // 8% - health power-up
             state.powerUps.push({
               x: popup.x,
               y: popup.y,
@@ -545,9 +556,8 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
               height: 12,
               vy: -1.5,
             })
-          } else if (roll < 0.58) {
-            // Shield power-up
-            if (!state.powerUps) state.powerUps = []
+          } else if (roll < 0.50) {
+            // 7% - shield power-up
             state.powerUps.push({
               x: popup.x,
               y: popup.y,
@@ -556,9 +566,8 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
               height: 14,
               vy: -1.5,
             })
-          } else if (roll < 0.65) {
-            // Temporary damage boost
-            if (!state.powerUps) state.powerUps = []
+          } else if (roll < 0.56) {
+            // 6% - damage boost
             state.powerUps.push({
               x: popup.x,
               y: popup.y,
@@ -566,6 +575,18 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
               width: 12,
               height: 12,
               vy: -1.5,
+            })
+          } else {
+            // 44% - weapon collectible
+            const randomWeapon = weaponNames[Math.floor(Math.random() * weaponNames.length)]
+            state.powerUps.push({
+              x: popup.x,
+              y: popup.y,
+              type: 'weapon',
+              weapon: randomWeapon,
+              width: 13,
+              height: 13,
+              vy: -1.8,
             })
           }
           toRemove.push(i)
@@ -606,6 +627,10 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
             state.damageMul = 2
             state.damageBoostTimer = 5000 // 5 seconds
             playSound('powerup', 0.5)
+          } else if (p.type === 'weapon') {
+            // Switch to collected weapon
+            state.currentWeapon = p.weapon
+            playSound('powerup', 0.6)
           }
           toRemove.push(i)
         } else if (p.y > canvas.height + 50) {
@@ -930,6 +955,58 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
         ctx.beginPath()
         ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2)
         ctx.fill()
+        
+        ctx.restore()
+      } else if (p.type === 'weapon') {
+        // Weapon collectible - bright energy crystal
+        ctx.save()
+        
+        const glow = Math.sin(Date.now() / 60 + p.x) * 6 + 14
+        const rotation = (Date.now() / 15) % (Math.PI * 2)
+        
+        ctx.shadowBlur = glow
+        ctx.shadowColor = 'rgba(100, 200, 255, 0.8)'
+        
+        // Outer glow
+        ctx.fillStyle = 'rgba(100, 200, 255, 0.15)'
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.width / 1.2, 0, Math.PI * 2)
+        ctx.fill()
+        
+        // Rotating hexagon shape for weapon collectible
+        ctx.strokeStyle = '#64c8ff'
+        ctx.lineWidth = 1.5
+        ctx.fillStyle = 'rgba(100, 200, 255, 0.5)'
+        ctx.save()
+        ctx.translate(p.x, p.y)
+        ctx.rotate(rotation)
+        
+        ctx.beginPath()
+        for (let i = 0; i < 6; i++) {
+          const angle = (i * Math.PI) / 3
+          const x = Math.cos(angle) * (p.width / 2)
+          const y = Math.sin(angle) * (p.width / 2)
+          if (i === 0) ctx.moveTo(x, y)
+          else ctx.lineTo(x, y)
+        }
+        ctx.closePath()
+        ctx.fill()
+        ctx.stroke()
+        ctx.restore()
+        
+        // Bright center core
+        ctx.fillStyle = '#00ffff'
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.width / 3.5, 0, Math.PI * 2)
+        ctx.fill()
+        
+        // Weapon indicator letter
+        ctx.fillStyle = '#0088ff'
+        ctx.font = 'bold 8px Arial'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        const weaponLetter = (p.weapon || 'W').charAt(0).toUpperCase()
+        ctx.fillText(weaponLetter, p.x, p.y)
         
         ctx.restore()
       }
