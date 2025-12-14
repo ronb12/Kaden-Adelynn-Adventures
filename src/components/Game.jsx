@@ -198,7 +198,7 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     if (!canvas) return
     const cw = canvas.width
     const isMobile = cw < 520
-    const barH = isMobile ? 88 : 64
+    const barH = 56
 
     // Enhanced scoreboard background with gradient
     const bgGrad = ctx.createLinearGradient(0, 0, 0, barH)
@@ -216,14 +216,14 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     ctx.stroke()
 
     ctx.font = isMobile ? 'bold 10px "Courier New"' : 'bold 12px "Courier New"'
-    const lineHeight = isMobile ? 20 : 28
+    const lineHeight = 24
     let row = 0
     let col = 0
-    const colWidth = cw / 2
-    const padding = 10
+    const colWidth = cw / 4
+    const padding = 8
     
     const placeItem = (label, value, color) => {
-      const y = padding + 2 + row * lineHeight
+      const y = padding + 4 + row * lineHeight
       const x = 10 + col * colWidth
       
       // Text shadow for better visibility
@@ -236,45 +236,36 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       ctx.shadowBlur = 0
       
       col++
-      if (col >= 2) {
+      if (col >= 4) {
         col = 0
         row++
       }
     }
 
+    // Row 1: Score, Lives, HP, Coins
     const currentScore = state.currentScore || score
-    placeItem('⭐ SCORE:', currentScore.toString().padStart(6, '0'), '#ffd700')
-    placeItem('❤ LIVES:', livesRef.current, '#ff6b6b')
+    placeItem('⭐', currentScore.toString().padStart(6, '0'), '#ffd700')
+    placeItem('❤', livesRef.current, '#ff6b6b')
     
     const healthValue = Math.round(Math.max(0, Math.min(100, healthRef.current)))
     const healthColor = healthValue <= 25 ? '#ff3333' : healthValue <= 50 ? '#ff9900' : '#00ff00'
-    placeItem('HP:', healthValue + '%', healthColor)
+    placeItem('♥', healthValue + '%', healthColor)
 
-    const shotsFired = state.shotsFired || 0
-    const shotsHit = state.shotsHit || 0
-    let accuracy = 0
-    if (shotsFired > 0) {
-      accuracy = Math.round((shotsHit / shotsFired) * 100)
-      accuracy = Math.max(0, Math.min(100, accuracy))
-    }
-    const accColor = accuracy >= 70 ? '#00ff00' : accuracy >= 50 ? '#ffcc00' : '#ff3333'
-    placeItem('💥 ACC:', accuracy + '%', accColor)
+    placeItem('💰', state.coins, '#ffd700')
 
-    placeItem('💰 COINS:', state.coins, '#ffd700')
-    placeItem('🎯 KILLS:', state.currentKills || 0, '#00ffff')
-    
-    // Wave and Level
-    ctx.font = isMobile ? 'bold 9px "Courier New"' : 'bold 11px "Courier New"'
-    placeItem('WAVE:', state.wave, '#ff00ff')
-    placeItem('LVL:', state.level, '#00ffff')
+    // Row 2: Kills, Wave, Combo, Weapon
+    placeItem('🎯', state.currentKills || 0, '#00ffff')
+    placeItem('W', state.wave, '#ff00ff')
     
     if (combo > 0) {
       const pulse = Math.sin(Date.now() / 100) * 0.4 + 0.6
-      placeItem('⚡ COMBO:', combo, `rgba(255, 215, 0, ${pulse})`)
+      placeItem('⚡', combo, `rgba(255, 215, 0, ${pulse})`)
+    } else {
+      placeItem('⚡', '0', '#666666')
     }
     
     const wpn = state.currentWeapon.toUpperCase().slice(0, 3)
-    placeItem('⚔ WPN:', wpn, '#00ff99')
+    placeItem('⚔', wpn, '#00ff99')
   }
 
   const spawnEnemies = (state) => {
