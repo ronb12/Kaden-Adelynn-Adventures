@@ -570,6 +570,8 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
           speed: 1 + Math.random() * 2,
           rotation: 0,
           rotationSpeed: Math.random() * 0.1 - 0.05,
+          health: asteroidSize === 'small' ? 1 : 2,
+          maxHealth: asteroidSize === 'small' ? 1 : 2,
         })
         state.lastAsteroidSpawn = now
       }
@@ -623,16 +625,23 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       ctx.rotate(ast.rotation)
       
       // Glow effect
+      const health = ast.health || 1
+      const maxHealth = ast.maxHealth || 1
+      const healthPercent = health / maxHealth
+      const glowColor = healthPercent < 0.5 ? '#ff6f47' : '#8b6f47'
+      
       ctx.shadowBlur = 8
-      ctx.shadowColor = '#8b6f47'
+      ctx.shadowColor = glowColor
       
       // Main asteroid with gradient
       const astGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, ast.width / 2)
-      astGrad.addColorStop(0, '#b8956a')
+      const lightColor = healthPercent < 0.5 ? '#ff9966' : '#b8956a'
+      const darkColor = healthPercent < 0.5 ? '#cc5533' : '#5a4a3a'
+      astGrad.addColorStop(0, lightColor)
       astGrad.addColorStop(0.6, '#8b7355')
-      astGrad.addColorStop(1, '#5a4a3a')
+      astGrad.addColorStop(1, darkColor)
       ctx.fillStyle = astGrad
-      ctx.strokeStyle = '#6b5a4a'
+      ctx.strokeStyle = glowColor
       ctx.lineWidth = 2
       ctx.beginPath()
       ctx.arc(0, 0, ast.width / 2, 0, Math.PI * 2)
@@ -649,6 +658,32 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       ctx.beginPath()
       ctx.arc(ast.width / 6, ast.height / 6, ast.width / 10, 0, Math.PI * 2)
       ctx.fill()
+      
+      // Health indicator for multi-health asteroids
+      if (maxHealth > 1) {
+        ctx.globalAlpha = 0.8
+        ctx.strokeStyle = healthPercent < 0.5 ? '#ff9966' : '#ffffff'
+        ctx.lineWidth = 1.5
+        ctx.beginPath()
+        ctx.arc(0, 0, ast.width / 2 + 3, 0, Math.PI * 2)
+        ctx.stroke()
+        
+        // Damage cracks
+        if (healthPercent < 0.5) {
+          ctx.strokeStyle = '#ff6f47'
+          ctx.lineWidth = 1
+          ctx.beginPath()
+          ctx.moveTo(-ast.width / 4, -ast.width / 4)
+          ctx.lineTo(ast.width / 4, ast.width / 4)
+          ctx.stroke()
+          
+          ctx.beginPath()
+          ctx.moveTo(ast.width / 4, -ast.width / 4)
+          ctx.lineTo(-ast.width / 4, ast.width / 4)
+          ctx.stroke()
+        }
+        ctx.globalAlpha = 1
+      }
       
       ctx.restore()
     })
@@ -1062,6 +1097,55 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
         .sort((a, b) => b - a)
         .forEach((index) => {
           state.enemyBullets.splice(index, 1)
+        })
+    }
+
+    // Asteroid-bullet collisions
+    if (state.asteroids && state.asteroids.length > 0 && state.bullets.length > 0) {
+      const asteroidsToRemove = []
+      const bulletsToRemoveAst = []
+
+      for (let i = 0; i < state.bullets.length; i++) {
+        const bullet = state.bullets[i]
+        if (!bullet || bullet.owner !== 'player') continue
+
+        for (let j = 0; j < state.asteroids.length; j++) {
+          const ast = state.asteroids[j]
+          if (!ast) continue
+
+          const bulletWidth = bullet.width || 5
+          const bulletHeight = bullet.height || 10
+
+          if (
+            bullet.x < ast.x + ast.width &&
+            bullet.x + bulletWidth > ast.x &&
+            bullet.y < ast.y + ast.height &&
+            bullet.y + bulletHeight > ast.y
+          ) {
+            // Hit the asteroid
+            ast.health = (ast.health || 1) - 1
+            
+            if (!bullet.pierce) bulletsToRemoveAst.push(i)
+
+            if (ast.health <= 0) {
+              asteroidsToRemove.push(j)
+              createExplosion(state, ast.x + ast.width / 2, ast.y + ast.height / 2, 'small')
+              addScreenShake(state, 0.5)
+            }
+            break
+          }
+        }
+      }
+
+      bulletsToRemoveAst
+        .sort((a, b) => b - a)
+        .forEach((index) => {
+          if (state.bullets[index]) state.bullets.splice(index, 1)
+        })
+      asteroidsToRemove
+        .sort((a, b) => b - a)
+        .forEach((index) => {
+          state.asteroids.splice(index, 1)
         })
     }
   }
