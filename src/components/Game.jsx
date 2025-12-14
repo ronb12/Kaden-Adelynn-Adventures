@@ -313,16 +313,16 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     ctx.lineTo(cw, barH)
     ctx.stroke()
 
-    ctx.font = isMobile ? 'bold 10px "Courier New"' : 'bold 12px "Courier New"'
-    const lineHeight = 24
+    ctx.font = isMobile ? 'bold 9px "Courier New"' : 'bold 11px "Courier New"'
+    const lineHeight = 22
     let row = 0
     let col = 0
     const colWidth = cw / 4
-    const padding = 8
+    const padding = 6
     
     const placeItem = (label, value, color) => {
-      const y = padding + 4 + row * lineHeight
-      const x = 10 + col * colWidth
+      const y = padding + 3 + row * lineHeight
+      const x = 12 + col * colWidth
       
       // Text shadow for better visibility
       ctx.shadowColor = 'rgba(0, 0, 0, 0.8)'
@@ -362,8 +362,13 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       placeItem('⚡ COMBO', '0', '#666666')
     }
     
-    const wpn = state.currentWeapon.toUpperCase().slice(0, 3)
+    const wpn = state.currentWeapon.charAt(0).toUpperCase() + state.currentWeapon.slice(1)
     placeItem('⚔ WPN', wpn, '#00ff99')
+    
+    // Row 3: Shooting accuracy
+    const accuracy = state.shotsFired > 0 ? Math.round((state.shotsHit / state.shotsFired) * 100) : 0
+    const accColor = accuracy >= 75 ? '#00ff00' : accuracy >= 50 ? '#ffff00' : '#ff6b6b'
+    placeItem('🎯 ACC', accuracy + '%', accColor)
   }
 
   const spawnBoss = (state) => {
