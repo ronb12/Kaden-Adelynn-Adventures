@@ -118,7 +118,13 @@ function SaveLoadManager({ onClose }) {
             <div style={{padding: '40px', textAlign: 'center', color: 'rgba(255,255,255,0.6)'}}>
               <div style={{fontSize: '3rem', marginBottom: '15px'}}>📁</div>
               <p>No saved games yet</p>
-              <p style={{fonId}
+              <p style={{fontSize: '0.9rem', marginTop: '10px'}}>Play a game and create a save slot!</p>
+            </div>
+          )}
+
+          {saves.map((save) => (
+            <div
+              key={save.slotId}
               style={{
                 marginBottom: '15px',
                 padding: '20px',
@@ -153,13 +159,7 @@ function SaveLoadManager({ onClose }) {
                     📁 Load
                   </button>
                   <button
-                    onClick={() => handleDelete(save.slotId
-                    }}
-                  >
-                    📁 Load
-                  </button>
-                  <button
-                    onClick={() => handleDelete(save.slot)}
+                    onClick={() => handleDelete(save.slotId)}
                     style={{
                       padding: '8px 16px',
                       background: 'rgba(255, 107, 107, 0.8)',

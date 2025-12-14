@@ -214,17 +214,17 @@ function Customization({ onClose }) {
               borderRadius: '8px',
               textAlign: 'center',
               fontWeight: 'bold',
-              border: '2px solid rgba(76, 209, 55, 0.5)'78, 205, 196, 0.1)', borderRadius: '8px', border: '1px solid rgba(78, 205, 196, 0.3)', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)'}}>
+              border: '2px solid rgba(76, 209, 55, 0.5)'
+            }}>
+              {message}
+            </div>
+          )}
+
+          <div style={{marginTop: '15px', padding: '12px', background: 'rgba(78, 205, 196, 0.1)', borderRadius: '8px', border: '1px solid rgba(78, 205, 196, 0.3)', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)'}}>
             ☁️ Customization synced with Firebase - same look on all devices!
           </div>
         </div>
-        )}div>
-          )}
-
-          <div style={{marginTop: '15px', padding: '12px', background: 'rgba(255, 193, 7, 0.1)', borderRadius: '8px', border: '1px solid rgba(255, 193, 7, 0.3)', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)'}}>
-            💡 Customization settings apply to your next game
-          </div>
-        </div>
+        )}
       </div>
     </div>
   )

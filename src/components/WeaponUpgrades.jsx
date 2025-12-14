@@ -159,17 +159,17 @@ function WeaponUpgrades({ onClose }) {
               borderRadius: '8px',
               textAlign: 'center',
               fontWeight: 'bold',
-              border: '2px solid rgba(102, 126, 234, 0.5)'78, 205, 196, 0.1)', borderRadius: '8px', border: '1px solid rgba(78, 205, 196, 0.3)', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)'}}>
+              border: '2px solid rgba(102, 126, 234, 0.5)'
+            }}>
+              {message}
+            </div>
+          )}
+
+          <div style={{marginTop: '20px', padding: '12px', background: 'rgba(78, 205, 196, 0.1)', borderRadius: '8px', border: '1px solid rgba(78, 205, 196, 0.3)', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)'}}>
             ☁️ Upgrades synced with Firebase - permanent across all devices!
           </div>
         </div>
-        )}div>
-          )}
-
-          <div style={{marginTop: '20px', padding: '12px', background: 'rgba(102, 126, 234, 0.1)', borderRadius: '8px', border: '1px solid rgba(102, 126, 234, 0.3)', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)'}}>
-            💡 Upgrades are permanent and apply to all future games!
-          </div>
-        </div>
+        )}
       </div>
     </div>
   )
