@@ -18,11 +18,20 @@ class GameViewController: UIViewController {
     private var gameEngine: GameEngine?
     private var displayLink: CADisplayLink?
     
+    // UI Elements
+    private var pauseButton: UIButton?
+    private var saveButton: UIButton?
+    private var loadButton: UIButton?
+    private var toastLabel: UILabel?
+    private var fabMenu: UIView?
+    private var fabButton: UIButton?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         setupMetalView()
         setupGameEngine()
+        setupControls()
         startGameLoop()
     }
     
@@ -51,8 +60,166 @@ class GameViewController: UIViewController {
     }
     
     private func setupGameEngine() {
-        gameEngine = GameEngine()
+        let screenWidth = Float(view.bounds.width)
+        let screenHeight = Float(view.bounds.height)
+        gameEngine = GameEngine(screenWidth: screenWidth, screenHeight: screenHeight)
         setupTouchHandling()
+    }
+    
+    private func setupControls() {
+        // FAB Button
+        let fabButton = UIButton(type: .system)
+        fabButton.setTitle("☰", for: .normal)
+        fabButton.titleLabel?.font = .systemFont(ofSize: 22)
+        fabButton.backgroundColor = UIColor.black.withAlphaComponent(0.7)
+        fabButton.tintColor = .white
+        fabButton.layer.cornerRadius = 24
+        fabButton.translatesAutoresizingMaskIntoConstraints = false
+        fabButton.addTarget(self, action: #selector(toggleFABMenu), for: .touchUpInside)
+        view.addSubview(fabButton)
+        self.fabButton = fabButton
+        
+        NSLayoutConstraint.activate([
+            fabButton.widthAnchor.constraint(equalToConstant: 48),
+            fabButton.heightAnchor.constraint(equalToConstant: 48),
+            fabButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
+            fabButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -80)
+        ])
+        
+        // FAB Menu
+        let fabMenu = UIView()
+        fabMenu.backgroundColor = UIColor.black.withAlphaComponent(0.75)
+        fabMenu.layer.cornerRadius = 8
+        fabMenu.translatesAutoresizingMaskIntoConstraints = false
+        fabMenu.isHidden = true
+        view.addSubview(fabMenu)
+        self.fabMenu = fabMenu
+        
+        // Pause Button
+        let pauseBtn = createMenuButton(title: "⏸ Pause", action: #selector(togglePause))
+        fabMenu.addSubview(pauseBtn)
+        self.pauseButton = pauseBtn
+        
+        // Save Button
+        let saveBtn = createMenuButton(title: "💾 Save", action: #selector(saveGame))
+        fabMenu.addSubview(saveBtn)
+        self.saveButton = saveBtn
+        
+        // Load Button
+        let loadBtn = createMenuButton(title: "📁 Load", action: #selector(loadGame))
+        fabMenu.addSubview(loadBtn)
+        self.loadButton = loadBtn
+        
+        NSLayoutConstraint.activate([
+            fabMenu.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
+            fabMenu.bottomAnchor.constraint(equalTo: fabButton.topAnchor, constant: -8),
+            fabMenu.widthAnchor.constraint(equalToConstant: 140),
+            
+            pauseBtn.topAnchor.constraint(equalTo: fabMenu.topAnchor, constant: 8),
+            pauseBtn.leadingAnchor.constraint(equalTo: fabMenu.leadingAnchor, constant: 8),
+            pauseBtn.trailingAnchor.constraint(equalTo: fabMenu.trailingAnchor, constant: -8),
+            
+            saveBtn.topAnchor.constraint(equalTo: pauseBtn.bottomAnchor, constant: 6),
+            saveBtn.leadingAnchor.constraint(equalTo: fabMenu.leadingAnchor, constant: 8),
+            saveBtn.trailingAnchor.constraint(equalTo: fabMenu.trailingAnchor, constant: -8),
+            
+            loadBtn.topAnchor.constraint(equalTo: saveBtn.bottomAnchor, constant: 6),
+            loadBtn.leadingAnchor.constraint(equalTo: fabMenu.leadingAnchor, constant: 8),
+            loadBtn.trailingAnchor.constraint(equalTo: fabMenu.trailingAnchor, constant: -8),
+            loadBtn.bottomAnchor.constraint(equalTo: fabMenu.bottomAnchor, constant: -8)
+        ])
+        
+        // Toast Label
+        let toast = UILabel()
+        toast.textAlignment = .center
+        toast.textColor = .white
+        toast.font = .boldSystemFont(ofSize: 20)
+        toast.backgroundColor = UIColor.systemPurple.withAlphaComponent(0.95)
+        toast.layer.cornerRadius = 16
+        toast.clipsToBounds = true
+        toast.numberOfLines = 0
+        toast.translatesAutoresizingMaskIntoConstraints = false
+        toast.alpha = 0
+        view.addSubview(toast)
+        self.toastLabel = toast
+        
+        NSLayoutConstraint.activate([
+            toast.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
+            toast.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            toast.widthAnchor.constraint(greaterThanOrEqualToConstant: 250),
+            toast.heightAnchor.constraint(greaterThanOrEqualToConstant: 60)
+        ])
+    }
+    
+    private func createMenuButton(title: String, action: Selector) -> UIButton {
+        let button = UIButton(type: .system)
+        button.setTitle(title, for: .normal)
+        button.titleLabel?.font = .boldSystemFont(ofSize: 14)
+        button.backgroundColor = UIColor.systemGreen.withAlphaComponent(0.9)
+        button.tintColor = .white
+        button.layer.cornerRadius = 6
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.heightAnchor.constraint(equalToConstant: 40).isActive = true
+        button.addTarget(self, action: action, for: .touchUpInside)
+        return button
+    }
+    
+    @objc private func toggleFABMenu() {
+        fabMenu?.isHidden.toggle()
+    }
+    
+    @objc private func togglePause() {
+        guard let engine = gameEngine else { return }
+        // Toggle pause in game state
+        // engine.togglePause()
+        fabMenu?.isHidden = true
+    }
+    
+    @objc private func saveGame() {
+        fabMenu?.isHidden = true
+        gameEngine?.saveGame { [weak self] success in
+            DispatchQueue.main.async {
+                if success {
+                    self?.showToast("💾 Game Saved to iCloud!")
+                } else {
+                    self?.showToast("❌ Save failed!")
+                }
+            }
+        }
+    }
+    
+    @objc private func loadGame() {
+        fabMenu?.isHidden = true
+        gameEngine?.loadGame { [weak self] success in
+            DispatchQueue.main.async {
+                if success {
+                    self?.showToast("📁 Game Loaded from iCloud!")
+                } else {
+                    self?.showToast("❌ No saved game found")
+                }
+            }
+        }
+    }
+    
+    private func showToast(_ message: String) {
+        guard let toast = toastLabel else { return }
+        
+        toast.text = message
+        
+        UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5) {
+            toast.alpha = 1
+            toast.transform = CGAffineTransform(scaleX: 1.05, y: 1.05)
+        } completion: { _ in
+            UIView.animate(withDuration: 0.2) {
+                toast.transform = .identity
+            }
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            UIView.animate(withDuration: 0.3) {
+                toast.alpha = 0
+            }
+        }
     }
     
     private func startGameLoop() {

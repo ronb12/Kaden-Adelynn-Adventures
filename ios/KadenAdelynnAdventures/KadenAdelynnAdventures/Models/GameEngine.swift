@@ -1,5 +1,6 @@
 import Foundation
 import simd
+import UIKit
 
 class GameEngine {
 	private var player: Player
@@ -10,9 +11,16 @@ class GameEngine {
 	private var boss: Boss?
 	private var gameState: GameState
 	private var lastUpdateTime: TimeInterval
+	private var screenWidth: Float = 800
+	private var screenHeight: Float = 1000
 
-	init() {
-		self.player = Player(x: 400, y: 700)
+	init(screenWidth: Float = 800, screenHeight: Float = 1000) {
+		self.screenWidth = screenWidth
+		self.screenHeight = screenHeight
+		// Center player horizontally, near bottom vertically
+		let centerX = screenWidth / 2
+		let bottomY = screenHeight - 100
+		self.player = Player(x: centerX, y: bottomY)
 		self.enemies = []
 		self.bullets = []
 		self.asteroids = []
@@ -20,6 +28,63 @@ class GameEngine {
 		self.boss = nil
 		self.gameState = GameState()
 		self.lastUpdateTime = Date().timeIntervalSince1970
+	}
+	
+	// MARK: - Save/Load
+	
+	func saveGame(completion: @escaping (Bool) -> Void) {
+		// Haptic feedback
+		let generator = UINotificationFeedbackGenerator()
+		generator.notificationOccurred(.success)
+		
+		let saveData = GameSaveData(
+			score: gameState.score,
+			wave: gameState.wave,
+			level: gameState.level,
+			lives: gameState.lives,
+			playerX: player.position.x,
+			playerY: player.position.y,
+			timestamp: Date().timeIntervalSince1970
+		)
+		
+		CloudKitManager.shared.saveSaveSlot(slotId: "current", saveData: saveData) { result in
+			switch result {
+			case .success:
+				print("💾 Game saved to iCloud!")
+				completion(true)
+			case .failure(let error):
+				print("❌ Save failed: \(error.localizedDescription)")
+				completion(false)
+			}
+		}
+	}
+	
+	func loadGame(completion: @escaping (Bool) -> Void) {
+		// Haptic feedback
+		let generator = UINotificationFeedbackGenerator()
+		generator.notificationOccurred(.warning)
+		
+		CloudKitManager.shared.loadSaveSlot(slotId: "current") { result in
+			switch result {
+			case .success(let saveData):
+				if let data = saveData {
+					self.gameState.score = data.score
+					self.gameState.wave = data.wave
+					self.gameState.level = data.level
+					self.gameState.lives = data.lives
+					self.player.position.x = data.playerX
+					self.player.position.y = data.playerY
+					print("📁 Game loaded from iCloud!")
+					completion(true)
+				} else {
+					print("❌ No saved game found")
+					completion(false)
+				}
+			case .failure(let error):
+				print("❌ Load failed: \(error.localizedDescription)")
+				completion(false)
+			}
+		}
 	}
 
 	func update() {
