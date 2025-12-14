@@ -26,6 +26,7 @@ function App() {
   
   const [gameStats, setGameStats] = useState({ score: 0, wave: 1, level: 1, kills: 0, combo: 0 })
   const [paused, setPaused] = useState(false)
+  const [toast, setToast] = useState('')
 
   const handleStartGame = (difficulty, ship, character, name) => {
     if (name) setPlayerName(name)
@@ -70,20 +71,20 @@ function App() {
   
   // Placeholder handlers for additional menu buttons
   const handleOpenStats = () => {
-    console.log('Statistics feature coming soon!')
-    // TODO: Create Statistics component
+    setToast('📊 Statistics feature coming soon!')
+    setTimeout(() => setToast(''), 3000)
   }
   const handleOpenSaveLoad = () => {
-    console.log('Save/Load feature - use in-game pause menu (P key) for now')
-    // Save/Load already works in-game via pause menu
+    setToast('💾 Use in-game pause menu (P key) for Save/Load')
+    setTimeout(() => setToast(''), 3000)
   }
   const handleOpenWeaponUpgrades = () => {
-    console.log('Weapon Upgrades feature coming soon!')
-    // TODO: Create WeaponUpgrades component
+    setToast('⚔️ Weapon Upgrades feature coming soon!')
+    setTimeout(() => setToast(''), 3000)
   }
   const handleOpenCustomization = () => {
-    console.log('Customization feature coming soon!')
-    // TODO: Create Customization component
+    setToast('🎨 Customization feature coming soon!')
+    setTimeout(() => setToast(''), 3000)
   }
 
   return (
@@ -143,6 +144,28 @@ function App() {
           onRestart={handleRestart}
           onMenu={handleReturnToMenu}
         />
+      )}
+      {toast && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(0,0,0,0.9)',
+            color: '#fff',
+            padding: '16px 28px',
+            borderRadius: '12px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+            zIndex: 10000,
+            fontSize: '16px',
+            fontWeight: '600',
+            border: '2px solid rgba(102, 126, 234, 0.6)',
+            animation: 'slideUp 0.3s ease-out',
+          }}
+        >
+          {toast}
+        </div>
       )}
     </div>
   )
