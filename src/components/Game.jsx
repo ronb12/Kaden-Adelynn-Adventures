@@ -23,7 +23,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
   const pausedRef = useRef(false)
   const gameOverRef = useRef(false)
   const gameStateRef = useRef({
-    player: { x: 400, y: 550, width: 30, height: 30 },
+    player: { x: 400, y: 550, width: 40, height: 40 },
     enemies: [],
     bullets: [],
     enemyBullets: [],
@@ -257,7 +257,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
         accentColor = '#ffcc66'
         borderColor = '#ff9900'
         size = 35
-        shape = 'square'
+        shape = 'triangle' // Changed from square to triangle
       } else if (enemy.type === 'shield') {
         // Shielded enemies: cyan, with shield aura
         primaryColor = '#00ffff'
@@ -621,10 +621,13 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
       const baseSilverChance = state.wave >= 4 ? 0.4 : 0.25
       const isSilver = Math.random() < baseSilverChance
       
+      // More aggressive speed scaling: +0.15 per wave
+      const waveSpeedBonus = 1.0 + (state.wave * 0.15)
+      
       const enemy = {
         x: Math.random() * (canvas.width - 30) + 15,
         y: -30,
-        speed: baseSpeed * (isSilver ? 0.95 : state.wave < 3 ? 1.0 : 1.3),
+        speed: baseSpeed * waveSpeedBonus * (isSilver ? 0.95 : 1.0),
         pattern,
         health: isSilver ? 4 : health,
         type: enemyType,
@@ -783,18 +786,19 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
     if (now - state.lastAsteroidSpawn > asteroidRate && state.wave >= 3) {
       if (!state.asteroids) state.asteroids = []
       if (state.asteroids.length < 15) {
-        const asteroidSize = Math.random() < 0.6 ? 'small' : 'medium'
+        const roll = Math.random()
+        const asteroidSize = roll < 0.5 ? 'small' : roll < 0.85 ? 'medium' : 'large'
         state.asteroids.push({
           x: Math.random() * canvas.width,
           y: -30,
           size: asteroidSize,
-          width: asteroidSize === 'small' ? 15 : 25,
-          height: asteroidSize === 'small' ? 15 : 25,
+          width: asteroidSize === 'small' ? 20 : asteroidSize === 'medium' ? 35 : 50,
+          height: asteroidSize === 'small' ? 20 : asteroidSize === 'medium' ? 35 : 50,
           speed: 1 + Math.random() * 2,
           rotation: 0,
           rotationSpeed: Math.random() * 0.1 - 0.05,
-          health: asteroidSize === 'small' ? 1 : 2,
-          maxHealth: asteroidSize === 'small' ? 1 : 2,
+          health: asteroidSize === 'small' ? 1 : asteroidSize === 'medium' ? 2 : 3,
+          maxHealth: asteroidSize === 'small' ? 1 : asteroidSize === 'medium' ? 2 : 3,
         })
         state.lastAsteroidSpawn = now
       }
@@ -856,7 +860,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
       ctx.shadowBlur = 8
       ctx.shadowColor = glowColor
       
-      // Main asteroid with gradient
+      // Main asteroid with gradient - irregular rocky shape
       const astGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, ast.width / 2)
       const lightColor = healthPercent < 0.5 ? '#ff9966' : '#b8956a'
       const darkColor = healthPercent < 0.5 ? '#cc5533' : '#5a4a3a'
@@ -866,21 +870,43 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
       ctx.fillStyle = astGrad
       ctx.strokeStyle = glowColor
       ctx.lineWidth = 2
+      
+      // Draw irregular asteroid shape
+      const radius = ast.width / 2
+      const points = 8 + Math.floor(ast.width / 10) // More points for larger asteroids
       ctx.beginPath()
-      ctx.arc(0, 0, ast.width / 2, 0, Math.PI * 2)
+      for (let i = 0; i < points; i++) {
+        const angle = (i / points) * Math.PI * 2
+        // Use asteroid ID (or position) as seed for consistent randomness
+        const seed = (ast.x * 7 + ast.y * 13 + i * 17) % 100
+        const variance = 0.6 + (seed / 100) * 0.8 // 0.6 to 1.4 range
+        const r = radius * variance
+        const x = Math.cos(angle) * r
+        const y = Math.sin(angle) * r
+        if (i === 0) {
+          ctx.moveTo(x, y)
+        } else {
+          ctx.lineTo(x, y)
+        }
+      }
+      ctx.closePath()
       ctx.fill()
       ctx.stroke()
       
-      // Rock texture highlights
-      ctx.fillStyle = '#c9a961'
-      ctx.beginPath()
-      ctx.arc(-ast.width / 5, -ast.height / 5, ast.width / 8, 0, Math.PI * 2)
-      ctx.fill()
-      
-      ctx.fillStyle = '#a0826d'
-      ctx.beginPath()
-      ctx.arc(ast.width / 6, ast.height / 6, ast.width / 10, 0, Math.PI * 2)
-      ctx.fill()
+      // Rock texture craters/highlights
+      const numCraters = ast.size === 'large' ? 3 : ast.size === 'medium' ? 2 : 1
+      for (let i = 0; i < numCraters; i++) {
+        const seed1 = (ast.x * 11 + ast.y * 19 + i * 23) % 100
+        const seed2 = (ast.x * 13 + ast.y * 17 + i * 29) % 100
+        const craterX = (seed1 / 100 - 0.5) * ast.width * 0.6
+        const craterY = (seed2 / 100 - 0.5) * ast.height * 0.6
+        const craterSize = ast.width / (8 + i * 2)
+        
+        ctx.fillStyle = i % 2 === 0 ? '#c9a961' : '#a0826d'
+        ctx.beginPath()
+        ctx.arc(craterX, craterY, craterSize, 0, Math.PI * 2)
+        ctx.fill()
+      }
       
       // Health indicator for multi-health asteroids
       if (maxHealth > 1) {
@@ -1482,6 +1508,43 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
               asteroidsToRemove.push(j)
               createExplosion(state, ast.x + ast.width / 2, ast.y + ast.height / 2, 'small')
               addScreenShake(state, 0.5)
+              
+              // Break large asteroids into medium pieces, medium into small
+              if (ast.size === 'large') {
+                // Spawn 2-3 medium asteroids
+                const numPieces = 2 + Math.floor(Math.random() * 2)
+                for (let k = 0; k < numPieces; k++) {
+                  state.asteroids.push({
+                    x: ast.x + Math.random() * 20 - 10,
+                    y: ast.y + Math.random() * 20 - 10,
+                    size: 'medium',
+                    width: 35,
+                    height: 35,
+                    speed: ast.speed + Math.random() * 1,
+                    rotation: Math.random() * Math.PI * 2,
+                    rotationSpeed: Math.random() * 0.1 - 0.05,
+                    health: 2,
+                    maxHealth: 2,
+                  })
+                }
+              } else if (ast.size === 'medium') {
+                // Spawn 2-3 small asteroids
+                const numPieces = 2 + Math.floor(Math.random() * 2)
+                for (let k = 0; k < numPieces; k++) {
+                  state.asteroids.push({
+                    x: ast.x + Math.random() * 15 - 7.5,
+                    y: ast.y + Math.random() * 15 - 7.5,
+                    size: 'small',
+                    width: 20,
+                    height: 20,
+                    speed: ast.speed + Math.random() * 1.5,
+                    rotation: Math.random() * Math.PI * 2,
+                    rotationSpeed: Math.random() * 0.1 - 0.05,
+                    health: 1,
+                    maxHealth: 1,
+                  })
+                }
+              }
             }
             break
           }
