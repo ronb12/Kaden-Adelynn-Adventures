@@ -2,6 +2,7 @@
 let currentMusic = null
 let musicVolume = 0.3
 let currentTrack = null
+let pendingTrack = null // Track waiting for user gesture
 let isInitialized = false
 
 // Audio context for better control - DO NOT CREATE AT MODULE LOAD
@@ -34,8 +35,15 @@ if (typeof window !== 'undefined') {
       audioContext.resume().catch(() => {})
     }
     
+    // If there's a pending track, play it now
+    if (wasBlocked && pendingTrack) {
+      console.log('Playing pending track after user gesture:', pendingTrack)
+      const track = pendingTrack
+      pendingTrack = null
+      playTrack(track)
+    }
     // If music was blocked before, retry playing it now
-    if (wasBlocked && currentMusic && currentMusic.paused) {
+    else if (wasBlocked && currentMusic && currentMusic.paused) {
       console.log('Retrying music playback after user gesture')
       currentMusic.play().catch((err) => console.warn('Retry failed:', err))
     }
@@ -128,6 +136,14 @@ const playTrack = (trackName) => {
     return
   }
   
+  // If no user gesture yet, store the pending track and return
+  if (!hasUserGesture) {
+    console.log('No user gesture yet - storing pending track:', trackName)
+    pendingTrack = trackName
+    return
+  }
+  
+  // We have user gesture, safe to create and play
   // Stop current music if playing
   if (currentMusic) {
     currentMusic.pause()
@@ -135,20 +151,7 @@ const playTrack = (trackName) => {
     currentMusic = null
   }
   
-  // Create new audio element
-  currentMusic = createAudioElement(src)
-  currentTrack = trackName
-  
-  console.log('Audio element created for:', trackName)
-  
-  // Only try to play if we have user gesture
-  if (!hasUserGesture) {
-    console.log('No user gesture yet - music will start on first interaction')
-    return
-  }
-  
-  // We have user gesture, safe to play
-  // Only attempt to create AudioContext after user gesture
+  // Create AudioContext if needed
   if (!audioContext) {
     try {
       audioContext = new (window.AudioContext || window.webkitAudioContext)()
@@ -160,6 +163,11 @@ const playTrack = (trackName) => {
   
   // Try to initialize/resume audio context
   initAudio()
+  
+  // Create new audio element
+  currentMusic = createAudioElement(src)
+  currentTrack = trackName
+  pendingTrack = null
   
   console.log('Starting playback:', trackName)
   
