@@ -1,0 +1,22 @@
+{
+  "name": "Kaden & Adelynn Space Adventures",
+  "short_name": "Kaden & Adelynn Space Adventures",
+  "description": "An epic space shooter game with multiple characters, weapons, and game modes",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0e27",
+  "theme_color": "#4ecdc4",
+  "orientation": "portrait",
+  "scope": "/",
+  "icons": [],
+  "categories": ["games", "entertainment"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "New Game",
+      "short_name": "Play",
+      "description": "Start a new game",
+      "url": "/?action=newgame"
+    }
+  ]
+}
