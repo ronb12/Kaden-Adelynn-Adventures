@@ -18,17 +18,26 @@ const TRACKS = {
 // Set flag on first user interaction
 if (typeof window !== 'undefined') {
   const setUserGesture = () => {
+    const wasBlocked = !hasUserGesture
     hasUserGesture = true
+    
     // Try to create and resume audio context after gesture
     if (!audioContext) {
       try {
         audioContext = new (window.AudioContext || window.webkitAudioContext)()
+        console.log('AudioContext created on user gesture')
       } catch (e) {
-        // Silently fail, will retry next time
+        console.error('AudioContext creation failed:', e)
       }
     }
     if (audioContext && audioContext.state === 'suspended') {
       audioContext.resume().catch(() => {})
+    }
+    
+    // If music was blocked before, retry playing it now
+    if (wasBlocked && currentMusic && currentMusic.paused) {
+      console.log('Retrying music playback after user gesture')
+      currentMusic.play().catch((err) => console.warn('Retry failed:', err))
     }
   }
   
@@ -160,7 +169,8 @@ const playTrack = (trackName) => {
         console.log('Music playing successfully:', trackName)
       })
       .catch((err) => {
-        console.warn('Autoplay blocked for', trackName, '- waiting for user interaction:', err.message)
+        console.warn('Autoplay blocked for', trackName, '- will retry on user interaction:', err.message)
+        // Music will auto-retry when user gesture is detected (see setUserGesture above)
       })
   }
 }
