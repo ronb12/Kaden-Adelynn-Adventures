@@ -296,7 +296,7 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     if (!canvas) return
     const cw = canvas.width
     const isMobile = cw < 520
-    const barH = 56
+    const barH = 70
 
     // Enhanced scoreboard background with gradient
     const bgGrad = ctx.createLinearGradient(0, 0, 0, barH)
@@ -318,11 +318,11 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     let row = 0
     let col = 0
     const colWidth = cw / 4
-    const padding = 8
+    const padding = 12
     
     const placeItem = (label, value, color) => {
       const y = padding + 3 + row * lineHeight
-      const x = 40 + col * colWidth
+      const x = 55 + col * colWidth
       
       // Text shadow for better visibility
       ctx.shadowColor = 'rgba(0, 0, 0, 0.8)'
@@ -351,7 +351,7 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
 
     placeItem('💰 COINS', state.coins, '#ffd700')
 
-    // Row 2: Kills, Wave, Combo, Weapon
+    // Row 2: Kills, Wave, Combo, Accuracy
     placeItem('🎯 KILLS', state.currentKills || 0, '#00ffff')
     placeItem('W WAVE', state.wave, '#ff00ff')
     
@@ -362,13 +362,14 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       placeItem('⚡ COMBO', '0', '#666666')
     }
     
-    const wpn = state.currentWeapon.charAt(0).toUpperCase() + state.currentWeapon.slice(1).toLowerCase()
-    placeItem('⚔ WPN', wpn, '#00ff99')
-    
-    // Row 3: Shooting accuracy
+    // Shooting accuracy
     const accuracy = state.shotsFired > 0 ? Math.round((state.shotsHit / state.shotsFired) * 100) : 0
     const accColor = accuracy >= 75 ? '#00ff00' : accuracy >= 50 ? '#ffff00' : '#ff6b6b'
     placeItem('🎯 ACC', accuracy + '%', accColor)
+    
+    // Row 3: Weapon
+    const wpn = state.currentWeapon.charAt(0).toUpperCase() + state.currentWeapon.slice(1).toLowerCase()
+    placeItem('⚔ WPN', wpn, '#00ff99')
   }
 
   const spawnBoss = (state) => {
