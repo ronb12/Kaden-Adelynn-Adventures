@@ -1,10 +1,24 @@
 import React, { useRef, useEffect, useState } from 'react'
 import { playSound } from '../utils/sounds'
 import { playGameplayMusic, ensureMusicPlaying } from '../utils/music'
-import { playersRef } from '../utils/cloudScores'
 import './Game.css'
 
 function Game({ selectedCharacter, selectedShip, difficulty }) {
+  // Define helper functions BEFORE useState to avoid initialization issues
+  const difficultyModifier = () => {
+    return difficulty === 'easy' ? 1 : difficulty === 'medium' ? 1.5 : 2
+  }
+
+  const getDamageAmount = () => {
+    // Easy: 5 damage per hit, Medium: 10 damage, Hard: 15 damage
+    return difficulty === 'easy' ? 5 : difficulty === 'medium' ? 10 : 15
+  }
+
+  const getStartingLives = () => {
+    // Easy: 25 lives, Medium: 15 lives, Hard: 10 lives
+    return difficulty === 'easy' ? 25 : difficulty === 'medium' ? 15 : 10
+  }
+
   const canvasRef = useRef()
   const gameStateRef = useRef({
     player: { x: 400, y: 550, width: 30, height: 30 },
@@ -71,20 +85,6 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
   const playerInput = useRef({ x: 0, y: 0, firing: false })
 
   const getPersonalBest = () => localStorage.getItem('personalBest') || 0
-
-  const difficultyModifier = () => {
-    return difficulty === 'easy' ? 1 : difficulty === 'medium' ? 1.5 : 2
-  }
-
-  const getDamageAmount = () => {
-    // Easy: 5 damage per hit, Medium: 10 damage, Hard: 15 damage
-    return difficulty === 'easy' ? 5 : difficulty === 'medium' ? 10 : 15
-  }
-
-  const getStartingLives = () => {
-    // Easy: 25 lives, Medium: 15 lives, Hard: 10 lives
-    return difficulty === 'easy' ? 25 : difficulty === 'medium' ? 15 : 10
-  }
 
   const getWeaponColor = (weapon) => {
     // Map weapons to their visual colors
