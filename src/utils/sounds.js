@@ -4,6 +4,7 @@ let soundEnabled = true
 
 // Audio context for synthesized sounds
 let audioContext = null
+let sfxUnlocked = false
 
 // Sound effect cache
 const soundCache = new Map()
@@ -21,9 +22,10 @@ const SOUND_FILES = {
   'missile': '/sfx/missile.mp3',
   'shield': '/sfx/shield.mp3',
   'achievement': '/sfx/achievement.mp3',
-  'bossSpawn': '/sfx/boss-spawn.mp3',
+  // Map to existing assets to avoid 404s while keeping intent distinct
+  'bossSpawn': '/sfx/explosion.mp3',
   'gameover': '/sfx/gameover.mp3',
-  'levelUp': '/sfx/level-up.mp3',
+  'levelUp': '/sfx/level-complete.mp3',
   // 'coin' uses synthesized sound instead
 }
 
@@ -274,6 +276,8 @@ const playFromFile = (type, volume) => {
   
   if (!audio) {
     audio = new Audio(path)
+    audio.playsInline = true
+    audio.crossOrigin = 'anonymous'
     audio.onerror = () => {
       // Fallback to synthesized sound
       soundCache.delete(type)
@@ -284,11 +288,35 @@ const playFromFile = (type, volume) => {
   
   // Clone for overlapping sounds
   const clone = audio.cloneNode()
+  clone.playsInline = true
+  clone.crossOrigin = 'anonymous'
   clone.volume = volume * soundVolume
   clone.play().catch(() => {
     // Fallback to synthesis if file play fails
     synthesizeSound(type, volume)
   })
+}
+
+// Explicit unlock for mobile/touch autoplay policies
+export const ensureSfxUnlocked = () => {
+  if (sfxUnlocked) return
+  const ctx = initAudio()
+  if (ctx && ctx.state === 'suspended') {
+    ctx.resume().catch(() => {})
+  }
+  // Warm up with a silent buffer to satisfy gesture requirements
+  if (ctx) {
+    const gain = ctx.createGain()
+    gain.gain.value = 0.0001
+    const osc = ctx.createOscillator()
+    osc.frequency.value = 10
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start()
+    osc.stop(ctx.currentTime + 0.01)
+  }
+  preloadSounds()
+  sfxUnlocked = true
 }
 
 // Public API

@@ -55,6 +55,32 @@ if (typeof window !== 'undefined') {
   })
 }
 
+// Explicitly expose a way to mark a user gesture from app code
+// Useful when menu wants to unlock audio immediately on first tap.
+export const forceUserGesture = () => {
+  const wasBlocked = !hasUserGesture
+  hasUserGesture = true
+
+  try {
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)()
+      console.log('AudioContext created via forceUserGesture')
+    }
+    if (audioContext && audioContext.state === 'suspended') {
+      audioContext.resume().catch(() => {})
+    }
+  } catch (e) {
+    console.error('AudioContext creation failed in forceUserGesture:', e)
+  }
+
+  if (wasBlocked && pendingTrack) {
+    const track = pendingTrack
+    pendingTrack = null
+    console.log('forceUserGesture: playing pending track:', track)
+    playTrack(track)
+  }
+}
+
 // Initialize audio context lazily - only when actually needed
 const initAudio = () => {
   if (isInitialized) return true
@@ -179,6 +205,9 @@ const playTrack = (trackName) => {
         console.log('Music playing successfully:', trackName)
       })
       .catch((err) => {
+        // Ignore benign rejections caused by rapid track transitions (e.g., menu -> gameplay)
+        const interruptedByTransition = currentTrack !== trackName || (currentMusic && currentMusic.paused)
+        if (interruptedByTransition) return
         console.warn('Playback failed:', trackName, err.message)
       })
   }
@@ -199,6 +228,16 @@ export const playMenuMusic = () => {
 
 export const stopMusic = () => {
   if (currentMusic) {
+    currentMusic.pause()
+    currentMusic.currentTime = 0
+    currentMusic = null
+    currentTrack = null
+  }
+}
+
+// Stop menu music specifically without interrupting gameplay/boss transitions
+export const stopMenuMusic = () => {
+  if (currentMusic && currentTrack === 'menu') {
     currentMusic.pause()
     currentMusic.currentTime = 0
     currentMusic = null

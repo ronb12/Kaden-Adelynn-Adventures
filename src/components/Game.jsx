@@ -1,9 +1,9 @@
 import React, { useRef, useEffect, useState } from 'react'
-import { playSound } from '../utils/sounds'
+import { playSound, ensureSfxUnlocked } from '../utils/sounds'
 import { playGameplayMusic, ensureMusicPlaying } from '../utils/music'
 import './Game.css'
 
-function Game({ selectedCharacter, selectedShip, difficulty }) {
+function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
   // Define helper functions BEFORE useState to avoid initialization issues
   const difficultyModifier = () => {
     return difficulty === 'easy' ? 1 : difficulty === 'medium' ? 1.5 : 2
@@ -20,6 +20,8 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
   }
 
   const canvasRef = useRef()
+  const pausedRef = useRef(false)
+  const gameOverRef = useRef(false)
   const gameStateRef = useRef({
     player: { x: 400, y: 550, width: 30, height: 30 },
     enemies: [],
@@ -81,10 +83,25 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
   const [unlockedAchievements, setUnlockedAchievements] = useState({})
   const healthRef = useRef(100)
   const livesRef = useRef(getStartingLives())
+  const scoreRef = useRef(0)
   const timeoutRefs = useRef([])
   const playerInput = useRef({ x: 0, y: 0, firing: false })
 
   const getPersonalBest = () => localStorage.getItem('personalBest') || 0
+
+  // Keep refs in sync with state for use inside the game loop
+  useEffect(() => {
+    scoreRef.current = score
+  }, [score])
+  useEffect(() => {
+    livesRef.current = lives
+    if (lives <= 0 && !gameOverRef.current) {
+      gameOverRef.current = true
+      if (onGameOver) {
+        onGameOver(scoreRef.current || score, wave, level, enemiesKilled, combo)
+      }
+    }
+  }, [lives, onGameOver, score, wave, level, enemiesKilled, combo])
 
   const getWeaponColor = (weapon) => {
     // Map weapons to their visual colors
@@ -384,8 +401,8 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     const cw = canvas.width
     const ch = canvas.height
     const isMobile = cw < 520
-    // More compact bar for mobile to prevent overflow
-    const barH = isMobile ? (cw < 400 ? 42 : 52) : 70
+    // Increase bar height for readability on small screens
+    const barH = isMobile ? (cw < 400 ? 80 : 70) : 70
     // Increase top margin on mobile to avoid notch/safe area - more space needed for iPhone notch
     const topMargin = isMobile ? 35 : 0
 
@@ -404,29 +421,32 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     ctx.lineTo(cw, topMargin + barH)
     ctx.stroke()
 
-    // Smaller font size for mobile to fit better
-    const fontSize = isMobile ? (cw < 400 ? 6.5 : 7.5) : 11
+    // Larger font for mobile for readability
+    const fontSize = isMobile ? (cw < 400 ? 10.5 : 12) : 12
     ctx.font = `bold ${fontSize}px "Courier New"`
-    const lineHeight = isMobile ? (cw < 400 ? 13 : 16) : 22
+    const lineHeight = isMobile ? (cw < 400 ? 20 : 22) : 22
     let row = 0
     let col = 0
     // On very small screens, show 2 columns instead of 4
     const cols = isMobile && cw < 400 ? 2 : 4
     const colWidth = cw / cols
-    const padding = isMobile ? 4 : 12
+    const padding = isMobile ? 6 : 12
     
     const placeItem = (label, value, color) => {
       const y = topMargin + padding + 2 + row * lineHeight
       const x = (isMobile && cw < 400 ? 15 : 55) + col * colWidth
       
-      // Text shadow for better visibility
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.8)'
-      ctx.shadowBlur = 3
-      ctx.shadowOffsetX = 1
-      ctx.shadowOffsetY = 1
+      // Subtle pulse for readability + stronger contrast
+      const pulse = 0.9 + 0.1 * Math.sin(Date.now() / 600)
+      ctx.globalAlpha = pulse
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.9)'
+      ctx.shadowBlur = 4
+      ctx.shadowOffsetX = 0.5
+      ctx.shadowOffsetY = 0.5
       ctx.fillStyle = color
       ctx.fillText(`${label} ${value}`, x, y)
       ctx.shadowBlur = 0
+      ctx.globalAlpha = 1
       
       col++
       if (col >= cols) {
@@ -1867,7 +1887,7 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     ctx.save()
     ctx.translate(shakeX, shakeY)
 
-    if (!paused) {
+    if (!pausedRef.current) {
       updatePlayer(state)
       updateBullets(state)
       updateEnemyBullets(state)
@@ -1933,9 +1953,7 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       ctx.globalAlpha = 1
     }
 
-    if (!paused) {
-      requestAnimationFrame(() => gameLoop(state))
-    }
+    requestAnimationFrame(() => gameLoop(state))
   }
 
   useEffect(() => {
@@ -1961,6 +1979,11 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     // Update on window resize
     window.addEventListener('resize', resizeCanvas)
 
+    // Unlock SFX on first user interaction (mobile autoplay policies)
+    const unlock = () => ensureSfxUnlocked()
+    const unlockEvents = ['pointerdown', 'touchstart', 'mousedown', 'keydown']
+    unlockEvents.forEach((evt) => window.addEventListener(evt, unlock, { once: true, passive: true }))
+
     playGameplayMusic()
     const state = gameStateRef.current
     state.wave = wave
@@ -1970,11 +1993,70 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     state.canvasWidth = canvas.width
     state.canvasHeight = canvas.height
 
+    const isMobileDevice = typeof window !== 'undefined' && (window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 900)
+
+    const togglePause = () => {
+      setPaused((prev) => {
+        const next = !prev
+        pausedRef.current = next
+        return next
+      })
+    }
+
     const handleKeyDown = (e) => {
       state.keys[e.key] = true
+      
+      // Pause game with P or Escape
+      if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
+        togglePause()
+      }
+      
+      // Save game with S
+      if (e.key === 's' || e.key === 'S') {
+        saveGameState()
+      }
+      
+      // Load game with L
+      if (e.key === 'l' || e.key === 'L') {
+        loadGameState()
+      }
     }
     const handleKeyUp = (e) => {
       state.keys[e.key] = false
+    }
+    
+    // Save game state
+    const saveGameState = () => {
+      const saveData = {
+        score: score,
+        wave: wave,
+        level: level,
+        lives: state.player.lives,
+        playerX: state.player.x,
+        playerY: state.player.y,
+        timestamp: Date.now()
+      }
+      localStorage.setItem('kaden-adelynn-save', JSON.stringify(saveData))
+      console.log('Game saved!')
+    }
+    
+    // Load game state
+    const loadGameState = () => {
+      const saved = localStorage.getItem('kaden-adelynn-save')
+      if (saved) {
+        try {
+          const saveData = JSON.parse(saved)
+          setScore(saveData.score)
+          setWave(saveData.wave)
+          setLevel(saveData.level)
+          state.player.lives = saveData.lives
+          state.player.x = saveData.playerX
+          state.player.y = saveData.playerY
+          console.log('Game loaded!')
+        } catch (e) {
+          console.error('Failed to load game:', e)
+        }
+      }
     }
 
     // Touch controls for mobile with continuous movement
@@ -2052,6 +2134,7 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)
+      unlockEvents.forEach((evt) => window.removeEventListener(evt, unlock))
       canvas.removeEventListener('touchstart', handleTouchStart)
       canvas.removeEventListener('touchmove', handleTouchMove)
       canvas.removeEventListener('touchend', handleTouchEnd)
@@ -2077,7 +2160,173 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
   return (
     <div className='game-container' style={{ width: '100vw', height: '100vh', display: 'flex', overflow: 'hidden', margin: 0, padding: 0 }}>
       <canvas ref={canvasRef} style={{ display: 'block', flex: 1 }} />
-      {paused && <div className='pause-overlay'>PAUSED</div>}
+      {paused && (
+        <div className='pause-overlay'>
+          <div style={{ fontSize: '48px', marginBottom: '20px' }}>PAUSED</div>
+          <div style={{ fontSize: '18px' }}>Press P or ESC to Resume</div>
+        </div>
+      )}
+      
+      {/* Compact Mobile FAB Menu */}
+      <div style={{ position: 'absolute', bottom: '80px', left: '10px', zIndex: 1000, display: (typeof window !== 'undefined' && window.innerWidth <= 900) ? 'block' : 'none' }}>
+        {/* Floating Action Button */}
+        <button
+          onClick={() => {
+            const panel = document.getElementById('fab-panel')
+            if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none'
+            // Auto-hide after 4 seconds idle
+            if (panel && panel.style.display === 'block') {
+              clearTimeout(window.__fabHideTimer)
+              window.__fabHideTimer = setTimeout(() => {
+                const p = document.getElementById('fab-panel')
+                if (p) p.style.display = 'none'
+              }, 4000)
+            }
+            // Haptic feedback
+            if (navigator && navigator.vibrate) {
+              navigator.vibrate(10)
+            }
+          }}
+          aria-label='Menu'
+          style={{
+            width: '48px',
+            height: '48px',
+            borderRadius: '24px',
+            background: 'rgba(0,0,0,0.7)',
+            color: '#fff',
+            border: '1px solid #fff',
+            fontSize: '22px',
+            lineHeight: '48px',
+            textAlign: 'center',
+            cursor: 'pointer',
+            touchAction: 'manipulation'
+          }}
+        >
+          ☰
+        </button>
+        {/* Hidden Panel with Actions */}
+        <div id='fab-panel' style={{
+          display: 'none',
+          marginTop: '8px',
+          background: 'rgba(0,0,0,0.75)',
+          border: '1px solid #fff',
+          borderRadius: '8px',
+          padding: '8px',
+          minWidth: '140px'
+        }}>
+          <button
+            onClick={() => {
+              togglePause()
+            }}
+            style={{
+              width: '100%',
+              padding: '10px',
+              marginBottom: '6px',
+              background: paused ? 'rgba(0,180,80,0.9)' : 'rgba(255,200,0,0.9)',
+              color: '#000',
+              border: '1px solid #fff',
+              borderRadius: '6px'
+            }}
+            onMouseDown={() => { if (navigator && navigator.vibrate) navigator.vibrate(7) }}
+            onTouchStart={() => { if (navigator && navigator.vibrate) navigator.vibrate(7) }}
+          >{paused ? '▶ Resume' : '⏸ Pause'}</button>
+          <button
+            onClick={() => {
+              const saveData = {
+                score: score,
+                wave: wave,
+                level: level,
+                lives: gameStateRef.current.player.lives,
+                playerX: gameStateRef.current.player.x,
+                playerY: gameStateRef.current.player.y,
+                timestamp: Date.now()
+              }
+              localStorage.setItem('kaden-adelynn-save', JSON.stringify(saveData))
+              const panel = document.getElementById('fab-panel'); if (panel) panel.style.display = 'none'
+            }}
+            style={{
+              width: '100%',
+              padding: '10px',
+              marginBottom: '6px',
+              background: 'rgba(0, 200, 100, 0.9)',
+              color: '#fff',
+              border: '1px solid #fff',
+              borderRadius: '6px'
+            }}
+            onMouseDown={() => { if (navigator && navigator.vibrate) navigator.vibrate(7) }}
+            onTouchStart={() => { if (navigator && navigator.vibrate) navigator.vibrate(7) }}
+          >💾 Save</button>
+          <button
+            onClick={() => {
+              const saved = localStorage.getItem('kaden-adelynn-save')
+              if (saved) {
+                try {
+                  const saveData = JSON.parse(saved)
+                  setScore(saveData.score)
+                  setWave(saveData.wave)
+                  setLevel(saveData.level)
+                  gameStateRef.current.player.lives = saveData.lives
+                  gameStateRef.current.player.x = saveData.playerX
+                  gameStateRef.current.player.y = saveData.playerY
+                } catch (e) {}
+              }
+              const panel = document.getElementById('fab-panel'); if (panel) panel.style.display = 'none'
+            }}
+            style={{
+              width: '100%',
+              padding: '10px',
+              background: 'rgba(100, 150, 255, 0.9)',
+              color: '#fff',
+              border: '1px solid #fff',
+              borderRadius: '6px'
+            }}
+            onMouseDown={() => { if (navigator && navigator.vibrate) navigator.vibrate(7) }}
+            onTouchStart={() => { if (navigator && navigator.vibrate) navigator.vibrate(7) }}
+          >📁 Load</button>
+          <button
+            onClick={() => {
+              // End game now
+              livesRef.current = 0
+              setLives(0)
+              healthRef.current = 0
+              setHealth(0)
+              gameOverRef.current = true
+              if (onGameOver) {
+                onGameOver(scoreRef.current || score, wave, level, enemiesKilled, combo)
+              }
+              const panel = document.getElementById('fab-panel'); if (panel) panel.style.display = 'none'
+            }}
+            style={{
+              width: '100%',
+              padding: '10px',
+              marginTop: '6px',
+              background: 'rgba(255, 80, 80, 0.95)',
+              color: '#fff',
+              border: '1px solid #fff',
+              borderRadius: '6px'
+            }}
+            onMouseDown={() => { if (navigator && navigator.vibrate) navigator.vibrate(7) }}
+            onTouchStart={() => { if (navigator && navigator.vibrate) navigator.vibrate(7) }}
+          >🛑 End Game</button>
+        </div>
+      </div>
+      
+      <div className='controls-hint' style={{
+        position: 'absolute',
+        bottom: '10px',
+        right: '10px',
+        background: 'rgba(0,0,0,0.7)',
+        color: '#fff',
+        padding: '10px',
+        borderRadius: '5px',
+        fontSize: '12px',
+        fontFamily: 'monospace'
+      }}>
+        <div><strong>Controls:</strong></div>
+        <div>P/ESC - Pause</div>
+        <div>S - Save Game</div>
+        <div>L - Load Game</div>
+      </div>
     </div>
   )
 }

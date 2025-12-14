@@ -2,7 +2,7 @@ import Metal
 import MetalKit
 import simd
 
-class GameRenderer: NSObject, MTKViewDelegate {
+class GameRenderer: NSObject {
     private var commandQueue: MTLCommandQueue?
     private var pipelineState: MTLRenderPipelineState?
     private var metalView: MTKView

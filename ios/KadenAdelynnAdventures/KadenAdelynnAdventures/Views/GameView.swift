@@ -76,17 +76,13 @@ class GameViewController: UIViewController {
     }
     
     @objc private func handleTouches(_ gesture: UIGestureRecognizer) {
-        guard let touches = gesture.view?.window?.allTouches else { return }
-        
-        for touch in touches {
-            let location = touch.location(in: view)
-            let midpoint = view.bounds.width / 2
-            
-            if location.x < midpoint {
-                gameEngine?.setPlayerInput(moveLeft: true, moveRight: false, fire: true)
-            } else {
-                gameEngine?.setPlayerInput(moveLeft: false, moveRight: true, fire: true)
-            }
+        let location = gesture.location(in: view)
+        let midpoint = view.bounds.width / 2
+
+        if location.x < midpoint {
+            gameEngine?.setPlayerInput(moveLeft: true, moveRight: false, fire: true)
+        } else {
+            gameEngine?.setPlayerInput(moveLeft: false, moveRight: true, fire: true)
         }
     }
     

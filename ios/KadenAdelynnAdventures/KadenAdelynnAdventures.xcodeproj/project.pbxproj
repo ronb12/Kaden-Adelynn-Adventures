@@ -11,6 +11,17 @@
 		3B5A8E2E2B3C4D5E00A1B2C3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B5A8E2D2B3C4D5E00A1B2C3; };
 		3B5A8E312B3C4D5E00A1B2C3 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B5A8E302B3C4D5E00A1B2C3; };
 		3B5A8E3B2B3C4D5E00A1B2C3 /* KadenAdelynnAdventuresTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5A8E3A2B3C4D5E00A1B2C3; };
+		A11000012B3D4E6F00B2C5D8 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21000012B3D4E6F00B2C5D8; };
+		A11000022B3D4E6F00B2C5D8 /* Enemy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21000022B3D4E6F00B2C5D8; };
+		A11000032B3D4E6F00B2C5D8 /* Bullet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21000032B3D4E6F00B2C5D8; };
+		A11000042B3D4E6F00B2C5D8 /* GameState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21000042B3D4E6F00B2C5D8; };
+		A11000052B3D4E6F00B2C5D8 /* Asteroid.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21000052B3D4E6F00B2C5D8; };
+		A11000062B3D4E6F00B2C5D8 /* Collectible.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21000062B3D4E6F00B2C5D8; };
+		A11000072B3D4E6F00B2C5D8 /* Boss.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21000072B3D4E6F00B2C5D8; };
+		A11000082B3D4E6F00B2C5D8 /* GameEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21000082B3D4E6F00B2C5D8; };
+		A11000092B3D4E6F00B2C5D8 /* GameRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21000092B3D4E6F00B2C5D8; };
+		A110000A2B3D4E6F00B2C5D8 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A210000A2B3D4E6F00B2C5D8; };
+		A110000B2B3D4E6F00B2C5D8 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A210000B2B3D4E6F00B2C5D8; };
 	/* End PBXBuildFile section */
 
 	/* Begin PBXContainerItemProxy section */
@@ -26,11 +37,22 @@
 	/* Begin PBXFileReference section */
 		3B5A8E262B3C4D5E00A1B2C3 /* KadenAdelynnAdventures.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KadenAdelynnAdventures.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B5A8E292B3C4D5E00A1B2C3 /* KadenAdelynnAdventuresApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KadenAdelynnAdventuresApp.swift; sourceTree = "<group>"; };
-		3B5A8E2B2B3C4D5E00A1B2C3 /* GameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameView.swift; sourceTree = "<group>"; };
+		3B5A8E2B2B3C4D5E00A1B2C3 /* GameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/GameView.swift; sourceTree = "<group>"; };
 		3B5A8E2D2B3C4D5E00A1B2C3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3B5A8E302B3C4D5E00A1B2C3 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		3B5A8E362B3C4D5E00A1B2C3 /* KadenAdelynnAdventuresTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KadenAdelynnAdventuresTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B5A8E3A2B3C4D5E00A1B2C3 /* KadenAdelynnAdventuresTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KadenAdelynnAdventuresTests.swift; sourceTree = "<group>"; };
+		A21000012B3D4E6F00B2C5D8 /* Player.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
+		A21000022B3D4E6F00B2C5D8 /* Enemy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enemy.swift; sourceTree = "<group>"; };
+		A21000032B3D4E6F00B2C5D8 /* Bullet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bullet.swift; sourceTree = "<group>"; };
+		A21000042B3D4E6F00B2C5D8 /* GameState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameState.swift; sourceTree = "<group>"; };
+		A21000052B3D4E6F00B2C5D8 /* Asteroid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Asteroid.swift; sourceTree = "<group>"; };
+		A21000062B3D4E6F00B2C5D8 /* Collectible.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Collectible.swift; sourceTree = "<group>"; };
+		A21000072B3D4E6F00B2C5D8 /* Boss.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Boss.swift; sourceTree = "<group>"; };
+		A21000082B3D4E6F00B2C5D8 /* GameEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameEngine.swift; sourceTree = "<group>"; };
+		A21000092B3D4E6F00B2C5D8 /* GameRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameRenderer.swift; sourceTree = "<group>"; };
+		A210000A2B3D4E6F00B2C5D8 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		A210000B2B3D4E6F00B2C5D8 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 	/* End PBXFileReference section */
 
 	/* Begin PBXFrameworksBuildPhase section */
@@ -76,8 +98,35 @@
 				3B5A8E2B2B3C4D5E00A1B2C3 /* GameView.swift */,
 				3B5A8E2D2B3C4D5E00A1B2C3 /* Assets.xcassets */,
 				3B5A8E2F2B3C4D5E00A1B2C3 /* Preview Content */,
+				A31000012B3D4E6F00B2C5D8 /* Models */,
+				A31000022B3D4E6F00B2C5D8 /* Utilities */,
+				A210000A2B3D4E6F00B2C5D8 /* LaunchScreen.storyboard */,
+				A210000B2B3D4E6F00B2C5D8 /* PrivacyInfo.xcprivacy */,
 			);
 			path = KadenAdelynnAdventures;
+			sourceTree = "<group>";
+		};
+		A31000012B3D4E6F00B2C5D8 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				A21000012B3D4E6F00B2C5D8 /* Player.swift */,
+				A21000022B3D4E6F00B2C5D8 /* Enemy.swift */,
+				A21000032B3D4E6F00B2C5D8 /* Bullet.swift */,
+				A21000042B3D4E6F00B2C5D8 /* GameState.swift */,
+				A21000052B3D4E6F00B2C5D8 /* Asteroid.swift */,
+				A21000062B3D4E6F00B2C5D8 /* Collectible.swift */,
+				A21000072B3D4E6F00B2C5D8 /* Boss.swift */,
+				A21000082B3D4E6F00B2C5D8 /* GameEngine.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A31000022B3D4E6F00B2C5D8 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				A21000092B3D4E6F00B2C5D8 /* GameRenderer.swift */,
+			);
+			path = Utilities;
 			sourceTree = "<group>";
 		};
 		3B5A8E2F2B3C4D5E00A1B2C3 /* Preview Content */ = {
@@ -179,6 +228,8 @@
 			files = (
 				3B5A8E312B3C4D5E00A1B2C3 /* Preview Assets.xcassets in Resources */,
 				3B5A8E2E2B3C4D5E00A1B2C3 /* Assets.xcassets in Resources */,
+				A110000A2B3D4E6F00B2C5D8 /* LaunchScreen.storyboard in Resources */,
+				A110000B2B3D4E6F00B2C5D8 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -198,6 +249,15 @@
 			files = (
 				3B5A8E2C2B3C4D5E00A1B2C3 /* GameView.swift in Sources */,
 				3B5A8E2A2B3C4D5E00A1B2C3 /* KadenAdelynnAdventuresApp.swift in Sources */,
+				A11000012B3D4E6F00B2C5D8 /* Player.swift in Sources */,
+				A11000022B3D4E6F00B2C5D8 /* Enemy.swift in Sources */,
+				A11000032B3D4E6F00B2C5D8 /* Bullet.swift in Sources */,
+				A11000042B3D4E6F00B2C5D8 /* GameState.swift in Sources */,
+				A11000052B3D4E6F00B2C5D8 /* Asteroid.swift in Sources */,
+				A11000062B3D4E6F00B2C5D8 /* Collectible.swift in Sources */,
+				A11000072B3D4E6F00B2C5D8 /* Boss.swift in Sources */,
+				A11000082B3D4E6F00B2C5D8 /* GameEngine.swift in Sources */,
+				A11000092B3D4E6F00B2C5D8 /* GameRenderer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -332,7 +392,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 4SQJ3AH62S;
 				GENERATE_INFOPLIST_FILE = YES;
 				GENERATE_SWIFTUI_PREVIEWS = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -360,7 +420,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 4SQJ3AH62S;
 				GENERATE_INFOPLIST_FILE = YES;
 				GENERATE_SWIFTUI_PREVIEWS = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -387,7 +447,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 4SQJ3AH62S;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 1.0;
@@ -406,7 +466,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 4SQJ3AH62S;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 1.0;
