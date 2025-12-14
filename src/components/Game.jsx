@@ -366,6 +366,76 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     placeItem('⚔', wpn, '#00ff99')
   }
 
+  const spawnBoss = (state) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    // Spawn boss on every 5th wave (5, 10, 15, etc.)
+    const shouldSpawnBoss = state.wave > 0 && state.wave % 5 === 0 && state.enemies.length === 0 && !state.boss
+
+    if (shouldSpawnBoss) {
+      const bossTypes = ['type1', 'type2', 'type3']
+      const bossType = bossTypes[Math.floor(state.wave / 5) % bossTypes.length]
+      
+      state.boss = {
+        x: canvas.width / 2 - 40,
+        y: -80,
+        width: 80,
+        height: 80,
+        health: 20 + state.wave * 3,
+        maxHealth: 20 + state.wave * 3,
+        speed: 1.5 + state.wave * 0.1,
+        type: bossType,
+        shootTimer: 0,
+        shootInterval: 300 - state.wave * 10,
+        pattern: 'sine',
+        patternTime: 0,
+        baseX: canvas.width / 2 - 40,
+      }
+      playSound('bossSpawn', 0.5)
+    }
+
+    // Update boss position if it exists
+    if (state.boss) {
+      const timeScale = Math.min(state.deltaTime / 16.67, 2)
+      
+      // Movement pattern
+      state.boss.patternTime += timeScale
+      if (state.boss.pattern === 'sine') {
+        state.boss.x = state.boss.baseX + Math.sin(state.boss.patternTime / 20) * 100
+      } else if (state.boss.pattern === 'figure8') {
+        const t = state.boss.patternTime / 30
+        state.boss.x = state.boss.baseX + Math.sin(t) * 80
+      }
+      
+      // Keep boss in bounds
+      state.boss.x = Math.max(20, Math.min(canvas.width - 100, state.boss.x))
+      
+      // Boss descent
+      if (state.boss.y < 150) {
+        state.boss.y += state.boss.speed * timeScale
+      }
+      
+      // Boss shooting
+      state.boss.shootTimer++
+      if (state.boss.shootTimer > state.boss.shootInterval) {
+        // Boss shoots in multiple directions
+        for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 3) {
+          state.enemyBullets.push({
+            x: state.boss.x + state.boss.width / 2,
+            y: state.boss.y + state.boss.height,
+            vx: Math.sin(angle) * 5,
+            vy: Math.cos(angle) * 5,
+            width: 5,
+            height: 5,
+          })
+        }
+        playSound('missile', 0.3)
+        state.boss.shootTimer = 0
+      }
+    }
+  }
+
   const spawnEnemies = (state) => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -1148,6 +1218,100 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
           state.asteroids.splice(index, 1)
         })
     }
+
+    // Boss-bullet collisions
+    if (state.boss && state.bullets.length > 0) {
+      const bulletsToRemoveBoss = []
+      
+      for (let i = 0; i < state.bullets.length; i++) {
+        const bullet = state.bullets[i]
+        if (!bullet || bullet.owner !== 'player') continue
+
+        const bulletWidth = bullet.width || 5
+        const bulletHeight = bullet.height || 10
+        
+        if (
+          bullet.x < state.boss.x + state.boss.width &&
+          bullet.x + bulletWidth > state.boss.x &&
+          bullet.y < state.boss.y + state.boss.height &&
+          bullet.y + bulletHeight > state.boss.y
+        ) {
+          // Hit the boss
+          const dmg = Math.max(3, Math.round(state.damageMul || 1) * 2)
+          state.boss.health -= dmg
+          
+          if (!bullet.pierce) bulletsToRemoveBoss.push(i)
+          
+          addScreenShake(state, 2)
+          createExplosion(state, bullet.x, bullet.y, 'medium')
+          
+          if (state.boss.health <= 0) {
+            // Boss defeated!
+            createExplosion(state, state.boss.x + state.boss.width / 2, state.boss.y + state.boss.height / 2, 'large')
+            addScreenShake(state, 5)
+            playSound('bossSpawn', 0.5) // Victory sound
+            
+            // Spawn power-ups and coins
+            for (let j = 0; j < 5; j++) {
+              if (!state.powerUps) state.powerUps = []
+              state.powerUps.push({
+                x: state.boss.x + Math.random() * state.boss.width,
+                y: state.boss.y,
+                type: 'coin',
+                width: 12,
+                height: 12,
+                vy: -3 + Math.random() * 2,
+              })
+            }
+            state.boss = null
+          }
+          break
+        }
+      }
+      
+      bulletsToRemoveBoss
+        .sort((a, b) => b - a)
+        .forEach((index) => {
+          if (state.bullets[index]) state.bullets.splice(index, 1)
+        })
+    }
+
+    // Boss-player collision
+    if (state.boss && !state.invulnerable && !state.shield) {
+      if (
+        state.player.x < state.boss.x + state.boss.width &&
+        state.player.x + state.player.width > state.boss.x &&
+        state.player.y < state.boss.y + state.boss.height &&
+        state.player.y + state.player.height > state.boss.y
+      ) {
+        setHealth((h) => {
+          const newHealth = h - 5 // Boss deals more damage
+          if (newHealth <= 0) {
+            addScreenShake(state, 4)
+            createExplosion(state, state.player.x + state.player.width / 2, state.player.y, 'large')
+            playSound('hit', 0.3)
+            setLives((l) => Math.max(0, l - 1))
+            state.invulnerable = true
+            if (state.invulnerableTimer) {
+              clearTimeout(state.invulnerableTimer)
+            }
+            state.invulnerableTimer = setTimeout(() => {
+              state.invulnerable = false
+              state.invulnerableTimer = null
+            }, 2000)
+            timeoutRefs.current.push(state.invulnerableTimer)
+            const canvas = canvasRef.current
+            if (canvas) {
+              state.player.x = Math.max(20, canvas.width / 2 - state.player.width / 2)
+              state.player.y = Math.max(50, canvas.height - state.player.height - 60)
+            }
+            state.enemyBullets = []
+            return 100
+          }
+          return newHealth
+        })
+      }
+    }
   }
 
   const updateEnemyBullets = (state) => {
@@ -1308,6 +1472,88 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     }
   }
 
+  const drawBoss = (ctx, state) => {
+    if (!state.boss) return
+    
+    const boss = state.boss
+    const healthPercent = boss.health / boss.maxHealth
+    
+    ctx.save()
+    
+    // Boss glow
+    ctx.shadowBlur = 20
+    ctx.shadowColor = 'rgba(255, 0, 255, 0.8)'
+    
+    // Main boss body
+    const gradient = ctx.createLinearGradient(boss.x, boss.y, boss.x, boss.y + boss.height)
+    gradient.addColorStop(0, '#ff00ff')
+    gradient.addColorStop(0.5, '#cc00ff')
+    gradient.addColorStop(1, '#8800cc')
+    ctx.fillStyle = gradient
+    ctx.strokeStyle = '#ff00ff'
+    ctx.lineWidth = 3
+    
+    // Draw boss shape based on type
+    if (boss.type === 'type1') {
+      // Star/spiky boss
+      ctx.beginPath()
+      for (let i = 0; i < 8; i++) {
+        const angle = (Math.PI * 2 * i) / 8 - Math.PI / 2
+        const r = i % 2 === 0 ? 40 : 25
+        const x = boss.x + boss.width / 2 + Math.cos(angle) * r
+        const y = boss.y + boss.height / 2 + Math.sin(angle) * r
+        if (i === 0) ctx.moveTo(x, y)
+        else ctx.lineTo(x, y)
+      }
+      ctx.closePath()
+    } else if (boss.type === 'type2') {
+      // Diamond boss
+      ctx.beginPath()
+      ctx.moveTo(boss.x + boss.width / 2, boss.y)
+      ctx.lineTo(boss.x + boss.width, boss.y + boss.height / 2)
+      ctx.lineTo(boss.x + boss.width / 2, boss.y + boss.height)
+      ctx.lineTo(boss.x, boss.y + boss.height / 2)
+      ctx.closePath()
+    } else {
+      // Sphere boss
+      ctx.beginPath()
+      ctx.arc(boss.x + boss.width / 2, boss.y + boss.height / 2, boss.width / 2 - 5, 0, Math.PI * 2)
+    }
+    
+    ctx.fill()
+    ctx.stroke()
+    
+    // Health bar
+    ctx.shadowBlur = 0
+    ctx.fillStyle = 'rgba(50, 50, 50, 0.8)'
+    ctx.fillRect(boss.x, boss.y - 15, boss.width, 8)
+    ctx.fillStyle = healthPercent > 0.3 ? '#00ff00' : '#ff6600'
+    ctx.fillRect(boss.x, boss.y - 15, boss.width * healthPercent, 8)
+    ctx.strokeStyle = '#ffff00'
+    ctx.lineWidth = 1
+    ctx.strokeRect(boss.x, boss.y - 15, boss.width, 8)
+    
+    // Boss health text
+    ctx.fillStyle = '#ffff00'
+    ctx.font = 'bold 12px Arial'
+    ctx.textAlign = 'center'
+    ctx.fillText(`BOSS HP: ${Math.ceil(boss.health)}/${boss.maxHealth}`, boss.x + boss.width / 2, boss.y - 20)
+    
+    // Energy cores
+    ctx.fillStyle = '#ffff00'
+    for (let i = 0; i < 3; i++) {
+      const offset = (i - 1) * 25
+      const glow = Math.sin(Date.now() / 200 + i) * 3 + 5
+      ctx.globalAlpha = 0.6 + Math.sin(Date.now() / 200 + i) * 0.4
+      ctx.beginPath()
+      ctx.arc(boss.x + boss.width / 2 + offset, boss.y + boss.height / 2, glow, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    ctx.globalAlpha = 1
+    
+    ctx.restore()
+  }
+
   const gameLoop = (state) => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -1340,6 +1586,7 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       updatePlayer(state)
       updateBullets(state)
       updateEnemyBullets(state)
+      spawnBoss(state)
       spawnEnemies(state)
       spawnCollectibles(state)
       spawnAsteroids(state)
@@ -1352,6 +1599,7 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     drawAsteroids(ctx, state)
     drawPlayer(ctx, state)
     drawEnemies(ctx, state)
+    drawBoss(ctx, state)
     drawBullets(ctx, state)
     drawParticles(ctx, state)
     drawCollectibles(ctx, state)
