@@ -1,21 +1,30 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { getCoins, spendCoins } from '../utils/wallet'
 import './Store.css'
+import { loadUpgrades, saveUpgrades } from '../utils/firebaseData'
 
 function WeaponUpgrades({ onClose }) {
   const [coins, setCoins] = useState(getCoins())
-  const [upgrades, setUpgrades] = useState(() => {
-    const saved = localStorage.getItem('weaponUpgrades')
-    return saved ? JSON.parse(saved) : {
-      damage: 1,
-      fireRate: 1,
-      range: 1,
-      pierce: 0,
-      spread: 0,
-      homing: 0
-    }
+  const [upgrades, setUpgrades] = useState({
+    damage: 1,
+    fireRate: 1,
+    range: 1,
+    pierce: 0,
+    spread: 0,
+    homing: 0
   })
   const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadUpgrades().then(loadedUpgrades => {
+      setUpgrades(loadedUpgrades)
+      setLoading(false)
+    }).catch(err => {
+      console.error('Failed to load upgrades:', err)
+      setLoading(false)
+    })
+  }, [])
 
   const upgradeData = {
     damage: { name: 'Damage', icon: '💥', max: 10, cost: (level) => 100 * level, desc: 'Increase weapon damage' },
@@ -26,7 +35,7 @@ function WeaponUpgrades({ onClose }) {
     homing: { name: 'Homing', icon: '🎯', max: 5, cost: (level) => 400 * level, desc: 'Bullets track enemies' }
   }
 
-  const handleUpgrade = (key) => {
+  const handleUpgrade = async (key) => {
     const current = upgrades[key]
     const data = upgradeData[key]
     
@@ -47,7 +56,7 @@ function WeaponUpgrades({ onClose }) {
     const newUpgrades = { ...upgrades, [key]: current + 1 }
     setUpgrades(newUpgrades)
     setCoins(getCoins())
-    localStorage.setItem('weaponUpgrades', JSON.stringify(newUpgrades))
+    await saveUpgrades(newUpgrades)
     setMessage(`✅ Upgraded ${data.name} to level ${current + 1}!`)
     setTimeout(() => setMessage(''), 2000)
   }
@@ -67,6 +76,12 @@ function WeaponUpgrades({ onClose }) {
           </div>
         </div>
 
+        {loading ? (
+          <div style={{textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.7)'}}>
+            <div style={{fontSize: '2rem', marginBottom: '10px'}}>⏳</div>
+            Loading upgrades...
+          </div>
+        ) : (
         <div className="store-content" style={{maxHeight: '60vh', overflowY: 'auto'}}>
           {Object.entries(upgradeData).map(([key, data]) => {
             const level = upgrades[key]
@@ -144,10 +159,11 @@ function WeaponUpgrades({ onClose }) {
               borderRadius: '8px',
               textAlign: 'center',
               fontWeight: 'bold',
-              border: '2px solid rgba(102, 126, 234, 0.5)'
-            }}>
-              {message}
-            </div>
+              border: '2px solid rgba(102, 126, 234, 0.5)'78, 205, 196, 0.1)', borderRadius: '8px', border: '1px solid rgba(78, 205, 196, 0.3)', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)'}}>
+            ☁️ Upgrades synced with Firebase - permanent across all devices!
+          </div>
+        </div>
+        )}div>
           )}
 
           <div style={{marginTop: '20px', padding: '12px', background: 'rgba(102, 126, 234, 0.1)', borderRadius: '8px', border: '1px solid rgba(102, 126, 234, 0.3)', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)'}}>

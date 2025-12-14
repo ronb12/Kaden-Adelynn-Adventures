@@ -1,20 +1,29 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './Store.css'
+import { loadCustomization, saveCustomization } from '../utils/firebaseData'
 
 function Customization({ onClose }) {
-  const [customization, setCustomization] = useState(() => {
-    const saved = localStorage.getItem('gameCustomization')
-    return saved ? JSON.parse(saved) : {
-      bulletColor: '#00ffff',
-      explosionColor: '#ff6b6b',
-      trailEffect: 'default',
-      screenShake: true,
-      particleEffects: true,
-      soundEffects: true,
-      hudOpacity: 100
-    }
+  const [customization, setCustomization] = useState({
+    bulletColor: '#00ffff',
+    explosionColor: '#ff6b6b',
+    trailEffect: 'default',
+    screenShake: true,
+    particleEffects: true,
+    soundEffects: true,
+    hudOpacity: 100
   })
   const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadCustomization().then(loaded => {
+      setCustomization(loaded)
+      setLoading(false)
+    }).catch(err => {
+      console.error('Failed to load customization:', err)
+      setLoading(false)
+    })
+  }, [])
 
   const colors = [
     { name: 'Cyan', value: '#00ffff' },
@@ -34,8 +43,8 @@ function Customization({ onClose }) {
     { name: 'None', value: 'none' }
   ]
 
-  const handleSave = () => {
-    localStorage.setItem('gameCustomization', JSON.stringify(customization))
+  const handleSave = async () => {
+    await saveCustomization(customization)
     setMessage('✅ Customization saved!')
     setTimeout(() => setMessage(''), 2000)
   }
@@ -53,6 +62,12 @@ function Customization({ onClose }) {
         
         <h2 className="store-title">🎨 Customization</h2>
         
+        {loading ? (
+          <div style={{textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.7)'}}>
+            <div style={{fontSize: '2rem', marginBottom: '10px'}}>⏳</div>
+            Loading customization...
+          </div>
+        ) : (
         <div className="store-content" style={{maxHeight: '70vh', overflowY: 'auto'}}>
           
           <div style={{marginBottom: '25px', padding: '20px', background: 'rgba(0,0,0,0.3)', borderRadius: '15px', border: '2px solid rgba(102, 126, 234, 0.3)'}}>
@@ -199,10 +214,11 @@ function Customization({ onClose }) {
               borderRadius: '8px',
               textAlign: 'center',
               fontWeight: 'bold',
-              border: '2px solid rgba(76, 209, 55, 0.5)'
-            }}>
-              {message}
-            </div>
+              border: '2px solid rgba(76, 209, 55, 0.5)'78, 205, 196, 0.1)', borderRadius: '8px', border: '1px solid rgba(78, 205, 196, 0.3)', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)'}}>
+            ☁️ Customization synced with Firebase - same look on all devices!
+          </div>
+        </div>
+        )}div>
           )}
 
           <div style={{marginTop: '15px', padding: '12px', background: 'rgba(255, 193, 7, 0.1)', borderRadius: '8px', border: '1px solid rgba(255, 193, 7, 0.3)', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)'}}>

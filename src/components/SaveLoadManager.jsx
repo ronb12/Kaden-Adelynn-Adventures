@@ -1,57 +1,77 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './Store.css'
+import { loadAllSaves, loadSaveSlot, saveSaveSlot, deleteSaveSlot } from '../utils/firebaseData'
 
 function SaveLoadManager({ onClose }) {
   const [saves, setSaves] = useState([])
   const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(true)
 
-  const loadSaves = () => {
-    const savedGames = []
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i)
-      if (key && key.startsWith('save-slot-')) {
-        try {
-          const data = JSON.parse(localStorage.getItem(key))
-          savedGames.push({ slot: key.replace('save-slot-', ''), ...data })
-        } catch (e) {}
+  const loadSaves = async () => {
+    setLoading(true)
+    try {
+      const savedGames = await loadAllSaves()
+      setSaves(savedGames.sort((a, b) => a.slotId - b.slotId))
+    } catch (error) {
+      console.error('Failed to load saves:', error)
+      setMessage('❌ Failed to load saves')
+      setTimeout(() => setMessage(''), 3000)
+    }
+    setLoading(false)
+  }
+
+  const handleLoad = async (slot) => {
+    try {
+      const saveData = await loadSaveSlot(slot)
+      if (saveData) {
+        localStorage.setItem('kaden-adelynn-save', JSON.stringify(saveData))
+        setMessage(`✅ Loaded save slot ${slot}`)
+        setTimeout(() => setMessage(''), 3000)
+      }
+    } catch (error) {
+      setMessage(`❌ Failed to load slot ${slot}`)
+      setTimeout(() => setMessage(''), 3000)
+    }
+  }
+
+  const handleDelete = async (slot) => {
+    if (confirm(`Delete save slot ${slot}?`)) {
+      try {
+        await deleteSaveSlot(slot)
+        await loadSaves()
+        setMessage(`🗑️ Deleted save slot ${slot}`)
+        setTimeout(() => setMessage(''), 3000)
+      } catch (error) {
+        setMessage(`❌ Failed to delete slot ${slot}`)
+        setTimeout(() => setMessage(''), 3000)
       }
     }
-    setSaves(savedGames)
   }
 
-  const handleLoad = (slot) => {
-    const saveData = localStorage.getItem(`save-slot-${slot}`)
-    if (saveData) {
-      localStorage.setItem('kaden-adelynn-save', saveData)
-      setMessage(`✅ Loaded save slot ${slot}`)
-      setTimeout(() => setMessage(''), 3000)
-    }
-  }
-
-  const handleDelete = (slot) => {
-    if (confirm(`Delete save slot ${slot}?`)) {
-      localStorage.removeItem(`save-slot-${slot}`)
-      loadSaves()
-      setMessage(`🗑️ Deleted save slot ${slot}`)
-      setTimeout(() => setMessage(''), 3000)
-    }
-  }
-
-  const handleCreateSlot = () => {
+  const handleCreateSlot = async () => {
     const currentSave = localStorage.getItem('kaden-adelynn-save')
     if (currentSave) {
-      const newSlot = saves.length + 1
-      localStorage.setItem(`save-slot-${newSlot}`, currentSave)
-      loadSaves()
-      setMessage(`✅ Saved to slot ${newSlot}`)
-      setTimeout(() => setMessage(''), 3000)
+      try {
+        const saveData = JSON.parse(currentSave)
+        const newSlot = saves.length + 1
+        await saveSaveSlot(newSlot, {
+          ...saveData,
+          timestamp: Date.now()
+        })
+        await loadSaves()
+        setMessage(`✅ Saved to slot ${newSlot}`)
+        setTimeout(() => setMessage(''), 3000)
+      } catch (error) {
+        setMessage('❌ Failed to create save')
+        setTimeout(() => setMessage(''), 3000)
+      }
     } else {
       setMessage('❌ No active game to save')
       setTimeout(() => setMessage(''), 3000)
     }
   }
 
-  useState(() => {
+  useEffect(() => {
     loadSaves()
   }, [])
 
@@ -64,6 +84,12 @@ function SaveLoadManager({ onClose }) {
         
         <h2 className="store-title">💾 Save & Load Game</h2>
         
+        {loading ? (
+          <div style={{textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.7)'}}>
+            <div style={{fontSize: '2rem', marginBottom: '10px'}}>⏳</div>
+            Loading saves...
+          </div>
+        ) : (
         <div className="store-content" style={{maxHeight: '70vh', overflowY: 'auto'}}>
           
           <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(102, 126, 234, 0.1)', borderRadius: '10px', border: '2px solid rgba(102, 126, 234, 0.3)'}}>
@@ -92,13 +118,7 @@ function SaveLoadManager({ onClose }) {
             <div style={{padding: '40px', textAlign: 'center', color: 'rgba(255,255,255,0.6)'}}>
               <div style={{fontSize: '3rem', marginBottom: '15px'}}>📁</div>
               <p>No saved games yet</p>
-              <p style={{fontSize: '0.9rem', marginTop: '10px'}}>Play a game and create a save slot!</p>
-            </div>
-          )}
-
-          {saves.map((save) => (
-            <div
-              key={save.slot}
+              <p style={{fonId}
               style={{
                 marginBottom: '15px',
                 padding: '20px',
@@ -109,7 +129,7 @@ function SaveLoadManager({ onClose }) {
             >
               <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                 <div>
-                  <h3 style={{marginBottom: '10px', color: '#667eea'}}>Slot {save.slot}</h3>
+                  <h3 style={{marginBottom: '10px', color: '#667eea'}}>Slot {save.slotId}</h3>
                   <p style={{fontSize: '0.9rem', color: 'rgba(255,255,255,0.7)'}}>
                     Score: {save.score?.toLocaleString() || 0} | Wave: {save.wave || 1} | Level: {save.level || 1}
                   </p>
@@ -119,7 +139,7 @@ function SaveLoadManager({ onClose }) {
                 </div>
                 <div style={{display: 'flex', gap: '10px'}}>
                   <button
-                    onClick={() => handleLoad(save.slot)}
+                    onClick={() => handleLoad(save.slotId)}
                     style={{
                       padding: '8px 16px',
                       background: 'rgba(76, 209, 55, 0.8)',
@@ -128,6 +148,12 @@ function SaveLoadManager({ onClose }) {
                       borderRadius: '8px',
                       cursor: 'pointer',
                       fontWeight: 'bold'
+                    }}
+                  >
+                    📁 Load
+                  </button>
+                  <button
+                    onClick={() => handleDelete(save.slotId
                     }}
                   >
                     📁 Load
@@ -165,10 +191,11 @@ function SaveLoadManager({ onClose }) {
             </div>
           )}
 
-          <div style={{marginTop: '20px', padding: '12px', background: 'rgba(255, 193, 7, 0.1)', borderRadius: '8px', border: '1px solid rgba(255, 193, 7, 0.3)', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)'}}>
-            💡 Tip: Use the in-game pause menu (P key) for quick save/load during gameplay
+          <div style={{marginTop: '20px', padding: '12px', background: 'rgba(78, 205, 196, 0.1)', borderRadius: '8px', border: '1px solid rgba(78, 205, 196, 0.3)', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)'}}>
+            ☁️ Saves synced with Firebase - access from any device!
           </div>
         </div>
+        )}
       </div>
     </div>
   )
