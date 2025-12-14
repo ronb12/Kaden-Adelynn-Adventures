@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react'
 import { playSound } from '../utils/sounds'
-import { playGameplayMusic } from '../utils/music'
+import { playGameplayMusic, ensureMusicPlaying } from '../utils/music'
 import { playersRef } from '../utils/cloudScores'
 import './Game.css'
 
@@ -174,51 +174,36 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     const isMobile = cw < 520
     const barH = isMobile ? 76 : 56
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)'
     ctx.fillRect(0, 0, cw, barH)
 
-    let x = 10
-    let y = isMobile ? 22 : 22
-    const pad = isMobile ? 12 : 18
-
-    const place = (text) => {
-      const w = ctx.measureText(text).width
-      if (isMobile && x + w > cw - 120) {
-        x = 10
-        y = 44
+    ctx.font = isMobile ? 'bold 11px Arial' : 'bold 13px Arial'
+    const lineHeight = isMobile ? 18 : 26
+    let row = 0
+    let col = 0
+    const colWidth = cw / 2
+    
+    const placeItem = (label, value, color) => {
+      const y = 14 + row * lineHeight
+      const x = 8 + col * colWidth
+      
+      ctx.fillStyle = color
+      ctx.fillText(`${label}:${value}`, x, y)
+      
+      col++
+      if (col >= 2) {
+        col = 0
+        row++
       }
-      ctx.fillText(text, x, y)
-      x += w + pad
     }
 
-    ctx.fillStyle = '#4ecdc4'
-    ctx.font = isMobile ? 'bold 14px Arial' : 'bold 18px Arial'
-    place('SCORE')
-
-    ctx.font = isMobile ? 'bold 14px Arial' : 'bold 18px Arial'
-    ctx.fillStyle = '#fff'
     const currentScore = state.currentScore || score
-    const scoreText = currentScore.toString().padStart(8, '0')
-    place(scoreText)
-
-    ctx.fillStyle = '#ff6b6b'
-    ctx.font = isMobile ? 'bold 13px Arial' : 'bold 16px Arial'
-    const livesText = `❤️ × ${livesRef.current}`
-    place(livesText)
-
-    ctx.font = isMobile ? '11px Arial' : '12px Arial'
-    ctx.fillStyle = '#ffff00'
-    const bestText = `BEST: ${getPersonalBest().toString().padStart(8, '0')}`
-    place(bestText)
-
+    placeItem('SCORE', currentScore.toString().padStart(6, '0'), '#4ecdc4')
+    placeItem('❤', livesRef.current, '#ff6b6b')
+    
     const healthValue = Math.round(Math.max(0, Math.min(100, healthRef.current)))
-    const healthText = `HEALTH: ${healthValue}%`
-    ctx.fillStyle = '#2ecc71'
-    if (healthValue <= 50) ctx.fillStyle = '#f39c12'
-    if (healthValue <= 25) ctx.fillStyle = '#e74c3c'
-    const hw = ctx.measureText(healthText).width
-    ctx.fillText(healthText, x, y)
-    x += hw + pad
+    const healthColor = healthValue <= 25 ? '#e74c3c' : healthValue <= 50 ? '#f39c12' : '#2ecc71'
+    placeItem('HP', healthValue + '%', healthColor)
 
     const shotsFired = state.shotsFired || 0
     const shotsHit = state.shotsHit || 0
@@ -227,50 +212,11 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       accuracy = Math.round((shotsHit / shotsFired) * 100)
       accuracy = Math.max(0, Math.min(100, accuracy))
     }
+    const accColor = accuracy >= 70 ? '#2ecc71' : accuracy >= 50 ? '#f39c12' : '#e74c3c'
+    placeItem('ACC', accuracy + '%', accColor)
 
-    ctx.font = isMobile ? 'bold 12px Arial' : 'bold 13px Arial'
-    if (accuracy >= 70) {
-      ctx.fillStyle = '#2ecc71'
-    } else if (accuracy >= 50) {
-      ctx.fillStyle = '#f39c12'
-    } else {
-      ctx.fillStyle = '#e74c3c'
-    }
-
-    const accuracyText = `ACC: ${accuracy}%`
-    const accWidth = ctx.measureText(accuracyText).width
-    if (isMobile && x + accWidth > cw - 120) {
-      x = 10
-      y = 44
-    }
-    ctx.fillText(accuracyText, x, y)
-    x += accWidth + pad
-
-    ctx.font = isMobile ? '12px Arial' : '14px Arial'
-    ctx.fillStyle = '#ffd700'
-    const wl = `Wave: ${wave} | Level: ${level}`
-    place(wl)
-
-    if (combo > 0) {
-      const pulse = Math.sin(Date.now() / 100) * 0.3 + 0.7
-      ctx.fillStyle = `rgba(255, 215, 0, ${pulse})`
-      ctx.font = isMobile ? 'bold 12px Arial' : 'bold 14px Arial'
-      const comboText = `⚡ COMBO × ${combo}`
-      place(comboText)
-    }
-
-    ctx.fillStyle = '#95a5a6'
-    ctx.font = isMobile ? '11px Arial' : '12px Arial'
-    const killsText = `Kills: ${state.currentKills || 0}`
-    place(killsText)
-
-    const coinsText = `💰 ${state.coins}`
-    place(coinsText)
-
-    ctx.fillStyle = '#4ecdc4'
-    ctx.font = isMobile ? 'bold 11px Arial' : 'bold 12px Arial'
-    const weaponText = `⚔️ ${state.currentWeapon.toUpperCase()}`
-    place(weaponText)
+    placeItem('$', state.coins, '#ffd700')
+    placeItem('KILL', state.currentKills || 0, '#95a5a6')
   }
 
   const spawnEnemies = (state) => {
@@ -303,6 +249,111 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     }
   }
 
+  const spawnCollectibles = (state) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    // Spawn coins from dead enemies
+    if (state.scorePopups && state.scorePopups.length > 0) {
+      const toRemove = []
+      for (let i = 0; i < state.scorePopups.length; i++) {
+        const popup = state.scorePopups[i]
+        popup.life--
+        if (popup.life <= 0) {
+          // Chance to spawn coin
+          if (Math.random() < 0.3) {
+            state.coins++
+            if (!state.powerUps) state.powerUps = []
+            state.powerUps.push({
+              x: popup.x,
+              y: popup.y,
+              type: 'coin',
+              width: 10,
+              height: 10,
+              vy: -2,
+            })
+          }
+          toRemove.push(i)
+        }
+      }
+      for (let i = toRemove.length - 1; i >= 0; i--) {
+        state.scorePopups.splice(toRemove[i], 1)
+      }
+    }
+
+    // Update collectibles
+    if (state.powerUps && state.powerUps.length > 0) {
+      state.powerUps = state.powerUps.filter((p) => {
+        p.y += p.vy
+        p.vy += 0.3 // gravity
+        return p.y < canvas.height + 50
+      })
+    }
+  }
+
+  const spawnAsteroids = (state) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    if (!state.lastAsteroidSpawn) state.lastAsteroidSpawn = Date.now()
+    const now = Date.now()
+    const asteroidRate = 3000 - (state.wave * 200)
+
+    if (now - state.lastAsteroidSpawn > asteroidRate && state.wave >= 3) {
+      if (!state.asteroids) state.asteroids = []
+      if (state.asteroids.length < 15) {
+        const asteroidSize = Math.random() < 0.6 ? 'small' : 'medium'
+        state.asteroids.push({
+          x: Math.random() * canvas.width,
+          y: -30,
+          size: asteroidSize,
+          width: asteroidSize === 'small' ? 15 : 25,
+          height: asteroidSize === 'small' ? 15 : 25,
+          speed: 1 + Math.random() * 2,
+          rotation: 0,
+          rotationSpeed: Math.random() * 0.1 - 0.05,
+        })
+        state.lastAsteroidSpawn = now
+      }
+    }
+  }
+
+  const drawAsteroids = (ctx, state) => {
+    if (!state.asteroids) return
+    state.asteroids.forEach((ast) => {
+      ctx.save()
+      ctx.translate(ast.x, ast.y)
+      ctx.rotate(ast.rotation)
+      ctx.fillStyle = '#8b7355'
+      ctx.strokeStyle = '#5a4a3a'
+      ctx.lineWidth = 1.5
+      ctx.beginPath()
+      ctx.arc(0, 0, ast.width / 2, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.stroke()
+      ctx.fillStyle = '#a0826d'
+      ctx.beginPath()
+      ctx.arc(-ast.width / 5, -ast.height / 5, ast.width / 6, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.restore()
+    })
+  }
+
+  const drawCollectibles = (ctx, state) => {
+    if (!state.powerUps) return
+    state.powerUps.forEach((p) => {
+      if (p.type === 'coin') {
+        ctx.fillStyle = '#ffd700'
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.width / 2, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.strokeStyle = '#ffed4e'
+        ctx.lineWidth = 1
+        ctx.stroke()
+      }
+    })
+  }
+
   const updateEnemies = (state) => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -320,6 +371,9 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       } else if (enemy.pattern === 'dash') {
         if (Math.random() < 0.02) enemy.y += 20 * timeScale
       }
+
+      // Keep enemies within canvas bounds (left/right)
+      enemy.x = Math.max(5, Math.min(canvas.width - 35, enemy.x))
 
       const shootChance = 0.01 * difficultyModifier()
       if (Math.random() < shootChance && enemy.y > 50 && enemy.y < canvas.height - 100) {
@@ -637,6 +691,13 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     state.deltaTime = now - state.lastFrameTime
     state.lastFrameTime = now
 
+    // Ensure music keeps playing
+    if (!state.lastMusicCheck) state.lastMusicCheck = now
+    if (now - state.lastMusicCheck > 2000) {
+      ensureMusicPlaying()
+      state.lastMusicCheck = now
+    }
+
     ctx.fillStyle = '#000'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
@@ -645,13 +706,17 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       updateBullets(state)
       updateEnemyBullets(state)
       spawnEnemies(state)
+      spawnCollectibles(state)
+      spawnAsteroids(state)
       updateEnemies(state)
       checkCollisions(state)
     }
 
+    drawAsteroids(ctx, state)
     drawPlayer(ctx, state)
     drawEnemies(ctx, state)
     drawBullets(ctx, state)
+    drawCollectibles(ctx, state)
 
     // Draw enemy bullets
     ctx.fillStyle = '#ff6666'

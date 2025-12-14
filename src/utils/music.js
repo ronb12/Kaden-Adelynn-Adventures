@@ -76,6 +76,25 @@ const createAudioElement = (src) => {
     // Silently handle missing audio files
   }
   
+  // Add multiple event listeners to ensure looping
+  audio.addEventListener('ended', () => {
+    if (audio.loop) {
+      audio.currentTime = 0
+      audio.play().catch(() => {})
+    }
+  })
+  
+  // Monitor and restart if paused unexpectedly
+  audio.addEventListener('pause', () => {
+    if (currentMusic === audio && currentTrack) {
+      setTimeout(() => {
+        if (currentMusic === audio && audio.paused) {
+          audio.play().catch(() => {})
+        }
+      }, 100)
+    }
+  })
+  
   return audio
 }
 
@@ -179,8 +198,7 @@ export const ensureMusicPlaying = () => {
     if (currentMusic.ended) {
       currentMusic.currentTime = 0
     }
-    
-    // Try to play - suppress errors
+    // Restart playback
     currentMusic.play().catch(() => {})
   }
 }
