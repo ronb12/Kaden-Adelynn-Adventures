@@ -24,7 +24,7 @@ const SOUND_FILES = {
   'bossSpawn': '/sfx/boss-spawn.mp3',
   'gameover': '/sfx/gameover.mp3',
   'levelUp': '/sfx/level-up.mp3',
-  'coin': '/sfx/coin.mp3',
+  // 'coin' uses synthesized sound instead
 }
 
 // Initialize audio context
