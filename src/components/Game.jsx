@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react'
 import { playSound, ensureSfxUnlocked } from '../utils/sounds'
 import { playGameplayMusic, ensureMusicPlaying } from '../utils/music'
+import { saveSaveSlot, loadSaveSlot } from '../utils/firebaseData'
 import './Game.css'
 
 function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
@@ -2090,7 +2091,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
     }
     
     // Save game state
-    const saveGameState = () => {
+    const saveGameState = async () => {
       const saveData = {
         score: score,
         wave: wave,
@@ -2100,35 +2101,37 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
         playerY: state.player.y,
         timestamp: Date.now()
       }
+      // Save to both Firebase and localStorage as fallback
+      await saveSaveSlot('current', saveData)
       localStorage.setItem('kaden-adelynn-save', JSON.stringify(saveData))
-      setToast('💾 Game Saved!')
+      setToast('💾 Game Saved to Cloud!')
       setTimeout(() => setToast(''), 2000)
       console.log('Game saved!')
     }
     
     // Load game state
-    const loadGameState = () => {
-      const saved = localStorage.getItem('kaden-adelynn-save')
-      if (saved) {
-        try {
-          const saveData = JSON.parse(saved)
+    const loadGameState = async () => {
+      try {
+        // Try Firebase first
+        const saveData = await loadSaveSlot('current')
+        if (saveData) {
           setScore(saveData.score)
           setWave(saveData.wave)
           setLevel(saveData.level)
           state.player.lives = saveData.lives
           state.player.x = saveData.playerX
           state.player.y = saveData.playerY
-          setToast('📁 Game Loaded!')
+          setToast('📁 Game Loaded from Cloud!')
           setTimeout(() => setToast(''), 2000)
           console.log('Game loaded!')
-        } catch (e) {
-          setToast('❌ Failed to load game')
+        } else {
+          setToast('❌ No saved game found')
           setTimeout(() => setToast(''), 2000)
-          console.error('Failed to load game:', e)
         }
-      } else {
-        setToast('❌ No saved game found')
+      } catch (e) {
+        setToast('❌ Failed to load game')
         setTimeout(() => setToast(''), 2000)
+        console.error('Failed to load game:', e)
       }
     }
 
@@ -2305,19 +2308,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
           >{paused ? '▶ Resume' : '⏸ Pause'}</button>
           <button
             onClick={() => {
-              const saveData = {
-                score: score,
-                wave: wave,
-                level: level,
-                lives: gameStateRef.current.player.lives,
-                playerX: gameStateRef.current.player.x,
-                playerY: gameStateRef.current.player.y,
-                timestamp: Date.now()
-              }
-              localStorage.setItem('kaden-adelynn-save', JSON.stringify(saveData))
-              setToast('💾 Game Saved!')
-              setTimeout(() => setToast(''), 2000)
-              const panel = document.getElementById('fab-panel'); if (panel) panel.style.display = 'none'
+              saveGameState()
             }}
             style={{
               width: '100%',
@@ -2333,27 +2324,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver }) {
           >💾 Save</button>
           <button
             onClick={() => {
-              const saved = localStorage.getItem('kaden-adelynn-save')
-              if (saved) {
-                try {
-                  const saveData = JSON.parse(saved)
-                  setScore(saveData.score)
-                  setWave(saveData.wave)
-                  setLevel(saveData.level)
-                  gameStateRef.current.player.lives = saveData.lives
-                  gameStateRef.current.player.x = saveData.playerX
-                  gameStateRef.current.player.y = saveData.playerY
-                  setToast('📁 Game Loaded!')
-                  setTimeout(() => setToast(''), 2000)
-                } catch (e) {
-                  setToast('❌ Failed to load game')
-                  setTimeout(() => setToast(''), 2000)
-                }
-              } else {
-                setToast('❌ No saved game found')
-                setTimeout(() => setToast(''), 2000)
-              }
-              const panel = document.getElementById('fab-panel'); if (panel) panel.style.display = 'none'
+              loadGameState()
             }}
             style={{
               width: '100%',
