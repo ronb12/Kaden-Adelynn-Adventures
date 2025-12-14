@@ -9,6 +9,10 @@ import CharacterSelector from './components/CharacterSelector'
 import TopScores from './components/TopScores'
 import TermsOfService from './components/TermsOfService'
 import PrivacyPolicy from './components/PrivacyPolicy'
+import Statistics from './components/Statistics'
+import SaveLoadManager from './components/SaveLoadManager'
+import WeaponUpgrades from './components/WeaponUpgrades'
+import Customization from './components/Customization'
 import './App.css'
 
 function App() {
@@ -26,7 +30,6 @@ function App() {
   
   const [gameStats, setGameStats] = useState({ score: 0, wave: 1, level: 1, kills: 0, combo: 0 })
   const [paused, setPaused] = useState(false)
-  const [toast, setToast] = useState('')
 
   const handleStartGame = (difficulty, ship, character, name) => {
     if (name) setPlayerName(name)
@@ -69,23 +72,15 @@ function App() {
   const handleOpenPrivacy = () => setGameState('privacy')
   const handleClosePrivacy = () => setGameState('menu')
   
-  // Placeholder handlers for additional menu buttons
-  const handleOpenStats = () => {
-    setToast('📊 Statistics feature coming soon!')
-    setTimeout(() => setToast(''), 3000)
-  }
-  const handleOpenSaveLoad = () => {
-    setToast('💾 Use in-game pause menu (P key) for Save/Load')
-    setTimeout(() => setToast(''), 3000)
-  }
-  const handleOpenWeaponUpgrades = () => {
-    setToast('⚔️ Weapon Upgrades feature coming soon!')
-    setTimeout(() => setToast(''), 3000)
-  }
-  const handleOpenCustomization = () => {
-    setToast('🎨 Customization feature coming soon!')
-    setTimeout(() => setToast(''), 3000)
-  }
+  // Additional feature handlers
+  const handleOpenStats = () => setGameState('stats')
+  const handleCloseStats = () => setGameState('menu')
+  const handleOpenSaveLoad = () => setGameState('saveload')
+  const handleCloseSaveLoad = () => setGameState('menu')
+  const handleOpenWeaponUpgrades = () => setGameState('upgrades')
+  const handleCloseWeaponUpgrades = () => setGameState('menu')
+  const handleOpenCustomization = () => setGameState('customization')
+  const handleCloseCustomization = () => setGameState('menu')
 
   return (
     <div className="app">
@@ -122,6 +117,10 @@ function App() {
       {gameState === 'scores' && <TopScores onClose={handleCloseScores} />}
       {gameState === 'terms' && <TermsOfService onClose={handleCloseTerms} />}
       {gameState === 'privacy' && <PrivacyPolicy onClose={handleClosePrivacy} />}
+      {gameState === 'stats' && <Statistics onClose={handleCloseStats} />}
+      {gameState === 'saveload' && <SaveLoadManager onClose={handleCloseSaveLoad} />}
+      {gameState === 'upgrades' && <WeaponUpgrades onClose={handleCloseWeaponUpgrades} />}
+      {gameState === 'customization' && <Customization onClose={handleCloseCustomization} />}
       {gameState === 'story' && <Story onContinue={handleStoryComplete} />}
       {gameState === 'playing' && (
         <Game
@@ -144,28 +143,6 @@ function App() {
           onRestart={handleRestart}
           onMenu={handleReturnToMenu}
         />
-      )}
-      {toast && (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: '20px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: 'rgba(0,0,0,0.9)',
-            color: '#fff',
-            padding: '16px 28px',
-            borderRadius: '12px',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-            zIndex: 10000,
-            fontSize: '16px',
-            fontWeight: '600',
-            border: '2px solid rgba(102, 126, 234, 0.6)',
-            animation: 'slideUp 0.3s ease-out',
-          }}
-        >
-          {toast}
-        </div>
       )}
     </div>
   )
