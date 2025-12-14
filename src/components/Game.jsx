@@ -386,20 +386,22 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     const isMobile = cw < 520
     // More compact bar for mobile to prevent overflow
     const barH = isMobile ? (cw < 400 ? 42 : 52) : 70
+    // Add top margin on mobile to avoid notch/safe area
+    const topMargin = isMobile ? 20 : 0
 
     // Enhanced scoreboard background with gradient
-    const bgGrad = ctx.createLinearGradient(0, 0, 0, barH)
+    const bgGrad = ctx.createLinearGradient(0, topMargin, 0, topMargin + barH)
     bgGrad.addColorStop(0, 'rgba(0, 0, 0, 0.9)')
     bgGrad.addColorStop(1, 'rgba(20, 20, 40, 0.95)')
     ctx.fillStyle = bgGrad
-    ctx.fillRect(0, 0, cw, barH)
+    ctx.fillRect(0, topMargin, cw, barH)
     
     // Top border accent
     ctx.strokeStyle = '#4ecdc4'
     ctx.lineWidth = 2
     ctx.beginPath()
-    ctx.moveTo(0, barH)
-    ctx.lineTo(cw, barH)
+    ctx.moveTo(0, topMargin + barH)
+    ctx.lineTo(cw, topMargin + barH)
     ctx.stroke()
 
     // Smaller font size for mobile to fit better
@@ -414,7 +416,7 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     const padding = isMobile ? 4 : 12
     
     const placeItem = (label, value, color) => {
-      const y = padding + 2 + row * lineHeight
+      const y = topMargin + padding + 2 + row * lineHeight
       const x = (isMobile && cw < 400 ? 8 : 45) + col * colWidth
       
       // Text shadow for better visibility
@@ -1987,6 +1989,13 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       if (!state.musicStarted) {
         playGameplayMusic()
         state.musicStarted = true
+        // Also ensure it's playing after a brief delay
+        setTimeout(() => {
+          ensureMusicPlaying()
+        }, 100)
+      } else {
+        // Ensure music stays playing on subsequent touches
+        ensureMusicPlaying()
       }
       
       const rect = canvas.getBoundingClientRect()
