@@ -65,7 +65,24 @@ function MainMenu({ onStartGame, onOpenStore, onOpenShips, onOpenCharacters, onO
   useEffect(() => {
     // Start menu music
     playMenuMusic()
-    return () => stopMusic()
+    
+    // Also ensure it starts on first user interaction
+    const startMenuMusic = () => {
+      playMenuMusic()
+    }
+    
+    // Listen for first interaction to ensure music starts
+    const events = ['click', 'touchstart', 'keydown']
+    events.forEach(event => {
+      window.addEventListener(event, startMenuMusic, { once: true })
+    })
+    
+    return () => {
+      stopMusic()
+      events.forEach(event => {
+        window.removeEventListener(event, startMenuMusic)
+      })
+    }
   }, [])
 
   const handleStart = () => {

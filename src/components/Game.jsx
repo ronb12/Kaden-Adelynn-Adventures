@@ -417,7 +417,7 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     
     const placeItem = (label, value, color) => {
       const y = topMargin + padding + 2 + row * lineHeight
-      const x = (isMobile && cw < 400 ? 8 : 45) + col * colWidth
+      const x = (isMobile && cw < 400 ? 15 : 55) + col * colWidth
       
       // Text shadow for better visibility
       ctx.shadowColor = 'rgba(0, 0, 0, 0.8)'
