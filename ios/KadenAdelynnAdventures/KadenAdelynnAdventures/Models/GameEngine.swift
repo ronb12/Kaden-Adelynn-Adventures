@@ -7,6 +7,7 @@ class GameEngine {
     private var bullets: [Bullet]
     private var asteroids: [Asteroid]
     private var collectibles: [Collectible]
+    private var boss: Boss?
     private var gameState: GameState
     private var lastUpdateTime: Double
     
@@ -16,6 +17,7 @@ class GameEngine {
         self.bullets = []
         self.asteroids = []
         self.collectibles = []
+        self.boss = nil
         self.gameState = GameState()
         self.lastUpdateTime = Date().timeIntervalSince1970
     }
@@ -27,11 +29,13 @@ class GameEngine {
         
         updatePlayer(deltaTime: deltaTime)
         updateEnemies(deltaTime: deltaTime)
+        updateBoss(deltaTime: deltaTime)
         updateBullets(deltaTime: deltaTime)
         updateAsteroids(deltaTime: deltaTime)
         updateCollectibles(deltaTime: deltaTime)
         checkCollisions()
         spawnEnemies()
+        spawnBoss()
         spawnAsteroids()
         spawnCollectibles()
         
@@ -48,6 +52,20 @@ class GameEngine {
         }
         
         enemies.removeAll { $0.isDead || $0.position.y > 1000 }
+        
+        // Wave progression every 50 kills
+        if gameState.enemiesKilled >= gameState.wave * 50 {
+            gameState.wave += 1
+        }
+    }
+    
+    private func updateBoss(deltaTime: Double) {
+        boss?.update(deltaTime: deltaTime, playerPosition: player.position)
+        
+        if let b = boss, b.isDead {
+            boss = nil
+            gameState.score += 500
+        }
     }
     
     private func updateBullets(deltaTime: Double) {
@@ -63,27 +81,25 @@ class GameEngine {
             asteroid.update(deltaTime: deltaTime)
         }
         
-        asteroids.removeAll { $0.position.y > 1000 }
-    }
-    
-    private func updateCollectibles(deltaTime: Double) {
-        for collectible in collectibles {
-            collectible.update(deltaTime: deltaTime)
-        }
-        
-        collectibles.removeAll { $0.position.y > 1000 }
-    }
-    
-    private func checkCollisions() {
-        // Player-bullet collisions
-        for (bulletIndex, bullet) in bullets.enumerated() {
+        aste// Check bullet vs enemies
             for (enemyIndex, enemy) in enemies.enumerated() {
                 if bullet.collidesWith(enemy) {
                     bullets.remove(at: bulletIndex)
                     enemy.takeDamage(1)
+                    if enemy.isDead {
+                        gameState.enemiesKilled += 1
+                    }
                     gameState.score += 10
                     break
                 }
+            }
+            
+            // Check bullet vs boss
+            if let b = boss, bullet.collidesWith(boss: b) {
+                bullets.remove(at: bulletIndex)
+                b.takeDamage(1)
+                gameState.score += 20
+                break
             }
         }
         
@@ -95,8 +111,34 @@ class GameEngine {
             }
         }
         
-        // Player-collectible collisions
-        for (collectibleIndex, collectible) in collectibles.enumerated() {
+        // Player-boss collisions
+        if let b = boss, player.collidesWith(boss: b) {
+            gameState.lives -= 1   if bullet.collidesWith(enemy) {
+                    bullets.remove(at: bulletIndex)
+                    enemy.takeDamage(1)
+                    gameState.score += 10
+                    break
+                }
+            }
+        }
+        
+        // Player-enemy collisions
+        for enemy in enemies {
+           gameState.wave >= 3 && Int.random(in: 0..<100) < 5 {
+            let x = CGFloat.random(in: 50..<750)
+            enemies.append(Enemy(x: x, y: -50))
+        }
+    }
+    
+    private func spawnBoss() {
+        // Spawn boss every 5 waves
+        if gameState.wave % 5 == 0 && gameState.wave > 0 && boss == nil && enemies.isEmpty {
+            boss = Boss(x: 400, y: -100, wave: gameState.wave)
+        }
+    }
+    
+    private func spawnAsteroids() {
+        if gameState.wave >= 3 &&r (collectibleIndex, collectible) in collectibles.enumerated() {
             if player.collidesWith(collectible) {
                 collectibles.remove(at: collectibleIndex)
                 gameState.coins += 1
@@ -137,6 +179,10 @@ class GameEngine {
         }
     }
     
+    func getBoss() -> Boss? {
+        return boss
+    }
+    
     func getGameState() -> GameState {
         return gameState
     }
@@ -159,7 +205,8 @@ class GameEngine {
     
     func getCollectibles() -> [Collectible] {
         return collectibles
-    }
+    }enemiesKilled: Int = 0
+    var 
 }
 
 // MARK: - Game State
@@ -214,6 +261,24 @@ class Player {
         
         let otherRect = CGRect(
             x: other.position.x - 15,
+    
+    func collidesWith(boss: Boss) -> Bool {
+        let playerRect = CGRect(
+            x: position.x - size.width / 2,
+            y: position.y - size.height / 2,
+            width: size.width,
+            height: size.height
+        )
+        
+        let bossRect = CGRect(
+            x: boss.position.x - boss.size.width / 2,
+            y: boss.position.y - boss.size.height / 2,
+            width: boss.size.width,
+            height: boss.size.height
+        )
+        
+        return playerRect.intersects(bossRect)
+    }
             y: other.position.y - 15,
             width: 30,
             height: 30
@@ -249,6 +314,47 @@ class Enemy {
         health -= damage
         if health <= 0 {
             isDead = true
+    
+    func collidesWith(boss: Boss) -> Bool {
+        let distance = hypot(position.x - boss.position.x, position.y - boss.position.y)
+        return distance < boss.size.width / 2
+    }
+}
+
+// MARK: - Boss Model
+class Boss {
+    var position: CGPoint
+    var velocity: CGPoint = .zero
+    var health: Int
+    var maxHealth: Int
+    var isDead: Bool = false
+    var size: CGSize = CGSize(width: 80, height: 80)
+    var speed: CGFloat = 100
+    var patternTime: Double = 0
+    
+    init(x: CGFloat, y: CGFloat, wave: Int) {
+        self.position = CGPoint(x: x, y: y)
+        self.maxHealth = 20 + wave * 3
+        self.health = maxHealth
+    }
+    
+    func update(deltaTime: Double, playerPosition: CGPoint) {
+        // Move down until at position
+        if position.y < 150 {
+            position.y += speed * CGFloat(deltaTime)
+        }
+        
+        // Sine wave movement
+        patternTime += deltaTime
+        position.x = 400 + sin(CGFloat(patternTime) * 2) * 100
+    }
+    
+    func takeDamage(_ damage: Int) {
+        health -= damage
+        if health <= 0 {
+            isDead = true
+        }
+    }
         }
     }
 }

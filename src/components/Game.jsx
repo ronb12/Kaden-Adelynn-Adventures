@@ -1310,6 +1310,20 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
         state.enemies.splice(index, 1)
       })
 
+    // Wave progression: advance wave every 50 enemies killed
+    if (!state.lastWaveMilestone) state.lastWaveMilestone = 0
+    const kills = state.currentKills || 0
+    const waveMilestone = Math.floor(kills / 50)
+    if (waveMilestone > state.lastWaveMilestone) {
+      state.lastWaveMilestone = waveMilestone
+      const newWave = state.wave + 1
+      state.wave = newWave
+      setWave(newWave)
+      state.showWaveAnnouncement = true
+      state.waveStartTime = Date.now()
+      playSound('levelUp', 0.4)
+    }
+
     // Enemy-player collisions
     if (!state.invulnerable && !state.shield) {
       const enemiesToRemove = []
