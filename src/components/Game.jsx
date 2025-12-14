@@ -44,6 +44,10 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     level: 1,
     shakeIntensity: 0,
     customization: {},
+    activePowerUps: {},
+    waveStartTime: Date.now(),
+    showWaveAnnouncement: false,
+    bossWaveNext: false,
   })
 
   const [score, setScore] = useState(0)
@@ -124,43 +128,119 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
   const drawEnemies = (ctx, state) => {
     state.enemies.forEach((enemy) => {
       ctx.save()
-      const isSilver = enemy.type === 'silver'
+      
+      // Determine visual style based on enemy type
+      let shadowColor = '#ff6666'
+      let primaryColor = '#ff3333'
+      let accentColor = '#ff9999'
+      let borderColor = '#ff6666'
+      let size = 30
+      let shape = 'triangle' // triangle, circle, diamond, square
+      
+      // Enemy type visuals
+      if (enemy.type === 'fast') {
+        // Fast enemies: magenta, smaller, lightning bolt shape
+        primaryColor = '#ff00ff'
+        shadowColor = '#ff00ff'
+        accentColor = '#ffaaff'
+        borderColor = '#ff00ff'
+        size = 25
+        shape = 'diamond'
+      } else if (enemy.type === 'tank') {
+        // Tank enemies: orange, larger, more health bars
+        primaryColor = '#ff9900'
+        shadowColor = '#ff9900'
+        accentColor = '#ffcc66'
+        borderColor = '#ff9900'
+        size = 35
+        shape = 'square'
+      } else if (enemy.type === 'shield') {
+        // Shielded enemies: cyan, with shield aura
+        primaryColor = '#00ffff'
+        shadowColor = '#00ffff'
+        accentColor = '#66ffff'
+        borderColor = '#00ffff'
+        size = 32
+        shape = 'circle'
+      } else if (enemy.isSilver) {
+        // Silver enemies: white/silver
+        primaryColor = '#e8e8e8'
+        shadowColor = '#e0e0e0'
+        accentColor = '#ffffff'
+        borderColor = '#c0c0c0'
+        size = 30
+        shape = 'triangle'
+      } else {
+        // Normal enemies: red
+        primaryColor = '#ff3333'
+        shadowColor = '#ff6666'
+        accentColor = '#ff9999'
+        borderColor = '#ff6666'
+        size = 30
+        shape = 'triangle'
+      }
       
       // Enhanced glow
       ctx.shadowBlur = 12
-      ctx.shadowColor = isSilver ? '#e0e0e0' : '#ff6666'
+      ctx.shadowColor = shadowColor
       
-      if (isSilver) {
-        const grad = ctx.createLinearGradient(enemy.x, enemy.y, enemy.x + 30, enemy.y + 30)
-        grad.addColorStop(0, '#e8e8e8')
-        grad.addColorStop(0.5, '#b0b0b0')
-        grad.addColorStop(1, '#c0c0c0')
-        ctx.fillStyle = grad
-        ctx.strokeStyle = '#c0c0c0'
-        ctx.lineWidth = 3
-      } else {
-        const redGrad = ctx.createLinearGradient(enemy.x, enemy.y, enemy.x + 30, enemy.y + 30)
-        redGrad.addColorStop(0, '#ff3333')
-        redGrad.addColorStop(1, '#cc0000')
-        ctx.fillStyle = redGrad
-        ctx.strokeStyle = '#ff6666'
-        ctx.lineWidth = 2.5
-      }
-
+      // Draw gradient background
+      const grad = ctx.createLinearGradient(enemy.x, enemy.y, enemy.x + size, enemy.y + size)
+      grad.addColorStop(0, primaryColor)
+      grad.addColorStop(1, accentColor)
+      ctx.fillStyle = grad
+      ctx.strokeStyle = borderColor
+      ctx.lineWidth = 2.5
+      
+      // Draw enemy shape based on type
       ctx.beginPath()
-      ctx.moveTo(enemy.x + 15, enemy.y)
-      ctx.lineTo(enemy.x + 5, enemy.y + 25)
-      ctx.lineTo(enemy.x + 25, enemy.y + 25)
+      if (shape === 'triangle') {
+        ctx.moveTo(enemy.x + size / 2, enemy.y)
+        ctx.lineTo(enemy.x + 5, enemy.y + size - 5)
+        ctx.lineTo(enemy.x + size - 5, enemy.y + size - 5)
+      } else if (shape === 'diamond') {
+        ctx.moveTo(enemy.x + size / 2, enemy.y)
+        ctx.lineTo(enemy.x + size, enemy.y + size / 2)
+        ctx.lineTo(enemy.x + size / 2, enemy.y + size)
+        ctx.lineTo(enemy.x, enemy.y + size / 2)
+      } else if (shape === 'square') {
+        ctx.rect(enemy.x, enemy.y, size, size)
+      } else if (shape === 'circle') {
+        ctx.arc(enemy.x + size / 2, enemy.y + size / 2, size / 2, 0, Math.PI * 2)
+      }
       ctx.closePath()
       ctx.fill()
       ctx.stroke()
 
-      // Enhanced core glow
+      // Draw shield aura for shielded enemies
+      if (enemy.type === 'shield') {
+        ctx.strokeStyle = `rgba(0, 255, 255, 0.5)`
+        ctx.lineWidth = 1
+        ctx.beginPath()
+        ctx.arc(enemy.x + size / 2, enemy.y + size / 2, size / 2 + 8, 0, Math.PI * 2)
+        ctx.stroke()
+      }
+
+      // Enhanced core glow (health indicator)
       ctx.shadowBlur = 8
-      ctx.fillStyle = isSilver ? '#ffffff' : '#ff9999'
+      ctx.fillStyle = accentColor
+      const healthPercent = Math.min(1, enemy.health / (enemy.type === 'tank' ? 3 : enemy.type === 'shield' ? 2 : 1))
+      ctx.globalAlpha = healthPercent
       ctx.beginPath()
-      ctx.arc(enemy.x + 15, enemy.y + 8, 4, 0, Math.PI * 2)
+      ctx.arc(enemy.x + size / 2, enemy.y + size / 3, 4, 0, Math.PI * 2)
       ctx.fill()
+      ctx.globalAlpha = 1
+      
+      // Draw health bars for multi-health enemies
+      if (enemy.health > 1) {
+        ctx.fillStyle = primaryColor
+        ctx.strokeStyle = borderColor
+        ctx.lineWidth = 1
+        const barWidth = size
+        const barHeight = 2
+        ctx.strokeRect(enemy.x, enemy.y - 6, barWidth, barHeight)
+        ctx.fillRect(enemy.x, enemy.y - 6, barWidth * healthPercent, barHeight)
+      }
 
       ctx.restore()
     })
@@ -177,6 +257,24 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       const color = bullet.color || (bullet.owner === 'player' ? '#00ffff' : '#ff3333')
       const bw = bullet.width || 5
       const bh = bullet.height || 10
+
+      // Draw bullet trail
+      if (bullet.trailLength && bullet.trailLength.length > 1) {
+        ctx.strokeStyle = color
+        ctx.globalAlpha = 0.4
+        ctx.lineWidth = bw * 0.8
+        ctx.lineCap = 'round'
+        ctx.lineJoin = 'round'
+        ctx.beginPath()
+        ctx.moveTo(bullet.trailLength[0].x, bullet.trailLength[0].y)
+        for (let j = 1; j < bullet.trailLength.length; j++) {
+          const alpha = j / bullet.trailLength.length
+          ctx.globalAlpha = 0.3 * alpha
+          ctx.lineTo(bullet.trailLength[j].x, bullet.trailLength[j].y)
+        }
+        ctx.stroke()
+        ctx.globalAlpha = 1
+      }
 
       // Enhanced glow effect for bullets
       ctx.shadowBlur = 10
@@ -277,19 +375,63 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     let spawnRate = baseRate / difficultyModifier()
 
     if (now - state.lastEnemySpawn > spawnRate) {
+      // Wave announcement on new waves
+      if (state.enemiesSpawned === 0 || (state.enemiesSpawned > 0 && state.enemies.length === 0 && state.enemiesSpawned > state.wave * 5)) {
+        state.showWaveAnnouncement = true
+        state.waveStartTime = now
+        playSound('level-complete', 0.2)
+      }
+
       const patternsEarly = ['normal', 'zigzag']
       const patternsMore = ['normal', 'zigzag', 'sway', 'dash']
       const pool = state.wave < 3 ? patternsEarly : patternsMore
       const pattern = pool[Math.floor(Math.random() * pool.length)]
+      
+      // Enhanced enemy variety
+      const enemyTypeRoll = Math.random()
+      let enemyType = 'normal'
+      let health = 1
+      let speedMult = 1
+      let color = '#ff0000'
+
+      if (state.wave >= 5 && enemyTypeRoll < 0.15) {
+        // Fast weak enemies
+        enemyType = 'fast'
+        health = 1
+        speedMult = 2.2
+        color = '#ff00ff'
+      } else if (state.wave >= 3 && enemyTypeRoll < 0.25) {
+        // Tank enemies
+        enemyType = 'tank'
+        health = 3
+        speedMult = 0.6
+        color = '#ffaa00'
+      } else if (state.wave >= 4 && enemyTypeRoll < 0.35) {
+        // Shielded
+        enemyType = 'shield'
+        health = 2
+        speedMult = 1.1
+        color = '#00ffff'
+      } else {
+        // Default
+        health = state.wave < 3 ? 1 : 2
+        speedMult = 1
+        color = Math.random() > 0.7 ? '#ffff00' : '#ff0000'
+      }
+
+      const baseSpeed = difficultyModifier() * speedMult
       const baseSilverChance = state.wave >= 4 ? 0.4 : 0.25
       const isSilver = Math.random() < baseSilverChance
+      
       const enemy = {
         x: Math.random() * (canvas.width - 30) + 15,
         y: -30,
-        speed: difficultyModifier() * (isSilver ? 0.95 : state.wave < 3 ? 1.0 : 1.3),
+        speed: baseSpeed * (isSilver ? 0.95 : state.wave < 3 ? 1.0 : 1.3),
         pattern,
-        health: isSilver ? 4 : state.wave < 3 ? 1 : 2,
-        type: isSilver ? 'silver' : 'red',
+        health: isSilver ? 4 : health,
+        type: enemyType,
+        color: color,
+        isSilver: isSilver,
       }
       state.enemies.push(enemy)
       state.enemiesSpawned++
@@ -380,6 +522,32 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     })
   }
 
+  const updateParticles = (state) => {
+    if (!state.particles) return
+    state.particles = state.particles.filter((p) => {
+      p.x += p.vx
+      p.y += p.vy
+      p.vy += 0.15
+      p.life--
+      return p.life > 0
+    })
+    
+    // Decay screen shake
+    state.shakeIntensity = Math.max(0, state.shakeIntensity - 0.15)
+  }
+
+  const drawParticles = (ctx, state) => {
+    if (!state.particles) return
+    state.particles.forEach((p) => {
+      ctx.fillStyle = p.color
+      ctx.globalAlpha = p.life / 60
+      ctx.beginPath()
+      ctx.arc(p.x, p.y, p.size || 2, 0, Math.PI * 2)
+      ctx.fill()
+    })
+    ctx.globalAlpha = 1
+  }
+
   const drawAsteroids = (ctx, state) => {
     if (!state.asteroids) return
     state.asteroids.forEach((ast) => {
@@ -425,39 +593,72 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       if (p.type === 'coin') {
         ctx.save()
         
-        // Pulsing glow effect
-        const glow = Math.sin(Date.now() / 150 + p.x) * 3 + 8
+        // Advanced pulsing glow with rotation
+        const glow = Math.sin(Date.now() / 150 + p.x) * 4 + 10
+        const rotation = (Date.now() / 20) % (Math.PI * 2)
+        
+        // Outer glow layer
+        ctx.shadowBlur = glow + 4
+        ctx.shadowColor = 'rgba(255, 237, 74, 0.6)'
+        ctx.fillStyle = 'rgba(255, 237, 74, 0.2)'
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.width / 1.5, 0, Math.PI * 2)
+        ctx.fill()
+        
+        // Main glow
         ctx.shadowBlur = glow
         ctx.shadowColor = '#ffed4e'
         
-        // Coin gradient
-        const coinGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.width / 2)
-        coinGrad.addColorStop(0, '#ffff99')
-        coinGrad.addColorStop(0.5, '#ffd700')
+        // Coin gradient with 3D effect
+        const coinGrad = ctx.createRadialGradient(p.x - 2, p.y - 2, 0, p.x, p.y, p.width / 2)
+        coinGrad.addColorStop(0, '#fffacd')
+        coinGrad.addColorStop(0.4, '#ffed4e')
+        coinGrad.addColorStop(0.7, '#ffd700')
         coinGrad.addColorStop(1, '#daa500')
         ctx.fillStyle = coinGrad
         ctx.beginPath()
         ctx.arc(p.x, p.y, p.width / 2, 0, Math.PI * 2)
         ctx.fill()
         
-        // Outer ring
-        ctx.strokeStyle = '#ffed4e'
-        ctx.lineWidth = 2
+        // Rotating outer ring for depth
+        ctx.shadowBlur = 0
+        ctx.strokeStyle = '#fff9e6'
+        ctx.lineWidth = 2.5
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.width / 2, 0, Math.PI * 2)
         ctx.stroke()
         
-        // Inner highlight
-        ctx.shadowBlur = 0
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
+        // Inner bright highlight
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
+        const highlightSize = p.width / 5
         ctx.beginPath()
-        ctx.arc(p.x - p.width / 6, p.y - p.width / 6, p.width / 6, 0, Math.PI * 2)
+        ctx.arc(p.x - p.width / 5, p.y - p.width / 5, highlightSize, 0, Math.PI * 2)
         ctx.fill()
         
-        // Dollar sign
+        // Second highlight for sparkle
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)'
+        ctx.beginPath()
+        ctx.arc(p.x + p.width / 6, p.y + p.width / 6, highlightSize * 0.6, 0, Math.PI * 2)
+        ctx.fill()
+        
+        // Dollar sign with glow
+        ctx.shadowBlur = 4
+        ctx.shadowColor = 'rgba(255, 107, 0, 0.8)'
         ctx.fillStyle = '#ff6b00'
-        ctx.font = 'bold 8px Arial'
+        ctx.font = 'bold 10px Arial'
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
         ctx.fillText('$', p.x, p.y)
+        
+        // Optional: Rotate the coin for 3D feel
+        ctx.globalAlpha = 0.3
+        ctx.strokeStyle = '#ffa500'
+        ctx.lineWidth = 1
+        ctx.beginPath()
+        const oscilate = Math.sin(Date.now() / 300) * (p.width / 3)
+        ctx.arc(p.x, p.y, Math.abs(oscilate), 0, Math.PI * 2)
+        ctx.stroke()
+        ctx.globalAlpha = 1
         
         ctx.restore()
       }
@@ -576,6 +777,8 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
 
             if (enemy.health <= 0) {
               enemiesToRemove.push(j)
+              // Create explosion effect with enemy type
+              createExplosion(state, enemy.x + 15, enemy.y + 15, 'medium', enemy.type)
             }
             break
           }
@@ -609,6 +812,9 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
           setHealth((h) => {
             const newHealth = h - 1
             if (newHealth <= 0) {
+              addScreenShake(state, 4)
+              createExplosion(state, state.player.x + state.player.width / 2, state.player.y, 'large')
+              playSound('hit', 0.3)
               setLives((l) => Math.max(0, l - 1))
               state.invulnerable = true
               if (state.invulnerableTimer) {
@@ -721,6 +927,7 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
 
     const timeScale = Math.min(state.deltaTime / 16.67, 2)
     const MAX_BULLETS = 300
+    const now = Date.now()
 
     state.bullets = state.bullets.filter((bullet) => {
       if (typeof bullet.vx === 'number' || typeof bullet.vy === 'number') {
@@ -734,6 +941,20 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       } else {
         bullet.y -= bullet.speed * timeScale
       }
+      
+      // Add trail points every 4ms
+      if (!bullet.trailLength) bullet.trailLength = []
+      if (!bullet.lastTrailTime) bullet.lastTrailTime = now
+      
+      if (now - bullet.lastTrailTime > 4) {
+        if (!bullet.trailLength) bullet.trailLength = []
+        bullet.trailLength.push({ x: bullet.x, y: bullet.y, age: 0 })
+        if (bullet.trailLength.length > 15) {
+          bullet.trailLength.shift()
+        }
+        bullet.lastTrailTime = now
+      }
+      
       return (
         bullet.y > -20 &&
         bullet.y < canvas.height + 20 &&
@@ -764,9 +985,53 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       ...baseBullet,
       x: state.player.x + state.player.width / 2,
       color: '#00ffff',
+      trailLength: [],
+      lastTrailTime: Date.now(),
     })
 
     state.shotsFired++
+  }
+
+  const createExplosion = (state, x, y, size = 'small', enemyType = 'normal') => {
+    let particleCount = size === 'small' ? 6 : size === 'medium' ? 12 : 20
+    let colors = ['#ffaa00', '#ff6600']
+    let velocity = size === 'small' ? 3 : size === 'medium' ? 5 : 7
+    
+    // Adjust particles and colors based on enemy type
+    if (enemyType === 'fast') {
+      colors = ['#ff00ff', '#ff66ff', '#aa00ff']
+      particleCount = Math.ceil(particleCount * 0.8) // Fewer particles for fast
+    } else if (enemyType === 'tank') {
+      colors = ['#ff9900', '#ffcc66', '#ff6600']
+      particleCount = Math.ceil(particleCount * 1.3) // More particles for tank
+      velocity *= 1.1
+    } else if (enemyType === 'shield') {
+      colors = ['#00ffff', '#66ffff', '#00aa99']
+      particleCount = Math.ceil(particleCount * 1.2)
+    } else if (enemyType === 'silver' || size === 'large') {
+      colors = ['#ffffff', '#e0e0e0', '#ffff99']
+    }
+    
+    for (let i = 0; i < particleCount; i++) {
+      const angle = (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 0.5
+      const vel = velocity + (Math.random() - 0.5) * 2
+      const color = colors[Math.floor(Math.random() * colors.length)]
+      state.particles.push({
+        x,
+        y,
+        vx: Math.cos(angle) * vel,
+        vy: Math.sin(angle) * vel,
+        life: 60,
+        maxLife: 60,
+        color: color,
+        size: size === 'small' ? 2 : size === 'medium' ? 3 : 4,
+      })
+    }
+    state.shakeIntensity = Math.min(5, state.shakeIntensity + (size === 'small' ? 0.5 : size === 'medium' ? 1.5 : 2))
+  }
+
+  const addScreenShake = (state, intensity) => {
+    state.shakeIntensity = Math.min(8, state.shakeIntensity + intensity)
   }
 
   const updatePlayer = (state) => {
@@ -808,8 +1073,18 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       state.lastMusicCheck = now
     }
 
+    // Apply screen shake effect
+    let shakeX = 0
+    let shakeY = 0
+    if (state.shakeIntensity > 0) {
+      shakeX = (Math.random() - 0.5) * state.shakeIntensity * 2
+      shakeY = (Math.random() - 0.5) * state.shakeIntensity * 2
+    }
+
     ctx.fillStyle = '#000'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
+    ctx.save()
+    ctx.translate(shakeX, shakeY)
 
     if (!paused) {
       updatePlayer(state)
@@ -820,6 +1095,7 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       spawnAsteroids(state)
       updateAsteroids(state)
       updateEnemies(state)
+      updateParticles(state)
       checkCollisions(state)
     }
 
@@ -827,6 +1103,7 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     drawPlayer(ctx, state)
     drawEnemies(ctx, state)
     drawBullets(ctx, state)
+    drawParticles(ctx, state)
     drawCollectibles(ctx, state)
 
     // Draw enemy bullets
@@ -835,7 +1112,22 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       ctx.fillRect(b.x, b.y, b.width || 3, b.height || 8)
     })
 
+    ctx.restore()
     drawUI(ctx, state)
+
+    // Wave announcement
+    const waveDuration = 3000
+    if (state.showWaveAnnouncement && Date.now() - state.waveStartTime < waveDuration) {
+      const elapsed = Date.now() - state.waveStartTime
+      const alpha = Math.min(1, elapsed / 500) * Math.min(1, (waveDuration - elapsed) / 500)
+      ctx.globalAlpha = alpha
+      ctx.fillStyle = '#ffff00'
+      ctx.font = 'bold 48px Arial'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(`WAVE ${state.wave}`, canvas.width / 2, canvas.height / 2)
+      ctx.globalAlpha = 1
+    }
 
     if (!paused) {
       requestAnimationFrame(() => gameLoop(state))
