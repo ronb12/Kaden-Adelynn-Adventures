@@ -217,6 +217,18 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
 
     placeItem('$', state.coins, '#ffd700')
     placeItem('KILL', state.currentKills || 0, '#95a5a6')
+    
+    // Additional UI items
+    ctx.font = isMobile ? 'bold 10px Arial' : 'bold 11px Arial'
+    placeItem('W', state.wave, '#ffd700')
+    placeItem('L', state.level, '#ffd700')
+    
+    if (combo > 0) {
+      const pulse = Math.sin(Date.now() / 100) * 0.3 + 0.7
+      placeItem('⚡', combo, `rgba(255, 215, 0, ${pulse})`)
+    }
+    
+    placeItem('⚔', state.currentWeapon.toUpperCase().slice(0, 3), '#4ecdc4')
   }
 
   const spawnEnemies = (state) => {
@@ -316,6 +328,19 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
         state.lastAsteroidSpawn = now
       }
     }
+  }
+
+  const updateAsteroids = (state) => {
+    const canvas = canvasRef.current
+    if (!canvas || !state.asteroids) return
+
+    const timeScale = Math.min(state.deltaTime / 16.67, 2)
+
+    state.asteroids = state.asteroids.filter((ast) => {
+      ast.y += ast.speed * timeScale
+      ast.rotation += ast.rotationSpeed * timeScale
+      return ast.y < canvas.height + 50
+    })
   }
 
   const drawAsteroids = (ctx, state) => {
@@ -708,6 +733,7 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       spawnEnemies(state)
       spawnCollectibles(state)
       spawnAsteroids(state)
+      updateAsteroids(state)
       updateEnemies(state)
       checkCollisions(state)
     }
@@ -770,14 +796,46 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       state.keys[e.key] = false
     }
 
+    // Touch controls for mobile
+    const handleTouchStart = (e) => {
+      if (!e.touches) return
+      const touch = e.touches[0]
+      const canvas = canvasRef.current
+      if (!canvas) return
+      
+      const rect = canvas.getBoundingClientRect()
+      const touchX = touch.clientX - rect.left
+      const touchY = touch.clientY - rect.top
+      
+      // Left half = move left, right half = move right
+      if (touchX < canvas.width / 2) {
+        state.keys['a'] = true // Move left
+      } else {
+        state.keys['d'] = true // Move right
+      }
+      
+      // Enable rapid fire on touch
+      state.keys[' '] = true
+    }
+
+    const handleTouchEnd = () => {
+      state.keys['a'] = false
+      state.keys['d'] = false
+      state.keys[' '] = false
+    }
+
     window.addEventListener('keydown', handleKeyDown)
     window.addEventListener('keyup', handleKeyUp)
+    canvas.addEventListener('touchstart', handleTouchStart)
+    canvas.addEventListener('touchend', handleTouchEnd)
 
     gameLoop(state)
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)
+      canvas.removeEventListener('touchstart', handleTouchStart)
+      canvas.removeEventListener('touchend', handleTouchEnd)
       window.removeEventListener('resize', resizeCanvas)
       timeoutRefs.current.forEach(clearTimeout)
     }
