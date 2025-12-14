@@ -56,13 +56,13 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
   const [enemiesKilled, setEnemiesKilled] = useState(0)
   const [paused, setPaused] = useState(false)
   const [health, setHealth] = useState(100)
-  const [lives, setLives] = useState(3)
+  const [lives, setLives] = useState(25)
   const [wave, setWave] = useState(1)
   const [level, setLevel] = useState(1)
   const [coins, setCoins] = useState(0)
   const [unlockedAchievements, setUnlockedAchievements] = useState({})
   const healthRef = useRef(100)
-  const livesRef = useRef(3)
+  const livesRef = useRef(25)
   const timeoutRefs = useRef([])
   const playerInput = useRef({ x: 0, y: 0, firing: false })
 
@@ -342,28 +342,28 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
 
     // Row 1: Score, Lives, HP, Coins
     const currentScore = state.currentScore || score
-    placeItem('⭐', currentScore.toString().padStart(6, '0'), '#ffd700')
-    placeItem('❤', livesRef.current, '#ff6b6b')
+    placeItem('⭐ SCORE', currentScore.toString().padStart(6, '0'), '#ffd700')
+    placeItem('❤ LIVES', livesRef.current, '#ff6b6b')
     
     const healthValue = Math.round(Math.max(0, Math.min(100, healthRef.current)))
     const healthColor = healthValue <= 25 ? '#ff3333' : healthValue <= 50 ? '#ff9900' : '#00ff00'
-    placeItem('♥', healthValue + '%', healthColor)
+    placeItem('♥ HP', healthValue + '%', healthColor)
 
-    placeItem('💰', state.coins, '#ffd700')
+    placeItem('💰 COINS', state.coins, '#ffd700')
 
     // Row 2: Kills, Wave, Combo, Weapon
-    placeItem('🎯', state.currentKills || 0, '#00ffff')
-    placeItem('W', state.wave, '#ff00ff')
+    placeItem('🎯 KILLS', state.currentKills || 0, '#00ffff')
+    placeItem('W WAVE', state.wave, '#ff00ff')
     
     if (combo > 0) {
       const pulse = Math.sin(Date.now() / 100) * 0.4 + 0.6
-      placeItem('⚡', combo, `rgba(255, 215, 0, ${pulse})`)
+      placeItem('⚡ COMBO', combo, `rgba(255, 215, 0, ${pulse})`)
     } else {
-      placeItem('⚡', '0', '#666666')
+      placeItem('⚡ COMBO', '0', '#666666')
     }
     
     const wpn = state.currentWeapon.toUpperCase().slice(0, 3)
-    placeItem('⚔', wpn, '#00ff99')
+    placeItem('⚔ WPN', wpn, '#00ff99')
   }
 
   const spawnBoss = (state) => {
@@ -542,8 +542,8 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
               x: popup.x,
               y: popup.y,
               type: 'coin',
-              width: 10,
-              height: 10,
+              width: 14,
+              height: 14,
               vy: -2,
             })
           } else if (roll < 0.43) {
@@ -552,8 +552,8 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
               x: popup.x,
               y: popup.y,
               type: 'health',
-              width: 12,
-              height: 12,
+              width: 16,
+              height: 16,
               vy: -1.5,
             })
           } else if (roll < 0.50) {
@@ -562,8 +562,8 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
               x: popup.x,
               y: popup.y,
               type: 'shield',
-              width: 14,
-              height: 14,
+              width: 18,
+              height: 18,
               vy: -1.5,
             })
           } else if (roll < 0.56) {
@@ -572,8 +572,8 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
               x: popup.x,
               y: popup.y,
               type: 'damage',
-              width: 12,
-              height: 12,
+              width: 16,
+              height: 16,
               vy: -1.5,
             })
           } else {
@@ -584,8 +584,8 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
               y: popup.y,
               type: 'weapon',
               weapon: randomWeapon,
-              width: 13,
-              height: 13,
+              width: 17,
+              height: 17,
               vy: -1.8,
             })
           }
