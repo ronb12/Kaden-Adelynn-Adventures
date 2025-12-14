@@ -313,20 +313,20 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     ctx.lineTo(cw, barH)
     ctx.stroke()
 
-    ctx.font = isMobile ? 'bold 8px "Courier New"' : 'bold 10px "Courier New"'
-    const lineHeight = 20
+    ctx.font = isMobile ? 'bold 9px "Courier New"' : 'bold 11px "Courier New"'
+    const lineHeight = 22
     let row = 0
     let col = 0
     const colWidth = cw / 4
-    const padding = 4
+    const padding = 8
     
     const placeItem = (label, value, color) => {
-      const y = padding + 2 + row * lineHeight
-      const x = 8 + col * colWidth
+      const y = padding + 3 + row * lineHeight
+      const x = 40 + col * colWidth
       
       // Text shadow for better visibility
       ctx.shadowColor = 'rgba(0, 0, 0, 0.8)'
-      ctx.shadowBlur = 2
+      ctx.shadowBlur = 3
       ctx.shadowOffsetX = 1
       ctx.shadowOffsetY = 1
       ctx.fillStyle = color
@@ -342,34 +342,33 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
 
     // Row 1: Score, Lives, HP, Coins
     const currentScore = state.currentScore || score
-    placeItem('SC', currentScore.toString().padStart(6, '0'), '#ffd700')
-    placeItem('LV', livesRef.current, '#ff6b6b')
+    placeItem('⭐ SCORE', currentScore.toString().padStart(6, '0'), '#ffd700')
+    placeItem('❤ LIVES', livesRef.current, '#ff6b6b')
     
     const healthValue = Math.round(Math.max(0, Math.min(100, healthRef.current)))
     const healthColor = healthValue <= 25 ? '#ff3333' : healthValue <= 50 ? '#ff9900' : '#00ff00'
-    placeItem('HP', healthValue + '%', healthColor)
+    placeItem('♥ HP', healthValue + '%', healthColor)
 
-    placeItem('$$', state.coins, '#ffd700')
+    placeItem('💰 COINS', state.coins, '#ffd700')
 
     // Row 2: Kills, Wave, Combo, Weapon
-    placeItem('KL', state.currentKills || 0, '#00ffff')
-    placeItem('W', state.wave, '#ff00ff')
+    placeItem('🎯 KILLS', state.currentKills || 0, '#00ffff')
+    placeItem('W WAVE', state.wave, '#ff00ff')
     
     if (combo > 0) {
       const pulse = Math.sin(Date.now() / 100) * 0.4 + 0.6
-      placeItem('CB', combo, `rgba(255, 215, 0, ${pulse})`)
+      placeItem('⚡ COMBO', combo, `rgba(255, 215, 0, ${pulse})`)
     } else {
-      placeItem('CB', '0', '#666666')
+      placeItem('⚡ COMBO', '0', '#666666')
     }
     
     const wpn = state.currentWeapon.charAt(0).toUpperCase() + state.currentWeapon.slice(1).toLowerCase()
-    const wpnShort = wpn.length > 8 ? wpn.slice(0, 8) : wpn
-    placeItem('WP', wpnShort, '#00ff99')
+    placeItem('⚔ WPN', wpn, '#00ff99')
     
     // Row 3: Shooting accuracy
     const accuracy = state.shotsFired > 0 ? Math.round((state.shotsHit / state.shotsFired) * 100) : 0
     const accColor = accuracy >= 75 ? '#00ff00' : accuracy >= 50 ? '#ffff00' : '#ff6b6b'
-    placeItem('AC', accuracy + '%', accColor)
+    placeItem('🎯 ACC', accuracy + '%', accColor)
   }
 
   const spawnBoss = (state) => {
