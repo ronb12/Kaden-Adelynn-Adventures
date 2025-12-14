@@ -1984,10 +1984,13 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       
       const rect = canvas.getBoundingClientRect()
       const touchX = touch.clientX - rect.left
+      const touchY = touch.clientY - rect.top
       
-      // Direct position mapping: touch X position maps to player X position
+      // Direct position mapping: touch position maps to player position (full 2D control)
       const playerX = (touchX / rect.width) * canvas.width
+      const playerY = (touchY / rect.height) * canvas.height
       state.player.x = Math.max(state.player.width / 2, Math.min(canvas.width - state.player.width / 2, playerX))
+      state.player.y = Math.max(state.player.height / 2, Math.min(canvas.height - state.player.height / 2, playerY))
       
       // Enable rapid fire on touch
       state.keys[' '] = true
@@ -2002,10 +2005,13 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       
       const rect = canvas.getBoundingClientRect()
       const touchX = touch.clientX - rect.left
+      const touchY = touch.clientY - rect.top
       
-      // Continuous movement - directly follow touch position with smooth mapping
+      // Continuous movement - directly follow touch position with smooth mapping (full 2D)
       const playerX = (touchX / rect.width) * canvas.width
+      const playerY = (touchY / rect.height) * canvas.height
       state.player.x = Math.max(state.player.width / 2, Math.min(canvas.width - state.player.width / 2, playerX))
+      state.player.y = Math.max(state.player.height / 2, Math.min(canvas.height - state.player.height / 2, playerY))
       
       // Keep firing while moving
       state.keys[' '] = true
