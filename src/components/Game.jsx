@@ -386,8 +386,8 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     const isMobile = cw < 520
     // More compact bar for mobile to prevent overflow
     const barH = isMobile ? (cw < 400 ? 42 : 52) : 70
-    // Add top margin on mobile to avoid notch/safe area
-    const topMargin = isMobile ? 20 : 0
+    // Increase top margin on mobile to avoid notch/safe area - more space needed for iPhone notch
+    const topMargin = isMobile ? 35 : 0
 
     // Enhanced scoreboard background with gradient
     const bgGrad = ctx.createLinearGradient(0, topMargin, 0, topMargin + barH)
