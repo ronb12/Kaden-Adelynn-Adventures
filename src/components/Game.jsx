@@ -72,6 +72,44 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     return difficulty === 'easy' ? 1 : difficulty === 'medium' ? 1.5 : 2
   }
 
+  const getWeaponColor = (weapon) => {
+    // Map weapons to their visual colors
+    const weaponColors = {
+      laser: '#00ffff',
+      spread: '#ffd700',
+      plasma: '#ff00ff',
+      missile: '#ff6600',
+      shotgun: '#ffaa00',
+      flamethrower: '#ff4400',
+      freeze: '#00aaff',
+      electric: '#ffff00',
+      poison: '#00ff00',
+      explosive: '#ff0000',
+      piercing: '#ff1493',
+      homing: '#00ff99',
+      bounce: '#ffccaa',
+      beam: '#00ccff',
+      laserRifle: '#0088ff',
+      minigun: '#888888',
+      railgun: '#00ffff',
+      cluster: '#ffaaff',
+      shockwave: '#ffff99',
+      flak: '#ccaa00',
+      cryo: '#00ccff',
+      plasma_rifle: '#ff00ff',
+      rocket: '#ff6600',
+      acid: '#00ff00',
+      laserBeam: '#00ddff',
+      grenade: '#ff9900',
+      sniper: '#0099ff',
+      machinegun: '#999999',
+      volcano: '#ff3300',
+      nuclear: '#ffff00',
+      ultimate: '#ff00ff',
+    }
+    return weaponColors[weapon] || '#00ffff'
+  }
+
   const drawPlayer = (ctx, state) => {
     ctx.save()
     let baseShipColor = '#4ecdc4'
@@ -548,9 +586,9 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
               x: popup.x,
               y: popup.y,
               type: 'coin',
-              width: 14,
-              height: 14,
-              vy: -2,
+              width: 20,
+              height: 20,
+              vy: -0.8,
             })
           } else if (roll < 0.43) {
             // 8% - health power-up
@@ -558,9 +596,9 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
               x: popup.x,
               y: popup.y,
               type: 'health',
-              width: 16,
-              height: 16,
-              vy: -1.5,
+              width: 24,
+              height: 24,
+              vy: -0.6,
             })
           } else if (roll < 0.50) {
             // 7% - shield power-up
@@ -568,9 +606,9 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
               x: popup.x,
               y: popup.y,
               type: 'shield',
-              width: 18,
-              height: 18,
-              vy: -1.5,
+              width: 27,
+              height: 27,
+              vy: -0.6,
             })
           } else if (roll < 0.56) {
             // 6% - damage boost
@@ -578,9 +616,9 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
               x: popup.x,
               y: popup.y,
               type: 'damage',
-              width: 16,
-              height: 16,
-              vy: -1.5,
+              width: 24,
+              height: 24,
+              vy: -0.6,
             })
           } else {
             // 44% - weapon collectible
@@ -590,9 +628,9 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
               y: popup.y,
               type: 'weapon',
               weapon: randomWeapon,
-              width: 17,
-              height: 17,
-              vy: -1.8,
+              width: 25,
+              height: 25,
+              vy: -0.7,
             })
           }
           toRemove.push(i)
@@ -1547,7 +1585,7 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     state.bullets.push({
       ...baseBullet,
       x: state.player.x + state.player.width / 2,
-      color: '#00ffff',
+      color: getWeaponColor(state.currentWeapon),
       trailLength: [],
       lastTrailTime: Date.now(),
     })
