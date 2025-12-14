@@ -191,6 +191,7 @@ kaden-adelynn-space-adventures/
 │   ├── sfx/                 # Sound effects
 │   └── ...
 ├── firebase.json            # Firebase configuration
+├── docs/                    # Consolidated documentation (security, gameplay, music)
 └── package.json             # Dependencies
 ```
 
@@ -244,6 +245,12 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 <div align="center">
 
 **Made with React, Vite, and lots of fun! 🎮**
+
+Documentation lives in `docs/`:
+- Bug fixes: `docs/BUG_FIXES.md`
+- Security: `docs/SECURITY.md`, `docs/RESOLVE_SECURITY_ALERT.md`
+- Gameplay tuning: `docs/DIFFICULTY_SCALING.md`, `docs/FORMATION_SYSTEM.md`
+- Audio setup: `docs/MUSIC_SETUP.md`
 
 [⭐ Star this repo](https://github.com/ronb12/Kaden-Adelynn-Adventures) if you enjoy the game!
 
