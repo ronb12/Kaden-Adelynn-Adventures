@@ -84,13 +84,20 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     const accentColor = baseAccentColor
 
     if (state.invulnerable) {
-      ctx.globalAlpha = 0.5
+      ctx.globalAlpha = 0.6 + Math.sin(Date.now() / 200) * 0.2
     }
 
-    ctx.shadowBlur = 8
+    // Enhanced glow effect
+    ctx.shadowBlur = 15
     ctx.shadowColor = accentColor
+    ctx.shadowOffsetX = 0
+    ctx.shadowOffsetY = 0
 
-    ctx.fillStyle = shipColor
+    // Main ship body gradient
+    const shipGrad = ctx.createLinearGradient(state.player.x, state.player.y, state.player.x, state.player.y + state.player.height)
+    shipGrad.addColorStop(0, shipColor)
+    shipGrad.addColorStop(1, '#1a7f7a')
+    ctx.fillStyle = shipGrad
     ctx.beginPath()
     ctx.moveTo(state.player.x + state.player.width / 2, state.player.y)
     ctx.lineTo(state.player.x + state.player.width, state.player.y + state.player.height - 10)
@@ -100,7 +107,10 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     ctx.closePath()
     ctx.fill()
 
+    // Glowing cockpit
     ctx.fillStyle = accentColor
+    ctx.shadowColor = accentColor
+    ctx.shadowBlur = 8
     ctx.fillRect(
       state.player.x + state.player.width * 0.35,
       state.player.y + state.player.height * 0.5,
@@ -115,18 +125,26 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     state.enemies.forEach((enemy) => {
       ctx.save()
       const isSilver = enemy.type === 'silver'
+      
+      // Enhanced glow
+      ctx.shadowBlur = 12
+      ctx.shadowColor = isSilver ? '#e0e0e0' : '#ff6666'
+      
       if (isSilver) {
         const grad = ctx.createLinearGradient(enemy.x, enemy.y, enemy.x + 30, enemy.y + 30)
-        grad.addColorStop(0, '#c0c0c0')
-        grad.addColorStop(0.5, '#8f8f8f')
-        grad.addColorStop(1, '#e0e0e0')
+        grad.addColorStop(0, '#e8e8e8')
+        grad.addColorStop(0.5, '#b0b0b0')
+        grad.addColorStop(1, '#c0c0c0')
         ctx.fillStyle = grad
-        ctx.strokeStyle = '#9e9e9e'
-        ctx.lineWidth = 2.5
+        ctx.strokeStyle = '#c0c0c0'
+        ctx.lineWidth = 3
       } else {
-        ctx.fillStyle = '#ff0000'
-        ctx.strokeStyle = '#cc0000'
-        ctx.lineWidth = 2
+        const redGrad = ctx.createLinearGradient(enemy.x, enemy.y, enemy.x + 30, enemy.y + 30)
+        redGrad.addColorStop(0, '#ff3333')
+        redGrad.addColorStop(1, '#cc0000')
+        ctx.fillStyle = redGrad
+        ctx.strokeStyle = '#ff6666'
+        ctx.lineWidth = 2.5
       }
 
       ctx.beginPath()
@@ -137,9 +155,11 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       ctx.fill()
       ctx.stroke()
 
-      ctx.fillStyle = isSilver ? '#d5d5d5' : '#ff6666'
+      // Enhanced core glow
+      ctx.shadowBlur = 8
+      ctx.fillStyle = isSilver ? '#ffffff' : '#ff9999'
       ctx.beginPath()
-      ctx.arc(enemy.x + 15, enemy.y + 8, 3, 0, Math.PI * 2)
+      ctx.arc(enemy.x + 15, enemy.y + 8, 4, 0, Math.PI * 2)
       ctx.fill()
 
       ctx.restore()
@@ -149,21 +169,27 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
   const drawBullets = (ctx, state) => {
     const bullets = state.bullets
     const len = bullets.length
-    let lastColor = null
 
     for (let i = 0; i < len; i++) {
       const bullet = bullets[i]
       if (!bullet) continue
 
-      const color = bullet.color || (bullet.owner === 'player' ? 'cyan' : 'red')
+      const color = bullet.color || (bullet.owner === 'player' ? '#00ffff' : '#ff3333')
       const bw = bullet.width || 5
       const bh = bullet.height || 10
 
-      if (color !== lastColor) {
-        ctx.fillStyle = color
-        lastColor = color
-      }
+      // Enhanced glow effect for bullets
+      ctx.shadowBlur = 10
+      ctx.shadowColor = color
+      ctx.fillStyle = color
       ctx.fillRect(bullet.x, bullet.y, bw, bh)
+      
+      // Inner bright core
+      ctx.shadowBlur = 0
+      ctx.fillStyle = '#ffffff'
+      ctx.globalAlpha = 0.6
+      ctx.fillRect(bullet.x + 1, bullet.y + 2, bw - 2, bh - 4)
+      ctx.globalAlpha = 1
     }
   }
 
@@ -172,23 +198,42 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     if (!canvas) return
     const cw = canvas.width
     const isMobile = cw < 520
-    const barH = isMobile ? 76 : 56
+    const barH = isMobile ? 88 : 64
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)'
+    // Enhanced scoreboard background with gradient
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, barH)
+    bgGrad.addColorStop(0, 'rgba(0, 0, 0, 0.9)')
+    bgGrad.addColorStop(1, 'rgba(20, 20, 40, 0.95)')
+    ctx.fillStyle = bgGrad
     ctx.fillRect(0, 0, cw, barH)
+    
+    // Top border accent
+    ctx.strokeStyle = '#4ecdc4'
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    ctx.moveTo(0, barH)
+    ctx.lineTo(cw, barH)
+    ctx.stroke()
 
-    ctx.font = isMobile ? 'bold 11px Arial' : 'bold 13px Arial'
-    const lineHeight = isMobile ? 18 : 26
+    ctx.font = isMobile ? 'bold 10px "Courier New"' : 'bold 12px "Courier New"'
+    const lineHeight = isMobile ? 20 : 28
     let row = 0
     let col = 0
     const colWidth = cw / 2
+    const padding = 10
     
     const placeItem = (label, value, color) => {
-      const y = 14 + row * lineHeight
-      const x = 8 + col * colWidth
+      const y = padding + 2 + row * lineHeight
+      const x = 10 + col * colWidth
       
+      // Text shadow for better visibility
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.8)'
+      ctx.shadowBlur = 3
+      ctx.shadowOffsetX = 1
+      ctx.shadowOffsetY = 1
       ctx.fillStyle = color
-      ctx.fillText(`${label}:${value}`, x, y)
+      ctx.fillText(`${label} ${value}`, x, y)
+      ctx.shadowBlur = 0
       
       col++
       if (col >= 2) {
@@ -198,12 +243,12 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     }
 
     const currentScore = state.currentScore || score
-    placeItem('SCORE', currentScore.toString().padStart(6, '0'), '#4ecdc4')
-    placeItem('❤', livesRef.current, '#ff6b6b')
+    placeItem('⭐ SCORE:', currentScore.toString().padStart(6, '0'), '#ffd700')
+    placeItem('❤ LIVES:', livesRef.current, '#ff6b6b')
     
     const healthValue = Math.round(Math.max(0, Math.min(100, healthRef.current)))
-    const healthColor = healthValue <= 25 ? '#e74c3c' : healthValue <= 50 ? '#f39c12' : '#2ecc71'
-    placeItem('HP', healthValue + '%', healthColor)
+    const healthColor = healthValue <= 25 ? '#ff3333' : healthValue <= 50 ? '#ff9900' : '#00ff00'
+    placeItem('HP:', healthValue + '%', healthColor)
 
     const shotsFired = state.shotsFired || 0
     const shotsHit = state.shotsHit || 0
@@ -212,23 +257,24 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       accuracy = Math.round((shotsHit / shotsFired) * 100)
       accuracy = Math.max(0, Math.min(100, accuracy))
     }
-    const accColor = accuracy >= 70 ? '#2ecc71' : accuracy >= 50 ? '#f39c12' : '#e74c3c'
-    placeItem('ACC', accuracy + '%', accColor)
+    const accColor = accuracy >= 70 ? '#00ff00' : accuracy >= 50 ? '#ffcc00' : '#ff3333'
+    placeItem('💥 ACC:', accuracy + '%', accColor)
 
-    placeItem('$', state.coins, '#ffd700')
-    placeItem('KILL', state.currentKills || 0, '#95a5a6')
+    placeItem('💰 COINS:', state.coins, '#ffd700')
+    placeItem('🎯 KILLS:', state.currentKills || 0, '#00ffff')
     
-    // Additional UI items
-    ctx.font = isMobile ? 'bold 10px Arial' : 'bold 11px Arial'
-    placeItem('W', state.wave, '#ffd700')
-    placeItem('L', state.level, '#ffd700')
+    // Wave and Level
+    ctx.font = isMobile ? 'bold 9px "Courier New"' : 'bold 11px "Courier New"'
+    placeItem('WAVE:', state.wave, '#ff00ff')
+    placeItem('LVL:', state.level, '#00ffff')
     
     if (combo > 0) {
-      const pulse = Math.sin(Date.now() / 100) * 0.3 + 0.7
-      placeItem('⚡', combo, `rgba(255, 215, 0, ${pulse})`)
+      const pulse = Math.sin(Date.now() / 100) * 0.4 + 0.6
+      placeItem('⚡ COMBO:', combo, `rgba(255, 215, 0, ${pulse})`)
     }
     
-    placeItem('⚔', state.currentWeapon.toUpperCase().slice(0, 3), '#4ecdc4')
+    const wpn = state.currentWeapon.toUpperCase().slice(0, 3)
+    placeItem('⚔ WPN:', wpn, '#00ff99')
   }
 
   const spawnEnemies = (state) => {
@@ -349,17 +395,35 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
       ctx.save()
       ctx.translate(ast.x, ast.y)
       ctx.rotate(ast.rotation)
-      ctx.fillStyle = '#8b7355'
-      ctx.strokeStyle = '#5a4a3a'
-      ctx.lineWidth = 1.5
+      
+      // Glow effect
+      ctx.shadowBlur = 8
+      ctx.shadowColor = '#8b6f47'
+      
+      // Main asteroid with gradient
+      const astGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, ast.width / 2)
+      astGrad.addColorStop(0, '#b8956a')
+      astGrad.addColorStop(0.6, '#8b7355')
+      astGrad.addColorStop(1, '#5a4a3a')
+      ctx.fillStyle = astGrad
+      ctx.strokeStyle = '#6b5a4a'
+      ctx.lineWidth = 2
       ctx.beginPath()
       ctx.arc(0, 0, ast.width / 2, 0, Math.PI * 2)
       ctx.fill()
       ctx.stroke()
+      
+      // Rock texture highlights
+      ctx.fillStyle = '#c9a961'
+      ctx.beginPath()
+      ctx.arc(-ast.width / 5, -ast.height / 5, ast.width / 8, 0, Math.PI * 2)
+      ctx.fill()
+      
       ctx.fillStyle = '#a0826d'
       ctx.beginPath()
-      ctx.arc(-ast.width / 5, -ast.height / 5, ast.width / 6, 0, Math.PI * 2)
+      ctx.arc(ast.width / 6, ast.height / 6, ast.width / 10, 0, Math.PI * 2)
       ctx.fill()
+      
       ctx.restore()
     })
   }
@@ -368,13 +432,43 @@ function Game({ selectedCharacter, selectedShip, difficulty }) {
     if (!state.powerUps) return
     state.powerUps.forEach((p) => {
       if (p.type === 'coin') {
-        ctx.fillStyle = '#ffd700'
+        ctx.save()
+        
+        // Pulsing glow effect
+        const glow = Math.sin(Date.now() / 150 + p.x) * 3 + 8
+        ctx.shadowBlur = glow
+        ctx.shadowColor = '#ffed4e'
+        
+        // Coin gradient
+        const coinGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.width / 2)
+        coinGrad.addColorStop(0, '#ffff99')
+        coinGrad.addColorStop(0.5, '#ffd700')
+        coinGrad.addColorStop(1, '#daa500')
+        ctx.fillStyle = coinGrad
         ctx.beginPath()
         ctx.arc(p.x, p.y, p.width / 2, 0, Math.PI * 2)
         ctx.fill()
+        
+        // Outer ring
         ctx.strokeStyle = '#ffed4e'
-        ctx.lineWidth = 1
+        ctx.lineWidth = 2
         ctx.stroke()
+        
+        // Inner highlight
+        ctx.shadowBlur = 0
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
+        ctx.beginPath()
+        ctx.arc(p.x - p.width / 6, p.y - p.width / 6, p.width / 6, 0, Math.PI * 2)
+        ctx.fill()
+        
+        // Dollar sign
+        ctx.fillStyle = '#ff6b00'
+        ctx.font = 'bold 8px Arial'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText('$', p.x, p.y)
+        
+        ctx.restore()
       }
     })
   }
