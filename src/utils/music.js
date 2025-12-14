@@ -116,29 +116,18 @@ const createAudioElement = (src) => {
 const playTrack = (trackName) => {
   console.log('playTrack called:', trackName, 'hasUserGesture:', hasUserGesture)
   
-  // Only attempt to create AudioContext after user gesture
-  if (hasUserGesture && !audioContext) {
-    try {
-      audioContext = new (window.AudioContext || window.webkitAudioContext)()
-      console.log('AudioContext created')
-    } catch (e) {
-      console.error('AudioContext creation failed:', e)
-    }
-  }
-  
-  // Try to initialize/resume audio context
-  initAudio()
-  
   const src = TRACKS[trackName]
   if (!src) {
     console.error('Track not found:', trackName)
     return
   }
+  
   // Don't restart if already playing the same track
   if (currentTrack === trackName && currentMusic && !currentMusic.paused) {
     console.log('Track already playing:', trackName)
     return
   }
+  
   // Stop current music if playing
   if (currentMusic) {
     currentMusic.pause()
@@ -150,18 +139,31 @@ const playTrack = (trackName) => {
   currentMusic = createAudioElement(src)
   currentTrack = trackName
   
+  console.log('Audio element created for:', trackName)
+  
+  // Only try to play if we have user gesture
+  if (!hasUserGesture) {
+    console.log('No user gesture yet - music will start on first interaction')
+    return
+  }
+  
+  // We have user gesture, safe to play
+  // Only attempt to create AudioContext after user gesture
+  if (!audioContext) {
+    try {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)()
+      console.log('AudioContext created')
+    } catch (e) {
+      console.error('AudioContext creation failed:', e)
+    }
+  }
+  
+  // Try to initialize/resume audio context
+  initAudio()
+  
   console.log('Starting playback:', trackName)
   
-  // Add ended event listener as backup (even though loop is true)
-  currentMusic.addEventListener('ended', () => {
-    // Restart if loop somehow failed
-    if (currentMusic) {
-      currentMusic.currentTime = 0
-      currentMusic.play().catch((err) => console.warn('Loop restart failed:', err))
-    }
-  })
-  
-  // Play with promise handling for autoplay policy
+  // Play with promise handling
   const playPromise = currentMusic.play()
   if (playPromise !== undefined) {
     playPromise
@@ -169,8 +171,7 @@ const playTrack = (trackName) => {
         console.log('Music playing successfully:', trackName)
       })
       .catch((err) => {
-        console.warn('Autoplay blocked for', trackName, '- will retry on user interaction:', err.message)
-        // Music will auto-retry when user gesture is detected (see setUserGesture above)
+        console.warn('Playback failed:', trackName, err.message)
       })
   }
 }
