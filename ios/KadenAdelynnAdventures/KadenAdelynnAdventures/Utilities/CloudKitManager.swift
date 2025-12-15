@@ -53,7 +53,7 @@ class CloudKitManager {
         privateDatabase.fetch(withRecordID: recordID) { record, error in
             if let error = error {
                 // Fallback to UserDefaults
-                if let localData = self.loadFromUserDefaults(key: "save_\(slotId)") {
+                if let localData: GameSaveData = self.loadFromUserDefaults(key: "save_\(slotId)") {
                     completion(.success(localData))
                 } else {
                     completion(.failure(error))
@@ -110,7 +110,7 @@ class CloudKitManager {
         let recordID = CKRecord.ID(recordName: "user_statistics")
         
         privateDatabase.fetch(withRecordID: recordID) { record, error in
-            if let error = error {
+            if error != nil {
                 if let localData: GameStatistics = self.loadFromUserDefaults(key: "statistics") {
                     completion(.success(localData))
                 } else {
@@ -167,7 +167,7 @@ class CloudKitManager {
         let recordID = CKRecord.ID(recordName: "weapon_upgrades")
         
         privateDatabase.fetch(withRecordID: recordID) { record, error in
-            if let error = error {
+            if error != nil {
                 if let localData: WeaponUpgrades = self.loadFromUserDefaults(key: "upgrades") {
                     completion(.success(localData))
                 } else {

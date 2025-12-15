@@ -28,7 +28,7 @@ class GameViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        print("[DEBUG] viewDidLoad called")
         setupMetalView()
         setupGameEngine()
         setupControls()
@@ -37,15 +37,14 @@ class GameViewController: UIViewController {
     
     private func setupMetalView() {
         guard let device = MTLCreateSystemDefaultDevice() else {
-            print("Metal is not supported on this device")
+            print("[DEBUG] Metal is not supported on this device")
             return
         }
-        
+        print("[DEBUG] Metal device created: \(device)")
         let metalView = MTKView(frame: view.bounds, device: device)
         metalView.delegate = self
         metalView.preferredFramesPerSecond = 60
         metalView.framebufferOnly = false
-        
         view.addSubview(metalView)
         metalView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -54,9 +53,9 @@ class GameViewController: UIViewController {
             metalView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             metalView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
-        
         self.metalView = metalView
         self.renderer = GameRenderer(metalView: metalView)
+        print("[DEBUG] MetalView and GameRenderer initialized")
     }
     
     private func setupGameEngine() {
