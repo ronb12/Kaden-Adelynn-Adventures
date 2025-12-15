@@ -257,3 +257,21 @@ Documentation lives in `docs/`:
 [⭐ Star this repo](https://github.com/ronb12/Kaden-Adelynn-Adventures) if you enjoy the game!
 
 </div>
+
+---
+
+## 📄 Privacy Policy (App Store Connect)
+
+The privacy policy for this app is published at:
+
+https://ronb12.github.io/Kaden-Adelynn-Adventures/privacy-policy.html
+
+## 🚀 How to Deploy GitHub Pages
+
+1. Commit and push the privacy-policy.html file to the main branch.
+2. In your repository settings on GitHub, go to the "Pages" section.
+3. Set the source branch to `main` and the folder to `/ (root)`.
+4. Save and wait a few minutes for the site to deploy.
+5. Visit [https://ronb12.github.io/Kaden-Adelynn-Adventures/privacy-policy.html](https://ronb12.github.io/Kaden-Adelynn-Adventures/privacy-policy.html) to verify.
+
+For support, please open an issue on the [GitHub Issues page](https://github.com/ronb12/Kaden-Adelynn-Adventures/issues).
