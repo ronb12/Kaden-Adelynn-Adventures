@@ -4,6 +4,7 @@ let soundEnabled = true
 
 // Audio context for synthesized sounds
 let audioContext = null
+let sfxUnlocked = false
 
 // Sound effect cache
 const soundCache = new Map()
@@ -21,10 +22,11 @@ const SOUND_FILES = {
   'missile': '/sfx/missile.mp3',
   'shield': '/sfx/shield.mp3',
   'achievement': '/sfx/achievement.mp3',
-  'bossSpawn': '/sfx/boss-spawn.mp3',
+  // Map to existing assets to avoid 404s while keeping intent distinct
+  'bossSpawn': '/sfx/explosion.mp3',
   'gameover': '/sfx/gameover.mp3',
-  'levelUp': '/sfx/level-up.mp3',
-  'coin': '/sfx/coin.mp3',
+  'levelUp': '/sfx/level-complete.mp3',
+  // 'coin' uses synthesized sound instead
 }
 
 // Initialize audio context
@@ -171,4 +173,181 @@ const synthesizeSound = (type, volume = 1) => {
         osc.type = 'sine'
         osc.frequency.value = freq
         const start = now + i * 0.1
-     
+        gain.gain.setValueAtTime(0.25, start)
+        gain.gain.exponentialRampToValueAtTime(0.01, start + 0.2)
+        osc.start(start)
+        osc.stop(start + 0.2)
+      })
+      break
+    }
+    
+    case 'bossSpawn': {
+      // Ominous boss appear sound
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(masterGain)
+      osc.type = 'sawtooth'
+      osc.frequency.setValueAtTime(100, now)
+      osc.frequency.exponentialRampToValueAtTime(50, now + 0.5)
+      gain.gain.setValueAtTime(0.3, now)
+      gain.gain.linearRampToValueAtTime(0.01, now + 0.5)
+      osc.start(now)
+      osc.stop(now + 0.5)
+      break
+    }
+    
+    case 'gameover': {
+      // Sad descending tone
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(masterGain)
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(440, now)
+      osc.frequency.exponentialRampToValueAtTime(110, now + 0.8)
+      gain.gain.setValueAtTime(0.3, now)
+      gain.gain.linearRampToValueAtTime(0.01, now + 0.8)
+      osc.start(now)
+      osc.stop(now + 0.8)
+      break
+    }
+    
+    case 'levelUp': {
+      // Level up fanfare
+      const notes = [440, 554, 659, 880]
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.connect(gain)
+        gain.connect(masterGain)
+        osc.type = 'square'
+        osc.frequency.value = freq
+        const start = now + i * 0.1
+        gain.gain.setValueAtTime(0.15, start)
+        gain.gain.exponentialRampToValueAtTime(0.01, start + 0.2)
+        osc.start(start)
+        osc.stop(start + 0.2)
+      })
+      break
+    }
+    
+    case 'coin': {
+      // Coin collect sound
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(masterGain)
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(1047, now)
+      osc.frequency.setValueAtTime(1319, now + 0.05)
+      gain.gain.setValueAtTime(0.2, now)
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15)
+      osc.start(now)
+      osc.stop(now + 0.15)
+      break
+    }
+    
+    default:
+      // Generic beep for unknown sounds
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(masterGain)
+      osc.type = 'sine'
+      osc.frequency.value = 440
+      gain.gain.setValueAtTime(0.2, now)
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1)
+      osc.start(now)
+      osc.stop(now + 0.1)
+  }
+}
+
+// Try to play sound file, fallback to synthesis
+const playFromFile = (type, volume) => {
+  const path = SOUND_FILES[type]
+  if (!path) {
+    synthesizeSound(type, volume)
+    return
+  }
+  
+  // Check cache first
+  let audio = soundCache.get(type)
+  
+  if (!audio) {
+    audio = new Audio(path)
+    audio.playsInline = true
+    audio.crossOrigin = 'anonymous'
+    audio.onerror = () => {
+      // Fallback to synthesized sound
+      soundCache.delete(type)
+      synthesizeSound(type, volume)
+    }
+    soundCache.set(type, audio)
+  }
+  
+  // Clone for overlapping sounds
+  const clone = audio.cloneNode()
+  clone.playsInline = true
+  clone.crossOrigin = 'anonymous'
+  clone.volume = volume * soundVolume
+  clone.play().catch(() => {
+    // Fallback to synthesis if file play fails
+    synthesizeSound(type, volume)
+  })
+}
+
+// Explicit unlock for mobile/touch autoplay policies
+export const ensureSfxUnlocked = () => {
+  if (sfxUnlocked) return
+  const ctx = initAudio()
+  if (ctx && ctx.state === 'suspended') {
+    ctx.resume().catch(() => {})
+  }
+  // Warm up with a silent buffer to satisfy gesture requirements
+  if (ctx) {
+    const gain = ctx.createGain()
+    gain.gain.value = 0.0001
+    const osc = ctx.createOscillator()
+    osc.frequency.value = 10
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start()
+    osc.stop(ctx.currentTime + 0.01)
+  }
+  preloadSounds()
+  sfxUnlocked = true
+}
+
+// Public API
+
+export const sounds = SOUND_FILES
+
+export const playSound = (type, volume = 1) => {
+  if (!soundEnabled) return
+  
+  // Try file first, then synthesize
+  playFromFile(type, volume)
+}
+
+export const setSoundVolume = (volume) => {
+  soundVolume = Math.max(0, Math.min(1, volume))
+}
+
+export const getSoundVolume = () => soundVolume
+
+export const setSoundEnabled = (enabled) => {
+  soundEnabled = enabled
+}
+
+export const isSoundEnabled = () => soundEnabled
+
+// Preload common sounds
+export const preloadSounds = () => {
+  Object.entries(SOUND_FILES).forEach(([type, path]) => {
+    const audio = new Audio()
+    audio.preload = 'auto'
+    audio.src = path
+    preloadedSounds[type] = audio
+  })
+}

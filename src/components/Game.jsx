@@ -183,24 +183,27 @@ function Game({
   const playerInput = useRef({ x: 0, y: 0, firing: false })
   useEffect(() => {
     const canvas = canvasRef.current
+    if (!canvas) return
     const ctx = canvas.getContext('2d')
 
     // Load boss images
     loadBossImages()
 
-    // Set canvas size to full viewport (respecting safe areas)
+    // Set canvas size to fill the viewport (1:1 pixel mapping)
     const updateCanvasSize = () => {
       if (!canvas) return
-      const rect = canvas.getBoundingClientRect()
-      // Ensure we have valid dimensions
-      if (rect.width > 0 && rect.height > 0) {
-        canvas.width = rect.width
-        canvas.height = rect.height
-      } else {
-        // Fallback to window dimensions if bounding rect is invalid
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
-      }
+
+      const width = window.innerWidth
+      const height = window.innerHeight
+
+      // Internal resolution matches viewport to avoid compacting the game area
+      canvas.width = width
+      canvas.height = height
+
+      // CSS size also fills the viewport (prevents letterboxing)
+      canvas.style.width = '100vw'
+      canvas.style.height = '100vh'
+      canvas.style.display = 'block'
     }
 
     updateCanvasSize()
@@ -439,10 +442,18 @@ function Game({
   const gameLoop = useCallback(
     (currentTime) => {
       const canvas = canvasRef.current
-      if (!canvas) return
+      if (!canvas) {
+        // If the canvas isn't mounted yet, retry next frame instead of stopping the loop
+        gameLoopRef.current = requestAnimationFrame(gameLoop)
+        return
+      }
 
       const ctx = canvas.getContext('2d')
-      if (!ctx) return
+      if (!ctx) {
+        // Retry next frame if context isn't ready yet
+        gameLoopRef.current = requestAnimationFrame(gameLoop)
+        return
+      }
 
       const state = gameState.current
 
@@ -3906,6 +3917,7 @@ function Game({
       )}
     </div>
   )
+}
 }
 
 export default Game

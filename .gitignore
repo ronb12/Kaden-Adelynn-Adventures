@@ -1,2 +1,26 @@
-node_modules
+node_modules/
+dist/
+build/
+.DS_Store
+*.log
+.env
+.env.local
+.env.*.local
+coverage/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+
+# API Keys and Secrets
+*.key
+*.pem
+secrets.json
+config.json
 node_modules

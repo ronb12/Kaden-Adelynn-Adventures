@@ -1,0 +1,52 @@
+name: KadenAdelynnSpaceAdventures
+options:
+  bundleIdPrefix: com.yourcompany
+  deploymentTarget:
+    iOS: 15.0
+settings:
+  base:
+    SWIFT_VERSION: 5.0
+targets:
+  KadenAdelynnSpaceAdventures:
+    type: application
+    platform: iOS
+    sources:
+      - ios-swift/KadenAdelynnSpaceAdventures
+    resources:
+      - ios-swift/KadenAdelynnSpaceAdventures/Assets.xcassets
+      - ios-swift/KadenAdelynnSpaceAdventures/Resources
+    info:
+      path: ios-swift/KadenAdelynnSpaceAdventures/Info.plist
+      properties:
+        CFBundleShortVersionString: 1.0
+        CFBundleVersion: 1
+        UILaunchStoryboardName: LaunchScreen
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+    dependencies: []
+
+  KadenAdelynnSpaceAdventuresUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - ios-swift/KadenAdelynnSpaceAdventuresUITests
+    dependencies:
+      - target: KadenAdelynnSpaceAdventures
+
+  KadenAdelynnSpaceAdventuresUITestsLaunchTests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - ios-swift/KadenAdelynnSpaceAdventuresUITestsLaunchTests
+    dependencies:
+      - target: KadenAdelynnSpaceAdventures
+schemes:
+  KadenAdelynnSpaceAdventures:
+    build:
+      targets:
+        KadenAdelynnSpaceAdventures: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+    archive:
+      config: Release
