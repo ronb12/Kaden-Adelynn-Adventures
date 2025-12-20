@@ -141,6 +141,37 @@ firebase deploy --only hosting
 
 ---
 
+## 📱 iOS App (Native) – Build & Run
+
+The repo includes a native iOS app under `ios/KadenAdelynnAdventures/`.
+
+### Run from Xcode
+- Open Xcode and load the project at: `ios/KadenAdelynnAdventures/KadenAdelynnAdventures.xcodeproj`
+- Select the scheme: `KadenAdelynnAdventures`
+- Choose a destination: `iPhone 16 Pro Max` (or any simulator/device)
+- Click Run ▶ to build and launch.
+
+### Run from Terminal
+```bash
+cd ios/KadenAdelynnAdventures
+# Build for simulator (iPhone 16 Pro Max)
+xcodebuild -scheme KadenAdelynnAdventures -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 16 Pro Max'
+
+# Launch in Simulator (if build succeeded)
+open -a Simulator
+xcrun simctl boot "iPhone 16 Pro Max"
+APP_PATH=$(ls -d ~/Library/Developer/Xcode/DerivedData/KadenAdelynnAdventures-*/Build/Products/Debug-iphonesimulator/KadenAdelynnAdventures.app | head -1)
+xcrun simctl install booted "$APP_PATH"
+xcrun simctl launch booted com.kaden-adelynn.adventures
+```
+
+### Simulator Troubleshooting
+- If you see CoreSimulatorService interruptions, try quitting Simulator and Xcode, then relaunch.
+- Ensure the iOS Simulator runtime is installed (Xcode → Settings → Platforms).
+- As a last resort: `xcrun simctl erase "iPhone 16 Pro Max"` (will reset that device)
+
+---
+
 ## 📁 Project Structure
 
 ```
@@ -160,7 +191,10 @@ kaden-adelynn-space-adventures/
 │   ├── sfx/                 # Sound effects
 │   └── ...
 ├── firebase.json            # Firebase configuration
+├── docs/                    # Consolidated documentation (security, gameplay, music)
 └── package.json             # Dependencies
+
+Optional helpers live in `scripts/` and are not required for normal builds. See `scripts/README.md` for details.
 ```
 
 ---
@@ -214,6 +248,30 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 **Made with React, Vite, and lots of fun! 🎮**
 
+Documentation lives in `docs/`:
+- Bug fixes: `docs/BUG_FIXES.md`
+- Security: `docs/SECURITY.md`, `docs/RESOLVE_SECURITY_ALERT.md`
+- Gameplay tuning: `docs/DIFFICULTY_SCALING.md`, `docs/FORMATION_SYSTEM.md`
+- Audio setup: `docs/MUSIC_SETUP.md`
+
 [⭐ Star this repo](https://github.com/ronb12/Kaden-Adelynn-Adventures) if you enjoy the game!
 
 </div>
+
+---
+
+## 📄 Privacy Policy (App Store Connect)
+
+The privacy policy for this app is published at:
+
+https://ronb12.github.io/Kaden-Adelynn-Adventures/privacy-policy.html
+
+## 🚀 How to Deploy GitHub Pages
+
+1. Commit and push the privacy-policy.html file to the main branch.
+2. In your repository settings on GitHub, go to the "Pages" section.
+3. Set the source branch to `main` and the folder to `/ (root)`.
+4. Save and wait a few minutes for the site to deploy.
+5. Visit [https://ronb12.github.io/Kaden-Adelynn-Adventures/privacy-policy.html](https://ronb12.github.io/Kaden-Adelynn-Adventures/privacy-policy.html) to verify.
+
+For support, please open an issue on the [GitHub Issues page](https://github.com/ronb12/Kaden-Adelynn-Adventures/issues).

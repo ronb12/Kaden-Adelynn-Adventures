@@ -1,53 +1,40 @@
 // Score tracking utilities
-export function getPersonalBest() {
-  try {
-    const saved = localStorage.getItem('personalBest')
-    const score = saved ? parseInt(saved, 10) : 0
-    return Number.isFinite(score) && score >= 0 ? score : 0
-  } catch {
-    return 0
-  }
-}
+const SCORES_KEY = 'spaceAdventureScores'
+const PERSONAL_BEST_KEY = 'personalBest'
 
-export function saveScore(score) {
+export const getHighScores = () => {
   try {
-    const currentBest = getPersonalBest()
-    if (score > currentBest) {
-      localStorage.setItem('personalBest', String(score))
-      return true
-    }
-    return false
-  } catch {
-    return false
-  }
-}
-
-export function getHighScores() {
-  try {
-    const saved = localStorage.getItem('highScores')
-    if (!saved) return []
-    const scores = JSON.parse(saved)
-    return Array.isArray(scores) ? scores : []
+    const scores = localStorage.getItem(SCORES_KEY)
+    return scores ? JSON.parse(scores) : []
   } catch {
     return []
   }
 }
 
-export function addHighScore(name, score, wave, level, kills, combo) {
-  try {
-    const scores = getHighScores()
-    scores.push({ name, score, wave, level, kills, combo, date: Date.now() })
-    scores.sort((a, b) => b.score - a.score)
-    const topScores = scores.slice(0, 10) // Keep top 10
-    localStorage.setItem('highScores', JSON.stringify(topScores))
-    return topScores
-  } catch {
-    return []
+export const saveScore = (name, score, wave, level) => {
+  const scores = getHighScores()
+  scores.push({ name, score, wave, level, date: Date.now() })
+  scores.sort((a, b) => b.score - a.score)
+  const topScores = scores.slice(0, 10)
+  localStorage.setItem(SCORES_KEY, JSON.stringify(topScores))
+  
+  const currentBest = getPersonalBest()
+  if (score > currentBest) {
+    localStorage.setItem(PERSONAL_BEST_KEY, score.toString())
   }
+  
+  return topScores
 }
 
-export function getMergedTopScores() {
-  // For now, just return local scores
-  // In the future, this could merge with cloud scores
+export const getPersonalBest = () => {
+  return parseInt(localStorage.getItem(PERSONAL_BEST_KEY) || '0', 10)
+}
+
+export const clearScores = () => {
+  localStorage.removeItem(SCORES_KEY)
+  localStorage.removeItem(PERSONAL_BEST_KEY)
+}
+
+export const getMergedTopScores = () => {
   return getHighScores()
 }

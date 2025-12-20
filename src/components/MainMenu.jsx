@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getCoins, addCoins } from '../utils/wallet'
-import { playMenuMusic, playGameplayMusic, stopMusic } from '../utils/music'
+import { playMenuMusic, playGameplayMusic, stopMenuMusic, forceUserGesture } from '../utils/music'
 import './MainMenu.css'
 
 function MainMenu({ onStartGame, onOpenStore, onOpenShips, onOpenCharacters, onOpenScores, onOpenTerms, onOpenPrivacy, onOpenStats, onOpenSaveLoad, onOpenWeaponUpgrades, onOpenCustomization }) {
@@ -63,13 +63,35 @@ function MainMenu({ onStartGame, onOpenStore, onOpenShips, onOpenCharacters, onO
   }, [controllerDeadzone])
 
   useEffect(() => {
-    // Start menu music
+    // Try to start menu music immediately
+    console.log('MainMenu mounted - starting menu music')
     playMenuMusic()
-    return () => stopMusic()
+
+    // Ensure audio unlocks and menu music starts on first interaction
+    const startMenuMusic = () => {
+      console.log('User interaction detected - unlocking audio and starting menu music')
+      forceUserGesture()
+      playMenuMusic()
+    }
+
+    const events = ['click', 'touchstart', 'keydown', 'touchend', 'mousedown']
+    events.forEach(event => {
+      document.addEventListener(event, startMenuMusic, { once: true, capture: true })
+    })
+
+    return () => {
+      console.log('MainMenu unmounting - stopping menu music')
+      // Only stop if menu is currently playing to avoid interrupting gameplay start
+      stopMenuMusic()
+      events.forEach(event => {
+        document.removeEventListener(event, startMenuMusic, { capture: true })
+      })
+    }
   }, [])
 
   const handleStart = () => {
-    stopMusic()
+    // Stop menu music only; avoid interrupting the new track's play()
+    stopMenuMusic()
     // start gameplay music on user gesture
     playGameplayMusic()
     localStorage.setItem('playerName', playerName)
