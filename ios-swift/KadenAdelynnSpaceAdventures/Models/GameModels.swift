@@ -104,25 +104,25 @@ struct Enemy {
         
         switch type {
         case .basic:
-            self.size = CGSize(width: 30, height: 30)
+            self.size = CGSize(width: 38, height: 38)  // Increased from 30x30
             self.health = 1
             self.maxHealth = 1
             self.velocity = CGPoint(x: 0, y: -2)  // Negative Y = move down (center-origin)
             self.points = 10
         case .fast:
-            self.size = CGSize(width: 25, height: 25)
+            self.size = CGSize(width: 32, height: 32)  // Increased from 25x25
             self.health = 1
             self.maxHealth = 1
             self.velocity = CGPoint(x: 0, y: -4)  // Negative Y = move down
             self.points = 20
         case .tank:
-            self.size = CGSize(width: 40, height: 40)
+            self.size = CGSize(width: 50, height: 50)  // Increased from 40x40
             self.health = 3
             self.maxHealth = 3
             self.velocity = CGPoint(x: 0, y: -1)  // Negative Y = move down
             self.points = 50
         case .shooter:
-            self.size = CGSize(width: 30, height: 30)
+            self.size = CGSize(width: 38, height: 38)  // Increased from 30x30
             self.health = 2
             self.maxHealth = 2
             self.velocity = CGPoint(x: 0, y: -2)  // Negative Y = move down
@@ -323,7 +323,7 @@ struct Boss {
     
     init(position: CGPoint) {
         self.position = position
-        self.size = CGSize(width: 80, height: 80)
+        self.size = CGSize(width: 100, height: 100)  // Increased from 80x80
         self.health = 100
         self.maxHealth = 100
         self.velocity = CGPoint(x: 2, y: 0)
