@@ -41,7 +41,6 @@ struct MainMenuView: View {
                                     Circle()
                                         .stroke(Color.cyan.opacity(0.6), lineWidth: 2)
                                 )
-                                .shadow(color: .cyan.opacity(0.5), radius: 8)
                                 .scaleEffect(animateStars ? 1.1 : 1.0)
                                 .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: animateStars)
                             
@@ -66,7 +65,6 @@ struct MainMenuView: View {
                                     Circle()
                                         .stroke(Color.pink.opacity(0.6), lineWidth: 2)
                                 )
-                                .shadow(color: .pink.opacity(0.5), radius: 8)
                                 .scaleEffect(animateStars ? 1.1 : 1.0)
                                 .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true).delay(0.5), value: animateStars)
                         }
