@@ -109,23 +109,53 @@ class ShipGraphics {
     static func createEnemyShip(size: CGSize, type: Enemy.EnemyType) -> SKNode {
         let ship = SKNode()
         
-        // Select enemy image based on type
-        // Use EvilEye_1 for basic/shooter, EvilEye_2 for fast/tank
+        // Select different enemy ship designs based on type
+        // Use different Spaceship assets for visual variety
         let imageName: String
         switch type {
-        case .fast, .tank:
-            imageName = "EnemyEvilEye_2"
-        default:
-            imageName = "EnemyEvilEye_1"
+        case .basic:
+            imageName = "EnemyEvilEye_1"  // Red basic enemy
+        case .fast:
+            imageName = "Spaceship_3"  // Fast enemy - different design
+        case .tank:
+            imageName = "Spaceship_7"  // Tank enemy - heavy design
+        case .shooter:
+            imageName = "Spaceship_5"  // Shooter enemy - different design
         }
         
         // Try to load the image from assets
         guard let image = UIImage(named: imageName) else {
-            // Fallback: create a simple colored shape if image not found
-            let fallback = SKShapeNode(rect: CGRect(origin: CGPoint(x: -size.width/2, y: -size.height/2), size: size))
-            fallback.fillColor = .red
-            fallback.strokeColor = .white
-            ship.addChild(fallback)
+            // Fallback: try EnemyEvilEye images if spaceship not found
+            let fallbackName = type == .fast || type == .tank ? "EnemyEvilEye_2" : "EnemyEvilEye_1"
+            guard let fallbackImage = UIImage(named: fallbackName) else {
+                // Final fallback: create a simple colored shape
+                let fallback = SKShapeNode(rect: CGRect(origin: CGPoint(x: -size.width/2, y: -size.height/2), size: size))
+                fallback.fillColor = .red
+                fallback.strokeColor = .white
+                ship.addChild(fallback)
+                return ship
+            }
+            let texture = SKTexture(image: fallbackImage)
+            let sprite = SKSpriteNode(texture: texture)
+            sprite.size = size
+            sprite.zPosition = 1
+            
+            // Add color tint based on enemy type
+            switch type {
+            case .fast:
+                sprite.color = UIColor(red: 1.0, green: 0.0, blue: 1.0, alpha: 1.0) // Magenta
+                sprite.colorBlendFactor = 0.5
+            case .tank:
+                sprite.color = UIColor(red: 1.0, green: 0.65, blue: 0.0, alpha: 1.0) // Orange
+                sprite.colorBlendFactor = 0.5
+            case .shooter:
+                sprite.color = UIColor(red: 0.6, green: 0.6, blue: 0.6, alpha: 1.0) // Grey
+                sprite.colorBlendFactor = 0.5
+            default:
+                sprite.color = UIColor(red: 1.0, green: 0.3, blue: 0.3, alpha: 1.0) // Red
+                sprite.colorBlendFactor = 0.3
+            }
+            ship.addChild(sprite)
             return ship
         }
         
@@ -149,17 +179,17 @@ class ShipGraphics {
         sprite.size = finalSize
         sprite.zPosition = 1
         
-        // Add color tint based on enemy type using color blend (no squares)
+        // Add color tint based on enemy type for visual distinction
         switch type {
         case .fast:
             sprite.color = UIColor(red: 1.0, green: 0.0, blue: 1.0, alpha: 1.0) // Magenta
-            sprite.colorBlendFactor = 0.3
+            sprite.colorBlendFactor = 0.4
         case .tank:
             sprite.color = UIColor(red: 1.0, green: 0.65, blue: 0.0, alpha: 1.0) // Orange
-            sprite.colorBlendFactor = 0.3
+            sprite.colorBlendFactor = 0.4
         case .shooter:
-            sprite.color = UIColor(red: 0.6, green: 0.6, blue: 0.6, alpha: 1.0) // Grey
-            sprite.colorBlendFactor = 0.3
+            sprite.color = UIColor(red: 0.5, green: 0.5, blue: 0.7, alpha: 1.0) // Blue-grey
+            sprite.colorBlendFactor = 0.4
         default:
             sprite.color = UIColor(red: 1.0, green: 0.3, blue: 0.3, alpha: 1.0) // Red
             sprite.colorBlendFactor = 0.3
