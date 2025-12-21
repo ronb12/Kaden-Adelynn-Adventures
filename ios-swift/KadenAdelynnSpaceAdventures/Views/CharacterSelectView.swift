@@ -504,20 +504,16 @@ private struct EnhancedCharacterCard: View {
                 }
                 
                 // Character Portrait from Assets
-                ZStack {
-                    // Character portrait image - load from asset catalog
-                    Image("\(character.id)_character")
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 80, height: 80)
-                        .clipShape(Circle())
-                        .overlay(
-                            Circle()
-                                .stroke(character.color1.opacity(0.6), lineWidth: isSelected ? 4 : 2)
-                        )
-                        .shadow(color: character.color1.opacity(0.5), radius: isSelected ? 15 : 10)
-                        .scaleEffect(isSelected ? 1.1 : 1.0)
-                }
+                Image("\(character.id)_character")
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 120, height: 120)
+                    .clipShape(Circle())
+                    .overlay(
+                        Circle()
+                            .stroke(character.color1.opacity(0.6), lineWidth: isSelected ? 4 : 2)
+                    )
+                    .scaleEffect(isSelected ? 1.1 : 1.0)
                 
                 // Name and Rating
                 VStack(spacing: 3) {
