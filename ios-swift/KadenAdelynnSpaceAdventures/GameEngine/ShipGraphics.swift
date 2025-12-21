@@ -110,17 +110,25 @@ class ShipGraphics {
         let ship = SKNode()
         
         // Select different enemy ship designs based on type
-        // Use different Spaceship assets for visual variety
+        // Use new enemy ship sprites for visual variety
         let imageName: String
         switch type {
         case .basic:
-            imageName = "EnemyEvilEye_1"  // Red basic enemy
+            // Basic enemies: use enemy ships 1-3 for variety
+            let basicShips = ["enemy_ship_1", "enemy_ship_2", "enemy_ship_3"]
+            imageName = basicShips.randomElement() ?? "enemy_ship_1"
         case .fast:
-            imageName = "Spaceship_3"  // Fast enemy - different design
+            // Fast enemies: use enemy ships 4-5 (sleeker designs)
+            let fastShips = ["enemy_ship_4", "enemy_ship_5"]
+            imageName = fastShips.randomElement() ?? "enemy_ship_4"
         case .tank:
-            imageName = "Spaceship_7"  // Tank enemy - heavy design
+            // Tank enemies: use enemy ships 6-7 (heavier designs)
+            let tankShips = ["enemy_ship_6", "enemy_ship_7"]
+            imageName = tankShips.randomElement() ?? "enemy_ship_6"
         case .shooter:
-            imageName = "Spaceship_5"  // Shooter enemy - different design
+            // Shooter enemies: use enemy ships 8-10 (specialized designs)
+            let shooterShips = ["enemy_ship_8", "enemy_ship_9", "enemy_ship_10"]
+            imageName = shooterShips.randomElement() ?? "enemy_ship_8"
         }
         
         // Try to load the image from assets
