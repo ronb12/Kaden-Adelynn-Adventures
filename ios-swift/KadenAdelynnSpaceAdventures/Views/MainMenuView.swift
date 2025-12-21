@@ -31,10 +31,19 @@ struct MainMenuView: View {
                             .frame(height: 40) // Safe area padding for title
                         // Main Title with gradient
                         HStack(spacing: 12) {
-                            Text("🌟")
-                                .font(.system(size: 50))
-                                .rotationEffect(.degrees(animateStars ? 360 : 0))
-                                .animation(.linear(duration: 20).repeatForever(autoreverses: false), value: animateStars)
+                            // Kaden character portrait on the left
+                            Image("kaden_character")
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 60, height: 60)
+                                .clipShape(Circle())
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color.cyan.opacity(0.6), lineWidth: 2)
+                                )
+                                .shadow(color: .cyan.opacity(0.5), radius: 8)
+                                .scaleEffect(animateStars ? 1.1 : 1.0)
+                                .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: animateStars)
                             
                             Text("Kaden & Adelynn")
                                 .font(.system(size: 44, weight: .black, design: .rounded))
@@ -47,10 +56,19 @@ struct MainMenuView: View {
                                 )
                                 .shadow(color: .cyan.opacity(0.5), radius: 10)
                             
-                            Text("🌟")
-                                .font(.system(size: 50))
-                                .rotationEffect(.degrees(animateStars ? -360 : 0))
-                                .animation(.linear(duration: 20).repeatForever(autoreverses: false), value: animateStars)
+                            // Adelynn character portrait on the right
+                            Image("adelynn_character")
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 60, height: 60)
+                                .clipShape(Circle())
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color.pink.opacity(0.6), lineWidth: 2)
+                                )
+                                .shadow(color: .pink.opacity(0.5), radius: 8)
+                                .scaleEffect(animateStars ? 1.1 : 1.0)
+                                .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true).delay(0.5), value: animateStars)
                         }
                         .scaleEffect(titleScale)
                         .onAppear {
