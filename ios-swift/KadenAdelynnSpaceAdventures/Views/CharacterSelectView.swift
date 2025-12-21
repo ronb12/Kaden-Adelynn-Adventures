@@ -503,16 +503,21 @@ private struct EnhancedCharacterCard: View {
                     .buttonStyle(.plain)
                 }
                 
-                // Character Preview with actual 2D graphics
-                CharacterPreviewView(
-                    characterId: character.id,
-                    size: CGSize(width: 80, height: 80),
-                    isAnimating: true,
-                    isSelected: isSelected
-                )
-                .frame(width: 80, height: 80)
-                .shadow(color: character.color1.opacity(0.5), radius: isSelected ? 15 : 10)
-                .scaleEffect(isSelected ? 1.1 : 1.0)
+                // Character Portrait from Assets
+                ZStack {
+                    // Character portrait image - load from asset catalog
+                    Image("\(character.id)_character")
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 80, height: 80)
+                        .clipShape(Circle())
+                        .overlay(
+                            Circle()
+                                .stroke(character.color1.opacity(0.6), lineWidth: isSelected ? 4 : 2)
+                        )
+                        .shadow(color: character.color1.opacity(0.5), radius: isSelected ? 15 : 10)
+                        .scaleEffect(isSelected ? 1.1 : 1.0)
+                }
                 
                 // Name and Rating
                 VStack(spacing: 3) {
