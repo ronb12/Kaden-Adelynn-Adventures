@@ -22,7 +22,7 @@ struct Player {
     init(position: CGPoint, size: CGSize = CGSize(width: 40, height: 40)) {
         self.position = position
         self.size = size
-        self.speed = 5.0
+        self.speed = 7.0  // Match PWA speed
         self.health = 100
         self.maxHealth = 100
         self.weaponType = .laser
@@ -30,12 +30,20 @@ struct Player {
         self.invulnerableTimer = 0
     }
     
-    mutating func move(direction: CGPoint, bounds: CGRect) {
-        let newX = position.x + direction.x * speed
-        let newY = position.y + direction.y * speed
+    // Direct position setting (matching PWA touch controls)
+    mutating func setPosition(_ newPosition: CGPoint, bounds: CGRect) {
+        // Match PWA bounds: 20px margin from edges, 50px from top
+        position.x = max(20, min(bounds.width - size.width - 20, newPosition.x))
+        position.y = max(50, min(bounds.height - size.height - 20, newPosition.y))
+    }
+    
+    mutating func move(direction: CGPoint, bounds: CGRect, timeScale: CGFloat = 1.0) {
+        let newX = position.x + direction.x * speed * timeScale
+        let newY = position.y + direction.y * speed * timeScale
         
-        position.x = max(size.width/2, min(bounds.width - size.width/2, newX))
-        position.y = max(size.height/2, min(bounds.height - size.height/2, newY))
+        // Match PWA bounds: 20px margin from edges, 50px from top
+        position.x = max(20, min(bounds.width - size.width - 20, newX))
+        position.y = max(50, min(bounds.height - size.height - 20, newY))
     }
     
     func collidesWith(_ other: CGRect) -> Bool {
@@ -75,32 +83,32 @@ struct Enemy {
             self.size = CGSize(width: 30, height: 30)
             self.health = 1
             self.maxHealth = 1
-            self.velocity = CGPoint(x: 0, y: 2)
+            self.velocity = CGPoint(x: 0, y: -2)  // Negative Y = move down (center-origin)
             self.points = 10
         case .fast:
             self.size = CGSize(width: 25, height: 25)
             self.health = 1
             self.maxHealth = 1
-            self.velocity = CGPoint(x: 0, y: 4)
+            self.velocity = CGPoint(x: 0, y: -4)  // Negative Y = move down
             self.points = 20
         case .tank:
             self.size = CGSize(width: 40, height: 40)
             self.health = 3
             self.maxHealth = 3
-            self.velocity = CGPoint(x: 0, y: 1)
+            self.velocity = CGPoint(x: 0, y: -1)  // Negative Y = move down
             self.points = 50
         case .shooter:
             self.size = CGSize(width: 30, height: 30)
             self.health = 2
             self.maxHealth = 2
-            self.velocity = CGPoint(x: 0, y: 2)
+            self.velocity = CGPoint(x: 0, y: -2)  // Negative Y = move down
             self.points = 30
         }
     }
     
-    mutating func update(bounds: CGRect) {
-        position.x += velocity.x
-        position.y += velocity.y
+    mutating func update(bounds: CGRect, timeScale: CGFloat = 1.0) {
+        position.x += velocity.x * timeScale
+        position.y += velocity.y * timeScale
         
         // Bounce off walls
         if position.x <= size.width/2 || position.x >= bounds.width - size.width/2 {
@@ -164,14 +172,17 @@ struct Bullet {
         self.damage = damage
     }
     
-    mutating func update() {
-        position.x += velocity.x
-        position.y += velocity.y
+    mutating func update(timeScale: CGFloat = 1.0) {
+        position.x += velocity.x * timeScale
+        position.y += velocity.y * timeScale
     }
     
     func isOffScreen(bounds: CGRect) -> Bool {
-        return position.y < -size.height || position.y > bounds.height + size.height ||
-               position.x < -size.width || position.x > bounds.width + size.width
+        // Center-origin coordinates
+        let halfWidth = bounds.width / 2
+        let halfHeight = bounds.height / 2
+        return position.y < -halfHeight - size.height || position.y > halfHeight + size.height ||
+               position.x < -halfWidth - size.width || position.x > halfWidth + size.width
     }
 }
 
@@ -195,11 +206,11 @@ struct PowerUp {
         self.position = position
         self.type = type
         self.size = CGSize(width: 25, height: 25)
-        self.velocity = CGPoint(x: 0, y: 2)
+        self.velocity = CGPoint(x: 0, y: -2)  // Negative Y = move down (center-origin)
     }
     
-    mutating func update() {
-        position.y += velocity.y
+    mutating func update(timeScale: CGFloat = 1.0) {
+        position.y += velocity.y * timeScale
     }
     
     func collidesWith(_ player: Player) -> Bool {
@@ -213,7 +224,9 @@ struct PowerUp {
     }
     
     func isOffScreen(bounds: CGRect) -> Bool {
-        return position.y > bounds.height + size.height
+        // Center-origin: bottom is -halfHeight
+        let halfHeight = bounds.height / 2
+        return position.y < -halfHeight - size.height
     }
 }
 
@@ -235,14 +248,16 @@ struct Boss {
         self.shootTimer = 0
     }
     
-    mutating func update(bounds: CGRect) {
-        position.x += velocity.x
+    mutating func update(bounds: CGRect, timeScale: CGFloat = 1.0) {
+        position.x += velocity.x * timeScale
         
-        if position.x <= size.width/2 || position.x >= bounds.width - size.width/2 {
+        // Bounce off walls (center-origin: bounds are -halfWidth to +halfWidth)
+        let halfWidth = bounds.width / 2
+        if position.x <= -halfWidth + size.width/2 || position.x >= halfWidth - size.width/2 {
             velocity.x *= -1
         }
         
-        shootTimer += 0.016 // ~60fps
+        shootTimer += 0.016 * Double(timeScale) // Frame-rate independent
     }
     
     func collidesWith(_ bullet: Bullet) -> Bool {
@@ -275,6 +290,124 @@ struct Boss {
     
     mutating func resetShootTimer() {
         shootTimer = 0
+    }
+}
+
+// MARK: - Asteroid
+struct Asteroid {
+    var position: CGPoint
+    var size: CGSize
+    var velocity: CGPoint
+    var health: Int
+    var maxHealth: Int
+    var asteroidSize: AsteroidSize
+    
+    enum AsteroidSize {
+        case small
+        case medium
+        case large
+    }
+    
+    init(position: CGPoint, size: AsteroidSize = .medium) {
+        self.position = position
+        self.asteroidSize = size
+        
+        switch size {
+        case .small:
+            self.size = CGSize(width: 20, height: 20)
+            self.health = 1
+            self.maxHealth = 1
+            self.velocity = CGPoint(x: CGFloat.random(in: -2...2), y: 3)
+        case .medium:
+            self.size = CGSize(width: 40, height: 40)
+            self.health = 2
+            self.maxHealth = 2
+            self.velocity = CGPoint(x: CGFloat.random(in: -1.5...1.5), y: 2)
+        case .large:
+            self.size = CGSize(width: 60, height: 60)
+            self.health = 3
+            self.maxHealth = 3
+            self.velocity = CGPoint(x: CGFloat.random(in: -1...1), y: 1.5)
+        }
+    }
+    
+    mutating func update(bounds: CGRect, timeScale: CGFloat = 1.0) {
+        position.x += velocity.x * timeScale
+        position.y += velocity.y * timeScale
+        
+        // Bounce off walls
+        if position.x <= size.width/2 || position.x >= bounds.width - size.width/2 {
+            velocity.x *= -1
+        }
+    }
+    
+    func collidesWith(_ bullet: Bullet) -> Bool {
+        let asteroidRect = CGRect(
+            x: position.x - size.width/2,
+            y: position.y - size.height/2,
+            width: size.width,
+            height: size.height
+        )
+        let bulletRect = CGRect(
+            x: bullet.position.x - bullet.size.width/2,
+            y: bullet.position.y - bullet.size.height/2,
+            width: bullet.size.width,
+            height: bullet.size.height
+        )
+        return asteroidRect.intersects(bulletRect)
+    }
+    
+    func collidesWith(_ player: Player) -> Bool {
+        let asteroidRect = CGRect(
+            x: position.x - size.width/2,
+            y: position.y - size.height/2,
+            width: size.width,
+            height: size.height
+        )
+        return player.collidesWith(asteroidRect)
+    }
+    
+    var isDead: Bool {
+        health <= 0
+    }
+    
+    mutating func takeDamage(_ damage: Int) {
+        health = max(0, health - damage)
+    }
+}
+
+// MARK: - Coin (Collectible)
+struct Coin {
+    var position: CGPoint
+    var size: CGSize
+    var velocity: CGPoint
+    var value: Int
+    
+    init(position: CGPoint, value: Int = 10) {
+        self.position = position
+        self.size = CGSize(width: 20, height: 20)
+        self.velocity = CGPoint(x: 0, y: -2)  // Negative Y = move down (center-origin)
+        self.value = value
+    }
+    
+    mutating func update(timeScale: CGFloat = 1.0) {
+        position.y += velocity.y * timeScale
+    }
+    
+    func collidesWith(_ player: Player) -> Bool {
+        let coinRect = CGRect(
+            x: position.x - size.width/2,
+            y: position.y - size.height/2,
+            width: size.width,
+            height: size.height
+        )
+        return player.collidesWith(coinRect)
+    }
+    
+    func isOffScreen(bounds: CGRect) -> Bool {
+        // Center-origin: bottom is -halfHeight
+        let halfHeight = bounds.height / 2
+        return position.y < -halfHeight - size.height
     }
 }
 

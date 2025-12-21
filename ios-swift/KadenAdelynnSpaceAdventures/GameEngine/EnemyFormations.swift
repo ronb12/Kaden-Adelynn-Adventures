@@ -70,7 +70,7 @@ struct EnemyFormation {
             }
             
         case .swarm:
-            for i in 0..<count {
+            for _ in 0..<count {
                 let angle = Double.random(in: 0...(2 * .pi))
                 let distance = CGFloat.random(in: 30...80)
                 let x = center.x + CGFloat(cos(angle)) * distance

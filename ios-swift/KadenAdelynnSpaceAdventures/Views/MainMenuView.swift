@@ -13,6 +13,9 @@ struct MainMenuView: View {
     @State private var coins: Int = 0
     @State private var animateStars = false
     @State private var titleScale: CGFloat = 1.0
+    @State private var personalBest: Int = 0
+    @State private var recentAchievements: [String] = []
+    @State private var dailyChallengeProgress: Double = 0.0
     
     var body: some View {
         ZStack {
@@ -109,63 +112,65 @@ struct MainMenuView: View {
                     }
                     .padding(.top, 50)
                     
-                    // Enhanced Coin Display
-                    HStack {
+                    // Stats Cards Row
+                    HStack(spacing: 12) {
+                        // Coin Balance Card
                         VStack(alignment: .leading, spacing: 5) {
-                            Text("YOUR BALANCE")
+                            Text("COINS")
                                 .font(.caption)
                                 .foregroundColor(.white.opacity(0.7))
-                            
-                            HStack(spacing: 8) {
+                            HStack(spacing: 4) {
                                 Text("💰")
-                                    .font(.system(size: 32))
+                                    .font(.system(size: 20))
                                 Text("\(coins)")
-                                    .font(.system(size: 36, weight: .bold, design: .rounded))
+                                    .font(.system(size: 24, weight: .bold))
                                     .foregroundColor(.yellow)
                             }
                         }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(LinearGradient(colors: [.yellow.opacity(0.3), .orange.opacity(0.2)], startPoint: .leading, endPoint: .trailing))
+                        )
                         
-                        Spacer()
-                        
-                        Image(systemName: "bitcoinsign.circle.fill")
-                            .font(.system(size: 40))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [.yellow, .orange],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
-                            )
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(
-                                    LinearGradient(
-                                        colors: [.yellow.opacity(0.3), .orange.opacity(0.2)],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                            
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(
-                                    LinearGradient(
-                                        colors: [.yellow.opacity(0.6), .orange.opacity(0.6)],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    ),
-                                    lineWidth: 2
-                                )
+                        // Personal Best Card
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text("BEST SCORE")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.7))
+                            HStack(spacing: 4) {
+                                Text("⭐")
+                                    .font(.system(size: 20))
+                                Text("\(personalBest)")
+                                    .font(.system(size: 24, weight: .bold))
+                                    .foregroundColor(.cyan)
+                            }
                         }
-                    )
-                    .shadow(color: .yellow.opacity(0.3), radius: 10)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(LinearGradient(colors: [.cyan.opacity(0.3), .blue.opacity(0.2)], startPoint: .leading, endPoint: .trailing))
+                        )
+                    }
                     .padding(.horizontal, 20)
                     
                     // Main Action Buttons
                     VStack(spacing: 12) {
+                        // Quick Play Button
+                        EnhancedMenuButton(
+                            title: "Quick Play",
+                            icon: "bolt.fill",
+                            gradient: [.yellow, .orange],
+                            size: .large
+                        ) {
+                            // Use default character and ship, skip to story
+                            gameState.selectedCharacter = "kaden"
+                            gameState.selectedShip = "kaden"
+                            gameState.currentScreen = .story
+                        }
+                        
                         EnhancedMenuButton(
                             title: "Start Game",
                             icon: "play.fill",
@@ -244,6 +249,37 @@ struct MainMenuView: View {
                     }
                     .padding(.horizontal, 20)
                     
+                    // Recent Achievements
+                    if !recentAchievements.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("🏆 Recent Achievements")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                            
+                            ForEach(recentAchievements.prefix(3), id: \.self) { achievement in
+                                HStack {
+                                    Text("⭐")
+                                    Text(achievement)
+                                        .font(.subheadline)
+                                        .foregroundColor(.white.opacity(0.9))
+                                    Spacer()
+                                }
+                                .padding(.vertical, 4)
+                            }
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(.ultraThinMaterial)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(Color.yellow.opacity(0.3), lineWidth: 1)
+                                )
+                        )
+                        .padding(.horizontal, 20)
+                    }
+                    
                     // Daily Challenge Card
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
@@ -252,7 +288,27 @@ struct MainMenuView: View {
                             Text("Daily Challenge")
                                 .font(.headline)
                                 .foregroundColor(.white)
+                            Spacer()
+                            Text("\(Int(dailyChallengeProgress * 100))%")
+                                .font(.caption)
+                                .foregroundColor(.cyan)
                         }
+                        
+                        // Progress Bar
+                        GeometryReader { geometry in
+                            ZStack(alignment: .leading) {
+                                Rectangle()
+                                    .fill(Color.white.opacity(0.2))
+                                    .frame(height: 6)
+                                    .cornerRadius(3)
+                                
+                                Rectangle()
+                                    .fill(LinearGradient(colors: [.cyan, .blue], startPoint: .leading, endPoint: .trailing))
+                                    .frame(width: geometry.size.width * dailyChallengeProgress, height: 6)
+                                    .cornerRadius(3)
+                            }
+                        }
+                        .frame(height: 6)
                         
                         Text("Active: Fast Enemies")
                             .font(.subheadline)
@@ -424,12 +480,47 @@ struct MainMenuView: View {
         }
         .onAppear {
             loadCoins()
+            loadPersonalBest()
+            loadRecentAchievements()
+            loadDailyChallengeProgress()
         }
     }
     
     private func loadCoins() {
         coins = UserDefaults.standard.integer(forKey: "walletCoins")
         gameState.coins = coins
+    }
+    
+    private func loadPersonalBest() {
+        Task {
+            let scores = (try? await gameState.cloudKitService.fetchHighScores(limit: 100)) ?? []
+            let best = scores.map { $0.score }.max() ?? 0
+            
+            await MainActor.run {
+                personalBest = best
+            }
+        }
+    }
+    
+    private func loadRecentAchievements() {
+        // Load recent achievements from UserDefaults
+        if let data = UserDefaults.standard.data(forKey: "recentAchievements"),
+           let achievements = try? JSONDecoder().decode([String].self, from: data) {
+            recentAchievements = Array(achievements.prefix(5))
+        }
+    }
+    
+    private func loadDailyChallengeProgress() {
+        // Calculate daily challenge progress (example: based on games played today)
+        let today = Calendar.current.startOfDay(for: Date())
+        let lastPlayDate = UserDefaults.standard.object(forKey: "lastPlayDate") as? Date ?? today
+        let gamesToday = UserDefaults.standard.integer(forKey: "gamesToday")
+        
+        if Calendar.current.isDate(lastPlayDate, inSameDayAs: today) {
+            dailyChallengeProgress = min(Double(gamesToday) / 5.0, 1.0) // 5 games = 100%
+        } else {
+            dailyChallengeProgress = 0.0
+        }
     }
 }
 

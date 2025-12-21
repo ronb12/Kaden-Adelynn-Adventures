@@ -15,21 +15,31 @@ class GameScene: SKScene {
     // Game entities
     var playerNode: SKSpriteNode?
     var playerTrail: SKEmitterNode?
-    var enemyNodes: [SKSpriteNode] = []
+    var enemyNodes: [SKNode] = []
     var bulletNodes: [SKSpriteNode] = []
     var powerUpNodes: [SKSpriteNode] = []
     var powerUpGlows: [SKEmitterNode] = []
     var bossNode: SKSpriteNode?
+    var asteroidNodes: [SKNode] = []
+    var collectibleNodes: [SKNode] = []
     
     // Visual effects
     var floatingTexts: [SKLabelNode] = []
     var particles: [SKEmitterNode] = []
     var lastComboDisplay: TimeInterval = 0
     
+    // FPS tracking
+    private var frameCount: Int = 0
+    private var lastFPSTime: TimeInterval = 0
+    private var fpsUpdateInterval: TimeInterval = 0.5 // Update FPS every 0.5 seconds
+    
     // Input
     var touchLocation: CGPoint?
     var isTouching = false
     var lastShotTime: TimeInterval = 0
+    var touchShootTimer: TimeInterval = 0  // For auto-fire every 50ms
+    var lastFrameTime: TimeInterval = 0
+    var deltaTime: TimeInterval = 0
     
     // Audio
     let audioManager = AudioManager.shared
@@ -49,8 +59,13 @@ class GameScene: SKScene {
         setupScene()
         setupPlayer()
         setupCamera()
-        gameLogic.startGame()
+        // Pass initial time to startGame
+        gameLogic.startGame(currentTime: 0)
+        
         audioManager.startBackgroundMusic(in: self)
+        
+        // Initialize FPS tracking
+        lastFPSTime = Date().timeIntervalSince1970
     }
     
     func setupCamera() {
@@ -61,6 +76,9 @@ class GameScene: SKScene {
     
     func setupScene() {
         backgroundColor = .black
+        // Ensure scene fills entire available space
+        scaleMode = .resizeFill
+        anchorPoint = CGPoint(x: 0.5, y: 0.5)
         
         // Add stars background
         let stars = SKNode()
@@ -85,17 +103,24 @@ class GameScene: SKScene {
     }
     
     func setupPlayer() {
+        // Remove existing player if it exists
+        if let existingPlayer = childNode(withName: "player") {
+            existingPlayer.removeFromParent()
+        }
+        playerNode?.removeFromParent()
+        playerNode = nil
+        
         // Create player ship with enhanced graphics
         let shipNode = ShipGraphics.createPlayerShip(size: CGSize(width: 40, height: 40))
-        shipNode.position = CGPoint(x: size.width / 2, y: 100)
-        shipNode.name = "player"
+        shipNode.position = CGPoint(x: 0, y: 0) // Relative to parent
+        shipNode.name = "ship"
         shipNode.zPosition = 10
         
         // Wrap in container for easier manipulation
         let player = SKNode()
         player.addChild(shipNode)
-        player.position = CGPoint(x: size.width / 2, y: 100)
-        player.name = "player"
+        player.position = CGPoint(x: 0, y: 0) // Relative to playerNode
+        player.name = "playerContainer"
         player.zPosition = 10
         
         // Add glow effect
@@ -112,23 +137,54 @@ class GameScene: SKScene {
         player.addChild(trail)
         playerTrail = trail
         
-        addChild(player)
+        // Create playerNode container and add player to it FIRST
+        // Match PWA initial position: center X, near bottom (canvas.height - 100)
+        let initialPosition = CGPoint(x: size.width / 2 - gameLogic.player.size.width / 2, y: size.height - 100)
         playerNode = SKSpriteNode(color: .clear, size: CGSize(width: 40, height: 40))
-        playerNode?.position = player.position
-        playerNode?.addChild(player)
+        playerNode?.position = initialPosition
+        playerNode?.name = "player"
+        playerNode?.zPosition = 10
+        playerNode?.addChild(player) // Add player to playerNode BEFORE adding to scene
         
-        gameLogic.player.position = player.position
+        // Now add playerNode to scene
+        if let playerNode = playerNode {
+            addChild(playerNode)
+        }
+        
+        gameLogic.player.position = initialPosition
+        lastFrameTime = Date().timeIntervalSince1970
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
-        touchLocation = touch.location(in: self)
+        let touchPos = touch.location(in: self)
+        touchLocation = touchPos
         isTouching = true
+        // Use lastFrameTime (from update loop) as the timer base, or 0 if first touch
+        touchShootTimer = lastFrameTime > 0 ? lastFrameTime : 0
+        
+        // Direct position mapping (matching PWA) - player follows touch exactly
+        let bounds = CGRect(origin: .zero, size: size)
+        gameLogic.player.setPosition(touchPos, bounds: bounds)
+        if let playerNode = playerNode {
+            playerNode.position = gameLogic.player.position
+        }
+        
+        // Shoot immediately on touch (matching PWA)
+        shootBullet()
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
-        touchLocation = touch.location(in: self)
+        let touchPos = touch.location(in: self)
+        touchLocation = touchPos
+        
+        // Direct position mapping (matching PWA) - player follows touch exactly
+        let bounds = CGRect(origin: .zero, size: size)
+        gameLogic.player.setPosition(touchPos, bounds: bounds)
+        if let playerNode = playerNode {
+            playerNode.position = gameLogic.player.position
+        }
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -144,34 +200,51 @@ class GameScene: SKScene {
     override func update(_ currentTime: TimeInterval) {
         guard !gameState.isPaused else { return }
         
+        // Calculate delta time for frame-rate independence (matching PWA)
+        let wasFirstFrame = lastFrameTime == 0
+        if lastFrameTime == 0 {
+            lastFrameTime = currentTime
+        }
+        deltaTime = currentTime - lastFrameTime
+        lastFrameTime = currentTime
+        
+        // Throttle to 60fps max (16.67ms per frame) - matching PWA
+        if deltaTime < 0.01667 {
+            return
+        }
+        
+        // Normalize delta time to 60fps (multiplier) - matching PWA
+        let timeScale = min(deltaTime / 0.01667, 2.0)
+        
         // Ensure we're using the current frame bounds
         let gameBounds = CGRect(origin: .zero, size: size)
         
-        // Handle input
-        if let touchLoc = touchLocation, let player = playerNode {
-            // Move player towards touch
-            let dx = touchLoc.x - player.position.x
-            let dy = touchLoc.y - player.position.y
-            let distance = sqrt(dx * dx + dy * dy)
-            
-            if distance > 5 {
-                let moveX = dx / distance * gameLogic.player.speed
-                let moveY = dy / distance * gameLogic.player.speed
-                gameLogic.player.move(direction: CGPoint(x: moveX, y: moveY), bounds: gameBounds)
-                player.position = gameLogic.player.position
+        // Handle auto-firing when touching (matching PWA - every 50ms)
+        if isTouching {
+            // Initialize touchShootTimer if needed (first touch before first update)
+            if touchShootTimer == 0 {
+                touchShootTimer = wasFirstFrame ? currentTime - 0.05 : currentTime - 0.05  // Allow immediate shooting
             }
             
-            // Auto-shoot when touching
-            let fireRate: TimeInterval = gameLogic.player.weaponType == .missile ? 0.3 : 0.1
-            if isTouching && currentTime - lastShotTime > fireRate {
+            // Every 50ms shoot a bullet (matching PWA)
+            if currentTime - touchShootTimer >= 0.05 {
                 shootBullet()
-                lastShotTime = currentTime
+                touchShootTimer = currentTime
             }
         }
         
-        // Update game logic
+        // Update FPS tracking
+        frameCount += 1
+        if currentTime - lastFPSTime >= fpsUpdateInterval {
+            let fps = Int(Double(frameCount) / (currentTime - lastFPSTime))
+            gameState.currentFPS = fps
+            frameCount = 0
+            lastFPSTime = currentTime
+        }
+        
+        // Update game logic with timeScale for frame-rate independence
         let previousWave = gameState.wave
-        gameLogic.update(bounds: gameBounds, currentTime: currentTime)
+        gameLogic.update(bounds: gameBounds, currentTime: currentTime, timeScale: CGFloat(timeScale))
         
         // Check for wave transition
         if gameState.wave > previousWave {
@@ -186,6 +259,8 @@ class GameScene: SKScene {
         updateBullets()
         updatePowerUps()
         updateBoss()
+        updateAsteroids()
+        updateCollectibles()
         updateFloatingTexts()
         updateParticles()
         
@@ -277,19 +352,19 @@ class GameScene: SKScene {
         // Add current enemies with enhanced visuals
         for enemy in gameLogic.enemies {
             let enemyShip = ShipGraphics.createEnemyShip(size: enemy.size, type: enemy.enemyType)
-            enemyShip.position = enemy.position
+            enemyShip.position = CGPoint.zero // Relative to container
             enemyShip.name = "enemy"
             enemyShip.zPosition = 5
             
-            // Wrap in container
-            let enemyNode = SKNode()
-            enemyNode.addChild(enemyShip)
-            enemyNode.position = enemy.position
+            // Create container node
+            let container = SKNode()
+            container.position = enemy.position
+            container.addChild(enemyShip)
+            container.name = "enemy"
+            container.zPosition = 5
             
-            addChild(enemyNode)
-            enemyNodes.append(SKSpriteNode(color: .clear, size: enemy.size))
-            enemyNodes.last?.position = enemy.position
-            enemyNodes.last?.addChild(enemyNode)
+            addChild(container)
+            enemyNodes.append(container)
         }
     }
     
@@ -356,6 +431,68 @@ class GameScene: SKScene {
             
             addChild(powerUpNode)
             powerUpNodes.append(powerUpNode)
+        }
+    }
+    
+    func updateAsteroids() {
+        // Remove old asteroid nodes
+        for node in asteroidNodes {
+            node.removeFromParent()
+        }
+        asteroidNodes.removeAll()
+        
+        // Add current asteroids
+        for asteroid in gameLogic.asteroids {
+            let asteroidNode = SKShapeNode(circleOfRadius: asteroid.size.width / 2)
+            asteroidNode.fillColor = .gray
+            asteroidNode.strokeColor = .white
+            asteroidNode.lineWidth = 2
+            asteroidNode.position = asteroid.position
+            asteroidNode.name = "asteroid"
+            asteroidNode.zPosition = 4
+            
+            // Add rotation animation
+            let rotate = SKAction.rotate(byAngle: .pi * 2, duration: 2.0)
+            asteroidNode.run(SKAction.repeatForever(rotate))
+            
+            addChild(asteroidNode)
+            asteroidNodes.append(asteroidNode)
+        }
+    }
+    
+    func updateCollectibles() {
+        // Remove old collectible nodes
+        for node in collectibleNodes {
+            node.removeFromParent()
+        }
+        collectibleNodes.removeAll()
+        
+        // Add current collectibles (coins)
+        for collectible in gameLogic.collectibles {
+            let coinNode = SKShapeNode(circleOfRadius: collectible.size.width / 2)
+            coinNode.fillColor = .yellow
+            coinNode.strokeColor = .orange
+            coinNode.lineWidth = 2
+            coinNode.position = collectible.position
+            coinNode.name = "collectible"
+            coinNode.zPosition = 5
+            
+            // Add pulsing animation
+            let pulse = SKAction.sequence([
+                SKAction.scale(to: 1.2, duration: 0.5),
+                SKAction.scale(to: 1.0, duration: 0.5)
+            ])
+            coinNode.run(SKAction.repeatForever(pulse))
+            
+            // Add glow
+            let glow = SKShapeNode(circleOfRadius: collectible.size.width / 2 + 2)
+            glow.fillColor = .yellow.withAlphaComponent(0.3)
+            glow.strokeColor = .clear
+            glow.zPosition = -1
+            coinNode.addChild(glow)
+            
+            addChild(coinNode)
+            collectibleNodes.append(coinNode)
         }
     }
     

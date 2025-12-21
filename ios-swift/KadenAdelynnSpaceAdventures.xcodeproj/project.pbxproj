@@ -15,8 +15,10 @@
 		6A684F4E188252CB56DA6122 /* GameOverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1B8BC7C104B09EF9C5EF8AF /* GameOverView.swift */; };
 		87AF727BB23CE7532690EED6 /* GameStateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135D08AAC4856D6AAB092B8B /* GameStateManager.swift */; };
 		8A45188458BDF89363D67A3F /* CharacterSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E74F9C0AE00CFDB86E0FB34 /* CharacterSelectView.swift */; };
+		A1B2C3D4E5F6A7B8C9D0E1F2 /* StatisticsDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F6A7B8C9D0E1F2A3 /* StatisticsDashboardView.swift */; };
 		AE1FAFAE34885555FCF77A90 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 437B9B9ABDFB3AA3C3280B72 /* SettingsView.swift */; };
 		BC1111C608698CCF29C4FD74 /* CloudKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282489952976BA529B5D2F44 /* CloudKitService.swift */; };
+		C3D4E5F6A7B8C9D0E1F2A3B4 /* SaveLoadMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4E5F6A7B8C9D0E1F2A3B4C5 /* SaveLoadMenuView.swift */; };
 		C3EEC4D55989B7B0A173D814 /* GameStatsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01374DD4EFFE86490DCDC9AC /* GameStatsManager.swift */; };
 		C545ACA42D85870B98BDAA62 /* ShipSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 065F756C2CE6A29F1D88FE1E /* ShipSelectView.swift */; };
 		CEADA3D4C680EE2332082F30 /* MainMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA6CE6FE4CFC0EEC3B724BDA /* MainMenuView.swift */; };
@@ -24,13 +26,11 @@
 		D615A8C65492E0B82B485770 /* GameLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF4AD8EB535C5F1F13C51DFB /* GameLogic.swift */; };
 		D71823EEE707B945E5B35CF2 /* TermsOfServiceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDDFEC0CBDA2F1E1F9CAB0F8 /* TermsOfServiceView.swift */; };
 		E370E957C966CF82FD45F0E7 /* StoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8632BDBD9FDD765CC37641C /* StoryView.swift */; };
+		E5F6A7B8C9D0E1F2A3B4C5D6 /* WeaponUpgradesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6A7B8C9D0E1F2A3B4C5D6E7 /* WeaponUpgradesView.swift */; };
 		EFD6D903BB7B4DD2D6B10978 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 436AAAAED8F7D20D1594916F /* ContentView.swift */; };
+		F7A8B9C0D1E2F3A4B5C6D7E8 /* CustomizationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8B9C0D1E2F3A4B5C6D7E8F9 /* CustomizationView.swift */; };
 		F83827672E5BF7D61282DB12 /* KadenAdelynnSpaceAdventuresApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D25E2D1F20321B81B6241164 /* KadenAdelynnSpaceAdventuresApp.swift */; };
 		FFDEC3A760BDE1B52400B521 /* StoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE9FBE560E21F3497A83FA10 /* StoreView.swift */; };
-		A1B2C3D4E5F6A7B8C9D0E1F2 /* StatisticsDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F6A7B8C9D0E1F2A3 /* StatisticsDashboardView.swift */; };
-		C3D4E5F6A7B8C9D0E1F2A3B4 /* SaveLoadMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4E5F6A7B8C9D0E1F2A3B4C5 /* SaveLoadMenuView.swift */; };
-		E5F6A7B8C9D0E1F2A3B4C5D6 /* WeaponUpgradesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6A7B8C9D0E1F2A3B4C5D6E7 /* WeaponUpgradesView.swift */; };
-		F7A8B9C0D1E2F3A4B5C6D7E8 /* CustomizationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8B9C0D1E2F3A4B5C6D7E8F9 /* CustomizationView.swift */; };
 		G1H2I3J4K5L6M7N8O9P0Q1 /* GameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = H2I3J4K5L6M7N8O9P0Q1R2 /* GameView.swift */; };
 		I2J3K4L5M6N7O8P9Q0R1 /* ParticleSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = J3K4L5M6N7O8P9Q0R1S2 /* ParticleSystem.swift */; };
 		K4L5M6N7O8P9Q0R1S2T3 /* VisualEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = L5M6N7O8P9Q0R1S2T3U4 /* VisualEffects.swift */; };
@@ -39,6 +39,7 @@
 		Q0R1S2T3U4V5W6X7Y8Z9 /* AchievementManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = R1S2T3U4V5W6X7Y8Z9A0 /* AchievementManager.swift */; };
 		S2T3U4V5W6X7Y8Z9A0B1 /* AchievementNotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = T3U4V5W6X7Y8Z9A0B1C2 /* AchievementNotificationView.swift */; };
 		U4V5W6X7Y8Z9A0B1C2D3 /* ShipGraphics.swift in Sources */ = {isa = PBXBuildFile; fileRef = V5W6X7Y8Z9A0B1C2D3E4 /* ShipGraphics.swift */; };
+		D8C9F4C37A061792E324A5B6 /* KadenAdelynnSpaceAdventuresUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2C84FDF2F1DC669BCFECDD /* KadenAdelynnSpaceAdventuresUITests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -50,23 +51,24 @@
 		368E6687528DE2D1520EAD14 /* ScoresView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoresView.swift; sourceTree = "<group>"; };
 		436AAAAED8F7D20D1594916F /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		437B9B9ABDFB3AA3C3280B72 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		470F34F12EF6FA440079FABA /* KadenAdelynnSpaceAdventures.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = KadenAdelynnSpaceAdventures.entitlements; sourceTree = "<group>"; };
 		73CFE46A99A622B1BF0AAAC4 /* KadenAdelynnSpaceAdventures.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KadenAdelynnSpaceAdventures.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		75A0E342017744F97A6C4895 /* GameModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameModels.swift; sourceTree = "<group>"; };
 		7E74F9C0AE00CFDB86E0FB34 /* CharacterSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacterSelectView.swift; sourceTree = "<group>"; };
 		8467EDB4D289A22BA9A09941 /* AppleSignInService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInService.swift; sourceTree = "<group>"; };
+		A8B9C0D1E2F3A4B5C6D7E8F9 /* CustomizationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomizationView.swift; sourceTree = "<group>"; };
 		AF4AD8EB535C5F1F13C51DFB /* GameLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameLogic.swift; sourceTree = "<group>"; };
+		B2C3D4E5F6A7B8C9D0E1F2A3 /* StatisticsDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsDashboardView.swift; sourceTree = "<group>"; };
 		BC008555E3189E32EA18F516 /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
 		D25E2D1F20321B81B6241164 /* KadenAdelynnSpaceAdventuresApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KadenAdelynnSpaceAdventuresApp.swift; sourceTree = "<group>"; };
+		D4E5F6A7B8C9D0E1F2A3B4C5 /* SaveLoadMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveLoadMenuView.swift; sourceTree = "<group>"; };
 		DA6CE6FE4CFC0EEC3B724BDA /* MainMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuView.swift; sourceTree = "<group>"; };
 		DDDFEC0CBDA2F1E1F9CAB0F8 /* TermsOfServiceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TermsOfServiceView.swift; sourceTree = "<group>"; };
 		E32BF6B961780848C746CF45 /* GameEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameEngine.swift; sourceTree = "<group>"; };
 		E8632BDBD9FDD765CC37641C /* StoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryView.swift; sourceTree = "<group>"; };
 		F1B8BC7C104B09EF9C5EF8AF /* GameOverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameOverView.swift; sourceTree = "<group>"; };
-		FE9FBE560E21F3497A83FA10 /* StoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreView.swift; sourceTree = "<group>"; };
-		B2C3D4E5F6A7B8C9D0E1F2A3 /* StatisticsDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsDashboardView.swift; sourceTree = "<group>"; };
-		D4E5F6A7B8C9D0E1F2A3B4C5 /* SaveLoadMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveLoadMenuView.swift; sourceTree = "<group>"; };
 		F6A7B8C9D0E1F2A3B4C5D6E7 /* WeaponUpgradesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeaponUpgradesView.swift; sourceTree = "<group>"; };
-		A8B9C0D1E2F3A4B5C6D7E8F9 /* CustomizationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomizationView.swift; sourceTree = "<group>"; };
+		FE9FBE560E21F3497A83FA10 /* StoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreView.swift; sourceTree = "<group>"; };
 		H2I3J4K5L6M7N8O9P0Q1R2 /* GameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameView.swift; sourceTree = "<group>"; };
 		J3K4L5M6N7O8P9Q0R1S2 /* ParticleSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParticleSystem.swift; sourceTree = "<group>"; };
 		L5M6N7O8P9Q0R1S2T3U4 /* VisualEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffects.swift; sourceTree = "<group>"; };
@@ -76,6 +78,8 @@
 		T3U4V5W6X7Y8Z9A0B1C2 /* AchievementNotificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementNotificationView.swift; sourceTree = "<group>"; };
 		V5W6X7Y8Z9A0B1C2D3E4 /* ShipGraphics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipGraphics.swift; sourceTree = "<group>"; };
 		X2Y3Z4A5B6C7D8E9F0G1H2 /* DeviceHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceHelper.swift; sourceTree = "<group>"; };
+		5B2C84FDF2F1DC669BCFECDD /* KadenAdelynnSpaceAdventuresUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KadenAdelynnSpaceAdventuresUITests.swift; sourceTree = "<group>"; };
+		C73D2AE8A76D49FB3BABB5E5 /* KadenAdelynnSpaceAdventuresUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KadenAdelynnSpaceAdventuresUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -106,9 +110,9 @@
 		08D19C10830024E2D8B3A5B0 /* KadenAdelynnSpaceAdventures */ = {
 			isa = PBXGroup;
 			children = (
+				470F34F12EF6FA440079FABA /* KadenAdelynnSpaceAdventures.entitlements */,
 				436AAAAED8F7D20D1594916F /* ContentView.swift */,
 				D25E2D1F20321B81B6241164 /* KadenAdelynnSpaceAdventuresApp.swift */,
-				W1X2Y3Z4A5B6C7D8E9F0G1 /* Utilities */,
 				C7F3C2FE066C25139A52D5F9 /* GameEngine */,
 				DC7A22770A4DF5D219D954EE /* Models */,
 				8008F713B0351A0710A0AFA2 /* Services */,
@@ -118,26 +122,28 @@
 			path = KadenAdelynnSpaceAdventures;
 			sourceTree = "<group>";
 		};
-		W1X2Y3Z4A5B6C7D8E9F0G1 /* Utilities */ = {
-			isa = PBXGroup;
-			children = (
-				X2Y3Z4A5B6C7D8E9F0G1H2 /* DeviceHelper.swift */,
-			);
-			path = Utilities;
-			sourceTree = "<group>";
-		};
 		188838696A7E8DD646001722 = {
 			isa = PBXGroup;
 			children = (
 				08D19C10830024E2D8B3A5B0 /* KadenAdelynnSpaceAdventures */,
+				0C99E6CAD1F118B7964E1A37 /* KadenAdelynnSpaceAdventuresUITests */,
 				51C4878C809F4D4F296BC611 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		0C99E6CAD1F118B7964E1A37 /* KadenAdelynnSpaceAdventuresUITests */ = {
+			isa = PBXGroup;
+			children = (
+				5B2C84FDF2F1DC669BCFECDD /* KadenAdelynnSpaceAdventuresUITests.swift */,
+			);
+			path = KadenAdelynnSpaceAdventuresUITests;
 			sourceTree = "<group>";
 		};
 		51C4878C809F4D4F296BC611 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				73CFE46A99A622B1BF0AAAC4 /* KadenAdelynnSpaceAdventures.app */,
+				C73D2AE8A76D49FB3BABB5E5 /* KadenAdelynnSpaceAdventuresUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -152,14 +158,6 @@
 				R1S2T3U4V5W6X7Y8Z9A0 /* AchievementManager.swift */,
 			);
 			path = Services;
-			sourceTree = "<group>";
-		};
-		W1X2Y3Z4A5B6C7D8E9F0G1 /* Utilities */ = {
-			isa = PBXGroup;
-			children = (
-				X2Y3Z4A5B6C7D8E9F0G1H2 /* DeviceHelper.swift */,
-			);
-			path = Utilities;
 			sourceTree = "<group>";
 		};
 		C7F3C2FE066C25139A52D5F9 /* GameEngine */ = {
@@ -184,9 +182,34 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
+		W1X2Y3Z4A5B6C7D8E9F0G1 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				X2Y3Z4A5B6C7D8E9F0G1H2 /* DeviceHelper.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		8992B9D60C95EA33D9456BE8 /* KadenAdelynnSpaceAdventuresUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 13E32D09382DA05085103ED5 /* Build configuration list for PBXNativeTarget "KadenAdelynnSpaceAdventuresUITests" */;
+			buildPhases = (
+				55C69EF272AA228A9071B132 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = KadenAdelynnSpaceAdventuresUITests;
+			packageProductDependencies = (
+			);
+			productName = KadenAdelynnSpaceAdventuresUITests;
+			productReference = C73D2AE8A76D49FB3BABB5E5 /* KadenAdelynnSpaceAdventuresUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		C840AF3871486611CE5EFBCE /* KadenAdelynnSpaceAdventures */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 9CC8D523C95E4EF02F966036 /* Build configuration list for PBXNativeTarget "KadenAdelynnSpaceAdventures" */;
@@ -211,7 +234,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1620;
+				LastUpgradeCheck = 2620;
 			};
 			buildConfigurationList = 9C70E559DD6453F9A00E120D /* Build configuration list for PBXProject "KadenAdelynnSpaceAdventures" */;
 			compatibilityVersion = "Xcode 14.0";
@@ -227,6 +250,7 @@
 			projectRoot = "";
 			targets = (
 				C840AF3871486611CE5EFBCE /* KadenAdelynnSpaceAdventures */,
+				8992B9D60C95EA33D9456BE8 /* KadenAdelynnSpaceAdventuresUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -268,7 +292,14 @@
 				Q0R1S2T3U4V5W6X7Y8Z9 /* AchievementManager.swift in Sources */,
 				S2T3U4V5W6X7Y8Z9A0B1 /* AchievementNotificationView.swift in Sources */,
 				U4V5W6X7Y8Z9A0B1C2D3 /* ShipGraphics.swift in Sources */,
-				Y3Z4A5B6C7D8E9F0G1H2I3 /* DeviceHelper.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		55C69EF272AA228A9071B132 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D8C9F4C37A061792E324A5B6 /* KadenAdelynnSpaceAdventuresUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -279,13 +310,19 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = KadenAdelynnSpaceAdventures/KadenAdelynnSpaceAdventures.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				INFOPLIST_FILE = Info.plist;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4SQJ3AH62S;
+				INFOPLIST_FILE = KadenAdelynnSpaceAdventures/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Kaden & Adelynn Space Adventures";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.action-games";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.KadenAdelynnSpaceAdventures;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
@@ -351,6 +388,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -408,6 +446,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
@@ -418,17 +457,73 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = KadenAdelynnSpaceAdventures/KadenAdelynnSpaceAdventures.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				INFOPLIST_FILE = Info.plist;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4SQJ3AH62S;
+				INFOPLIST_FILE = KadenAdelynnSpaceAdventures/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Kaden & Adelynn Space Adventures";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.action-games";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.KadenAdelynnSpaceAdventures;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		C320FBD88FF9BD988A51A7AB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4SQJ3AH62S;
+				INFOPLIST_FILE = KadenAdelynnSpaceAdventuresUITests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.KadenAdelynnSpaceAdventuresUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = KadenAdelynnSpaceAdventures;
+			};
+			name = Debug;
+		};
+		7BA1C64565C01E33190F2BF5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4SQJ3AH62S;
+				INFOPLIST_FILE = KadenAdelynnSpaceAdventuresUITests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.KadenAdelynnSpaceAdventuresUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = KadenAdelynnSpaceAdventures;
 			};
 			name = Release;
 		};
@@ -440,6 +535,15 @@
 			buildConfigurations = (
 				77E3FF04F5E34069CE2F9287 /* Debug */,
 				C3AAEFBC98D9BF980207CAC4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		13E32D09382DA05085103ED5 /* Build configuration list for PBXNativeTarget "KadenAdelynnSpaceAdventuresUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C320FBD88FF9BD988A51A7AB /* Debug */,
+				7BA1C64565C01E33190F2BF5 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

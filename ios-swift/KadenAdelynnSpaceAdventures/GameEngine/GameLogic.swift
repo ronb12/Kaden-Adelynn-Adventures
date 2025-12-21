@@ -17,10 +17,14 @@ class GameLogic {
     var bullets: [Bullet] = []
     var powerUps: [PowerUp] = []
     var boss: Boss?
+    var asteroids: [Asteroid] = []
+    var collectibles: [Coin] = []
     
     // Spawning
     var lastEnemySpawn: TimeInterval = 0
     var lastPowerUpSpawn: TimeInterval = 0
+    var lastAsteroidSpawn: TimeInterval = 0  // For asteroid spawning (matching PWA)
+    var lastCollectibleSpawn: TimeInterval = 0  // For collectible spawning
     var enemiesSpawnedThisWave: Int = 0
     var enemiesToSpawnThisWave: Int = 5
     var useFormations = false
@@ -42,8 +46,9 @@ class GameLogic {
         self.player = Player(position: CGPoint(x: 0, y: 0))
     }
     
-    func startGame() {
-        player.position = CGPoint(x: 200, y: 100)
+    func startGame(currentTime: TimeInterval = 0) {
+        // Player starts at center x, near bottom (center-origin coordinates)
+        player.position = CGPoint(x: 0, y: -300)
         player.health = 100
         gameState.score = 0
         gameState.wave = 1
@@ -54,18 +59,31 @@ class GameLogic {
         enemies.removeAll()
         bullets.removeAll()
         powerUps.removeAll()
+        collectibles.removeAll()
+        asteroids.removeAll()
         boss = nil
         isBossFight = false
         enemiesSpawnedThisWave = 0
         enemiesToSpawnThisWave = 5
-        waveStartTime = Date().timeIntervalSince1970
+        formationSpawned = false
+        // Initialize spawn timers with currentTime
+        let initTime = currentTime > 0 ? currentTime : 0
+        lastEnemySpawn = initTime
+        lastPowerUpSpawn = initTime
+        lastAsteroidSpawn = initTime
+        lastCollectibleSpawn = initTime
+        waveStartTime = initTime
     }
     
-    func update(bounds: CGRect, currentTime: TimeInterval) {
-        // Update player
+    func update(bounds: CGRect, currentTime: TimeInterval, timeScale: CGFloat = 1.0) {
+        // Player position is now controlled directly by touch (matching PWA)
+        // Center-origin bounds: clamp to screen edges
+        let halfWidth = bounds.width / 2
+        let halfHeight = bounds.height / 2
+        let margin: CGFloat = 20
         player.position = CGPoint(
-            x: max(player.size.width/2, min(bounds.width - player.size.width/2, player.position.x)),
-            y: max(player.size.height/2, min(bounds.height - player.size.height/2, player.position.y))
+            x: max(-halfWidth + margin, min(halfWidth - margin, player.position.x)),
+            y: max(-halfHeight + margin, min(halfHeight - margin, player.position.y))
         )
         
         // Update invulnerability
@@ -110,10 +128,10 @@ class GameLogic {
         
         // Update enemies
         for i in (0..<enemies.count).reversed() {
-            enemies[i].update(bounds: bounds)
+            enemies[i].update(bounds: bounds, timeScale: timeScale)
             
-            // Remove if off screen
-            if enemies[i].position.y > bounds.height + 50 {
+            // Remove if off screen (center-origin: bottom is -halfHeight)
+            if enemies[i].position.y < CGFloat(-halfHeight) - 50 {
                 enemies.remove(at: i)
             }
         }
@@ -128,9 +146,9 @@ class GameLogic {
             }
         }
         
-        // Update power-ups
+        // Update power-ups with timeScale
         for i in (0..<powerUps.count).reversed() {
-            powerUps[i].update()
+            powerUps[i].update(timeScale: timeScale)
             
             // Remove if off screen
             if powerUps[i].isOffScreen(bounds: bounds) {
@@ -138,9 +156,29 @@ class GameLogic {
             }
         }
         
-        // Update boss
+        // Update asteroids with timeScale (matching PWA)
+        for i in (0..<asteroids.count).reversed() {
+            asteroids[i].update(bounds: bounds, timeScale: timeScale)
+            
+            // Remove if off screen (center-origin: bottom is -halfHeight)
+            if asteroids[i].position.y < -halfHeight - 50 {
+                asteroids.remove(at: i)
+            }
+        }
+        
+        // Update collectibles (coins) with timeScale (matching PWA)
+        for i in (0..<collectibles.count).reversed() {
+            collectibles[i].update(timeScale: timeScale)
+            
+            // Remove if off screen
+            if collectibles[i].isOffScreen(bounds: bounds) {
+                collectibles.remove(at: i)
+            }
+        }
+        
+        // Update boss with timeScale
         if var currentBoss = boss {
-            currentBoss.update(bounds: bounds)
+            currentBoss.update(bounds: bounds, timeScale: timeScale)
             boss = currentBoss
             
             // Boss shoots
@@ -160,15 +198,66 @@ class GameLogic {
             lastPowerUpSpawn = currentTime
         }
         
+        // Spawn asteroids (matching PWA - starting from wave 3)
+        if gameState.wave >= 3 {
+            let asteroidRate: TimeInterval = 3.0 - (Double(gameState.wave) * 0.2)  // 3000ms - (wave * 200ms)
+            if currentTime - lastAsteroidSpawn > asteroidRate && asteroids.count < 15 {
+                spawnAsteroid(bounds: bounds)
+                lastAsteroidSpawn = currentTime
+            }
+        }
+        
+        // Spawn collectibles periodically
+        if currentTime - lastCollectibleSpawn > 3.0 && collectibles.count < 5 {
+            spawnCollectible(bounds: bounds)
+            lastCollectibleSpawn = currentTime
+        }
+        
         // Check wave completion
         if !isBossFight && enemies.isEmpty && enemiesSpawnedThisWave >= enemiesToSpawnThisWave {
             nextWave()
         }
     }
     
+    func spawnAsteroid(bounds: CGRect) {
+        // Center-origin coordinates: x from -halfWidth to +halfWidth, y from top (+halfHeight)
+        let halfWidth = bounds.width / 2
+        let halfHeight = bounds.height / 2
+        let x = CGFloat.random(in: -halfWidth + 50...(halfWidth - 50))
+        let y = halfHeight + 50  // Spawn from top
+        
+        let roll = Double.random(in: 0...1)
+        let asteroidSize: Asteroid.AsteroidSize = {
+            if roll < 0.5 { return .small }
+            else if roll < 0.85 { return .medium }
+            else { return .large }
+        }()
+        
+        let asteroid = Asteroid(position: CGPoint(x: x, y: y), size: asteroidSize)
+        asteroids.append(asteroid)
+    }
+    
+    func spawnCoin(at position: CGPoint) {
+        let coin = Coin(position: position)
+        collectibles.append(coin)
+    }
+    
+    func spawnCollectible(bounds: CGRect) {
+        // Center-origin coordinates: spawn from top
+        let halfWidth = bounds.width / 2
+        let halfHeight = bounds.height / 2
+        let x = CGFloat.random(in: -halfWidth + 50...(halfWidth - 50))
+        let y = halfHeight + 50  // Spawn from top
+        let coin = Coin(position: CGPoint(x: x, y: y))
+        collectibles.append(coin)
+    }
+    
     func spawnEnemy(bounds: CGRect) {
-        let x = CGFloat.random(in: 50...(bounds.width - 50))
-        let y = bounds.height + 50
+        // Center-origin coordinates: spawn from top
+        let halfWidth = bounds.width / 2
+        let halfHeight = bounds.height / 2
+        let x = CGFloat.random(in: -halfWidth + 50...(halfWidth - 50))
+        let y = halfHeight + 50  // Spawn from top (center-origin)
         
         let enemyType: Enemy.EnemyType = {
             let rand = Int.random(in: 0...100)
@@ -187,7 +276,9 @@ class GameLogic {
     func spawnFormation(bounds: CGRect) {
         let patterns: [EnemyFormation.FormationPattern] = [.line, .vShape, .diamond, .circle, .swarm]
         let pattern = patterns.randomElement() ?? .line
-        let center = CGPoint(x: bounds.width / 2, y: bounds.height + 100)
+        // Center-origin coordinates: spawn from top
+        let halfHeight = bounds.height / 2
+        let center = CGPoint(x: 0, y: halfHeight + 100)
         
         let formationEnemies = EnemyFormation.createFormation(
             pattern: pattern,
@@ -201,12 +292,17 @@ class GameLogic {
     }
     
     func spawnBoss(bounds: CGRect) {
-        boss = Boss(position: CGPoint(x: bounds.width / 2, y: bounds.height - 100))
+        // Center-origin coordinates: boss spawns near top center
+        let halfHeight = bounds.height / 2
+        boss = Boss(position: CGPoint(x: 0, y: halfHeight - 100))
     }
     
     func spawnPowerUp(bounds: CGRect) {
-        let x = CGFloat.random(in: 50...(bounds.width - 50))
-        let y = bounds.height + 50
+        // Center-origin coordinates: spawn from top
+        let halfWidth = bounds.width / 2
+        let halfHeight = bounds.height / 2
+        let x = CGFloat.random(in: -halfWidth + 50...(halfWidth - 50))
+        let y = halfHeight + 50
         
         let types: [PowerUp.PowerUpType] = [.health, .rapidFire, .spread, .shield, .coin]
         let type = types.randomElement() ?? .coin
@@ -313,8 +409,10 @@ class GameLogic {
                         // Check achievements
                         AchievementManager.shared.checkAchievements(gameState: gameState)
                         
-                        // Spawn coin power-up occasionally
-                        if Int.random(in: 0...100) < 20 {
+                        // Spawn coin from dead enemy (matching PWA)
+                        if Int.random(in: 0...100) < 35 {  // 35% chance for coin
+                            spawnCoin(at: enemies[j].position)
+                        } else if Int.random(in: 0...100) < 8 {  // 8% chance for health power-up
                             spawnPowerUp(bounds: bounds)
                         }
                         
@@ -400,6 +498,55 @@ class GameLogic {
                 applyPowerUp(powerUps[i])
                 powerUps.remove(at: i)
                 gameState.coins += powerUps[i].type == .coin ? 10 : 0
+            }
+        }
+        
+        // Collectibles (coins) vs player (matching PWA)
+        for i in (0..<collectibles.count).reversed() {
+            if collectibles[i].collidesWith(player) {
+                gameState.coins += collectibles[i].value
+                UserDefaults.standard.set(gameState.coins, forKey: "walletCoins")
+                collectibles.remove(at: i)
+            }
+        }
+        
+        // Asteroids vs player (matching PWA)
+        if !player.invulnerable {
+            for i in (0..<asteroids.count).reversed() {
+                if asteroids[i].collidesWith(player) {
+                    player.health -= 20
+                    gameScene?.onPlayerHit()
+                    
+                    if player.health <= 0 {
+                        player.health = player.maxHealth
+                        gameState.lives -= 1
+                        player.invulnerable = true
+                        player.invulnerableTimer = 2.0
+                    }
+                    gameState.combo = 0
+                    break
+                }
+            }
+        }
+        
+        // Bullets vs asteroids (matching PWA)
+        for i in (0..<bullets.count).reversed() {
+            guard bullets[i].owner == .player else { continue }
+            
+            for j in (0..<asteroids.count).reversed() {
+                if asteroids[j].collidesWith(bullets[i]) {
+                    asteroids[j].takeDamage(bullets[i].damage)
+                    bullets.remove(at: i)
+                    gameState.shotsHit += 1
+                    
+                    if asteroids[j].isDead {
+                        // Spawn coin from destroyed asteroid
+                        spawnCoin(at: asteroids[j].position)
+                        gameState.score += 10
+                        asteroids.remove(at: j)
+                    }
+                    break
+                }
             }
         }
     }

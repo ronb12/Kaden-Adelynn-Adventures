@@ -51,6 +51,8 @@ class GameStateManager: ObservableObject {
     @Published var shotsHit: Int = 0
     @Published var combo: Int = 0
     @Published var killStreak: Int = 0
+    @Published var currentFPS: Int = 60
+    @Published var activePowerUps: [String: TimeInterval] = [:]
     
     // Store upgrades
     var upgradeShield: Bool {
@@ -166,7 +168,8 @@ class GameStateManager: ObservableObject {
                 kills: enemiesKilled,
                 combo: combo,
                 accuracy: accuracy,
-                date: Date()
+                date: Date(),
+                id: UUID()
             )
             
             try? await cloudKitService.saveHighScore(highScore)

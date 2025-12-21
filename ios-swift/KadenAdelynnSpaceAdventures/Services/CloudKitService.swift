@@ -41,18 +41,28 @@ class CloudKitService: ObservableObject {
     // MARK: - High Scores
     
     func saveHighScore(_ score: HighScoreData) async throws {
-        // CloudKit disabled - data saved locally only
-        guard isCloudAvailable else { return }
-        // Save to UserDefaults instead
-        if let encoded = try? JSONEncoder().encode(score) {
-            UserDefaults.standard.set(encoded, forKey: "highScore_\(score.playerName)")
+        // Save to UserDefaults (CloudKit disabled)
+        var scores = loadHighScoresFromDefaults()
+        scores.append(score)
+        scores.sort { $0.score > $1.score }
+        let topScores = Array(scores.prefix(100))
+        if let encoded = try? JSONEncoder().encode(topScores) {
+            UserDefaults.standard.set(encoded, forKey: "highScores")
+            lastSyncDate = Date()
         }
     }
     
     func fetchHighScores(limit: Int = 100) async throws -> [HighScoreData] {
-        // CloudKit disabled - return empty array
-        guard isCloudAvailable else { return [] }
-        // Could load from UserDefaults if needed, but returning empty for now
+        // Load from UserDefaults (CloudKit disabled)
+        let scores = loadHighScoresFromDefaults()
+        return Array(scores.prefix(limit))
+    }
+    
+    private func loadHighScoresFromDefaults() -> [HighScoreData] {
+        if let data = UserDefaults.standard.data(forKey: "highScores"),
+           let scores = try? JSONDecoder().decode([HighScoreData].self, from: data) {
+            return scores
+        }
         return []
     }
     
@@ -140,7 +150,8 @@ class CloudKitService: ObservableObject {
 
 // MARK: - Data Models
 
-struct HighScoreData: Codable {
+struct HighScoreData: Codable, Identifiable {
+    let id: UUID
     let playerName: String
     let score: Int
     let wave: Int
@@ -150,7 +161,8 @@ struct HighScoreData: Codable {
     let accuracy: Double
     let date: Date
     
-    init(playerName: String, score: Int, wave: Int, level: Int, kills: Int, combo: Int, accuracy: Double, date: Date = Date()) {
+    init(playerName: String, score: Int, wave: Int, level: Int, kills: Int, combo: Int, accuracy: Double, date: Date = Date(), id: UUID = UUID()) {
+        self.id = id
         self.playerName = playerName
         self.score = score
         self.wave = wave

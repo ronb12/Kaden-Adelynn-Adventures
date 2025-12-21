@@ -102,12 +102,12 @@ struct OverviewTab: View {
     
     var body: some View {
         VStack(spacing: 15) {
-            StatCard(label: "Total Games", value: "\(stats.totalGamesPlayed)")
-            StatCard(label: "Total Play Time", value: formatTime(stats.totalPlayTime))
-            StatCard(label: "Total Score", value: "\(stats.totalScore)")
-            StatCard(label: "Total Kills", value: "\(stats.totalKills)")
-            StatCard(label: "Waves Completed", value: "\(stats.totalWavesCompleted)")
-            StatCard(label: "Bosses Defeated", value: "\(stats.totalBossesDefeated)")
+            StatisticsStatCard(label: "Total Games", value: "\(stats.totalGamesPlayed)")
+            StatisticsStatCard(label: "Total Play Time", value: formatTime(stats.totalPlayTime))
+            StatisticsStatCard(label: "Total Score", value: "\(stats.totalScore)")
+            StatisticsStatCard(label: "Total Kills", value: "\(stats.totalKills)")
+            StatisticsStatCard(label: "Waves Completed", value: "\(stats.totalWavesCompleted)")
+            StatisticsStatCard(label: "Bosses Defeated", value: "\(stats.totalBossesDefeated)")
         }
         .padding()
     }
@@ -141,10 +141,10 @@ struct PerformanceTab: View {
     
     var body: some View {
         VStack(spacing: 15) {
-            StatCard(label: "Highest Score", value: "\(stats.highestScore)")
-            StatCard(label: "Highest Wave", value: "\(stats.highestWave)")
-            StatCard(label: "Highest Combo", value: "\(stats.highestCombo)")
-            StatCard(label: "Best Accuracy", value: String(format: "%.1f%%", stats.bestAccuracy))
+            StatisticsStatCard(label: "Highest Score", value: "\(stats.highestScore)")
+            StatisticsStatCard(label: "Highest Wave", value: "\(stats.highestWave)")
+            StatisticsStatCard(label: "Highest Combo", value: "\(stats.highestCombo)")
+            StatisticsStatCard(label: "Best Accuracy", value: String(format: "%.1f%%", stats.bestAccuracy))
         }
         .padding()
     }
@@ -155,14 +155,14 @@ struct ProgressTab: View {
     
     var body: some View {
         VStack(spacing: 15) {
-            StatCard(label: "Achievements Unlocked", value: "\(stats.achievementsUnlocked)")
-            StatCard(label: "Power-ups Collected", value: "\(stats.totalPowerUpsCollected)")
+            StatisticsStatCard(label: "Achievements Unlocked", value: "\(stats.achievementsUnlocked)")
+            StatisticsStatCard(label: "Power-ups Collected", value: "\(stats.totalPowerUpsCollected)")
         }
         .padding()
     }
 }
 
-struct StatCard: View {
+struct StatisticsStatCard: View {
     let label: String
     let value: String
     
