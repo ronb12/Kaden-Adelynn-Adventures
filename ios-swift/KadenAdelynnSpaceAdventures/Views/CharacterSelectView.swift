@@ -503,12 +503,15 @@ private struct EnhancedCharacterCard: View {
                     .buttonStyle(.plain)
                 }
                 
-                // Character Portrait from Assets - Show full body
-                Image("\(character.id)_character")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 140, height: 180)
-                    .scaleEffect(isSelected ? 1.1 : 1.0)
+                // Character Portrait from Assets - Clean display like Mira (no extra background)
+                ZStack {
+                    // Transparent background - no extra elements
+                    Image("\(character.id)_character")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 110, height: 150)
+                        .scaleEffect(isSelected ? 1.05 : 1.0)
+                }
                 
                 // Name and Rating
                 VStack(spacing: 3) {
