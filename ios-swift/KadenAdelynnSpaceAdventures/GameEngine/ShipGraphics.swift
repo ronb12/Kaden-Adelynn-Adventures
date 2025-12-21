@@ -211,155 +211,54 @@ class ShipGraphics {
     static func createBossShip(size: CGSize) -> SKNode {
         let ship = SKNode()
         
-        // Boss ship colors - menacing red/magenta theme
-        let bossColor = UIColor(red: 0.8, green: 0.0, blue: 0.2, alpha: 1.0) // dark red
-        let accentColor = UIColor(red: 1.0, green: 0.0, blue: 0.5, alpha: 1.0) // magenta
-        let glowColor = UIColor(red: 1.0, green: 0.3, blue: 0.0, alpha: 1.0) // orange-red
-        let coreColor = UIColor(red: 1.0, green: 0.8, blue: 0.0, alpha: 1.0) // yellow-orange
+        // Select random boss ship design from available assets (1-7)
+        let bossShips = ["boss_ship_1", "boss_ship_2", "boss_ship_3", "boss_ship_4", "boss_ship_5", "boss_ship_6", "boss_ship_7"]
+        let imageName = bossShips.randomElement() ?? "boss_ship_1"
         
-        // Outer glow layers for menacing presence
-        for i in 1...3 {
-            let glowSize = CGFloat(i) * 8
-            let glow = SKShapeNode(rect: CGRect(
-                x: -size.width/2 - glowSize,
-                y: -size.height/2 - glowSize,
-                width: size.width + glowSize * 2,
-                height: size.height + glowSize * 2
-            ), cornerRadius: 15)
-            glow.fillColor = glowColor.withAlphaComponent(0.15 / CGFloat(i))
-            glow.strokeColor = .clear
-            glow.zPosition = CGFloat(-i)
-            ship.addChild(glow)
+        // Try to load the boss ship image from assets
+        guard let image = UIImage(named: imageName) else {
+            // Fallback: create a simple colored shape if image not found
+            let fallback = SKShapeNode(rect: CGRect(origin: CGPoint(x: -size.width/2, y: -size.height/2), size: size))
+            fallback.fillColor = UIColor(red: 0.8, green: 0.0, blue: 0.2, alpha: 1.0) // dark red
+            fallback.strokeColor = UIColor(red: 1.0, green: 0.0, blue: 0.5, alpha: 1.0) // magenta
+            fallback.lineWidth = 3
+            ship.addChild(fallback)
+            return ship
         }
         
-        // Main central body (hexagonal/octagonal shape for more interesting silhouette)
-        let bodyPath = createBossBodyPath(size: size)
-        let mainBody = SKShapeNode(path: bodyPath)
-        mainBody.fillColor = bossColor
-        mainBody.strokeColor = accentColor
-        mainBody.lineWidth = 3
-        mainBody.zPosition = 0
-        ship.addChild(mainBody)
+        // Create sprite node with the boss ship image
+        let texture = SKTexture(image: image)
+        let sprite = SKSpriteNode(texture: texture)
         
-        // Central core (glowing energy source)
-        let coreSize = size.width * 0.3
-        let core = SKShapeNode(circleOfRadius: coreSize / 2)
-        core.fillColor = coreColor
-        core.strokeColor = .clear
-        core.position = CGPoint(x: 0, y: 0)
-        core.zPosition = 2
+        // Scale to fit the requested size while maintaining aspect ratio
+        let imageAspect = image.size.width / image.size.height
+        let targetAspect = size.width / size.height
         
-        // Core pulsing glow
-        let coreGlow = SKShapeNode(circleOfRadius: coreSize / 2 + 5)
-        coreGlow.fillColor = coreColor.withAlphaComponent(0.6)
-        coreGlow.strokeColor = .clear
-        coreGlow.zPosition = 1
-        ship.addChild(coreGlow)
-        ship.addChild(core)
-        
-        // Left wing section
-        let leftWing = createBossWing(size: size, side: .left)
-        leftWing.fillColor = bossColor
-        leftWing.strokeColor = accentColor
-        leftWing.lineWidth = 2
-        leftWing.zPosition = 0
-        ship.addChild(leftWing)
-        
-        // Right wing section
-        let rightWing = createBossWing(size: size, side: .right)
-        rightWing.fillColor = bossColor
-        rightWing.strokeColor = accentColor
-        rightWing.lineWidth = 2
-        rightWing.zPosition = 0
-        ship.addChild(rightWing)
-        
-        // Weapon turrets (4 total - top, bottom, left, right)
-        let turretSize = size.width * 0.15
-        let turretPositions: [CGPoint] = [
-            CGPoint(x: 0, y: size.height * 0.4), // Top
-            CGPoint(x: 0, y: -size.height * 0.4), // Bottom
-            CGPoint(x: -size.width * 0.4, y: 0), // Left
-            CGPoint(x: size.width * 0.4, y: 0) // Right
-        ]
-        
-        for pos in turretPositions {
-            // Turret base
-            let turret = SKShapeNode(circleOfRadius: turretSize / 2)
-            turret.fillColor = bossColor
-            turret.strokeColor = accentColor
-            turret.lineWidth = 2
-            turret.position = pos
-            turret.zPosition = 1
-            ship.addChild(turret)
-            
-            // Turret glow
-            let turretGlow = SKShapeNode(circleOfRadius: turretSize / 2 + 3)
-            turretGlow.fillColor = accentColor.withAlphaComponent(0.4)
-            turretGlow.strokeColor = .clear
-            turretGlow.position = pos
-            turretGlow.zPosition = 0
-            ship.addChild(turretGlow)
-            
-            // Turret barrel
-            let barrel = SKShapeNode(rect: CGRect(
-                x: -turretSize * 0.3,
-                y: -turretSize * 0.1,
-                width: turretSize * 0.6,
-                height: turretSize * 0.2
-            ))
-            barrel.fillColor = accentColor
-            barrel.strokeColor = .clear
-            barrel.position = CGPoint(x: pos.x, y: pos.y + turretSize * 0.3)
-            barrel.zPosition = 2
-            ship.addChild(barrel)
+        var finalSize = size
+        if imageAspect > targetAspect {
+            // Image is wider - fit to height
+            finalSize = CGSize(width: size.height * imageAspect, height: size.height)
+        } else {
+            // Image is taller - fit to width
+            finalSize = CGSize(width: size.width, height: size.width / imageAspect)
         }
         
-        // Side panels/details for more complexity
-        for i in 0..<3 {
-            let panelY = CGFloat(i) - 1.0 * size.height * 0.25
-            let panel = SKShapeNode(rect: CGRect(
-                x: -size.width * 0.45,
-                y: -size.height * 0.08,
-                width: size.width * 0.15,
-                height: size.height * 0.16
-            ))
-            panel.fillColor = accentColor.withAlphaComponent(0.6)
-            panel.strokeColor = accentColor
-            panel.lineWidth = 1
-            panel.position = CGPoint(x: 0, y: panelY)
-            panel.zPosition = 1
-            ship.addChild(panel)
-        }
+        sprite.size = finalSize
+        sprite.zPosition = 1
         
-        // Bottom thruster/exhaust ports
-        let thrusterCount = 3
-        for i in 0..<thrusterCount {
-            let thrusterX = (CGFloat(i) - 1.0) * size.width * 0.2
-            let thruster = SKShapeNode(rect: CGRect(
-                x: -size.width * 0.08,
-                y: -size.height * 0.5,
-                width: size.width * 0.16,
-                height: size.height * 0.15
-            ))
-            thruster.fillColor = glowColor
-            thruster.strokeColor = .clear
-            thruster.position = CGPoint(x: thrusterX, y: 0)
-            thruster.zPosition = 1
-            ship.addChild(thruster)
-            
-            // Thruster glow
-            let thrusterGlow = SKShapeNode(rect: CGRect(
-                x: -size.width * 0.1,
-                y: -size.height * 0.5,
-                width: size.width * 0.2,
-                height: size.height * 0.2
-            ))
-            thrusterGlow.fillColor = glowColor.withAlphaComponent(0.5)
-            thrusterGlow.strokeColor = .clear
-            thrusterGlow.position = CGPoint(x: thrusterX, y: -size.height * 0.05)
-            thrusterGlow.zPosition = 0
-            ship.addChild(thrusterGlow)
-        }
+        // Add subtle glow effect for boss presence
+        let glow = SKShapeNode(rect: CGRect(
+            x: -finalSize.width/2 - 10,
+            y: -finalSize.height/2 - 10,
+            width: finalSize.width + 20,
+            height: finalSize.height + 20
+        ), cornerRadius: 15)
+        glow.fillColor = UIColor(red: 1.0, green: 0.3, blue: 0.0, alpha: 0.2) // orange-red glow
+        glow.strokeColor = .clear
+        glow.zPosition = -1
+        
+        ship.addChild(glow)
+        ship.addChild(sprite)
         
         return ship
     }
