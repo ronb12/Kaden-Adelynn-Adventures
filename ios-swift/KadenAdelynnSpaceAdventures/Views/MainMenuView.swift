@@ -37,10 +37,6 @@ struct MainMenuView: View {
                                 .aspectRatio(contentMode: .fill)
                                 .frame(width: 60, height: 60)
                                 .clipShape(Circle())
-                                .overlay(
-                                    Circle()
-                                        .stroke(Color.cyan.opacity(0.6), lineWidth: 2)
-                                )
                                 .scaleEffect(animateStars ? 1.1 : 1.0)
                                 .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: animateStars)
                             
@@ -61,10 +57,6 @@ struct MainMenuView: View {
                                 .aspectRatio(contentMode: .fill)
                                 .frame(width: 60, height: 60)
                                 .clipShape(Circle())
-                                .overlay(
-                                    Circle()
-                                        .stroke(Color.pink.opacity(0.6), lineWidth: 2)
-                                )
                                 .scaleEffect(animateStars ? 1.1 : 1.0)
                                 .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true).delay(0.5), value: animateStars)
                         }
