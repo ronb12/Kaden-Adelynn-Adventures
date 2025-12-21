@@ -2,75 +2,100 @@
 //  ShipGraphics.swift
 //  KadenAdelynnSpaceAdventures
 //
-//  Enhanced ship graphics matching PWA design
+//  Enhanced ship graphics using Space Pack images
 //
 
 import SpriteKit
+import UIKit
 
 class ShipGraphics {
-    static func createPlayerShip(size: CGSize) -> SKNode {
+    // Map ship IDs to Space Pack image indices
+    private static func getSpaceshipImageName(for shipId: String) -> String {
+        switch shipId.lowercased() {
+        case "kaden": return "Spaceship_0"
+        case "adelynn": return "Spaceship_1"
+        case "falcon": return "Spaceship_2"
+        case "phantom": return "Spaceship_3"
+        case "nova": return "Spaceship_4"
+        case "titan": return "Spaceship_5"
+        case "viper": return "Spaceship_6"
+        case "shadow": return "Spaceship_7"
+        case "meteor": return "Spaceship_8"
+        case "comet": return "Spaceship_9"
+        case "raptor": return "Spaceship_10"
+        case "aurora": return "Spaceship_11"
+        default:
+            // Fallback to character-based mapping
+            switch shipId.lowercased() {
+            case "kaden": return "Spaceship_0"
+            case "adelynn": return "Spaceship_1"
+            default: return "Spaceship_0"
+            }
+        }
+    }
+    
+    static func createPlayerShip(size: CGSize, characterId: String = "kaden", shipId: String = "kaden") -> SKNode {
         let ship = SKNode()
         
-        // Bright cyan-blue colors for maximum visibility
-        let shipColor = UIColor(red: 0.31, green: 0.80, blue: 0.77, alpha: 1.0) // #4ecdc4
-        let accentColor = UIColor(red: 0.0, green: 1.0, blue: 1.0, alpha: 1.0) // #00ffff
+        // Get the image name for this ship
+        let imageName = getSpaceshipImageName(for: shipId)
         
-        // Strong outer glow - very visible
-        let outerGlow = createSimpleTrianglePath(size: size, scale: 1.5)
-        let glow = SKShapeNode(path: outerGlow)
-        glow.fillColor = accentColor.withAlphaComponent(0.4)
-        glow.strokeColor = .clear
-        glow.zPosition = -2
-        ship.addChild(glow)
+        // Try to load the image from assets
+        guard let image = UIImage(named: imageName) else {
+            // Fallback: create a simple colored rectangle if image not found
+            let fallback = SKShapeNode(rect: CGRect(origin: CGPoint(x: -size.width/2, y: -size.height/2), size: size))
+            fallback.fillColor = .blue
+            fallback.strokeColor = .cyan
+            ship.addChild(fallback)
+            return ship
+        }
         
-        // Middle glow
-        let middleGlow = createSimpleTrianglePath(size: size, scale: 1.2)
-        let glow2 = SKShapeNode(path: middleGlow)
-        glow2.fillColor = shipColor.withAlphaComponent(0.5)
-        glow2.strokeColor = .clear
-        glow2.zPosition = -1
-        ship.addChild(glow2)
+        // Create sprite node with the image
+        let texture = SKTexture(image: image)
+        let sprite = SKSpriteNode(texture: texture)
         
-        // Main triangle body - simple and clean
-        let trianglePath = createSimpleTrianglePath(size: size, scale: 1.0)
-        let body = SKShapeNode(path: trianglePath)
-        body.fillColor = shipColor
-        body.strokeColor = accentColor
-        body.lineWidth = 3
-        body.zPosition = 0
-        ship.addChild(body)
+        // Scale to fit the requested size while maintaining aspect ratio
+        let imageAspect = image.size.width / image.size.height
+        let targetAspect = size.width / size.height
         
-        // Simple glowing cockpit - bright and visible
-        let cockpitSize = size.width * 0.3
-        let cockpit = SKShapeNode(rect: CGRect(
-            x: -cockpitSize / 2,
-            y: size.height * 0.15,
-            width: cockpitSize,
-            height: size.height * 0.3
-        ), cornerRadius: 3)
-        cockpit.fillColor = accentColor
-        cockpit.strokeColor = .white
-        cockpit.lineWidth = 2
-        cockpit.zPosition = 1
-        ship.addChild(cockpit)
+        var finalSize = size
+        if imageAspect > targetAspect {
+            // Image is wider - fit to height
+            finalSize = CGSize(width: size.height * imageAspect, height: size.height)
+        } else {
+            // Image is taller - fit to width
+            finalSize = CGSize(width: size.width, height: size.width / imageAspect)
+        }
+        
+        sprite.size = finalSize
+        sprite.zPosition = 1
+        
+        // Add pink tint for Adelynn's ship
+        if shipId.lowercased() == "adelynn" || characterId.lowercased() == "adelynn" {
+            sprite.color = UIColor(red: 1.0, green: 0.4, blue: 0.8, alpha: 1.0) // Pink
+            sprite.colorBlendFactor = 0.4 // Blend 40% pink with original image
+        }
+        
+        ship.addChild(sprite)
         
         return ship
     }
     
     // MARK: - Player Ship Helper Methods
     
-    // Create simple, clean upward-pointing triangle path (for player)
+    // Create simple, clean upward-pointing triangle path (for player) - FIXED orientation
     private static func createSimpleTrianglePath(size: CGSize, scale: CGFloat) -> CGPath {
         let path = CGMutablePath()
         let w = size.width * scale
         let h = size.height * scale
         
-        // Simple, clean upward-pointing triangle
-        path.move(to: CGPoint(x: 0, y: h / 2)) // Top point
-        path.addLine(to: CGPoint(x: -w / 2, y: -h / 2 + 10)) // Bottom left
-        path.addLine(to: CGPoint(x: w * 0.2, y: -h / 2)) // Bottom left inner
-        path.addLine(to: CGPoint(x: w * 0.8, y: -h / 2)) // Bottom right inner
-        path.addLine(to: CGPoint(x: w / 2, y: -h / 2 + 10)) // Bottom right
+        // Proper upward-pointing triangle (pointing UP - top point at top, wide base at bottom)
+        // Start at bottom left
+        path.move(to: CGPoint(x: -w / 2, y: -h / 2 + 5)) // Bottom left
+        path.addLine(to: CGPoint(x: -w * 0.2, y: -h / 2)) // Bottom left inner
+        path.addLine(to: CGPoint(x: w * 0.2, y: -h / 2)) // Bottom right inner
+        path.addLine(to: CGPoint(x: w / 2, y: -h / 2 + 5)) // Bottom right
+        path.addLine(to: CGPoint(x: 0, y: h / 2)) // Top point (center top)
         path.closeSubpath()
         
         return path
@@ -84,75 +109,63 @@ class ShipGraphics {
     static func createEnemyShip(size: CGSize, type: Enemy.EnemyType) -> SKNode {
         let ship = SKNode()
         
-        // Determine colors based on enemy type
-        let primaryColor: UIColor
-        let accentColor: UIColor
-        let shadowColor: UIColor
-        
+        // Select enemy image based on type
+        // Use EvilEye_1 for basic/shooter, EvilEye_2 for fast/tank
+        let imageName: String
         switch type {
-        case .fast:
-            // Fast enemies: magenta
-            primaryColor = UIColor(red: 1.0, green: 0.0, blue: 1.0, alpha: 1.0) // #ff00ff
-            accentColor = UIColor(red: 1.0, green: 0.67, blue: 1.0, alpha: 1.0) // #ffaaff
-            shadowColor = UIColor(red: 1.0, green: 0.0, blue: 1.0, alpha: 1.0)
-        case .tank:
-            // Tank enemies: orange
-            primaryColor = UIColor(red: 1.0, green: 0.6, blue: 0.0, alpha: 1.0) // #ff9900
-            accentColor = UIColor(red: 1.0, green: 0.8, blue: 0.4, alpha: 1.0) // #ffcc66
-            shadowColor = UIColor(red: 1.0, green: 0.6, blue: 0.0, alpha: 1.0)
-        case .shooter:
-            // Shooter enemies: cyan
-            primaryColor = UIColor(red: 0.0, green: 1.0, blue: 1.0, alpha: 1.0) // #00ffff
-            accentColor = UIColor(red: 0.4, green: 1.0, blue: 1.0, alpha: 1.0) // #66ffff
-            shadowColor = UIColor(red: 0.0, green: 1.0, blue: 1.0, alpha: 1.0)
+        case .fast, .tank:
+            imageName = "EnemyEvilEye_2"
         default:
-            // Basic enemies: red
-            primaryColor = UIColor(red: 1.0, green: 0.2, blue: 0.2, alpha: 1.0) // #ff3333
-            accentColor = UIColor(red: 1.0, green: 0.6, blue: 0.6, alpha: 1.0) // #ff9999
-            shadowColor = UIColor(red: 1.0, green: 0.4, blue: 0.4, alpha: 1.0) // #ff6666
+            imageName = "EnemyEvilEye_1"
         }
         
-        // Outer glow
-        let outerGlow = createInvertedTrianglePath(size: size, scale: 1.2)
-        let glow = SKShapeNode(path: outerGlow)
-        glow.fillColor = shadowColor.withAlphaComponent(0.3)
-        glow.strokeColor = .clear
-        glow.zPosition = -2
-        ship.addChild(glow)
+        // Try to load the image from assets
+        guard let image = UIImage(named: imageName) else {
+            // Fallback: create a simple colored shape if image not found
+            let fallback = SKShapeNode(rect: CGRect(origin: CGPoint(x: -size.width/2, y: -size.height/2), size: size))
+            fallback.fillColor = .red
+            fallback.strokeColor = .white
+            ship.addChild(fallback)
+            return ship
+        }
         
-        // Middle glow
-        let middleGlow = createInvertedTrianglePath(size: size, scale: 1.1)
-        let glow2 = SKShapeNode(path: middleGlow)
-        glow2.fillColor = primaryColor.withAlphaComponent(0.4)
-        glow2.strokeColor = .clear
-        glow2.zPosition = -1
-        ship.addChild(glow2)
+        // Create sprite node with the image
+        let texture = SKTexture(image: image)
+        let sprite = SKSpriteNode(texture: texture)
         
-        // Main triangle body (downward pointing)
-        let trianglePath = createInvertedTrianglePath(size: size, scale: 1.0)
-        let body = SKShapeNode(path: trianglePath)
-        body.fillColor = primaryColor
-        body.strokeColor = accentColor
-        body.lineWidth = 2.5
-        body.zPosition = 0
-        ship.addChild(body)
+        // Scale to fit the requested size while maintaining aspect ratio
+        let imageAspect = image.size.width / image.size.height
+        let targetAspect = size.width / size.height
         
-        // Core glow (health indicator) - at top of triangle
-        let coreSize: CGFloat = 4
-        let core = SKShapeNode(circleOfRadius: coreSize)
-        core.fillColor = accentColor
-        core.strokeColor = .clear
-        core.position = CGPoint(x: 0, y: size.height * 0.33)
-        core.zPosition = 1
+        var finalSize = size
+        if imageAspect > targetAspect {
+            // Image is wider - fit to height
+            finalSize = CGSize(width: size.height * imageAspect, height: size.height)
+        } else {
+            // Image is taller - fit to width
+            finalSize = CGSize(width: size.width, height: size.width / imageAspect)
+        }
         
-        // Core glow effect
-        let coreGlow = SKShapeNode(circleOfRadius: coreSize + 2)
-        coreGlow.fillColor = accentColor.withAlphaComponent(0.6)
-        coreGlow.strokeColor = .clear
-        coreGlow.position = CGPoint(x: 0, y: size.height * 0.33)
-        coreGlow.zPosition = 0
-        ship.addChild(coreGlow)
-        ship.addChild(core)
+        sprite.size = finalSize
+        sprite.zPosition = 1
+        
+        // Add color tint based on enemy type using color blend (no squares)
+        switch type {
+        case .fast:
+            sprite.color = UIColor(red: 1.0, green: 0.0, blue: 1.0, alpha: 1.0) // Magenta
+            sprite.colorBlendFactor = 0.3
+        case .tank:
+            sprite.color = UIColor(red: 1.0, green: 0.65, blue: 0.0, alpha: 1.0) // Orange
+            sprite.colorBlendFactor = 0.3
+        case .shooter:
+            sprite.color = UIColor(red: 0.6, green: 0.6, blue: 0.6, alpha: 1.0) // Grey
+            sprite.colorBlendFactor = 0.3
+        default:
+            sprite.color = UIColor(red: 1.0, green: 0.3, blue: 0.3, alpha: 1.0) // Red
+            sprite.colorBlendFactor = 0.3
+        }
+        
+        ship.addChild(sprite)
         
         return ship
     }
@@ -368,35 +381,25 @@ class ShipGraphics {
     
     // MARK: - Helper Methods
     
-    // Create upward-pointing triangle path (for player)
+    // Create upward-pointing triangle path (for player) - FIXED orientation
     private static func createTrianglePath(size: CGSize, scale: CGFloat) -> CGPath {
-        let path = CGMutablePath()
-        let w = size.width * scale
-        let h = size.height * scale
-        
-        // Upward-pointing triangle
-        path.move(to: CGPoint(x: 0, y: h / 2)) // Top point
-        path.addLine(to: CGPoint(x: -w / 2, y: -h / 2 + 10)) // Bottom left
-        path.addLine(to: CGPoint(x: w * 0.2, y: -h / 2)) // Bottom left inner
-        path.addLine(to: CGPoint(x: w * 0.8, y: -h / 2)) // Bottom right inner
-        path.addLine(to: CGPoint(x: w / 2, y: -h / 2 + 10)) // Bottom right
-        path.closeSubpath()
-        
-        return path
+        // Use the corrected createSimpleTrianglePath function
+        return createSimpleTrianglePath(size: size, scale: scale)
     }
     
-    // Create downward-pointing triangle path (for enemies)
+    // Create downward-pointing triangle path (for enemies) - FIXED to proper triangle
     private static func createInvertedTrianglePath(size: CGSize, scale: CGFloat) -> CGPath {
         let path = CGMutablePath()
         let w = size.width * scale
         let h = size.height * scale
         
-        // Downward-pointing triangle
-        path.move(to: CGPoint(x: w / 2, y: h / 2)) // Top right
-        path.addLine(to: CGPoint(x: w / 2 - 5, y: h / 2 - 5)) // Top right inner
-        path.addLine(to: CGPoint(x: 5, y: h / 2 - 5)) // Top left inner
-        path.addLine(to: CGPoint(x: 0, y: h / 2)) // Top left
-        path.addLine(to: CGPoint(x: w / 2, y: -h / 2)) // Bottom point
+        // Proper downward-pointing triangle (pointing down to bottom)
+        // Start at top left
+        path.move(to: CGPoint(x: -w / 2, y: h / 2 - 5)) // Top left
+        path.addLine(to: CGPoint(x: -w * 0.2, y: h / 2)) // Top left inner
+        path.addLine(to: CGPoint(x: w * 0.2, y: h / 2)) // Top right inner
+        path.addLine(to: CGPoint(x: w / 2, y: h / 2 - 5)) // Top right
+        path.addLine(to: CGPoint(x: 0, y: -h / 2)) // Bottom point (center bottom)
         path.closeSubpath()
         
         return path

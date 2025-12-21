@@ -36,7 +36,24 @@ class GameStateManager: ObservableObject {
     @Published var selectedCharacter: String = "kaden"
     @Published var selectedShip: String = "kaden"
     @Published var playerName: String = "Player"
-    @Published var difficulty: String = "medium"
+    @Published var difficulty: String = "medium"  // "easy", "medium", "hard"
+    
+    // Difficulty multipliers
+    var difficultyMultiplier: Float {
+        switch difficulty.lowercased() {
+        case "easy": return 0.7   // 30% easier
+        case "hard": return 1.5   // 50% harder
+        default: return 1.0       // Medium (normal)
+        }
+    }
+    
+    var waveProgressionSpeed: TimeInterval {
+        switch difficulty.lowercased() {
+        case "easy": return 40.0  // Waves every 40 seconds
+        case "hard": return 20.0  // Waves every 20 seconds
+        default: return 30.0      // Medium: waves every 30 seconds
+        }
+    }
     @Published var score: Int = 0
     @Published var wave: Int = 1
     @Published var level: Int = 1
@@ -51,6 +68,8 @@ class GameStateManager: ObservableObject {
     @Published var shotsHit: Int = 0
     @Published var combo: Int = 0
     @Published var killStreak: Int = 0
+    @Published var scoreMultiplier: Float = 1.0  // Score multiplier based on combo
+    @Published var timeSurvived: TimeInterval = 0  // Time played in current session
     @Published var currentFPS: Int = 60
     @Published var activePowerUps: [String: TimeInterval] = [:]
     
@@ -188,7 +207,46 @@ class GameStateManager: ObservableObject {
         combo = 0
         killStreak = 0
         isPaused = false
-        coins = UserDefaults.standard.integer(forKey: "walletCoins")
+        coins = 0  // Start with 0 coins each new game
+    }
+    
+    // MARK: - Save/Load Game
+    
+    func saveGame(toSlot slotId: Int = 1) -> Bool {
+        // Only save if game is actually in progress (not on main menu)
+        guard currentScreen == .playing else {
+            #if DEBUG
+            print("⚠️ Cannot save: Game is not in progress")
+            #endif
+            return false
+        }
+        
+        let saveData = SaveLoadMenuView.SaveData(
+            score: score,
+            wave: wave,
+            level: level,
+            lives: lives,
+            timestamp: Date()
+        )
+        
+        if let encoded = try? JSONEncoder().encode(saveData) {
+            UserDefaults.standard.set(encoded, forKey: "saveSlot_\(slotId)")
+            UserDefaults.standard.synchronize() // Force immediate write
+            #if DEBUG
+            print("💾 Game saved to slot \(slotId)")
+            print("   Score: \(score), Wave: \(wave), Lives: \(lives)")
+            #endif
+            return true
+        }
+        #if DEBUG
+        print("❌ Failed to save game: Encoding failed")
+        #endif
+        return false
+    }
+    
+    var isAutoSaveEnabled: Bool {
+        get { UserDefaults.standard.bool(forKey: "autoSave") }
+        set { UserDefaults.standard.set(newValue, forKey: "autoSave") }
     }
     
     var accuracy: Double {

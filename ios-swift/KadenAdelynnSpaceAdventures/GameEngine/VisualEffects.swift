@@ -8,7 +8,19 @@
 import SpriteKit
 
 class VisualEffects {
+    // Check if visual effects are enabled (for accessibility - prevents seizures)
+    static var areVisualEffectsEnabled: Bool {
+        // Default to true, but check UserDefaults
+        if UserDefaults.standard.object(forKey: "visualEffectsEnabled") == nil {
+            return true  // Default enabled
+        }
+        return UserDefaults.standard.bool(forKey: "visualEffectsEnabled")
+    }
+    
     static func screenShake(intensity: CGFloat, duration: TimeInterval, in scene: SKScene) {
+        // Skip screen shake if visual effects are disabled (accessibility)
+        guard areVisualEffectsEnabled else { return }
+        
         let camera = scene.camera ?? SKCameraNode()
         if scene.camera == nil {
             scene.addChild(camera)
@@ -28,15 +40,32 @@ class VisualEffects {
     }
     
     static func flashScreen(color: UIColor, duration: TimeInterval, in scene: SKScene) {
-        let flash = SKShapeNode(rect: scene.frame)
-        flash.fillColor = color
-        flash.strokeColor = .clear
-        flash.alpha = 0.5
-        flash.zPosition = 1000
-        scene.addChild(flash)
+        // Replace flash with safe border effect (no rapid flashing for photosensitive users)
+        // Use a subtle border pulse instead of full-screen flash
+        borderPulse(color: color, duration: duration, in: scene)
+    }
+    
+    static func borderPulse(color: UIColor, duration: TimeInterval, in scene: SKScene) {
+        // Safe border pulse effect (no rapid flashing for photosensitive users)
+        let borderWidth: CGFloat = 8.0
+        let border = SKShapeNode(rect: scene.frame.insetBy(dx: -borderWidth/2, dy: -borderWidth/2))
+        border.fillColor = .clear
+        border.strokeColor = color
+        border.lineWidth = borderWidth
+        border.alpha = 0.0  // Start invisible
+        border.zPosition = 999
+        scene.addChild(border)
         
-        flash.run(SKAction.sequence([
-            SKAction.fadeOut(withDuration: duration),
+        // Gentle pulse effect
+        border.run(SKAction.sequence([
+            SKAction.group([
+                SKAction.fadeAlpha(to: 0.8, duration: duration * 0.3),
+                SKAction.scale(to: 1.02, duration: duration * 0.3)
+            ]),
+            SKAction.group([
+                SKAction.fadeOut(withDuration: duration * 0.7),
+                SKAction.scale(to: 1.0, duration: duration * 0.7)
+            ]),
             SKAction.removeFromParent()
         ]))
     }

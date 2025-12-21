@@ -10,17 +10,21 @@ struct TermsOfServiceView: View {
     
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color.blue.opacity(0.8).ignoresSafeArea()
             
             VStack {
                 Text("Terms of Service")
                     .font(.largeTitle)
-                    .foregroundColor(.white)
-                    .padding()
+                    .foregroundColor(.black)
+                    .shadow(color: .white.opacity(0.5), radius: 2, x: 0, y: 1)
+                    .padding(.top, 60) // Safe area padding
+                    .padding(.horizontal)
+                    .padding(.bottom, 10)
                 
                 ScrollView {
                     Text("Terms of Service content goes here...")
-                        .foregroundColor(.gray)
+                        .foregroundColor(.black.opacity(0.8))
+                        .shadow(color: .white.opacity(0.5), radius: 2)
                         .padding()
                 }
                 

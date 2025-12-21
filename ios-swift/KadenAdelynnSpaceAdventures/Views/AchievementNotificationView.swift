@@ -25,11 +25,11 @@ struct AchievementNotificationView: View {
                         
                         Text(achievement.name)
                             .font(.headline)
-                            .foregroundColor(.white)
+                            .foregroundColor(.black)
                         
                         Text(achievement.description)
                             .font(.caption)
-                            .foregroundColor(.white.opacity(0.7))
+                            .foregroundColor(.black.opacity(0.7))
                     }
                     
                     Spacer()

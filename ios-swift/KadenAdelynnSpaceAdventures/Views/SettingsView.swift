@@ -19,12 +19,13 @@ struct SettingsView: View {
     @State private var autoSave = true
     @State private var touchSensitivity: Float = 1.0
     @State private var showTutorial = false
+    @State private var visualEffectsEnabled = true
     
     var body: some View {
         ZStack {
             // Animated background
             LinearGradient(
-                colors: [.black, .blue.opacity(0.3), .purple.opacity(0.2)],
+                colors: [.blue.opacity(0.9), .blue.opacity(0.7), .blue.opacity(0.6)],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -39,14 +40,15 @@ struct SettingsView: View {
                                 .font(.system(size: 50))
                             Text("Settings")
                                 .font(.system(size: 36, weight: .bold))
-                                .foregroundColor(.white)
+                                .foregroundColor(.black)
+                                .shadow(color: .black.opacity(0.8), radius: 4, x: 0, y: 2)
                         }
                         
                         Text("Customize your gaming experience")
                             .font(.subheadline)
-                            .foregroundColor(.white.opacity(0.7))
+                            .foregroundColor(.black.opacity(0.8))
                     }
-                    .padding(.top, 40)
+                    .padding(.top, 60) // Safe area padding
                     
                     // Game Settings Section
                     SettingsSection(title: "🎮 Game Settings", icon: "gamecontroller.fill") {
@@ -227,6 +229,31 @@ struct SettingsView: View {
                         }
                     }
                     
+                    // Accessibility Settings Section
+                    SettingsSection(title: "♿ Accessibility", icon: "accessibility.fill") {
+                        VStack(spacing: 15) {
+                            // Visual Effects Toggle
+                            SettingRow(
+                                title: "Visual Effects",
+                                icon: "eye.fill",
+                                description: "Disable screen flashes and shakes (recommended for photosensitive epilepsy)"
+                            ) {
+                                Toggle("", isOn: $visualEffectsEnabled)
+                                    .onChange(of: visualEffectsEnabled) { newValue in
+                                        UserDefaults.standard.set(newValue, forKey: "visualEffectsEnabled")
+                                    }
+                            }
+                            
+                            if !visualEffectsEnabled {
+                                Text("⚠️ Screen flashes and shakes are disabled for your safety")
+                                    .font(.caption)
+                                    .foregroundColor(.orange)
+                                    .padding(.horizontal)
+                                    .padding(.top, 5)
+                            }
+                        }
+                    }
+                    
                     // Display Settings Section
                     SettingsSection(title: "📱 Display", icon: "display") {
                         VStack(spacing: 15) {
@@ -240,7 +267,7 @@ struct SettingsView: View {
                                     .padding(8)
                                     .background(Color.white.opacity(0.1))
                                     .cornerRadius(8)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.black)
                                     .onChange(of: gameState.playerName) { _ in
                                         gameState.savePlayerName()
                                     }
@@ -313,7 +340,7 @@ struct SettingsView: View {
                                     Spacer()
                                     Image(systemName: "chevron.right")
                                 }
-                                .foregroundColor(.white)
+                                .foregroundColor(.black)
                                 .padding()
                                 .background(Color.white.opacity(0.1))
                                 .cornerRadius(12)
@@ -332,7 +359,7 @@ struct SettingsView: View {
                                     Spacer()
                                     Image(systemName: "chevron.right")
                                 }
-                                .foregroundColor(.white)
+                                .foregroundColor(.black)
                                 .padding()
                                 .background(Color.white.opacity(0.1))
                                 .cornerRadius(12)
@@ -346,6 +373,18 @@ struct SettingsView: View {
                                 title: "Version",
                                 icon: "info.circle",
                                 value: "1.0"
+                            ) {
+                                EmptyView()
+                            }
+                            
+                            Divider()
+                                .background(Color.white.opacity(0.2))
+                            
+                            // Created By
+                            SettingRow(
+                                title: "Created by",
+                                icon: "person.circle.fill",
+                                value: "Ronell Bradley"
                             ) {
                                 EmptyView()
                             }
@@ -388,6 +427,14 @@ struct SettingsView: View {
         autoSave = UserDefaults.standard.bool(forKey: "autoSave")
         touchSensitivity = UserDefaults.standard.float(forKey: "touchSensitivity")
         showTutorial = UserDefaults.standard.bool(forKey: "showTutorial")
+        
+        // Load visual effects setting (default to true if not set)
+        if UserDefaults.standard.object(forKey: "visualEffectsEnabled") == nil {
+            visualEffectsEnabled = true
+            UserDefaults.standard.set(true, forKey: "visualEffectsEnabled")
+        } else {
+            visualEffectsEnabled = UserDefaults.standard.bool(forKey: "visualEffectsEnabled")
+        }
         
         // Set defaults if not set
         if musicVolume == 0 { musicVolume = 0.5 }

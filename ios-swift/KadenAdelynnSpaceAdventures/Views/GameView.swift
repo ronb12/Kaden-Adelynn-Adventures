@@ -18,6 +18,7 @@ struct GameView: View {
     @State private var currentFPS: Int = 60
     @State private var bossHealth: Int = 0
     @State private var bossMaxHealth: Int = 100
+    @State private var toast: ToastMessage? = nil
     
     // Get current weapon from game logic
     private func getCurrentWeapon() -> WeaponType {
@@ -51,10 +52,12 @@ struct GameView: View {
                     redesignedScoreboard(geometry: geometry)
                         .id("redesigned-scoreboard-v2")  // Force SwiftUI to recognize this as new
                     
-                    Spacer()
+                    // Boss Health Bar (only show when boss exists)
+                    if bossHealth > 0 {
+                        bossHealthBar(geometry: geometry)
+                    }
                     
-                    // Boss Health Bar (when boss is active)
-                    bossHealthBar(geometry: geometry)
+                    Spacer()
                     
                     // Bottom Controls
                     bottomControls(geometry: geometry)
@@ -115,271 +118,367 @@ struct GameView: View {
             }
         }
         .ignoresSafeArea()
+        .toast($toast)
     }
     
-    // MARK: - Redesigned Scoreboard
+    // MARK: - ENHANCED Scoreboard with Modern Design
     @ViewBuilder
     private func redesignedScoreboard(geometry: GeometryProxy) -> some View {
         let screenWidth = geometry.size.width
+        let isLandscape = geometry.size.width > geometry.size.height
         let healthPercent = CGFloat(gameState.health) / 100.0
         let healthColor = gameState.health <= 25 ? Color.red : gameState.health <= 50 ? Color.orange : Color.green
-        let comboColor = gameState.combo > 0 ? Color.yellow : Color.gray.opacity(0.5)
-        let accuracy = gameState.shotsFired > 0 ? Int((Double(gameState.shotsHit) / Double(gameState.shotsFired)) * 100) : 0
-        let accColor = accuracy >= 75 ? Color.green : accuracy >= 50 ? Color.yellow : Color.red
-        let fpsColor = currentFPS >= 55 ? Color.green : currentFPS >= 30 ? Color.yellow : Color.red
+        // Adjust padding for landscape vs portrait
+        let topPadding = isLandscape ? geometry.safeAreaInsets.top + 10 : geometry.safeAreaInsets.top + 50
         
         VStack(spacing: 0) {
-            // Gradient background with blur effect - NEW REDESIGNED VERSION
+            // Enhanced gradient background with animated glow
             ZStack {
                 // Base gradient background
                 LinearGradient(
                     colors: [
-                        Color(red: 0.05, green: 0.05, blue: 0.15).opacity(0.98),  // Darker blue tint
-                        Color(red: 0.1, green: 0.1, blue: 0.25).opacity(0.98)
+                        Color(red: 0.05, green: 0.05, blue: 0.2).opacity(0.95),
+                        Color(red: 0.1, green: 0.1, blue: 0.3).opacity(0.95)
                     ],
                     startPoint: .top,
                     endPoint: .bottom
                 )
                 
-                // Animated glow effect - REDESIGNED
+                // Animated glow effect
                 Rectangle()
                     .fill(
                         LinearGradient(
                             colors: [
-                                Color.cyan.opacity(0.4),
-                                Color.purple.opacity(0.2),
-                                Color.blue.opacity(0.1),
+                                Color.cyan.opacity(0.3),
+                                Color.blue.opacity(0.2),
+                                Color.purple.opacity(0.15),
                                 Color.clear
                             ],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
                     )
-                    .blur(radius: 25)
-                    .opacity(0.8 + 0.2 * sin(Date().timeIntervalSince1970))
+                    .blur(radius: 20)
+                    .opacity(0.7 + 0.3 * sin(Date().timeIntervalSince1970))
             }
             .overlay(
-                VStack(spacing: 6) {
-                    // Row 1: Primary Stats (Score, Lives, Health, Coins)
-                    HStack(spacing: 8) {
-                        // Score - Large and prominent
-                        StatCard(
-                            icon: "⭐",
-                            label: "SCORE",
-                            value: String(format: "%06d", gameState.score),
-                            color: .yellow,
-                            size: .large,
-                            animate: showScoreAnimation
+                VStack(spacing: 8) {
+                    // Top row: Score, Wave, Stars
+                    HStack(spacing: 12) {
+                        // Score - Enhanced with glow
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("SCORE")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.yellow.opacity(0.8))
+                            Text(String(format: "%06d", gameState.score))
+                                .font(.system(size: 26, weight: .bold, design: .monospaced))
+                                .foregroundColor(.white)
+                                .shadow(color: .yellow, radius: 6, x: 0, y: 2)
+                                .overlay(
+                                    Text(String(format: "%06d", gameState.score))
+                                        .font(.system(size: 26, weight: .bold, design: .monospaced))
+                                        .foregroundColor(.yellow.opacity(0.3))
+                                        .blur(radius: 3)
+                                        .offset(x: 2, y: 2)
+                                )
+                        }
+                        .padding(.leading, 16)
+                        
+                        Spacer()
+                        
+                        // Wave indicator
+                        HStack(spacing: 4) {
+                            Text("🌊")
+                                .font(.system(size: 16))
+                            Text("WAVE \(gameState.wave)")
+                                .font(.system(size: 14, weight: .bold, design: .monospaced))
+                                .foregroundColor(.cyan)
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.cyan.opacity(0.2))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color.cyan.opacity(0.5), lineWidth: 1.5)
+                                )
                         )
                         
-                        // Lives
-                        StatCard(
-                            icon: "❤️",
-                            label: "LIVES",
-                            value: "\(gameState.lives)",
-                            color: Color(red: 1.0, green: 0.4, blue: 0.4),
-                            size: .medium
+                        // Stars
+                        HStack(spacing: 4) {
+                            Text("⭐")
+                                .font(.system(size: 16))
+                            Text("\(gameState.coins)")
+                                .font(.system(size: 16, weight: .bold, design: .monospaced))
+                                .foregroundColor(.yellow)
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.yellow.opacity(0.2))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color.yellow.opacity(0.5), lineWidth: 1.5)
+                                )
                         )
+                        .padding(.trailing, 16)
+                    }
+                    .padding(.top, 8)
+                    
+                    // Bottom row: Lives, Health Bar, Kills
+                    HStack(spacing: 12) {
+                        // Lives - Enhanced
+                        HStack(spacing: 6) {
+                            Text("❤️")
+                                .font(.system(size: 20))
+                            Text("\(gameState.lives)")
+                                .font(.system(size: 22, weight: .bold, design: .monospaced))
+                                .foregroundColor(.white)
+                                .shadow(color: .red, radius: 4)
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [
+                                            Color.red.opacity(0.5),
+                                            Color.red.opacity(0.3)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(
+                                            LinearGradient(
+                                                colors: [Color.red.opacity(0.8), Color.pink.opacity(0.6)],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            ),
+                                            lineWidth: 2
+                                        )
+                                )
+                                .shadow(color: .red.opacity(0.6), radius: 5, x: 0, y: 2)
+                        )
+                        .padding(.leading, 16)
                         
-                        // Health with visual bar
-                        VStack(spacing: 3) {
-                            StatCard(
-                                icon: "♥",
-                                label: "HP",
-                                value: "\(gameState.health)%",
-                                color: healthColor,
-                                size: .small
-                            )
+                        Spacer()
+                        
+                        // Health - Enhanced with better bar
+                        VStack(spacing: 4) {
+                            HStack(spacing: 4) {
+                                Text("💚")
+                                    .font(.system(size: 16))
+                                Text("\(gameState.health)")
+                                    .font(.system(size: 18, weight: .bold, design: .monospaced))
+                                    .foregroundColor(healthColor)
+                                    .shadow(color: healthColor.opacity(0.5), radius: 2)
+                            }
                             
                             // Enhanced health bar
                             GeometryReader { barGeo in
                                 ZStack(alignment: .leading) {
-                                    // Background
-                                    RoundedRectangle(cornerRadius: 3)
-                                        .fill(Color.red.opacity(0.2))
-                                        .frame(height: 4)
+                                    // Background with subtle pattern
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(Color.black.opacity(0.7))
+                                        .frame(height: 10)
                                     
-                                    // Health fill with gradient
-                                    RoundedRectangle(cornerRadius: 3)
+                                    // Health fill with gradient and animation
+                                    RoundedRectangle(cornerRadius: 6)
                                         .fill(
                                             LinearGradient(
                                                 colors: healthPercent > 0.5 ?
-                                                    [.green, .green.opacity(0.8)] :
+                                                    [healthColor, healthColor.opacity(0.7)] :
                                                     healthPercent > 0.25 ?
-                                                    [.yellow, .orange] :
-                                                    [.red, .red.opacity(0.8)],
+                                                    [Color.orange, Color.yellow] :
+                                                    [Color.red, Color.red.opacity(0.7)],
                                                 startPoint: .leading,
                                                 endPoint: .trailing
                                             )
                                         )
-                                        .frame(width: barGeo.size.width * healthPercent, height: 4)
-                                        .animation(.spring(response: 0.3), value: healthPercent)
+                                        .frame(width: barGeo.size.width * healthPercent, height: 10)
+                                        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: healthPercent)
                                     
-                                    // Glow effect on low health
+                                    // Pulsing glow on low health
                                     if gameState.health <= 25 {
-                                        RoundedRectangle(cornerRadius: 3)
-                                            .fill(Color.red.opacity(0.5))
-                                            .frame(width: barGeo.size.width * healthPercent, height: 4)
-                                            .blur(radius: 3)
-                                            .opacity(0.5 + 0.5 * sin(Date().timeIntervalSince1970 * 4))
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .fill(Color.red.opacity(0.8))
+                                            .frame(width: barGeo.size.width * healthPercent, height: 10)
+                                            .blur(radius: 4)
+                                            .opacity(0.7 + 0.3 * sin(Date().timeIntervalSince1970 * 5))
                                     }
+                                    
+                                    // Border
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                                        .frame(height: 10)
                                 }
                             }
-                            .frame(height: 4)
+                            .frame(height: 10)
+                            .frame(width: 100)
                         }
-                        .frame(width: screenWidth * 0.22)
                         
-                        // Coins
-                        StatCard(
-                            icon: "💰",
-                            label: "COINS",
-                            value: "\(gameState.coins)",
-                            color: .yellow,
-                            size: .medium
-                        )
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.top, 4)
-                    
-                    // Row 2: Secondary Stats (Kills, Wave, Combo, Accuracy)
-                    HStack(spacing: 8) {
-                        StatCard(
-                            icon: "🎯",
-                            label: "KILLS",
-                            value: "\(gameState.enemiesKilled)",
-                            color: .cyan,
-                            size: .small
-                        )
+                        Spacer()
                         
-                        StatCard(
-                            icon: "W",
-                            label: "WAVE",
-                            value: "\(gameState.wave)",
-                            color: .purple,
-                            size: .small
-                        )
-                        
-                        // Combo with special effects
-                        VStack(spacing: 2) {
-                            StatCard(
-                                icon: "⚡",
-                                label: "COMBO",
-                                value: "\(gameState.combo)",
-                                color: comboColor,
-                                size: .small,
-                                pulse: gameState.combo > 0
-                            )
-                            
-                            // Combo meter visualization
+                        // Combo Multiplier - Show when active
+                        Group {
                             if gameState.combo > 0 {
-                                ComboMeter(combo: gameState.combo)
+                                VStack(spacing: 2) {
+                                    Text("COMBO")
+                                        .font(.system(size: 9, weight: .bold))
+                                        .foregroundColor(.yellow.opacity(0.8))
+                                    Text("x\(String(format: "%.1f", gameState.scoreMultiplier))")
+                                        .font(.system(size: 18, weight: .bold, design: .monospaced))
+                                        .foregroundColor(.yellow)
+                                        .shadow(color: .yellow.opacity(0.8), radius: 3)
+                                }
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [
+                                                    Color.yellow.opacity(0.3),
+                                                    Color.orange.opacity(0.2)
+                                                ],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        )
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .stroke(
+                                                    LinearGradient(
+                                                        colors: [Color.yellow.opacity(0.8), Color.orange.opacity(0.6)],
+                                                        startPoint: .topLeading,
+                                                        endPoint: .bottomTrailing
+                                                    ),
+                                                    lineWidth: 2
+                                                )
+                                        )
+                                        .shadow(color: .yellow.opacity(0.6), radius: 5)
+                                )
+                            } else {
+                                // Kills count (when no combo)
+                                HStack(spacing: 4) {
+                                    Text("🎯")
+                                        .font(.system(size: 16))
+                                    Text("\(gameState.enemiesKilled)")
+                                        .font(.system(size: 16, weight: .bold, design: .monospaced))
+                                        .foregroundColor(.cyan)
+                                }
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(Color.cyan.opacity(0.2))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .stroke(Color.cyan.opacity(0.5), lineWidth: 1.5)
+                                        )
+                                )
                             }
                         }
-                        .frame(width: screenWidth * 0.22)
-                        
-                        StatCard(
-                            icon: "🎯",
-                            label: "ACC",
-                            value: "\(accuracy)%",
-                            color: accColor,
-                            size: .small
-                        )
+                        .padding(.trailing, 16)
                     }
-                    .padding(.horizontal, 8)
-                    
-                    // Row 3: Weapon, FPS, Power-ups
-                    HStack(spacing: 8) {
-                        StatCard(
-                            icon: "⚔️",
-                            label: "WPN",
-                            value: weaponName(for: getCurrentWeapon()),
-                            color: Color(red: 0, green: 1.0, blue: 0.6),
-                            size: .small
-                        )
-                        
-                        StatCard(
-                            icon: "⚙️",
-                            label: "FPS",
-                            value: "\(currentFPS)",
-                            color: fpsColor,
-                            size: .small
-                        )
-                        
-                        // Enhanced power-up display
-                        enhancedPowerUpDisplay(width: screenWidth * 0.35)
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.bottom, 4)
+                    .padding(.bottom, 8)
                 }
             )
-            .frame(height: 110)  // Slightly taller for better visibility
+            .frame(height: 95)  // Taller for better visibility
             
-            // Bottom border with glow - REDESIGNED VERSION v2.0
-            Rectangle()
-                .fill(
-                    LinearGradient(
-                        colors: [Color.cyan, Color.purple, Color.pink, Color.cyan],
-                        startPoint: .leading,
-                        endPoint: .trailing
+            // Enhanced animated bottom border
+            ZStack {
+                // Base gradient border
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.cyan, Color.blue, Color.purple, Color.pink, Color.cyan],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
                     )
-                )
-                .frame(height: 4)  // Thicker border
-                .shadow(color: Color.cyan, radius: 8)
-                .overlay(
-                    Rectangle()
-                        .fill(Color.white.opacity(0.5))
-                        .frame(height: 2)
-                        .blur(radius: 2)
-                )
+                    .frame(height: 3)
+                
+                // Animated shimmer effect
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.clear, Color.white.opacity(0.6), Color.clear],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(height: 3)
+                    .offset(x: sin(Date().timeIntervalSince1970 * 2) * 200)
+                    .blur(radius: 1)
+            }
+            .shadow(color: Color.cyan.opacity(0.8), radius: 10, x: 0, y: 0)
+            .shadow(color: Color.blue.opacity(0.6), radius: 5, x: 0, y: 0)
         }
         .frame(width: screenWidth)
-        .padding(.top, geometry.safeAreaInsets.top)
+        .padding(.top, topPadding) // Dynamic padding based on orientation
     }
     
     // MARK: - Boss Health Bar
     @ViewBuilder
     private func bossHealthBar(geometry: GeometryProxy) -> some View {
-        let healthPercent = CGFloat(bossHealth) / CGFloat(max(bossMaxHealth, 1))
-        let healthColor = healthPercent > 0.5 ? Color.red : healthPercent > 0.25 ? Color.orange : Color.yellow
-        
-        VStack(spacing: 4) {
-            Text("BOSS")
-                .font(.system(size: 14, weight: .bold, design: .monospaced))
-                .foregroundColor(.red)
-                .shadow(color: .red, radius: 5)
+        if bossHealth > 0 {
+            let healthPercent = CGFloat(bossHealth) / CGFloat(max(bossMaxHealth, 1))
+            let healthColor = healthPercent > 0.5 ? Color.red : healthPercent > 0.25 ? Color.orange : Color.yellow
+            let isLandscape = geometry.size.width > geometry.size.height
+            let barWidth = isLandscape ? geometry.size.width * 0.5 : geometry.size.width * 0.7
             
-            ZStack(alignment: .leading) {
-                // Background
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(Color.black.opacity(0.8))
-                    .frame(height: 20)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 6)
-                            .stroke(Color.red, lineWidth: 2)
-                    )
+            VStack(spacing: 4) {
+                Text("BOSS")
+                    .font(.system(size: 14, weight: .bold, design: .monospaced))
+                    .foregroundColor(.red)
+                    .shadow(color: .red, radius: 5)
                 
-                // Health fill
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(
-                        LinearGradient(
-                            colors: [healthColor, healthColor.opacity(0.7)],
-                            startPoint: .leading,
-                            endPoint: .trailing
+                ZStack(alignment: .leading) {
+                    // Background
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.black.opacity(0.8))
+                        .frame(height: 20)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(Color.red, lineWidth: 2)
                         )
-                    )
-                    .frame(width: geometry.size.width * 0.7 * healthPercent, height: 16)
-                    .padding(2)
-                    .animation(.spring(response: 0.3), value: healthPercent)
-                
-                // Health text
-                Text("\(bossHealth)/\(bossMaxHealth)")
-                    .font(.system(size: 11, weight: .bold, design: .monospaced))
-                    .foregroundColor(.white)
-                    .shadow(color: .black, radius: 2)
+                    
+                    // Health fill
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(
+                            LinearGradient(
+                                colors: [healthColor, healthColor.opacity(0.7)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: barWidth * healthPercent, height: 16)
+                        .padding(2)
+                        .animation(.spring(response: 0.3), value: healthPercent)
+                    
+                    // Health text
+                    Text("\(bossHealth)/\(bossMaxHealth)")
+                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                        .foregroundColor(.white)
+                        .shadow(color: .black, radius: 2)
+                }
+                .frame(width: barWidth, height: 20)
             }
-            .frame(width: geometry.size.width * 0.7, height: 20)
+            .frame(maxWidth: .infinity)
+            .padding(.top, 8)
+            .padding(.bottom, 8)
+            .background(
+                Color.black.opacity(0.3)
+                    .blur(radius: 5)
+            )
         }
-        .padding(.bottom, 10)
     }
     
     // MARK: - Bottom Controls
@@ -459,6 +558,41 @@ struct GameView: View {
                         )
                         .cornerRadius(12)
                         .shadow(color: Color.green, radius: 10)
+                    }
+                    
+                    // Save Game Button
+                    Button(action: {
+                        HapticManager.shared.buttonPress()
+                        if gameState.saveGame(toSlot: 1) {
+                            toast = ToastMessage("✅ Game saved!", type: .success)
+                            HapticManager.shared.saveSuccess()
+                            #if DEBUG
+                            print("💾 Game saved successfully to slot 1")
+                            #endif
+                        } else {
+                            toast = ToastMessage("❌ Save failed!", type: .error)
+                            HapticManager.shared.saveError()
+                            #if DEBUG
+                            print("❌ Failed to save game")
+                            #endif
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: "square.and.arrow.down.fill")
+                            Text("Save Game")
+                        }
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(.white)
+                        .frame(width: 200, height: 50)
+                        .background(
+                            LinearGradient(
+                                colors: [Color.purple, Color.purple.opacity(0.8)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(12)
+                        .shadow(color: Color.purple, radius: 10)
                     }
                     
                     // Main Menu Button
@@ -545,6 +679,31 @@ struct GameView: View {
         case .spread: return "SPREAD"
         case .plasma: return "PLASMA"
         case .missile: return "MISSILE"
+        case .fireball: return "FIREBALL"
+        case .lightning: return "LIGHTNING"
+        case .ice: return "ICE"
+        case .poison: return "POISON"
+        case .shockwave: return "SHOCKWAVE"
+        case .beam: return "BEAM"
+        case .rocket: return "ROCKET"
+        case .grenade: return "GRENADE"
+        case .flamethrower: return "FLAMETHROWER"
+        case .electric: return "ELECTRIC"
+        case .freeze: return "FREEZE"
+        case .acid: return "ACID"
+        case .vortex: return "VORTEX"
+        case .pulse: return "PULSE"
+        case .scatter: return "SCATTER"
+        case .homing: return "HOMING"
+        case .explosive: return "EXPLOSIVE"
+        case .piercing: return "PIERCING"
+        case .chain: return "CHAIN"
+        case .meteor: return "METEOR"
+        case .laserBeam: return "LASER BEAM"
+        case .multiShot2: return "DUAL SHOT"
+        case .multiShot3: return "TRIPLE SHOT"
+        case .multiShot4: return "QUAD SHOT"
+        case .multiShot5: return "PENTA SHOT"
         }
     }
 }

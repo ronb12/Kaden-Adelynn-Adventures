@@ -27,7 +27,7 @@ struct StoreView: View {
         Upgrade(key: "shield", icon: "🛡️", title: "Shield Boost", description: "Increases shield duration by 50%", cost: 200, emoji: "🛡️", featured: false),
         Upgrade(key: "speed", icon: "💨", title: "Speed Boost", description: "Increases ship movement speed by 30%", cost: 200, emoji: "💨", featured: false),
         Upgrade(key: "rapid", icon: "⚡", title: "Rapid Fire", description: "Doubles your firing rate", cost: 300, emoji: "⚡", featured: false),
-        Upgrade(key: "doubler", icon: "💰", title: "Coin Doubler", description: "Double all coins earned in-game", cost: 400, emoji: "💰", featured: true),
+        Upgrade(key: "doubler", icon: "⭐", title: "Star Doubler", description: "Double all stars earned in-game", cost: 400, emoji: "⭐", featured: true),
         Upgrade(key: "life", icon: "❤️", title: "Extra Life", description: "Gain an additional life", cost: 150, emoji: "❤️", featured: false)
     ]
     
@@ -35,7 +35,7 @@ struct StoreView: View {
         ZStack {
             // Animated background
             LinearGradient(
-                colors: [.black, .purple.opacity(0.3), .blue.opacity(0.2)],
+                colors: [.blue.opacity(0.9), .blue.opacity(0.7), .blue.opacity(0.6)],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -46,33 +46,60 @@ struct StoreView: View {
                     // Header
                     VStack(spacing: 10) {
                         HStack {
+                            Button(action: {
+                                gameState.currentScreen = .mainMenu
+                            }) {
+                                Image(systemName: "chevron.left.circle.fill")
+                                    .font(.title)
+                                    .foregroundColor(.black)
+                                    .shadow(color: .white.opacity(0.5), radius: 2)
+                            }
+                            
+                            Spacer()
+                            
                             Text("🛒")
                                 .font(.system(size: 50))
                             Text("Upgrade Store")
                                 .font(.system(size: 36, weight: .bold))
-                                .foregroundColor(.white)
+                                .foregroundColor(.black)
+                                .shadow(color: .black.opacity(0.8), radius: 4, x: 0, y: 2)
+                            
+                            Spacer()
+                            
+                            // Spacer for balance
+                            Image(systemName: "chevron.left.circle.fill")
+                                .font(.title)
+                                .foregroundColor(.clear)
                         }
                         
                         Text("Enhance your ship with powerful upgrades")
                             .font(.subheadline)
-                            .foregroundColor(.white.opacity(0.7))
+                            .foregroundColor(.black.opacity(0.8))
                     }
-                    .padding(.top, 40)
+                    .padding(.top, 60) // Safe area padding
+                    .padding(.horizontal, 20)
                     
-                    // Coin Balance Card
+                    // Stars Balance Card
                     HStack {
                         VStack(alignment: .leading, spacing: 5) {
                             Text("Your Balance")
                                 .font(.caption)
-                                .foregroundColor(.white.opacity(0.8))
-                            Text("💰 \(gameState.coins)")
+                                .foregroundColor(.black.opacity(0.8))
+                            Text("⭐ \(gameState.coins)")
                                 .font(.system(size: 32, weight: .bold))
                                 .foregroundColor(.yellow)
                         }
                         Spacer()
-                        Image(systemName: "bitcoinsign.circle.fill")
-                            .font(.system(size: 40))
-                            .foregroundColor(.yellow)
+                        // Custom star with K&A
+                        ZStack {
+                            Text("⭐")
+                                .font(.system(size: 40))
+                                .foregroundColor(.yellow)
+                            Text("K&A")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundColor(.black)
+                                .offset(y: -2)
+                        }
                     }
                     .padding()
                     .frame(maxWidth: .infinity)
@@ -86,25 +113,13 @@ struct StoreView: View {
                     .cornerRadius(16)
                     .padding(.horizontal, 20)
                     
-                    // Currency Notice
-                    HStack(spacing: 10) {
-                        Image(systemName: "info.circle.fill")
-                            .foregroundColor(.blue)
-                        Text("In-Game Currency Only: All purchases use coins earned during gameplay.")
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.8))
-                    }
-                    .padding()
-                    .background(Color.blue.opacity(0.2))
-                    .cornerRadius(12)
-                    .padding(.horizontal, 20)
-                    
                     // Upgrades Grid
                     VStack(alignment: .leading, spacing: 15) {
                         Text("Available Upgrades")
                             .font(.title2)
                             .fontWeight(.bold)
-                            .foregroundColor(.white)
+                            .foregroundColor(.black)
+                            .shadow(color: .black.opacity(0.8), radius: 3, x: 0, y: 1)
                             .padding(.horizontal, 20)
                         
                         LazyVGrid(columns: [
@@ -135,7 +150,7 @@ struct StoreView: View {
                     HStack {
                         Text(toastMessage)
                             .font(.headline)
-                            .foregroundColor(.white)
+                            .foregroundColor(.black)
                             .padding()
                             .background(Color.black.opacity(0.8))
                             .cornerRadius(12)
@@ -173,7 +188,7 @@ struct StoreView: View {
             purchasedUpgrades.insert(upgrade.key)
             showToast(message: "\(upgrade.emoji) \(upgrade.title) Purchased!")
         } else {
-            showToast(message: "Not enough coins!")
+            showToast(message: "Not enough stars!")
         }
     }
     
@@ -239,19 +254,20 @@ private struct StoreUpgradeCard: View {
             VStack(spacing: 8) {
                 Text(upgrade.title)
                     .font(.headline)
-                    .foregroundColor(.white)
+                    .foregroundColor(.black)
+                    .shadow(color: .white.opacity(0.5), radius: 2, x: 0, y: 1)
                     .multilineTextAlignment(.center)
                 
                 Text(upgrade.description)
                     .font(.caption)
-                    .foregroundColor(.white.opacity(0.7))
+                    .foregroundColor(.black.opacity(0.8))
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
                 
                 // Price
                 if !isPurchased {
                     HStack {
-                        Text("💰")
+                        Text("⭐")
                         Text("\(upgrade.cost)")
                             .font(.headline)
                             .foregroundColor(.yellow)
@@ -262,10 +278,11 @@ private struct StoreUpgradeCard: View {
             
             // Purchase Button
             Button(action: onPurchase) {
-                Text(isPurchased ? "Owned" : canAfford ? "Purchase" : "Need More Coins")
-                    .font(.subheadline)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
+                    Text(isPurchased ? "Owned" : canAfford ? "Purchase" : "Need More Stars")
+                        .font(.subheadline)
+                        .fontWeight(.bold)
+                        .foregroundColor(.black)
+                        .shadow(color: .white.opacity(0.5), radius: 2, x: 0, y: 1)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .background(

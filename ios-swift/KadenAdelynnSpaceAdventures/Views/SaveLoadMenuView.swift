@@ -8,6 +8,8 @@ import SwiftUI
 struct SaveLoadMenuView: View {
     @EnvironmentObject var gameState: GameStateManager
     @State private var saveSlots: [SaveSlot] = []
+    @State private var toast: ToastMessage? = nil
+    @State private var isLoading: Bool = false
     
     struct SaveSlot: Identifiable {
         let id: Int
@@ -27,7 +29,7 @@ struct SaveLoadMenuView: View {
                 HStack {
                     Text("💾 Save/Load")
                         .font(.largeTitle)
-                        .foregroundColor(.white)
+                        .foregroundColor(.black)
                     
                     Spacer()
                     
@@ -35,16 +37,41 @@ struct SaveLoadMenuView: View {
                         gameState.currentScreen = .mainMenu
                     }
                     .font(.title)
-                    .foregroundColor(.white)
+                    .foregroundColor(.black)
                 }
                 .padding()
                 
                 // Save slots
                 ScrollView {
                     VStack(spacing: 15) {
+                        // Quick Save Button
+                        Button(action: {
+                            saveToSlot(1) // Quick save to slot 1
+                        }) {
+                            HStack {
+                                Image(systemName: "square.and.arrow.down.fill")
+                                Text("Quick Save (Slot 1)")
+                            }
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(
+                                LinearGradient(
+                                    colors: [Color.blue, Color.cyan],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .cornerRadius(12)
+                        }
+                        .padding(.horizontal)
+                        
                         ForEach(saveSlots) { slot in
                             SaveSlotCard(slot: slot) {
                                 loadSlot(slot.id)
+                            } onSave: {
+                                saveToSlot(slot.id)
                             } onDelete: {
                                 deleteSlot(slot.id)
                             }
@@ -57,6 +84,20 @@ struct SaveLoadMenuView: View {
         .onAppear {
             loadSaveSlots()
         }
+        .toast($toast)
+        .overlay(
+            Group {
+                if isLoading {
+                    ZStack {
+                        Color.black.opacity(0.3)
+                            .ignoresSafeArea()
+                        ProgressView()
+                            .scaleEffect(1.5)
+                            .tint(.white)
+                    }
+                }
+            }
+        )
     }
     
     private func loadSaveSlots() {
@@ -78,19 +119,66 @@ struct SaveLoadMenuView: View {
     }
     
     private func loadSlot(_ slotId: Int) {
-        if let data = UserDefaults.standard.data(forKey: "saveSlot_\(slotId)"),
-           let saveData = try? JSONDecoder().decode(SaveData.self, from: data) {
-            gameState.score = saveData.score
-            gameState.wave = saveData.wave
-            gameState.level = saveData.level
-            gameState.lives = saveData.lives
-            gameState.currentScreen = .playing
+        isLoading = true
+        HapticManager.shared.buttonPress()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            if let data = UserDefaults.standard.data(forKey: "saveSlot_\(slotId)"),
+               let saveData = try? JSONDecoder().decode(SaveData.self, from: data) {
+                gameState.score = saveData.score
+                gameState.wave = saveData.wave
+                gameState.level = saveData.level
+                gameState.lives = saveData.lives
+                gameState.currentScreen = .playing
+                HapticManager.shared.saveSuccess()
+                toast = ToastMessage("✅ Game loaded from slot \(slotId)!", type: .success)
+            } else {
+                HapticManager.shared.saveError()
+                toast = ToastMessage("❌ Failed to load game", type: .error)
+            }
+            isLoading = false
+        }
+    }
+    
+    private func saveToSlot(_ slotId: Int) {
+        isLoading = true
+        HapticManager.shared.buttonPress()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            let saveData = SaveData(
+                score: gameState.score,
+                wave: gameState.wave,
+                level: gameState.level,
+                lives: gameState.lives,
+                timestamp: Date()
+            )
+            
+            if let encoded = try? JSONEncoder().encode(saveData) {
+                UserDefaults.standard.set(encoded, forKey: "saveSlot_\(slotId)")
+                loadSaveSlots() // Refresh the list
+                HapticManager.shared.saveSuccess()
+                toast = ToastMessage("✅ Game saved to slot \(slotId)!", type: .success)
+            } else {
+                HapticManager.shared.saveError()
+                toast = ToastMessage("❌ Failed to save game", type: .error)
+            }
+            isLoading = false
+            
+            // Auto-dismiss toast
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                toast = nil
+            }
         }
     }
     
     private func deleteSlot(_ slotId: Int) {
+        HapticManager.shared.buttonPress()
         UserDefaults.standard.removeObject(forKey: "saveSlot_\(slotId)")
         loadSaveSlots()
+        toast = ToastMessage("🗑️ Save slot \(slotId) deleted", type: .info)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            toast = nil
+        }
     }
     
     struct SaveData: Codable {
@@ -105,6 +193,7 @@ struct SaveLoadMenuView: View {
 struct SaveSlotCard: View {
     let slot: SaveLoadMenuView.SaveSlot
     let onLoad: () -> Void
+    let onSave: () -> Void
     let onDelete: () -> Void
     
     var body: some View {
@@ -112,17 +201,26 @@ struct SaveSlotCard: View {
             HStack {
                 Text("Slot \(slot.id)")
                     .font(.headline)
-                    .foregroundColor(.white)
+                    .foregroundColor(.black)
                 
                 Spacer()
                 
                 if !slot.isEmpty {
                     Button("Load", action: onLoad)
                         .buttonStyle(.bordered)
+                        .tint(.blue)
+                    
+                    Button("Save", action: onSave)
+                        .buttonStyle(.bordered)
+                        .tint(.green)
                     
                     Button("Delete", action: onDelete)
                         .buttonStyle(.bordered)
                         .tint(.red)
+                } else {
+                    Button("Save", action: onSave)
+                        .buttonStyle(.bordered)
+                        .tint(.green)
                 }
             }
             
@@ -139,7 +237,7 @@ struct SaveSlotCard: View {
                     }
                 }
                 .font(.caption)
-                .foregroundColor(.white.opacity(0.8))
+                .foregroundColor(.black.opacity(0.8))
             }
         }
         .padding()

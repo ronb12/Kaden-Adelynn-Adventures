@@ -15,16 +15,20 @@
 		6A684F4E188252CB56DA6122 /* GameOverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1B8BC7C104B09EF9C5EF8AF /* GameOverView.swift */; };
 		87AF727BB23CE7532690EED6 /* GameStateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135D08AAC4856D6AAB092B8B /* GameStateManager.swift */; };
 		8A45188458BDF89363D67A3F /* CharacterSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E74F9C0AE00CFDB86E0FB34 /* CharacterSelectView.swift */; };
-		A1B2C3D4E5F6A7B8C9D0E1F2 /* StatisticsDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F6A7B8C9D0E1F2A3 /* StatisticsDashboardView.swift */; };
+		A1B2C3D4E5F6A7B8C9D0E1F3 /* StatisticsDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F6A7B8C9D0E1F2A3 /* StatisticsDashboardView.swift */; };
 		AE1FAFAE34885555FCF77A90 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 437B9B9ABDFB3AA3C3280B72 /* SettingsView.swift */; };
 		BC1111C608698CCF29C4FD74 /* CloudKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282489952976BA529B5D2F44 /* CloudKitService.swift */; };
 		C3D4E5F6A7B8C9D0E1F2A3B4 /* SaveLoadMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4E5F6A7B8C9D0E1F2A3B4C5 /* SaveLoadMenuView.swift */; };
 		C3EEC4D55989B7B0A173D814 /* GameStatsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01374DD4EFFE86490DCDC9AC /* GameStatsManager.swift */; };
 		C545ACA42D85870B98BDAA62 /* ShipSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 065F756C2CE6A29F1D88FE1E /* ShipSelectView.swift */; };
+		C646B5D53E969FB30E99GF2H /* ShipPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 176G7H8I9J0K1L2M3N4O5P6 /* ShipPreviewView.swift */; };
+		X1Y2Z3A4B5C6D7E8F9G0H1 /* CharacterPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = Y2Z3A4B5C6D7E8F9G0H1I2 /* CharacterPreviewView.swift */; };
+		Z3A4B5C6D7E8F9G0H1I2J3 /* CharacterGraphics.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4B5C6D7E8F9G0H1I2J3K4 /* CharacterGraphics.swift */; };
 		CEADA3D4C680EE2332082F30 /* MainMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA6CE6FE4CFC0EEC3B724BDA /* MainMenuView.swift */; };
 		D27F73F7A85434262D44119D /* GameEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32BF6B961780848C746CF45 /* GameEngine.swift */; };
 		D615A8C65492E0B82B485770 /* GameLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF4AD8EB535C5F1F13C51DFB /* GameLogic.swift */; };
 		D71823EEE707B945E5B35CF2 /* TermsOfServiceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDDFEC0CBDA2F1E1F9CAB0F8 /* TermsOfServiceView.swift */; };
+		D8C9F4C37A061792E324A5B6 /* KadenAdelynnSpaceAdventuresUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2C84FDF2F1DC669BCFECDD /* KadenAdelynnSpaceAdventuresUITests.swift */; };
 		E370E957C966CF82FD45F0E7 /* StoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8632BDBD9FDD765CC37641C /* StoryView.swift */; };
 		E5F6A7B8C9D0E1F2A3B4C5D6 /* WeaponUpgradesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6A7B8C9D0E1F2A3B4C5D6E7 /* WeaponUpgradesView.swift */; };
 		EFD6D903BB7B4DD2D6B10978 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 436AAAAED8F7D20D1594916F /* ContentView.swift */; };
@@ -39,19 +43,49 @@
 		Q0R1S2T3U4V5W6X7Y8Z9 /* AchievementManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = R1S2T3U4V5W6X7Y8Z9A0 /* AchievementManager.swift */; };
 		S2T3U4V5W6X7Y8Z9A0B1 /* AchievementNotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = T3U4V5W6X7Y8Z9A0B1C2 /* AchievementNotificationView.swift */; };
 		U4V5W6X7Y8Z9A0B1C2D3 /* ShipGraphics.swift in Sources */ = {isa = PBXBuildFile; fileRef = V5W6X7Y8Z9A0B1C2D3E4 /* ShipGraphics.swift */; };
-		D8C9F4C37A061792E324A5B6 /* KadenAdelynnSpaceAdventuresUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2C84FDF2F1DC669BCFECDD /* KadenAdelynnSpaceAdventuresUITests.swift */; };
+		Y1Z2A3B4C5D6E7F8G9H0I1 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = Z2A3B4C5D6E7F8G9H0I1J2 /* HapticManager.swift */; };
+		A3B4C5D6E7F8G9H0I1J2K3 /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4C5D6E7F8G9H0I1J2K3L4 /* ToastView.swift */; };
+		B2C3D4E5F6A7B8C9D0E1F2A4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2 /* Assets.xcassets */; };
+		M1N2O3P4Q5R6S7T8U9V0W1 /* gameplay.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = FFFBBCBD74B64F00ABEDE7C8 /* gameplay.mp3 */; };
+		M2N3O4P5Q6R7S8T9U0V1W2 /* boss.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 722CEEF6B1F246E0A3D9883C /* boss.mp3 */; };
+		M3N4O5P6Q7R8S9T0U1V2W3 /* menu.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 3DCB81E547A74677B63EFEBA /* menu.mp3 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		01374DD4EFFE86490DCDC9AC /* GameStatsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStatsManager.swift; sourceTree = "<group>"; };
 		065F756C2CE6A29F1D88FE1E /* ShipSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipSelectView.swift; sourceTree = "<group>"; };
+		176G7H8I9J0K1L2M3N4O5P6 /* ShipPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipPreviewView.swift; sourceTree = "<group>"; };
+		Y2Z3A4B5C6D7E8F9G0H1I2 /* CharacterPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacterPreviewView.swift; sourceTree = "<group>"; };
+		A4B5C6D7E8F9G0H1I2J3K4 /* CharacterGraphics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacterGraphics.swift; sourceTree = "<group>"; };
 		135D08AAC4856D6AAB092B8B /* GameStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStateManager.swift; sourceTree = "<group>"; };
 		138DF663A1072FBBAEA52A91 /* PrivacyPolicyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyPolicyView.swift; sourceTree = "<group>"; };
 		282489952976BA529B5D2F44 /* CloudKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitService.swift; sourceTree = "<group>"; };
 		368E6687528DE2D1520EAD14 /* ScoresView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoresView.swift; sourceTree = "<group>"; };
+		3DCB81E547A74677B63EFEBA /* menu.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = menu.mp3; sourceTree = "<group>"; };
 		436AAAAED8F7D20D1594916F /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		437B9B9ABDFB3AA3C3280B72 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		470F34F12EF6FA440079FABA /* KadenAdelynnSpaceAdventures.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = KadenAdelynnSpaceAdventures.entitlements; sourceTree = "<group>"; };
+		470F35142EF79BBE0079FABA /* Contents.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Contents.json; sourceTree = "<group>"; };
+		470F35152EF79BBE0079FABA /* icon_ios-marketing_1024pt@1x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon_ios-marketing_1024pt@1x.png"; sourceTree = "<group>"; };
+		470F35162EF79BBE0079FABA /* icon_ipad_20pt@1x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon_ipad_20pt@1x.png"; sourceTree = "<group>"; };
+		470F35172EF79BBE0079FABA /* icon_ipad_20pt@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon_ipad_20pt@2x.png"; sourceTree = "<group>"; };
+		470F35182EF79BBE0079FABA /* icon_ipad_29pt@1x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon_ipad_29pt@1x.png"; sourceTree = "<group>"; };
+		470F35192EF79BBE0079FABA /* icon_ipad_29pt@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon_ipad_29pt@2x.png"; sourceTree = "<group>"; };
+		470F351A2EF79BBE0079FABA /* icon_ipad_40pt@1x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon_ipad_40pt@1x.png"; sourceTree = "<group>"; };
+		470F351B2EF79BBE0079FABA /* icon_ipad_40pt@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon_ipad_40pt@2x.png"; sourceTree = "<group>"; };
+		470F351C2EF79BBE0079FABA /* icon_ipad_76pt@1x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon_ipad_76pt@1x.png"; sourceTree = "<group>"; };
+		470F351D2EF79BBE0079FABA /* icon_ipad_76pt@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon_ipad_76pt@2x.png"; sourceTree = "<group>"; };
+		470F351E2EF79BBE0079FABA /* icon_ipad_83.5pt@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon_ipad_83.5pt@2x.png"; sourceTree = "<group>"; };
+		470F351F2EF79BBE0079FABA /* icon_iphone_20pt@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon_iphone_20pt@2x.png"; sourceTree = "<group>"; };
+		470F35202EF79BBE0079FABA /* icon_iphone_20pt@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon_iphone_20pt@3x.png"; sourceTree = "<group>"; };
+		470F35212EF79BBE0079FABA /* icon_iphone_29pt@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon_iphone_29pt@2x.png"; sourceTree = "<group>"; };
+		470F35222EF79BBE0079FABA /* icon_iphone_29pt@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon_iphone_29pt@3x.png"; sourceTree = "<group>"; };
+		470F35232EF79BBE0079FABA /* icon_iphone_40pt@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon_iphone_40pt@2x.png"; sourceTree = "<group>"; };
+		470F35242EF79BBE0079FABA /* icon_iphone_40pt@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon_iphone_40pt@3x.png"; sourceTree = "<group>"; };
+		470F35252EF79BBE0079FABA /* icon_iphone_60pt@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon_iphone_60pt@2x.png"; sourceTree = "<group>"; };
+		470F35262EF79BBE0079FABA /* icon_iphone_60pt@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon_iphone_60pt@3x.png"; sourceTree = "<group>"; };
+		5B2C84FDF2F1DC669BCFECDD /* KadenAdelynnSpaceAdventuresUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KadenAdelynnSpaceAdventuresUITests.swift; sourceTree = "<group>"; };
+		722CEEF6B1F246E0A3D9883C /* boss.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = boss.mp3; sourceTree = "<group>"; };
 		73CFE46A99A622B1BF0AAAC4 /* KadenAdelynnSpaceAdventures.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KadenAdelynnSpaceAdventures.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		75A0E342017744F97A6C4895 /* GameModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameModels.swift; sourceTree = "<group>"; };
 		7E74F9C0AE00CFDB86E0FB34 /* CharacterSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacterSelectView.swift; sourceTree = "<group>"; };
@@ -60,6 +94,7 @@
 		AF4AD8EB535C5F1F13C51DFB /* GameLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameLogic.swift; sourceTree = "<group>"; };
 		B2C3D4E5F6A7B8C9D0E1F2A3 /* StatisticsDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsDashboardView.swift; sourceTree = "<group>"; };
 		BC008555E3189E32EA18F516 /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
+		C73D2AE8A76D49FB3BABB5E5 /* KadenAdelynnSpaceAdventuresUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KadenAdelynnSpaceAdventuresUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D25E2D1F20321B81B6241164 /* KadenAdelynnSpaceAdventuresApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KadenAdelynnSpaceAdventuresApp.swift; sourceTree = "<group>"; };
 		D4E5F6A7B8C9D0E1F2A3B4C5 /* SaveLoadMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveLoadMenuView.swift; sourceTree = "<group>"; };
 		DA6CE6FE4CFC0EEC3B724BDA /* MainMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuView.swift; sourceTree = "<group>"; };
@@ -69,6 +104,7 @@
 		F1B8BC7C104B09EF9C5EF8AF /* GameOverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameOverView.swift; sourceTree = "<group>"; };
 		F6A7B8C9D0E1F2A3B4C5D6E7 /* WeaponUpgradesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeaponUpgradesView.swift; sourceTree = "<group>"; };
 		FE9FBE560E21F3497A83FA10 /* StoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreView.swift; sourceTree = "<group>"; };
+		FFFBBCBD74B64F00ABEDE7C8 /* gameplay.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = gameplay.mp3; sourceTree = "<group>"; };
 		H2I3J4K5L6M7N8O9P0Q1R2 /* GameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameView.swift; sourceTree = "<group>"; };
 		J3K4L5M6N7O8P9Q0R1S2 /* ParticleSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParticleSystem.swift; sourceTree = "<group>"; };
 		L5M6N7O8P9Q0R1S2T3U4 /* VisualEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffects.swift; sourceTree = "<group>"; };
@@ -78,8 +114,9 @@
 		T3U4V5W6X7Y8Z9A0B1C2 /* AchievementNotificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementNotificationView.swift; sourceTree = "<group>"; };
 		V5W6X7Y8Z9A0B1C2D3E4 /* ShipGraphics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipGraphics.swift; sourceTree = "<group>"; };
 		X2Y3Z4A5B6C7D8E9F0G1H2 /* DeviceHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceHelper.swift; sourceTree = "<group>"; };
-		5B2C84FDF2F1DC669BCFECDD /* KadenAdelynnSpaceAdventuresUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KadenAdelynnSpaceAdventuresUITests.swift; sourceTree = "<group>"; };
-		C73D2AE8A76D49FB3BABB5E5 /* KadenAdelynnSpaceAdventuresUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KadenAdelynnSpaceAdventuresUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		Z2A3B4C5D6E7F8G9H0I1J2 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
+		B4C5D6E7F8G9H0I1J2K3L4 /* ToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6A7B8C9D0E1F2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -93,6 +130,8 @@
 				368E6687528DE2D1520EAD14 /* ScoresView.swift */,
 				437B9B9ABDFB3AA3C3280B72 /* SettingsView.swift */,
 				065F756C2CE6A29F1D88FE1E /* ShipSelectView.swift */,
+				176G7H8I9J0K1L2M3N4O5P6 /* ShipPreviewView.swift */,
+				Y2Z3A4B5C6D7E8F9G0H1I2 /* CharacterPreviewView.swift */,
 				BC008555E3189E32EA18F516 /* SignInView.swift */,
 				FE9FBE560E21F3497A83FA10 /* StoreView.swift */,
 				E8632BDBD9FDD765CC37641C /* StoryView.swift */,
@@ -110,6 +149,8 @@
 		08D19C10830024E2D8B3A5B0 /* KadenAdelynnSpaceAdventures */ = {
 			isa = PBXGroup;
 			children = (
+				470F35272EF79BBE0079FABA /* AppIcon.appiconset */,
+				A1B2C3D4E5F6A7B8C9D0E1F2 /* Assets.xcassets */,
 				470F34F12EF6FA440079FABA /* KadenAdelynnSpaceAdventures.entitlements */,
 				436AAAAED8F7D20D1594916F /* ContentView.swift */,
 				D25E2D1F20321B81B6241164 /* KadenAdelynnSpaceAdventuresApp.swift */,
@@ -118,8 +159,19 @@
 				8008F713B0351A0710A0AFA2 /* Services */,
 				0336D1A47B18EE6722E27CE7 /* Views */,
 				W1X2Y3Z4A5B6C7D8E9F0G1 /* Utilities */,
+				FFFBBCBD74B64F00ABEDE7C8 /* gameplay.mp3 */,
+				722CEEF6B1F246E0A3D9883C /* boss.mp3 */,
+				3DCB81E547A74677B63EFEBA /* menu.mp3 */,
 			);
 			path = KadenAdelynnSpaceAdventures;
+			sourceTree = "<group>";
+		};
+		0C99E6CAD1F118B7964E1A37 /* KadenAdelynnSpaceAdventuresUITests */ = {
+			isa = PBXGroup;
+			children = (
+				5B2C84FDF2F1DC669BCFECDD /* KadenAdelynnSpaceAdventuresUITests.swift */,
+			);
+			path = KadenAdelynnSpaceAdventuresUITests;
 			sourceTree = "<group>";
 		};
 		188838696A7E8DD646001722 = {
@@ -131,12 +183,30 @@
 			);
 			sourceTree = "<group>";
 		};
-		0C99E6CAD1F118B7964E1A37 /* KadenAdelynnSpaceAdventuresUITests */ = {
+		470F35272EF79BBE0079FABA /* AppIcon.appiconset */ = {
 			isa = PBXGroup;
 			children = (
-				5B2C84FDF2F1DC669BCFECDD /* KadenAdelynnSpaceAdventuresUITests.swift */,
+				470F35142EF79BBE0079FABA /* Contents.json */,
+				470F35152EF79BBE0079FABA /* icon_ios-marketing_1024pt@1x.png */,
+				470F35162EF79BBE0079FABA /* icon_ipad_20pt@1x.png */,
+				470F35172EF79BBE0079FABA /* icon_ipad_20pt@2x.png */,
+				470F35182EF79BBE0079FABA /* icon_ipad_29pt@1x.png */,
+				470F35192EF79BBE0079FABA /* icon_ipad_29pt@2x.png */,
+				470F351A2EF79BBE0079FABA /* icon_ipad_40pt@1x.png */,
+				470F351B2EF79BBE0079FABA /* icon_ipad_40pt@2x.png */,
+				470F351C2EF79BBE0079FABA /* icon_ipad_76pt@1x.png */,
+				470F351D2EF79BBE0079FABA /* icon_ipad_76pt@2x.png */,
+				470F351E2EF79BBE0079FABA /* icon_ipad_83.5pt@2x.png */,
+				470F351F2EF79BBE0079FABA /* icon_iphone_20pt@2x.png */,
+				470F35202EF79BBE0079FABA /* icon_iphone_20pt@3x.png */,
+				470F35212EF79BBE0079FABA /* icon_iphone_29pt@2x.png */,
+				470F35222EF79BBE0079FABA /* icon_iphone_29pt@3x.png */,
+				470F35232EF79BBE0079FABA /* icon_iphone_40pt@2x.png */,
+				470F35242EF79BBE0079FABA /* icon_iphone_40pt@3x.png */,
+				470F35252EF79BBE0079FABA /* icon_iphone_60pt@2x.png */,
+				470F35262EF79BBE0079FABA /* icon_iphone_60pt@3x.png */,
 			);
-			path = KadenAdelynnSpaceAdventuresUITests;
+			path = AppIcon.appiconset;
 			sourceTree = "<group>";
 		};
 		51C4878C809F4D4F296BC611 /* Products */ = {
@@ -169,6 +239,7 @@
 				L5M6N7O8P9Q0R1S2T3U4 /* VisualEffects.swift */,
 				N7O8P9Q0R1S2T3U4V5W6 /* EnemyFormations.swift */,
 				V5W6X7Y8Z9A0B1C2D3E4 /* ShipGraphics.swift */,
+				A4B5C6D7E8F9G0H1I2J3K4 /* CharacterGraphics.swift */,
 			);
 			path = GameEngine;
 			sourceTree = "<group>";
@@ -186,6 +257,8 @@
 			isa = PBXGroup;
 			children = (
 				X2Y3Z4A5B6C7D8E9F0G1H2 /* DeviceHelper.swift */,
+				Z2A3B4C5D6E7F8G9H0I1J2 /* HapticManager.swift */,
+				B4C5D6E7F8G9H0I1J2K3L4 /* ToastView.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -215,6 +288,7 @@
 			buildConfigurationList = 9CC8D523C95E4EF02F966036 /* Build configuration list for PBXNativeTarget "KadenAdelynnSpaceAdventures" */;
 			buildPhases = (
 				1F2808D02F94467F6FA93F38 /* Sources */,
+				R2S3T4U5V6W7X8Y9Z0A1B2 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -276,11 +350,14 @@
 				0B629D46EEBDEEA337A57C5F /* ScoresView.swift in Sources */,
 				AE1FAFAE34885555FCF77A90 /* SettingsView.swift in Sources */,
 				C545ACA42D85870B98BDAA62 /* ShipSelectView.swift in Sources */,
+				C646B5D53E969FB30E99GF2H /* ShipPreviewView.swift in Sources */,
+				X1Y2Z3A4B5C6D7E8F9G0H1 /* CharacterPreviewView.swift in Sources */,
+				Z3A4B5C6D7E8F9G0H1I2J3 /* CharacterGraphics.swift in Sources */,
 				563C92DCA96312762E924860 /* SignInView.swift in Sources */,
 				FFDEC3A760BDE1B52400B521 /* StoreView.swift in Sources */,
 				E370E957C966CF82FD45F0E7 /* StoryView.swift in Sources */,
 				D71823EEE707B945E5B35CF2 /* TermsOfServiceView.swift in Sources */,
-				A1B2C3D4E5F6A7B8C9D0E1F2 /* StatisticsDashboardView.swift in Sources */,
+				A1B2C3D4E5F6A7B8C9D0E1F3 /* StatisticsDashboardView.swift in Sources */,
 				C3D4E5F6A7B8C9D0E1F2A3B4 /* SaveLoadMenuView.swift in Sources */,
 				E5F6A7B8C9D0E1F2A3B4C5D6 /* WeaponUpgradesView.swift in Sources */,
 				F7A8B9C0D1E2F3A4B5C6D7E8 /* CustomizationView.swift in Sources */,
@@ -292,6 +369,8 @@
 				Q0R1S2T3U4V5W6X7Y8Z9 /* AchievementManager.swift in Sources */,
 				S2T3U4V5W6X7Y8Z9A0B1 /* AchievementNotificationView.swift in Sources */,
 				U4V5W6X7Y8Z9A0B1C2D3 /* ShipGraphics.swift in Sources */,
+				Y1Z2A3B4C5D6E7F8G9H0I1 /* HapticManager.swift in Sources */,
+				A3B4C5D6E7F8G9H0I1J2K3 /* ToastView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -304,6 +383,20 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXResourcesBuildPhase section */
+		R2S3T4U5V6W7X8Y9Z0A1B2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B2C3D4E5F6A7B8C9D0E1F2A4 /* Assets.xcassets in Resources */,
+				M1N2O3P4Q5R6S7T8U9V0W1 /* gameplay.mp3 in Resources */,
+				M2N3O4P5Q6R7S8T9U0V1W2 /* boss.mp3 in Resources */,
+				M3N4O5P6Q7R8S9T0U1V2W3 /* menu.mp3 in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
 		2E2C35040D7E939BA4C1FD71 /* Debug */ = {
@@ -395,6 +488,56 @@
 			};
 			name = Debug;
 		};
+		7BA1C64565C01E33190F2BF5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4SQJ3AH62S;
+				INFOPLIST_FILE = KadenAdelynnSpaceAdventuresUITests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.KadenAdelynnSpaceAdventuresUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = KadenAdelynnSpaceAdventures;
+			};
+			name = Release;
+		};
+		C320FBD88FF9BD988A51A7AB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4SQJ3AH62S;
+				INFOPLIST_FILE = KadenAdelynnSpaceAdventuresUITests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.KadenAdelynnSpaceAdventuresUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = KadenAdelynnSpaceAdventures;
+			};
+			name = Debug;
+		};
 		C3AAEFBC98D9BF980207CAC4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -477,73 +620,23 @@
 			};
 			name = Release;
 		};
-		C320FBD88FF9BD988A51A7AB /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 4SQJ3AH62S;
-				INFOPLIST_FILE = KadenAdelynnSpaceAdventuresUITests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				MARKETING_VERSION = 1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.KadenAdelynnSpaceAdventuresUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = KadenAdelynnSpaceAdventures;
-			};
-			name = Debug;
-		};
-		7BA1C64565C01E33190F2BF5 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 4SQJ3AH62S;
-				INFOPLIST_FILE = KadenAdelynnSpaceAdventuresUITests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				MARKETING_VERSION = 1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.KadenAdelynnSpaceAdventuresUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_OPTIMIZATION_LEVEL = "-O";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = KadenAdelynnSpaceAdventures;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		9C70E559DD6453F9A00E120D /* Build configuration list for PBXProject "KadenAdelynnSpaceAdventures" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				77E3FF04F5E34069CE2F9287 /* Debug */,
-				C3AAEFBC98D9BF980207CAC4 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
-		};
 		13E32D09382DA05085103ED5 /* Build configuration list for PBXNativeTarget "KadenAdelynnSpaceAdventuresUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C320FBD88FF9BD988A51A7AB /* Debug */,
 				7BA1C64565C01E33190F2BF5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		9C70E559DD6453F9A00E120D /* Build configuration list for PBXProject "KadenAdelynnSpaceAdventures" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				77E3FF04F5E34069CE2F9287 /* Debug */,
+				C3AAEFBC98D9BF980207CAC4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

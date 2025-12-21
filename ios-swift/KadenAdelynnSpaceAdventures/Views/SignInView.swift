@@ -22,12 +22,12 @@ struct SignInView: View {
                     
                     Text("Signed In")
                         .font(.title)
-                        .foregroundColor(.white)
+                        .foregroundColor(.black)
                     
                     if let userName = signInService.userName {
                         Text("Welcome, \(userName)!")
                             .font(.headline)
-                            .foregroundColor(.white.opacity(0.8))
+                            .foregroundColor(.black.opacity(0.8))
                     }
                     
                     Button("Sign Out") {
@@ -40,11 +40,11 @@ struct SignInView: View {
                 VStack(spacing: 20) {
                     Text("Sign in with Apple")
                         .font(.title)
-                        .foregroundColor(.white)
+                        .foregroundColor(.black)
                     
                     Text("Sign in to sync your game progress across all your devices")
                         .font(.body)
-                        .foregroundColor(.white.opacity(0.8))
+                        .foregroundColor(.black.opacity(0.8))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
                     
@@ -76,7 +76,7 @@ struct SignInView: View {
                         gameState.currentScreen = .mainMenu
                     }
                     .font(.caption)
-                    .foregroundColor(.white.opacity(0.7))
+                    .foregroundColor(.black.opacity(0.7))
                     .padding(.top, 10)
                 }
             }

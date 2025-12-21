@@ -9,6 +9,7 @@ import SwiftUI
 
 struct MainMenuView: View {
     @EnvironmentObject var gameState: GameStateManager
+    @StateObject private var audioManager = AudioManager.shared
     @State private var showSettings = false
     @State private var coins: Int = 0
     @State private var animateStars = false
@@ -26,6 +27,8 @@ struct MainMenuView: View {
                 VStack(spacing: 25) {
                     // Enhanced Title Section
                     VStack(spacing: 15) {
+                        Spacer()
+                            .frame(height: 40) // Safe area padding for title
                         // Main Title with gradient
                         HStack(spacing: 12) {
                             Text("🌟")
@@ -114,13 +117,13 @@ struct MainMenuView: View {
                     
                     // Stats Cards Row
                     HStack(spacing: 12) {
-                        // Coin Balance Card
+                        // Stars Balance Card
                         VStack(alignment: .leading, spacing: 5) {
-                            Text("COINS")
+                            Text("STARS")
                                 .font(.caption)
                                 .foregroundColor(.white.opacity(0.7))
                             HStack(spacing: 4) {
-                                Text("💰")
+                                Text("⭐")
                                     .font(.system(size: 20))
                                 Text("\(coins)")
                                     .font(.system(size: 24, weight: .bold))
@@ -245,6 +248,15 @@ struct MainMenuView: View {
                             size: .small
                         ) {
                             gameState.currentScreen = .customization
+                        }
+                        
+                        EnhancedMenuButton(
+                            title: "Save/Load",
+                            icon: "square.and.arrow.down.on.square.fill",
+                            gradient: [.indigo, .purple],
+                            size: .small
+                        ) {
+                            gameState.currentScreen = .saveLoad
                         }
                     }
                     .padding(.horizontal, 20)
@@ -483,6 +495,12 @@ struct MainMenuView: View {
             loadPersonalBest()
             loadRecentAchievements()
             loadDailyChallengeProgress()
+            // Start menu music
+            audioManager.startMenuMusic()
+        }
+        .onDisappear {
+            // Stop menu music when leaving main menu
+            audioManager.stopBackgroundMusic()
         }
     }
     
@@ -530,12 +548,12 @@ struct AnimatedCosmicBackground: View {
     
     var body: some View {
         ZStack {
-            // Base gradient
+            // Base gradient - Blue theme
             LinearGradient(
                 colors: [
-                    Color(red: 0.04, green: 0.06, blue: 0.15),
-                    Color(red: 0.10, green: 0.10, blue: 0.24),
-                    Color(red: 0.18, green: 0.11, blue: 0.31)
+                    Color(red: 0.1, green: 0.2, blue: 0.5),
+                    Color(red: 0.15, green: 0.25, blue: 0.6),
+                    Color(red: 0.2, green: 0.3, blue: 0.7)
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing

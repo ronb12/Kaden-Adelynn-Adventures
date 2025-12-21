@@ -29,7 +29,7 @@ struct ScoresView: View {
         ZStack {
             // Cosmic gradient background
             LinearGradient(
-                colors: [.black, .purple.opacity(0.3), .blue.opacity(0.2)],
+                colors: [.blue.opacity(0.9), .blue.opacity(0.7), .blue.opacity(0.6)],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -43,7 +43,8 @@ struct ScoresView: View {
                             .font(.system(size: 50))
                         Text("Leaderboard")
                             .font(.system(size: 36, weight: .bold))
-                            .foregroundColor(.white)
+                            .foregroundColor(.black)
+                            .shadow(color: .black.opacity(0.8), radius: 4, x: 0, y: 2)
                         
                         Spacer()
                         
@@ -52,16 +53,18 @@ struct ScoresView: View {
                         }) {
                             Image(systemName: "xmark.circle.fill")
                                 .font(.title)
-                                .foregroundColor(.white.opacity(0.7))
+                                .foregroundColor(.black)
+                                .shadow(color: .white.opacity(0.5), radius: 2)
                         }
                     }
+                    .padding(.top, 60) // Safe area padding
                     
                     // Personal Best Card
                     HStack {
                         VStack(alignment: .leading, spacing: 5) {
                             Text("Personal Best")
                                 .font(.caption)
-                                .foregroundColor(.white.opacity(0.7))
+                                .foregroundColor(.black.opacity(0.8))
                             Text("\(personalBest)")
                                 .font(.system(size: 32, weight: .bold))
                                 .foregroundColor(.yellow)
@@ -110,7 +113,7 @@ struct ScoresView: View {
                             Image(systemName: "magnifyingglass")
                                 .foregroundColor(.white.opacity(0.6))
                             TextField("Search...", text: $searchText)
-                                .foregroundColor(.white)
+                                .foregroundColor(.black)
                         }
                         .padding(10)
                         .background(Color.white.opacity(0.1))
@@ -137,7 +140,7 @@ struct ScoresView: View {
                                     .font(.caption)
                                 Image(systemName: "chevron.down")
                             }
-                            .foregroundColor(.white)
+                            .foregroundColor(.black)
                             .padding(10)
                             .background(Color.white.opacity(0.1))
                             .cornerRadius(10)
@@ -175,7 +178,7 @@ struct ScoresView: View {
                                         .foregroundColor(.white.opacity(0.3))
                                     Text("No scores yet")
                                         .font(.title2)
-                                        .foregroundColor(.white.opacity(0.7))
+                                        .foregroundColor(.black.opacity(0.8))
                                     Text("Play a game to see your scores here!")
                                         .font(.subheadline)
                                         .foregroundColor(.white.opacity(0.5))
@@ -317,7 +320,7 @@ private struct ScoresTabButton: View {
                     .font(.subheadline)
                     .fontWeight(.semibold)
             }
-            .foregroundColor(isActive ? .white : .white.opacity(0.6))
+                    .foregroundColor(isActive ? .black : .black.opacity(0.7))
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
             .background(
@@ -369,7 +372,7 @@ private struct ScoreRow: View {
                 
                 Text("\(rank)")
                     .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(rank <= 3 ? .white : .white.opacity(0.9))
+                    .foregroundColor(rank <= 3 ? .black : .black.opacity(0.9))
             }
             
             // Score Details
@@ -377,7 +380,7 @@ private struct ScoreRow: View {
                 HStack {
                     Text(score.playerName)
                         .font(.headline)
-                        .foregroundColor(.white)
+                                .foregroundColor(.black)
                     
                     if isCurrentPlayer {
                         Text("(You)")

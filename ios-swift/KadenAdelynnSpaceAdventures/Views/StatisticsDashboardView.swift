@@ -12,14 +12,15 @@ struct StatisticsDashboardView: View {
     
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color.blue.opacity(0.8).ignoresSafeArea()
             
             VStack {
                 // Header
                 HStack {
                     Text("📊 Statistics Dashboard")
                         .font(.largeTitle)
-                        .foregroundColor(.white)
+                        .foregroundColor(.black)
+                        .shadow(color: .white.opacity(0.5), radius: 2, x: 0, y: 1)
                     
                     Spacer()
                     
@@ -27,9 +28,12 @@ struct StatisticsDashboardView: View {
                         gameState.currentScreen = .mainMenu
                     }
                     .font(.title)
-                    .foregroundColor(.white)
+                    .foregroundColor(.black)
+                    .shadow(color: .white.opacity(0.5), radius: 2, x: 0, y: 1)
                 }
-                .padding()
+                .padding(.top, 60) // Safe area padding
+                .padding(.horizontal)
+                .padding(.bottom, 10)
                 
                 // Tabs
                 HStack(spacing: 0) {
@@ -64,8 +68,21 @@ struct StatisticsDashboardView: View {
                             OverviewTab(stats: stats)
                         }
                     } else {
-                        Text("Loading statistics...")
-                            .foregroundColor(.gray)
+                        VStack(spacing: 20) {
+                            Image(systemName: "chart.bar.fill")
+                                .font(.system(size: 60))
+                                .foregroundColor(.gray.opacity(0.5))
+                            Text("No Statistics Yet")
+                                .font(.title2)
+                                .foregroundColor(.black.opacity(0.8))
+                            Text("Play the game to start tracking your performance!")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 60)
                     }
                 }
             }
@@ -89,7 +106,7 @@ struct TabButton: View {
         Button(action: action) {
             Text(title)
                 .font(.subheadline)
-                .foregroundColor(isActive ? .white : .gray)
+                .foregroundColor(isActive ? .black : .gray)
                 .padding()
                 .frame(maxWidth: .infinity)
                 .background(isActive ? Color.blue.opacity(0.6) : Color.clear)
@@ -127,7 +144,8 @@ struct WeaponsTab: View {
         VStack {
             Text("Weapon Statistics")
                 .font(.title2)
-                .foregroundColor(.white)
+                .foregroundColor(.black)
+                .shadow(color: .white.opacity(0.5), radius: 2)
                 .padding()
             
             Text("Coming soon...")
@@ -174,7 +192,8 @@ struct StatisticsStatCard: View {
             Text(value)
                 .font(.title2)
                 .fontWeight(.bold)
-                .foregroundColor(.white)
+                .foregroundColor(.black)
+                .shadow(color: .white.opacity(0.5), radius: 2)
         }
         .frame(maxWidth: .infinity)
         .padding()

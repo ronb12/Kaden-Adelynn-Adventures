@@ -18,7 +18,7 @@ struct GameOverView: View {
     var body: some View {
         ZStack {
             LinearGradient(
-                colors: [.black, .red.opacity(0.3), .purple.opacity(0.2)],
+                colors: [.blue.opacity(0.9), .blue.opacity(0.7), .blue.opacity(0.6)],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -35,7 +35,10 @@ struct GameOverView: View {
                         
                         Text("Game Over")
                             .font(.system(size: 48, weight: .bold))
-                            .foregroundColor(.white)
+                            .foregroundColor(.black)
+                            .shadow(color: .black.opacity(0.8), radius: 5, x: 0, y: 2)
+                    }
+                    .padding(.top, 70) // Safe area padding
                         
                         if isNewRecord {
                             HStack {
@@ -60,18 +63,17 @@ struct GameOverView: View {
                             Text(ranking)
                                 .font(.headline)
                                 .foregroundColor(.cyan)
+                                .shadow(color: .black.opacity(0.5), radius: 2)
                         }
-                    }
-                    .padding(.top, 20)
                     
-                    // Coins Earned Card
+                    // Stars Earned Card
                     if coinsEarned > 0 {
                         HStack {
                             VStack(alignment: .leading, spacing: 5) {
-                                Text("Coins Earned")
+                                Text("Stars Earned")
                                     .font(.caption)
-                                    .foregroundColor(.white.opacity(0.7))
-                                Text("+\(coinsEarned)")
+                                    .foregroundColor(.black.opacity(0.8))
+                                Text("+\(coinsEarned) ⭐")
                                     .font(.system(size: 32, weight: .bold))
                                     .foregroundColor(.yellow)
                             }
@@ -96,6 +98,7 @@ struct GameOverView: View {
                         Text("Performance Breakdown")
                             .font(.system(size: 22, weight: .bold))
                             .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.8), radius: 3, x: 0, y: 1)
                             .padding(.horizontal)
                         
                         VStack(spacing: 12) {
@@ -127,6 +130,7 @@ struct GameOverView: View {
                             Text("🏆 Achievements Unlocked")
                                 .font(.headline)
                                 .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.8), radius: 3, x: 0, y: 1)
                                 .padding(.horizontal)
                             
                             ForEach(achievementsUnlocked, id: \.self) { achievement in
@@ -134,6 +138,7 @@ struct GameOverView: View {
                                     Text("⭐")
                                     Text(achievement)
                                         .foregroundColor(.white)
+                                        .shadow(color: .black.opacity(0.7), radius: 2, x: 0, y: 1)
                                     Spacer()
                                 }
                                 .padding()
@@ -156,6 +161,7 @@ struct GameOverView: View {
                             }
                             .font(.system(size: 22, weight: .bold))
                             .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.7), radius: 2, x: 0, y: 1)
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(
@@ -179,6 +185,7 @@ struct GameOverView: View {
                                 }
                                 .font(.headline)
                                 .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.7), radius: 2, x: 0, y: 1)
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color.blue.opacity(0.6))
@@ -194,6 +201,7 @@ struct GameOverView: View {
                                 }
                                 .font(.headline)
                                 .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.7), radius: 2, x: 0, y: 1)
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color.purple.opacity(0.6))
@@ -212,6 +220,7 @@ struct GameOverView: View {
                             }
                             .font(.headline)
                             .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.7), radius: 2, x: 0, y: 1)
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(Color.gray.opacity(0.6))
@@ -262,7 +271,7 @@ struct GameOverView: View {
     }
     
     private func calculateCoinsEarned() {
-        // Calculate coins based on score, wave, kills
+        // Calculate stars based on score, wave, kills
         let baseCoins = gameState.score / 100
         let waveBonus = gameState.wave * 10
         let killBonus = gameState.enemiesKilled * 2
@@ -349,6 +358,7 @@ struct GameOverStatRow: View {
             Text(value)
                 .foregroundColor(.white)
                 .fontWeight(.bold)
+                .shadow(color: .black.opacity(0.7), radius: 2, x: 0, y: 1)
         }
     }
 }

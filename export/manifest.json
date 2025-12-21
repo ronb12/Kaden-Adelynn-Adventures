@@ -1,0 +1,202 @@
+{
+  "version": "1.0",
+  "characters": [
+    {
+      "name": "Kaden",
+      "id": "kaden",
+      "safe_name": "kaden",
+      "triangle_count": 2168,
+      "texture_paths": {},
+      "export_paths": {
+        "fbx": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/kaden/kaden.fbx",
+        "glb": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/kaden/kaden.glb",
+        "portrait": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/kaden/kaden_portrait.png"
+      },
+      "variant_paths": [
+        "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/kaden/variants/kaden_variant1.glb"
+      ],
+      "features": [
+        "balanced_build",
+        "angular_helmet"
+      ]
+    },
+    {
+      "name": "Adelynn",
+      "id": "adelynn",
+      "safe_name": "adelynn",
+      "triangle_count": 2184,
+      "texture_paths": {},
+      "export_paths": {
+        "fbx": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/adelynn/adelynn.fbx",
+        "glb": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/adelynn/adelynn.glb",
+        "portrait": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/adelynn/adelynn_portrait.png"
+      },
+      "variant_paths": [
+        "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/adelynn/variants/adelynn_variant1.glb"
+      ],
+      "features": [
+        "rounded_helmet",
+        "soft_glow_seams"
+      ]
+    },
+    {
+      "name": "Orion",
+      "id": "hero3",
+      "safe_name": "hero3",
+      "triangle_count": 2152,
+      "texture_paths": {},
+      "export_paths": {
+        "fbx": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero3/hero3.fbx",
+        "glb": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero3/hero3.glb",
+        "portrait": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero3/hero3_portrait.png"
+      },
+      "variant_paths": [
+        "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero3/variants/hero3_variant1.glb"
+      ],
+      "features": [
+        "angular_chest_core",
+        "color_shift_panels"
+      ]
+    },
+    {
+      "name": "Lyra",
+      "id": "hero4",
+      "safe_name": "hero4",
+      "triangle_count": 2184,
+      "texture_paths": {},
+      "export_paths": {
+        "fbx": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero4/hero4.fbx",
+        "glb": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero4/hero4.glb",
+        "portrait": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero4/hero4_portrait.png"
+      },
+      "variant_paths": [
+        "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero4/variants/hero4_variant1.glb"
+      ],
+      "features": [
+        "split_visor_helmet",
+        "hud_line_style"
+      ]
+    },
+    {
+      "name": "Jax",
+      "id": "hero5",
+      "safe_name": "hero5",
+      "triangle_count": 2448,
+      "texture_paths": {},
+      "export_paths": {
+        "fbx": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero5/hero5.fbx",
+        "glb": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero5/hero5.glb",
+        "portrait": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero5/hero5_portrait.png"
+      },
+      "variant_paths": [
+        "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero5/variants/hero5_variant1.glb"
+      ],
+      "features": [
+        "short_build",
+        "oversized_gloves",
+        "tank_armor"
+      ]
+    },
+    {
+      "name": "Vega",
+      "id": "hero6",
+      "safe_name": "hero6",
+      "triangle_count": 2208,
+      "texture_paths": {},
+      "export_paths": {
+        "fbx": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero6/hero6.fbx",
+        "glb": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero6/hero6.glb",
+        "portrait": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero6/hero6_portrait.png"
+      },
+      "variant_paths": [
+        "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero6/variants/hero6_variant1.glb"
+      ],
+      "features": [
+        "balanced_build",
+        "floating_shoulder_nodes"
+      ]
+    },
+    {
+      "name": "Kael",
+      "id": "hero7",
+      "safe_name": "hero7",
+      "triangle_count": 2260,
+      "texture_paths": {},
+      "export_paths": {
+        "fbx": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero7/hero7.fbx",
+        "glb": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero7/hero7.glb",
+        "portrait": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero7/hero7_portrait.png"
+      },
+      "variant_paths": [
+        "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero7/variants/hero7_variant1.glb"
+      ],
+      "features": [
+        "angular_helmet",
+        "heavy_armor"
+      ]
+    },
+    {
+      "name": "Nova",
+      "id": "hero8",
+      "safe_name": "hero8",
+      "triangle_count": 2176,
+      "texture_paths": {},
+      "export_paths": {
+        "fbx": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero8/hero8.fbx",
+        "glb": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero8/hero8.glb",
+        "portrait": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero8/hero8_portrait.png"
+      },
+      "variant_paths": [
+        "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero8/variants/hero8_variant1.glb"
+      ],
+      "features": [
+        "rounded_helmet",
+        "energy_core"
+      ]
+    },
+    {
+      "name": "Rio",
+      "id": "hero9",
+      "safe_name": "hero9",
+      "triangle_count": 4580,
+      "texture_paths": {},
+      "export_paths": {
+        "fbx": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero9/hero9.fbx",
+        "glb": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero9/hero9.glb",
+        "portrait": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero9/hero9_portrait.png"
+      },
+      "variant_paths": [
+        "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero9/variants/hero9_variant1.glb"
+      ],
+      "features": [
+        "backpack",
+        "rotating_energy_rings"
+      ]
+    },
+    {
+      "name": "Mira",
+      "id": "hero10",
+      "safe_name": "hero10",
+      "triangle_count": 2292,
+      "texture_paths": {},
+      "export_paths": {
+        "fbx": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero10/hero10.fbx",
+        "glb": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero10/hero10.glb",
+        "portrait": "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero10/hero10_portrait.png"
+      },
+      "variant_paths": [
+        "/Users/ronellbradley/Library/Mobile Documents/com~apple~CloudDocs/Desktop/kaden-adelynn-space-adventures/export/hero10/variants/hero10_variant1.glb"
+      ],
+      "features": [
+        "rune_panel_lines",
+        "layered_armor"
+      ]
+    }
+  ],
+  "total_characters": 10,
+  "settings": {
+    "bake_resolution": 0,
+    "num_variants": 1,
+    "render_engine": "eevee"
+  }
+}
