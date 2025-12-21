@@ -503,12 +503,11 @@ private struct EnhancedCharacterCard: View {
                     .buttonStyle(.plain)
                 }
                 
-                // Character Portrait from Assets - Only the character image
+                // Character Portrait from Assets - Show full body
                 Image("\(character.id)_character")
                     .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 120, height: 120)
-                    .clipShape(Circle())
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 140, height: 180)
                     .scaleEffect(isSelected ? 1.1 : 1.0)
                 
                 // Name and Rating
