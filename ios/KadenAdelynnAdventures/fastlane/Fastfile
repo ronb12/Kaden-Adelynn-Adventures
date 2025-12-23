@@ -1,0 +1,55 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Create App ID, enable capabilities, and generate provisioning profiles"
+  lane :bootstrap_signing do
+    app_identifier = "com.kaden-adelynn.adventures"
+    app_name = "Kaden & Adelynn Space Adventures"
+    team_id = "4SQJ3AH62S"
+
+    UI.message("Ensuring App ID exists: #{app_identifier}")
+    begin
+      create_app_identifier(
+        app_identifier: app_identifier,
+        team_id: team_id,
+        enable_services: {
+          cloudkit: 'on',
+          icloud: 'on',
+          game_center: 'on'
+        }
+      )
+    rescue => e
+      UI.message("create_app_identifier skipped or failed: #{e}")
+    end
+
+    UI.message("Syncing development provisioning profile")
+    match(type: "development", readonly: false, app_identifier: [app_identifier])
+
+    UI.message("Syncing appstore provisioning profile")
+    match(type: "appstore", readonly: false, app_identifier: [app_identifier])
+
+    UI.message("Done. Open Xcode -> Signing & Capabilities and select team #{team_id}.")
+  end
+
+  desc "Build for simulator (no signing)"
+  lane :build_sim do
+    build_app(
+      scheme: "KadenAdelynnAdventures",
+      export_method: "development",
+      silent: true,
+      sdk: "iphonesimulator",
+      configuration: "Debug",
+      build_path: "ios/KadenAdelynnAdventures/build"
+    )
+  end
+
+  desc "Upload metadata and screenshots to App Store Connect"
+  lane :deliver_metadata do
+    deliver(
+      force: true,
+      skip_binary_upload: true,
+      skip_screenshots: false,
+      skip_metadata: false
+    )
+  end
+end

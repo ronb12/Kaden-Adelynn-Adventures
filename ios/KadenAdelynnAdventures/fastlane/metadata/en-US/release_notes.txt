@@ -1,0 +1,3 @@
+- Improved performance and stability
+- New boss battles added
+- Bug fixes and UI improvements

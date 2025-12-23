@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="22.0" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreaLayoutGuide="YES" colorSystemName="semantic">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22.0"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="e9w-KH-hfS">
+            <objects>
+                <viewController id="01J-lp-oVM" sceneMemberID="viewController" storyboardIdentifier="LaunchScreen" isInitialViewController="YES">
+                    <view key="view" contentMode="scaleToFill" id="Ze5-6b-2t3">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="LaunchImage" translatesAutoresizingMaskIntoConstraints="NO" id="cxX-nH-3gY">
+                                <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                            </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Kaden &amp; Adelynn Adventures" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6Xl-OQ-axn">
+                                <rect key="frame" x="20" y="400" width="374" height="96"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="40"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="Bcu-3y-fBC"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="cxX-nH-3gY" firstAttribute="top" secondItem="Ze5-6b-2t3" secondAttribute="top" id="SfN-ll-jLj"/>
+                            <constraint firstItem="cxX-nH-3gY" firstAttribute="leading" secondItem="Ze5-6b-2t3" secondAttribute="leading" id="kLz-n5-HrO"/>
+                            <constraint firstAttribute="bottom" secondItem="cxX-nH-3gY" secondAttribute="bottom" id="svH-Ty-rebY"/>
+                            <constraint firstAttribute="trailing" secondItem="cxX-nH-3gY" secondAttribute="trailing" id="uNH-f4-mB7"/>
+                            <constraint firstItem="6Xl-OQ-axn" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="uyO-PfD-11g"/>
+                            <constraint firstItem="6Xl-OQ-axn" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="DyV-4F-PRh"/>
+                            <constraint firstItem="6Xl-OQ-axn" firstAttribute="leading" secondItem="Bcu-3y-fBC" secondAttribute="leading" constant="20" id="nHx-Gp-fec"/>
+                            <constraint firstItem="Bcu-3y-fBC" firstAttribute="trailing" secondItem="6Xl-OQ-axn" secondAttribute="trailing" constant="20" id="pDa-cT-u4O"/>
+                        </constraints>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="53" y="375"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="LaunchImage" width="414" height="896"/>
+        <systemColor name="systemBackgroundColor">
+            <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
+    </resources>
+</document>

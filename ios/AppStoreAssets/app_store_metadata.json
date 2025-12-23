@@ -1,0 +1,17 @@
+{
+  "appIcon": "icon-1024.png",
+  "screenshots": [
+    "screenshot-6.7in-1.png",
+    "screenshot-6.5in-1.png",
+    "screenshot-5.5in-1.png",
+    "screenshot-ipad-12.9in-1.png",
+    "screenshot-ipad-11in-1.png"
+  ],
+  "appPreview": "preview.mov",
+  "promotionalText": "Blast asteroids, dodge enemies, and power up in Kaden & Adelynn Space Adventures!",
+  "description": "Kaden & Adelynn Space Adventures is a fast-paced arcade shooter. Choose your character and ship, upgrade weapons, collect power-ups, and climb the leaderboards! Features Game Center, iCloud saves, accessibility, and more.",
+  "keywords": "space, arcade, shooter, kids, leaderboard, powerup, adventure",
+  "supportURL": "https://yourdomain.com/support",
+  "marketingURL": "https://yourdomain.com",
+  "privacyPolicyURL": "https://yourdomain.com/privacy-policy.html"
+}

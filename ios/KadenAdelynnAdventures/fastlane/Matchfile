@@ -1,0 +1,8 @@
+storage_mode("local")
+
+app_identifier("com.kaden-adelynn.adventures")
+username("ronellbradley@gmail.com")
+team_id("4SQJ3AH62S")
+
+skip_confirmation(true)
+readonly(false)
