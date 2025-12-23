@@ -1,0 +1,61 @@
+name: KadenAdelynnSpaceAdventures
+options:
+  bundleIdPrefix: com.yourcompany
+  deploymentTarget:
+    iOS: "15.0"
+  developmentLanguage: en
+  xcodeVersion: "16.0"
+
+targets:
+  KadenAdelynnSpaceAdventures:
+    type: application
+    platform: iOS
+    deploymentTarget: "15.0"
+    sources:
+      - path: KadenAdelynnSpaceAdventures
+    info:
+      path: Info.plist
+      properties:
+        CFBundleDisplayName: "Kaden & Adelynn Space Adventures"
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        LSApplicationCategoryType: "public.app-category.games"
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: true
+        UIApplicationSupportsIndirectInputEvents: true
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        ITSAppUsesNonExemptEncryption: false
+        UIStatusBarStyle: UIStatusBarStyleLightContent
+        UIViewControllerBasedStatusBarAppearance: false
+        UIRequiredDeviceCapabilities:
+          - armv7
+          - metal
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yourcompany.KadenAdelynnSpaceAdventures
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1,2" # iPhone and iPad
+        IPHONEOS_DEPLOYMENT_TARGET: "15.0"
+    frameworks:
+      - SpriteKit.framework
+      - SwiftUI.framework
+      - Combine.framework
+
+schemes:
+  KadenAdelynnSpaceAdventures:
+    build:
+      targets:
+        KadenAdelynnSpaceAdventures: all
+    run:
+      config: Debug
+    test:
+      config: Debug

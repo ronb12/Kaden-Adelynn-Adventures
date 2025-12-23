@@ -1,0 +1,13 @@
+{
+  "images": [
+    {
+      "filename": "upgrade_overcharge_chip.png",
+      "idiom": "universal",
+      "scale": "1x"
+    }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1
+  }
+}

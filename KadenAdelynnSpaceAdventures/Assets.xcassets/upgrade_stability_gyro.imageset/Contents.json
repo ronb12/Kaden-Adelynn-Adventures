@@ -1,0 +1,13 @@
+{
+  "images": [
+    {
+      "filename": "upgrade_stability_gyro.png",
+      "idiom": "universal",
+      "scale": "1x"
+    }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1
+  }
+}
