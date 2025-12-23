@@ -150,24 +150,42 @@ class CharacterGraphics {
         body.zPosition = 1
         character.addChild(body)
         
-        // ARMS (small circles on sides)
-        // Left arm
-        let leftArm = SKShapeNode(circleOfRadius: charWidth * 0.08)
-        leftArm.fillColor = suitColor
-        leftArm.strokeColor = accentColor
-        leftArm.lineWidth = 1.5
-        leftArm.position = CGPoint(x: -charWidth * 0.4, y: -charHeight * 0.05)
-        leftArm.zPosition = 2
-        character.addChild(leftArm)
+        // ARMS (rectangular arms that can be animated)
+        // Left arm - create as a container node for animation
+        let leftArmContainer = SKNode()
+        leftArmContainer.position = CGPoint(x: -charWidth * 0.3, y: -charHeight * 0.05)
+        leftArmContainer.zPosition = 2
+        leftArmContainer.name = "leftArm"
         
-        // Right arm
-        let rightArm = SKShapeNode(circleOfRadius: charWidth * 0.08)
-        rightArm.fillColor = suitColor
-        rightArm.strokeColor = accentColor
-        rightArm.lineWidth = 1.5
-        rightArm.position = CGPoint(x: charWidth * 0.4, y: -charHeight * 0.05)
-        rightArm.zPosition = 2
-        character.addChild(rightArm)
+        let leftArmShape = SKShapeNode(rect: CGRect(
+            x: -charWidth * 0.1,
+            y: 0,
+            width: charWidth * 0.2,
+            height: charHeight * 0.15
+        ), cornerRadius: 4)
+        leftArmShape.fillColor = suitColor
+        leftArmShape.strokeColor = accentColor
+        leftArmShape.lineWidth = 1.5
+        leftArmContainer.addChild(leftArmShape)
+        character.addChild(leftArmContainer)
+        
+        // Right arm - create as a container node for animation
+        let rightArmContainer = SKNode()
+        rightArmContainer.position = CGPoint(x: charWidth * 0.3, y: -charHeight * 0.05)
+        rightArmContainer.zPosition = 2
+        rightArmContainer.name = "rightArm"
+        
+        let rightArmShape = SKShapeNode(rect: CGRect(
+            x: -charWidth * 0.1,
+            y: 0,
+            width: charWidth * 0.2,
+            height: charHeight * 0.15
+        ), cornerRadius: 4)
+        rightArmShape.fillColor = suitColor
+        rightArmShape.strokeColor = accentColor
+        rightArmShape.lineWidth = 1.5
+        rightArmContainer.addChild(rightArmShape)
+        character.addChild(rightArmContainer)
         
         // LEGS (two rectangular legs)
         // Left leg
@@ -204,7 +222,7 @@ class CharacterGraphics {
         let floatUp = SKAction.moveBy(x: 0, y: 3, duration: 1.5)
         let floatDown = SKAction.moveBy(x: 0, y: -3, duration: 1.5)
         let floatSequence = SKAction.sequence([floatUp, floatDown])
-        character.run(SKAction.repeatForever(floatSequence))
+        character.run(SKAction.repeatForever(floatSequence), withKey: "idleFloat")
     }
     
     // Add selection animation (pulse/glow)
@@ -212,6 +230,109 @@ class CharacterGraphics {
         let scaleUp = SKAction.scale(to: 1.1, duration: 0.5)
         let scaleDown = SKAction.scale(to: 1.0, duration: 0.5)
         let pulseSequence = SKAction.sequence([scaleUp, scaleDown])
-        character.run(SKAction.repeatForever(pulseSequence))
+        character.run(SKAction.repeatForever(pulseSequence), withKey: "selectionPulse")
+    }
+    
+    // Add dynamic movement animations (flips, peace signs, etc.)
+    static func addDynamicAnimations(to character: SKNode, characterId: String) {
+        // Remove any existing dynamic animations
+        character.removeAction(forKey: "dynamicFlip")
+        character.removeAction(forKey: "dynamicPeace")
+        character.removeAction(forKey: "dynamicWave")
+        
+        // Randomly choose animation type based on character ID hash
+        let animationType = abs(characterId.hashValue) % 4
+        
+        switch animationType {
+        case 0:
+            // Flip animation
+            addFlipAnimation(to: character)
+        case 1:
+            // Peace sign animation (arms up)
+            addPeaceSignAnimation(to: character)
+        case 2:
+            // Wave animation
+            addWaveAnimation(to: character)
+        default:
+            // Jump/spin combo
+            addJumpSpinAnimation(to: character)
+        }
+    }
+    
+    // Flip animation - character does a backflip
+    static func addFlipAnimation(to character: SKNode) {
+        let flipUp = SKAction.sequence([
+            SKAction.moveBy(x: 0, y: 20, duration: 0.3),
+            SKAction.rotate(byAngle: .pi, duration: 0.4),
+            SKAction.moveBy(x: 0, y: -20, duration: 0.3),
+            SKAction.rotate(byAngle: .pi, duration: 0.4)
+        ])
+        let wait = SKAction.wait(forDuration: 2.0)
+        let flipSequence = SKAction.sequence([flipUp, wait])
+        character.run(SKAction.repeatForever(flipSequence), withKey: "dynamicFlip")
+    }
+    
+    // Peace sign animation - character raises arms in peace sign
+    static func addPeaceSignAnimation(to character: SKNode) {
+        // Find arms and animate them
+        let leftArm = character.childNode(withName: "leftArm")
+        let rightArm = character.childNode(withName: "rightArm")
+        
+        // Animate arms up in V shape (peace sign)
+        let leftArmUp = SKAction.rotate(toAngle: -CGFloat.pi / 2.5, duration: 0.6)
+        let rightArmUp = SKAction.rotate(toAngle: CGFloat.pi / 2.5, duration: 0.6)
+        let armsDown = SKAction.rotate(toAngle: 0, duration: 0.6)
+        let wait = SKAction.wait(forDuration: 1.5)
+        
+        let leftSequence = SKAction.sequence([leftArmUp, wait, armsDown, wait])
+        let rightSequence = SKAction.sequence([rightArmUp, wait, armsDown, wait])
+        
+        leftArm?.run(SKAction.repeatForever(leftSequence), withKey: "peaceLeft")
+        rightArm?.run(SKAction.repeatForever(rightSequence), withKey: "peaceRight")
+        
+        // Also add a slight bounce
+        let bounce = SKAction.sequence([
+            SKAction.moveBy(x: 0, y: 8, duration: 0.4),
+            SKAction.moveBy(x: 0, y: -8, duration: 0.4),
+            SKAction.wait(forDuration: 1.2)
+        ])
+        character.run(SKAction.repeatForever(bounce), withKey: "dynamicPeace")
+    }
+    
+    // Wave animation - character waves hand
+    static func addWaveAnimation(to character: SKNode) {
+        let rightArm = character.childNode(withName: "rightArm")
+        
+        // Wave motion - back and forth
+        let wave1 = SKAction.rotate(toAngle: -CGFloat.pi / 3, duration: 0.25)
+        let wave2 = SKAction.rotate(toAngle: CGFloat.pi / 3, duration: 0.25)
+        let wave3 = SKAction.rotate(toAngle: 0, duration: 0.25)
+        let waveSequence = SKAction.sequence([wave1, wave2, wave1, wave2, wave3, SKAction.wait(forDuration: 2.5)])
+        
+        rightArm?.run(SKAction.repeatForever(waveSequence), withKey: "wave")
+        
+        // Slight body movement (lean slightly when waving)
+        let bodyMove = SKAction.sequence([
+            SKAction.moveBy(x: 2, y: 0, duration: 0.3),
+            SKAction.moveBy(x: -2, y: 0, duration: 0.3),
+            SKAction.wait(forDuration: 1.8)
+        ])
+        character.run(SKAction.repeatForever(bodyMove), withKey: "dynamicWave")
+    }
+    
+    // Jump and spin animation
+    static func addJumpSpinAnimation(to character: SKNode) {
+        let jumpSpin = SKAction.sequence([
+            SKAction.group([
+                SKAction.moveBy(x: 0, y: 25, duration: 0.4),
+                SKAction.rotate(byAngle: .pi * 2, duration: 0.4)
+            ]),
+            SKAction.group([
+                SKAction.moveBy(x: 0, y: -25, duration: 0.4),
+                SKAction.rotate(byAngle: -.pi * 2, duration: 0.4)
+            ]),
+            SKAction.wait(forDuration: 2.0)
+        ])
+        character.run(SKAction.repeatForever(jumpSpin), withKey: "jumpSpin")
     }
 }

@@ -63,21 +63,61 @@ struct WeaponUpgradesView: View {
                 .padding(.horizontal)
                 .padding(.bottom, 10)
                 
-                // Weapon selector
+                // Weapon selector with images
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 10) {
+                    HStack(spacing: 15) {
                         ForEach(["laser", "pulse", "plasma", "rocket"], id: \.self) { weapon in
                             Button(action: {
-                                selectedWeapon = weapon
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                    selectedWeapon = weapon
+                                }
                             }) {
-                                Text(weapon == "pulse" ? "Pulse" : weapon == "rocket" ? "Rocket" : weapon.capitalized)
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 10)
-                                    .background(selectedWeapon == weapon ? Color.blue : Color.white.opacity(0.2))
-                                    .cornerRadius(10)
-                                    .shadow(color: .black.opacity(0.8), radius: 3, x: 0, y: 2)
+                                VStack(spacing: 8) {
+                                    // Weapon Image
+                                    ZStack {
+                                        Circle()
+                                            .fill(
+                                                selectedWeapon == weapon ?
+                                                    LinearGradient(colors: [.blue, .cyan], startPoint: .topLeading, endPoint: .bottomTrailing) :
+                                                    LinearGradient(colors: [.white.opacity(0.2), .white.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                                            )
+                                            .frame(width: 70, height: 70)
+                                        
+                                        // Try to load weapon image from collectibles
+                                        let weaponImageName = getWeaponImageName(weapon)
+                                        if let weaponImage = UIImage(named: weaponImageName) {
+                                            Image(uiImage: weaponImage)
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fit)
+                                                .frame(width: 50, height: 50)
+                                                .shadow(color: selectedWeapon == weapon ? .cyan.opacity(0.6) : .black.opacity(0.3), radius: 5)
+                                        } else {
+                                            // Fallback to weapon icon based on type
+                                            Image(systemName: getWeaponIcon(weapon))
+                                                .font(.system(size: 30))
+                                                .foregroundColor(selectedWeapon == weapon ? .white : .white.opacity(0.8))
+                                                .shadow(color: selectedWeapon == weapon ? .cyan.opacity(0.6) : .black.opacity(0.3), radius: 5)
+                                        }
+                                    }
+                                    .shadow(color: selectedWeapon == weapon ? .blue.opacity(0.6) : .black.opacity(0.3), radius: selectedWeapon == weapon ? 10 : 5)
+                                    
+                                    // Weapon Name
+                                    Text(weapon == "pulse" ? "Pulse" : weapon == "rocket" ? "Rocket" : weapon.capitalized)
+                                        .font(.caption)
+                                        .fontWeight(selectedWeapon == weapon ? .bold : .regular)
+                                        .foregroundColor(.white)
+                                }
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(selectedWeapon == weapon ? Color.blue.opacity(0.3) : Color.white.opacity(0.1))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(selectedWeapon == weapon ? Color.cyan : Color.white.opacity(0.2), lineWidth: selectedWeapon == weapon ? 2 : 1)
+                                )
+                                .scaleEffect(selectedWeapon == weapon ? 1.05 : 1.0)
                             }
                         }
                     }
@@ -265,6 +305,28 @@ struct WeaponUpgradesView: View {
     private func saveUpgradeLevel(weapon: String, upgrade: String, level: Int) {
         let key = "upgrade_\(weapon)_\(upgrade.replacingOccurrences(of: " ", with: "_"))"
         UserDefaults.standard.set(level, forKey: key)
+    }
+    
+    // Get weapon icon for selector
+    private func getWeaponIcon(_ weapon: String) -> String {
+        switch weapon.lowercased() {
+        case "laser": return "bolt.fill"
+        case "pulse": return "waveform"
+        case "plasma": return "flame.fill"
+        case "rocket": return "arrow.up.circle.fill"
+        default: return "star.fill"
+        }
+    }
+    
+    // Get weapon image name from collectibles
+    private func getWeaponImageName(_ weapon: String) -> String {
+        switch weapon.lowercased() {
+        case "laser": return "collectible_13" // Rapid Fire Module - good for laser
+        case "pulse": return "collectible_7"  // Homing Chip - good for pulse
+        case "plasma": return "collectible_12" // Plasma Missile - perfect match
+        case "rocket": return "collectible_4"  // Energy Core - good for rocket
+        default: return "collectible_1" // Armor Core - default
+        }
     }
     
     private func purchaseUpgrade(_ upgrade: Upgrade) {

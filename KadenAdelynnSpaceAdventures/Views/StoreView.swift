@@ -152,11 +152,12 @@ struct StoreView: View {
                             GridItem(.flexible(), spacing: 15),
                             GridItem(.flexible(), spacing: 15)
                         ], spacing: 15) {
-                            ForEach(collectibles, id: \.key) { collectible in
-                                StoreCollectibleCard(
+                            ForEach(Array(collectibles.enumerated()), id: \.element.key) { index, collectible in
+                                AnimatedStoreCard(
                                     collectible: collectible,
                                     isPurchased: purchasedCollectibles.contains(collectible.key),
                                     canAfford: gameState.stars >= collectible.cost,
+                                    index: index,
                                     onPurchase: {
                                         purchaseCollectible(collectible)
                                     }
@@ -233,11 +234,51 @@ struct StoreView: View {
     }
 }
 
+// Wrapper for entrance animation
+private struct AnimatedStoreCard: View {
+    let collectible: StoreView.Collectible
+    let isPurchased: Bool
+    let canAfford: Bool
+    let index: Int
+    let onPurchase: () -> Void
+    @State private var isVisible = false
+    
+    var body: some View {
+        StoreCollectibleCard(
+            collectible: collectible,
+            isPurchased: isPurchased,
+            canAfford: canAfford,
+            onPurchase: onPurchase
+        )
+        .opacity(isVisible ? 1 : 0)
+        .scaleEffect(isVisible ? 1 : 0.8)
+        .onAppear {
+            withAnimation(
+                .spring(response: 0.6, dampingFraction: 0.8)
+                .delay(Double(index) * 0.05)
+            ) {
+                isVisible = true
+            }
+        }
+    }
+}
+
 private struct StoreCollectibleCard: View {
     let collectible: StoreView.Collectible
     let isPurchased: Bool
     let canAfford: Bool
     let onPurchase: () -> Void
+    @State private var isHovered = false
+    @State private var floatOffset: CGFloat = 0
+    @State private var pulseScale: CGFloat = 1.0
+    @State private var shimmerOffset: CGFloat = -200
+    
+    // Calculate animation delay based on collectible index
+    var animationDelay: Double {
+        // Simple hash-based delay for staggered animations
+        let index = collectible.key.hashValue
+        return Double(abs(index) % 10) * 0.1
+    }
     
     var body: some View {
         VStack(spacing: 12) {
@@ -254,6 +295,7 @@ private struct StoreCollectibleCard: View {
                             .padding(.vertical, 4)
                             .background(Color.yellow.opacity(0.3))
                             .cornerRadius(8)
+                            .scaleEffect(pulseScale)
                     }
                 }
                 
@@ -273,12 +315,17 @@ private struct StoreCollectibleCard: View {
             }
             .frame(height: 20)
             
-            // Collectible Image - Show only the collectible item (cropped to center)
+            // Collectible Image - Animated floating effect
             Image(collectible.imageName)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 80, height: 80)
                 .padding(.top, 10)
+                .offset(y: floatOffset)
+                .scaleEffect(isHovered ? 1.1 : 1.0)
+                .rotationEffect(.degrees(isHovered ? 5 : 0))
+                .shadow(color: collectible.featured ? .yellow.opacity(0.6) : .black.opacity(0.3), 
+                       radius: isHovered ? 15 : 8)
             
             // Content
             VStack(spacing: 8) {
@@ -307,27 +354,45 @@ private struct StoreCollectibleCard: View {
                 }
             }
             
-            // Purchase Button
-            Button(action: onPurchase) {
+            // Purchase Button with shimmer effect for affordable items
+            Button(action: {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                    onPurchase()
+                }
+            }) {
+                ZStack {
+                    // Shimmer effect for affordable items
+                    if canAfford && !isPurchased {
+                        LinearGradient(
+                            colors: [.clear, .white.opacity(0.3), .clear],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                        .offset(x: shimmerOffset)
+                        .frame(width: 200)
+                    }
+                    
                     Text(isPurchased ? "Owned" : canAfford ? "Purchase" : "Need More Stars")
                         .font(.subheadline)
                         .fontWeight(.bold)
                         .foregroundColor(.black)
                         .shadow(color: .white.opacity(0.5), radius: 2, x: 0, y: 1)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(
-                        Group {
-                            if isPurchased {
-                                Color.gray.opacity(0.5)
-                            } else if canAfford {
-                                LinearGradient(colors: [.green, .blue], startPoint: .leading, endPoint: .trailing)
-                            } else {
-                                Color.red.opacity(0.5)
-                            }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(
+                    Group {
+                        if isPurchased {
+                            Color.gray.opacity(0.5)
+                        } else if canAfford {
+                            LinearGradient(colors: [.green, .blue], startPoint: .leading, endPoint: .trailing)
+                        } else {
+                            Color.red.opacity(0.5)
                         }
-                    )
-                    .cornerRadius(10)
+                    }
+                )
+                .cornerRadius(10)
+                .scaleEffect(isHovered && canAfford && !isPurchased ? 1.05 : 1.0)
             }
             .disabled(isPurchased || !canAfford)
             .padding(.top, 5)
@@ -352,10 +417,81 @@ private struct StoreCollectibleCard: View {
                         isPurchased ? Color.green.opacity(0.5) :
                         collectible.featured ? Color.yellow.opacity(0.5) :
                         Color.white.opacity(0.2),
-                        lineWidth: 2
+                        lineWidth: isHovered ? 3 : 2
                     )
             }
         )
-        .shadow(color: collectible.featured ? .yellow.opacity(0.3) : .black.opacity(0.3), radius: 10)
+        .shadow(color: collectible.featured ? .yellow.opacity(isHovered ? 0.5 : 0.3) : .black.opacity(0.3), 
+               radius: isHovered ? 15 : 10)
+        .scaleEffect(isHovered ? 1.02 : 1.0)
+        .offset(y: isHovered ? -5 : 0)
+        .opacity(isPurchased ? 0.8 : 1.0)
+        .onAppear {
+            // Staggered entrance animation
+            withAnimation(
+                .easeInOut(duration: 0.6)
+                .delay(animationDelay)
+            ) {
+                // Entrance animation handled by opacity/scale
+            }
+            
+            // Floating animation for image
+            withAnimation(
+                .easeInOut(duration: 2.0)
+                .repeatForever(autoreverses: true)
+                .delay(animationDelay)
+            ) {
+                floatOffset = -8
+            }
+            
+            // Pulse animation for featured items
+            if collectible.featured {
+                withAnimation(
+                    .easeInOut(duration: 1.5)
+                    .repeatForever(autoreverses: true)
+                    .delay(animationDelay)
+                ) {
+                    pulseScale = 1.1
+                }
+            }
+            
+            // Shimmer animation for affordable items
+            if canAfford && !isPurchased {
+                withAnimation(
+                    .linear(duration: 2.0)
+                    .repeatForever(autoreverses: false)
+                    .delay(animationDelay)
+                ) {
+                    shimmerOffset = 200
+                }
+            }
+        }
+        .onTapGesture {
+            if canAfford && !isPurchased {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                    isHovered = true
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                        isHovered = false
+                    }
+                }
+            }
+        }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    if canAfford && !isPurchased {
+                        withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                            isHovered = true
+                        }
+                    }
+                }
+                .onEnded { _ in
+                    withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                        isHovered = false
+                    }
+                }
+        )
     }
 }

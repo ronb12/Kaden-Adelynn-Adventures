@@ -33,6 +33,7 @@ struct CharacterPreviewView: UIViewRepresentable {
         // Add animations
         if isAnimating {
             CharacterGraphics.addIdleAnimation(to: characterNode)
+            CharacterGraphics.addDynamicAnimations(to: characterNode, characterId: characterId)
         }
         if isSelected {
             CharacterGraphics.addSelectionAnimation(to: characterNode)
@@ -58,6 +59,7 @@ struct CharacterPreviewView: UIViewRepresentable {
         
         if isAnimating {
             CharacterGraphics.addIdleAnimation(to: characterNode)
+            CharacterGraphics.addDynamicAnimations(to: characterNode, characterId: characterId)
         }
         if isSelected {
             CharacterGraphics.addSelectionAnimation(to: characterNode)

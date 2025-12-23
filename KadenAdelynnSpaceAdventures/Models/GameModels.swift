@@ -29,6 +29,35 @@ struct Player {
     var accuracyMultiplier: Float = 1.0
     var specialMultiplier: Float = 1.0
     
+    // Maneuver system properties
+    var velocity: CGPoint = CGPoint.zero  // For momentum drift
+    var momentum: CGFloat = 0.0  // Momentum value (0.0 to 1.0)
+    var isDashing: Bool = false
+    var dashDirection: CGPoint = CGPoint.zero
+    var dashTimer: TimeInterval = 0.0
+    var dashCooldown: TimeInterval = 0.0
+    var isBarrelRolling: Bool = false
+    var barrelRollTimer: TimeInterval = 0.0
+    var barrelRollCooldown: TimeInterval = 0.0
+    var barrelRollRotation: CGFloat = 0.0
+    var isQuickStrafing: Bool = false
+    var strafeDirection: CGFloat = 0.0  // -1 left, 1 right
+    var strafeTimer: TimeInterval = 0.0
+    var strafeCooldown: TimeInterval = 0.0
+    var isBackwardThrusting: Bool = false
+    var backwardThrustTimer: TimeInterval = 0.0
+    var backwardThrustCooldown: TimeInterval = 0.0
+    var boostChargeLevel: CGFloat = 0.0  // 0.0 to 1.0
+    var isChargingBoost: Bool = false
+    var boostChargeCooldown: TimeInterval = 0.0
+    var isZigzagging: Bool = false
+    var zigzagTimer: TimeInterval = 0.0
+    var zigzagCooldown: TimeInterval = 0.0
+    var zigzagDirection: CGFloat = 1.0  // Alternates between -1 and 1
+    var lastTouchPosition: CGPoint = CGPoint.zero
+    var lastTouchTime: TimeInterval = 0.0
+    var doubleTapThreshold: TimeInterval = 0.3  // 300ms for double-tap detection
+    
     init(position: CGPoint, size: CGSize = CGSize(width: 40, height: 40), characterId: String = "kaden", shipId: String = "kaden") {
         self.position = position
         self.size = size

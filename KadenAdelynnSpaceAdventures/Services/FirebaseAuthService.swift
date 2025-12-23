@@ -111,13 +111,14 @@ class FirebaseAuthService: ObservableObject {
             return
         }
         
-        // Create Apple credential using OAuthProvider
-        // For Apple Sign In with Firebase, we use the ID token directly
-        let provider = OAuthProvider(providerID: "apple.com")
+        // Create Apple credential using OAuthProvider with the ID token
+        // This is the standard Firebase approach for Apple Sign In
+        // Note: For Apple Sign In, the ID token is used as the access token
+        // Use static method to create credential (updated API)
+        let authCredential = OAuthProvider.credential(providerID: AuthProviderID.apple, accessToken: idTokenString)
         
-        // Use getCredentialWith to create the Firebase credential
-        // The ID token is passed through the provider's credential flow
-        provider.getCredentialWith(nil) { [weak self] authCredential, error in
+        // Sign in with the credential
+        Auth.auth().signIn(with: authCredential) { [weak self] result, error in
             guard let self = self else { return }
             
             if let error = error {
@@ -126,46 +127,29 @@ class FirebaseAuthService: ObservableObject {
                 return
             }
             
-            guard let authCredential = authCredential else {
-                let error = NSError(domain: "FirebaseAuthService", code: -5, userInfo: [NSLocalizedDescriptionKey: "Failed to get credential"])
+            guard let user = result?.user else {
+                let error = NSError(domain: "FirebaseAuthService", code: -6, userInfo: [NSLocalizedDescriptionKey: "Failed to get Firebase user"])
                 completion(false, error)
                 return
             }
             
-            // Sign in with the credential
-            Auth.auth().signIn(with: authCredential) { [weak self] result, error in
-                guard let self = self else { return }
-                
-                if let error = error {
-                    self.error = error
-                    completion(false, error)
-                    return
+            // Update display name if needed (using the Apple credential from outer scope)
+            if let fullName = credential.fullName {
+                let displayName = PersonNameComponentsFormatter().string(from: fullName)
+                if user.displayName == nil || user.displayName?.isEmpty == true {
+                    let changeRequest = user.createProfileChangeRequest()
+                    changeRequest.displayName = displayName
+                    changeRequest.commitChanges { _ in }
                 }
-                
-                guard let user = result?.user else {
-                    let error = NSError(domain: "FirebaseAuthService", code: -6, userInfo: [NSLocalizedDescriptionKey: "Failed to get Firebase user"])
-                    completion(false, error)
-                    return
-                }
-                
-                // Update display name if needed (using the Apple credential from outer scope)
-                if let fullName = credential.fullName {
-                    let displayName = PersonNameComponentsFormatter().string(from: fullName)
-                    if user.displayName == nil || user.displayName?.isEmpty == true {
-                        let changeRequest = user.createProfileChangeRequest()
-                        changeRequest.displayName = displayName
-                        changeRequest.commitChanges { _ in }
-                    }
-                }
-                
-                self.currentUser = FirebaseUser(
-                    uid: user.uid,
-                    displayName: user.displayName,
-                    email: user.email ?? credential.email
-                )
-                self.isAuthenticated = true
-                completion(true, nil)
             }
+            
+            self.currentUser = FirebaseUser(
+                uid: user.uid,
+                displayName: user.displayName,
+                email: user.email ?? credential.email
+            )
+            self.isAuthenticated = true
+            completion(true, nil)
         }
     }
     

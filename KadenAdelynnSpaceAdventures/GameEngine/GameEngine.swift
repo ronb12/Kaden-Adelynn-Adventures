@@ -26,6 +26,16 @@ class GameScene: SKScene {
     var currentTime: TimeInterval = 0
     var lastAutoSave: TimeInterval = 0  // Track last auto-save time
     
+    // Maneuver input tracking
+    var lastTouchPosition: CGPoint = CGPoint.zero
+    var lastTouchTime: TimeInterval = 0
+    var touchStartPosition: CGPoint = CGPoint.zero
+    var touchStartTime: TimeInterval = 0
+    var isLongPressing: Bool = false
+    var longPressStartTime: TimeInterval = 0
+    var doubleTapThreshold: TimeInterval = 0.3  // 300ms for double-tap
+    var swipeThreshold: CGFloat = 30.0  // Minimum distance for swipe
+    
     // Controller support
     let controllerManager = ControllerManager.shared
     var lastControllerShootTime: TimeInterval = 0
@@ -62,15 +72,24 @@ class GameScene: SKScene {
     }
     
     func addStarsBackground() {
+        // Get theme customization
+        let selectedTheme = CustomizationManager.getSelectedTheme()
+        let (bgColor, starColor, starBrightness) = CustomizationManager.getThemeColors(themeName: selectedTheme)
+        
+        // Apply background color
+        backgroundColor = bgColor
+        
+        // Create stars with theme colors
         let stars = SKNode()
+        stars.name = "stars"
         for _ in 0..<100 {
             let star = SKShapeNode(circleOfRadius: 1)
-            star.fillColor = .white
+            star.fillColor = starColor
             star.position = CGPoint(
                 x: CGFloat.random(in: -size.width/2...size.width/2),
                 y: CGFloat.random(in: -size.height/2...size.height/2)
             )
-            star.alpha = CGFloat.random(in: 0.3...1.0)
+            star.alpha = CGFloat.random(in: 0.3...1.0) * starBrightness
             stars.addChild(star)
         }
         addChild(stars)
@@ -108,6 +127,15 @@ class GameScene: SKScene {
         ship.name = "player"
         ship.zPosition = 10
         
+        // Add trail effect based on customization
+        let selectedTrail = CustomizationManager.getSelectedTrail()
+        let (trailColor, trailIntensity) = CustomizationManager.getTrailColors(trailName: selectedTrail)
+        let trail = ParticleSystem.createTrail(at: CGPoint(x: 0, y: -20), color: trailColor)
+        trail.particleBirthRate = CGFloat(trail.particleBirthRate) * trailIntensity // Adjust intensity
+        trail.targetNode = self
+        trail.name = "playerTrail"
+        ship.addChild(trail)
+        
         playerNode = ship
         addChild(ship)
         
@@ -124,26 +152,102 @@ class GameScene: SKScene {
             return
         }
         
-        // Handle movement - use center-origin coordinates
+        // Handle maneuvers
         let movement = controllerManager.movementDirection
+        
+        // Dash (Right Shoulder/R1/RB)
+        if controllerManager.dashPressed && movement.length() > 0.1 {
+            if ShipManeuvers.startDash(player: &gameLogic.player, direction: movement, currentTime: currentTime) {
+                createDashEffect(at: gameLogic.player.position, direction: movement)
+                audioManager.playSound("missile", in: self)
+            }
+        }
+        
+        // Barrel Roll (Left Shoulder/L1/LB)
+        if controllerManager.barrelRollPressed {
+            if ShipManeuvers.startBarrelRoll(player: &gameLogic.player, currentTime: currentTime) {
+                createBarrelRollEffect(at: gameLogic.player.position)
+                audioManager.playSound("powerup", in: self)
+            }
+        }
+        
+        // Quick Strafe Left (Y button/Triangle)
+        if controllerManager.quickStrafeLeftPressed {
+            if ShipManeuvers.startQuickStrafe(player: &gameLogic.player, direction: -1.0, currentTime: currentTime) {
+                createStrafeEffect(at: gameLogic.player.position, direction: -1.0)
+                audioManager.playSound("laser", in: self)
+            }
+        }
+        
+        // Quick Strafe Right (Right Thumbstick Click)
+        if controllerManager.quickStrafeRightPressed {
+            if ShipManeuvers.startQuickStrafe(player: &gameLogic.player, direction: 1.0, currentTime: currentTime) {
+                createStrafeEffect(at: gameLogic.player.position, direction: 1.0)
+                audioManager.playSound("laser", in: self)
+            }
+        }
+        
+        // Backward Thrust (Left Trigger/L2/LT)
+        if controllerManager.backwardThrustPressed {
+            if ShipManeuvers.startBackwardThrust(player: &gameLogic.player, currentTime: currentTime) {
+                createBackwardThrustEffect(at: gameLogic.player.position)
+                audioManager.playSound("powerup", in: self)
+            }
+        }
+        
+        // Boost Charge (Right Trigger/R2/RT - hold)
+        if controllerManager.boostChargePressed {
+            if !gameLogic.player.isChargingBoost {
+                ShipManeuvers.startBoostCharge(player: &gameLogic.player, currentTime: currentTime)
+                createBoostChargeEffect(at: gameLogic.player.position)
+            } else {
+                ShipManeuvers.updateBoostCharge(player: &gameLogic.player, currentTime: currentTime)
+                updateBoostChargeVisual(chargeLevel: gameLogic.player.boostChargeLevel)
+            }
+        } else if gameLogic.player.isChargingBoost {
+            // Release boost charge
+            if ShipManeuvers.releaseBoostCharge(player: &gameLogic.player, direction: movement.length() > 0.1 ? movement : CGPoint(x: 0, y: 1), currentTime: currentTime, bounds: CGRect(origin: .zero, size: size)) {
+                createBoostReleaseEffect(at: gameLogic.player.position, direction: movement.length() > 0.1 ? movement : CGPoint(x: 0, y: 1))
+                audioManager.playSound("missile", in: self)
+            }
+            removeBoostChargeVisual()
+        }
+        
+        // Zigzag (B button/Circle)
+        if controllerManager.zigzagPressed {
+            if ShipManeuvers.startZigzag(player: &gameLogic.player, currentTime: currentTime) {
+                createZigzagEffect(at: gameLogic.player.position)
+                audioManager.playSound("powerup", in: self)
+            }
+        }
+        
+        // Handle movement - use center-origin coordinates
+        // Update momentum for controller movement
         if abs(movement.x) > 0.1 || abs(movement.y) > 0.1 {
+            ShipManeuvers.updateMomentum(player: &gameLogic.player, movementDirection: movement.normalized(), deltaTime: 0.016)
+            
             // Apply movement with sensitivity (pixels per frame)
             let sensitivity: CGFloat = 10.0
             let halfWidth = size.width / 2
             let halfHeight = size.height / 2
             
-            // Calculate new position in center-origin coordinates
-            let newX = gameLogic.player.position.x + (movement.x * sensitivity)
-            let newY = gameLogic.player.position.y + (movement.y * sensitivity)
-            
-            // Clamp to screen bounds (center-origin)
-            gameLogic.player.position.x = max(-halfWidth + 50, min(halfWidth - 50, newX))
-            gameLogic.player.position.y = max(-halfHeight + 50, min(halfHeight - 50, newY))
-            
-            // Update visual (SpriteKit uses center-origin by default)
-            if let player = playerNode {
-                player.position = gameLogic.player.position
+            // Calculate new position in center-origin coordinates (unless dashing or other maneuver active)
+            if !gameLogic.player.isDashing && !gameLogic.player.isQuickStrafing && !gameLogic.player.isBackwardThrusting {
+                let newX = gameLogic.player.position.x + (movement.x * sensitivity)
+                let newY = gameLogic.player.position.y + (movement.y * sensitivity)
+                
+                // Clamp to screen bounds (center-origin)
+                gameLogic.player.position.x = max(-halfWidth + 50, min(halfWidth - 50, newX))
+                gameLogic.player.position.y = max(-halfHeight + 50, min(halfHeight - 50, newY))
+                
+                // Update visual (SpriteKit uses center-origin by default)
+                if let player = playerNode {
+                    player.position = gameLogic.player.position
+                }
             }
+        } else {
+            // No movement input - decay momentum
+            ShipManeuvers.updateMomentum(player: &gameLogic.player, movementDirection: CGPoint.zero, deltaTime: 0.016)
         }
         
         // Handle shooting
@@ -174,7 +278,67 @@ class GameScene: SKScene {
         isTouching = true
         touchShootTimer = currentTime
         
+        // Check for double-tap gestures
+        let timeSinceLastTouch = currentTime - gameLogic.player.lastTouchTime
+        let distanceFromLastTouch = sqrt(
+            pow(touchPos.x - gameLogic.player.lastTouchPosition.x, 2) +
+            pow(touchPos.y - gameLogic.player.lastTouchPosition.y, 2)
+        )
+        
+        // Double-tap in same area = zigzag
+        if timeSinceLastTouch < gameLogic.player.doubleTapThreshold && distanceFromLastTouch < 50 {
+            if ShipManeuvers.startZigzag(player: &gameLogic.player, currentTime: currentTime) {
+                createZigzagEffect(at: gameLogic.player.position)
+                audioManager.playSound("powerup", in: self)
+            }
+        }
+        
+        // Two-finger tap = barrel roll
+        if touches.count == 2 {
+            if ShipManeuvers.startBarrelRoll(player: &gameLogic.player, currentTime: currentTime) {
+                createBarrelRollEffect(at: gameLogic.player.position)
+                audioManager.playSound("powerup", in: self)
+            }
+        }
+        
+        // Fast swipe = dash in movement direction (if moving quickly)
+        if touches.count == 1 {
+            let movementSpeed = sqrt(
+                pow(touchPos.x - gameLogic.player.position.x, 2) +
+                pow(touchPos.y - gameLogic.player.position.y, 2)
+            )
+            // If moving fast (swipe), trigger dash
+            if movementSpeed > 50 && timeSinceLastTouch < 0.15 {
+                let dashDirection = CGPoint(
+                    x: touchPos.x - gameLogic.player.position.x,
+                    y: touchPos.y - gameLogic.player.position.y
+                )
+                if dashDirection.length() > 0 {
+                    if ShipManeuvers.startDash(player: &gameLogic.player, direction: dashDirection, currentTime: currentTime) {
+                        createDashEffect(at: gameLogic.player.position, direction: dashDirection)
+                        audioManager.playSound("missile", in: self)
+                    }
+                }
+            }
+        }
+        
+        // Store touch info for double-tap detection
+        gameLogic.player.lastTouchPosition = touchPos
+        gameLogic.player.lastTouchTime = currentTime
+        touchStartPosition = touchPos
+        touchStartTime = currentTime
+        isLongPressing = false
+        longPressStartTime = currentTime
+        
         // Move player to touch position
+        let movementDirection = CGPoint(
+            x: touchPos.x - gameLogic.player.position.x,
+            y: touchPos.y - gameLogic.player.position.y
+        )
+        
+        // Update momentum
+        ShipManeuvers.updateMomentum(player: &gameLogic.player, movementDirection: movementDirection.normalized(), deltaTime: 0.016)
+        
         gameLogic.player.position = touchPos
         if let player = playerNode {
             player.position = touchPos
@@ -191,17 +355,98 @@ class GameScene: SKScene {
         guard let touch = touches.first else { return }
         let touchPos = touch.location(in: self)
         
-        // Move player to touch position
-        gameLogic.player.position = touchPos
-        if let player = playerNode {
-            player.position = touchPos
+        // Check for swipe gestures
+        let swipeDistance = sqrt(
+            pow(touchPos.x - touchStartPosition.x, 2) +
+            pow(touchPos.y - touchStartPosition.y, 2)
+        )
+        
+        if swipeDistance > swipeThreshold {
+            let swipeDirection = CGPoint(
+                x: touchPos.x - touchStartPosition.x,
+                y: touchPos.y - touchStartPosition.y
+            )
+            let normalizedSwipe = swipeDirection.normalized()
+            
+            // Vertical swipe up = backward thrust
+            if abs(normalizedSwipe.y) > abs(normalizedSwipe.x) && normalizedSwipe.y > 0.7 {
+                if ShipManeuvers.startBackwardThrust(player: &gameLogic.player, currentTime: currentTime) {
+                    createBackwardThrustEffect(at: gameLogic.player.position)
+                    audioManager.playSound("powerup", in: self)
+                }
+                touchStartPosition = touchPos  // Reset to prevent multiple triggers
+            }
+            // Horizontal swipe = quick strafe
+            else if abs(normalizedSwipe.x) > abs(normalizedSwipe.y) && abs(normalizedSwipe.x) > 0.7 {
+                if ShipManeuvers.startQuickStrafe(player: &gameLogic.player, direction: normalizedSwipe.x, currentTime: currentTime) {
+                    createStrafeEffect(at: gameLogic.player.position, direction: normalizedSwipe.x)
+                    audioManager.playSound("laser", in: self)
+                }
+                touchStartPosition = touchPos  // Reset to prevent multiple triggers
+            }
+        }
+        
+        // Check for long press (boost charge)
+        let pressDuration = currentTime - longPressStartTime
+        if pressDuration > 0.2 && !isLongPressing {
+            isLongPressing = true
+            ShipManeuvers.startBoostCharge(player: &gameLogic.player, currentTime: currentTime)
+            createBoostChargeEffect(at: gameLogic.player.position)
+        }
+        
+        // Update boost charge if long pressing
+        if isLongPressing {
+            ShipManeuvers.updateBoostCharge(player: &gameLogic.player, currentTime: currentTime)
+            updateBoostChargeVisual(chargeLevel: gameLogic.player.boostChargeLevel)
+        }
+        
+        // Calculate movement direction for momentum
+        let movementDirection = CGPoint(
+            x: touchPos.x - gameLogic.player.position.x,
+            y: touchPos.y - gameLogic.player.position.y
+        )
+        
+        // Update momentum
+        ShipManeuvers.updateMomentum(player: &gameLogic.player, movementDirection: movementDirection.normalized(), deltaTime: 0.016)
+        
+        // Move player to touch position (unless dashing or other maneuver active)
+        if !gameLogic.player.isDashing && !gameLogic.player.isQuickStrafing && !gameLogic.player.isBackwardThrusting {
+            gameLogic.player.position = touchPos
+            if let player = playerNode {
+                player.position = touchPos
+            }
         }
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         // Ignore touch input if controller is connected and enabled
         guard !controllerManager.isControllerConnected || !controllerManager.isEnabled else { return }
+        
+        guard let touch = touches.first else {
+            isTouching = false
+            return
+        }
+        
+        let touchPos = touch.location(in: self)
+        
+        // Release boost charge if charging
+        if isLongPressing && gameLogic.player.isChargingBoost {
+            let releaseDirection = CGPoint(
+                x: touchPos.x - gameLogic.player.position.x,
+                y: touchPos.y - gameLogic.player.position.y
+            )
+            
+            if ShipManeuvers.releaseBoostCharge(player: &gameLogic.player, direction: releaseDirection, currentTime: currentTime, bounds: CGRect(origin: .zero, size: size)) {
+                createBoostReleaseEffect(at: gameLogic.player.position, direction: releaseDirection)
+                audioManager.playSound("missile", in: self)
+            }
+            
+            removeBoostChargeVisual()
+        }
+        
         isTouching = false
+        isLongPressing = false
+        gameLogic.player.isChargingBoost = false
     }
     
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -254,6 +499,25 @@ class GameScene: SKScene {
         
         // Check for wave transition
         let previousWave = gameState.wave
+        
+        // Update maneuver cooldowns
+        ShipManeuvers.updateCooldowns(player: &gameLogic.player, deltaTime: deltaTime)
+        
+        // Update active maneuvers
+        ShipManeuvers.updateDash(player: &gameLogic.player, currentTime: currentTime, bounds: gameBounds)
+        ShipManeuvers.updateBarrelRoll(player: &gameLogic.player, currentTime: currentTime)
+        ShipManeuvers.updateQuickStrafe(player: &gameLogic.player, currentTime: currentTime, bounds: gameBounds)
+        ShipManeuvers.updateBackwardThrust(player: &gameLogic.player, currentTime: currentTime, bounds: gameBounds)
+        ShipManeuvers.updateZigzag(player: &gameLogic.player, currentTime: currentTime, bounds: gameBounds)
+        
+        // Apply momentum drift
+        ShipManeuvers.applyMomentum(player: &gameLogic.player, bounds: gameBounds, deltaTime: deltaTime)
+        
+        // Auto evasive maneuver (check for nearby enemy bullets)
+        if ShipManeuvers.checkAutoEvasive(player: &gameLogic.player, enemyBullets: gameLogic.bullets.filter { $0.owner == .enemy }, currentTime: currentTime, bounds: gameBounds) {
+            createDashEffect(at: gameLogic.player.position, direction: gameLogic.player.dashDirection)
+            audioManager.playSound("powerup", in: self)
+        }
         
         // Update game logic
         gameLogic.update(bounds: gameBounds, currentTime: currentTime, timeScale: CGFloat(timeScale))
@@ -310,8 +574,50 @@ class GameScene: SKScene {
             }
             setupPlayer()
         } else if let player = playerNode {
-            // Just update position
+            // Update position
             player.position = gameLogic.player.position
+            
+            // Apply barrel roll rotation
+            if gameLogic.player.isBarrelRolling {
+                player.zRotation = gameLogic.player.barrelRollRotation
+            } else {
+                player.zRotation = 0
+            }
+            
+            // Apply dash visual (invincibility glow)
+            if gameLogic.player.isDashing && gameLogic.player.invulnerable {
+                player.alpha = 0.7
+                // Add glow effect
+                if player.childNode(withName: "dashGlow") == nil {
+                    let glow = SKShapeNode(circleOfRadius: player.frame.width / 2 + 5)
+                    glow.fillColor = .cyan
+                    glow.strokeColor = .clear
+                    glow.alpha = 0.5
+                    glow.zPosition = -1
+                    glow.name = "dashGlow"
+                    player.addChild(glow)
+                }
+            } else {
+                player.alpha = 1.0
+                player.childNode(withName: "dashGlow")?.removeFromParent()
+            }
+            
+            // Apply momentum trail (fade based on momentum)
+            if gameLogic.player.momentum > 0.1 {
+                let trailAlpha = CGFloat(gameLogic.player.momentum) * 0.3
+                if let trail = player.childNode(withName: "momentumTrail") as? SKEmitterNode {
+                    trail.particleAlpha = trailAlpha
+                } else {
+                    let selectedTrail = CustomizationManager.getSelectedTrail()
+                    let (trailColor, _) = CustomizationManager.getTrailColors(trailName: selectedTrail)
+                    let trail = ParticleSystem.createTrail(at: CGPoint(x: 0, y: -player.frame.height / 2), color: trailColor)
+                    trail.particleAlpha = trailAlpha
+                    trail.name = "momentumTrail"
+                    player.addChild(trail)
+                }
+            } else {
+                player.childNode(withName: "momentumTrail")?.removeFromParent()
+            }
         }
     }
     
@@ -441,8 +747,19 @@ class GameScene: SKScene {
             bulletContainer.zPosition = 5
             
             if bullet.owner == .player {
-                // Player bullets - different visuals based on weapon type
-                let (color, glowColor, shape) = getPlayerBulletVisuals(weaponType: gameLogic.player.weaponType)
+                // Check for bullet customization override
+                let selectedBullet = CustomizationManager.getSelectedBullet()
+                let (customColor, customGlowColor) = CustomizationManager.getBulletColors(bulletName: selectedBullet)
+                
+                // Use customization if not default, otherwise use weapon visuals
+                let (color, glowColor, shape): (UIColor, UIColor, String)
+                if selectedBullet.lowercased() != "default" {
+                    color = customColor
+                    glowColor = customGlowColor
+                    shape = "rectangle" // Default shape for custom bullets
+                } else {
+                    (color, glowColor, shape) = getPlayerBulletVisuals(weaponType: gameLogic.player.weaponType)
+                }
                 
                 // Glow effect
                 let glowSize = CGSize(width: bullet.size.width + 6, height: bullet.size.height + 6)
@@ -1189,5 +1506,217 @@ class GameScene: SKScene {
         case .weaponLaserBeam:
             return (UIColor(red: 0.0, green: 1.0, blue: 1.0, alpha: 1.0), "➤")
         }
+    }
+    
+    // MARK: - Maneuver Visual Effects
+    
+    var boostChargeNode: SKNode?
+    var dashTrailNode: SKNode?
+    
+    func createDashEffect(at position: CGPoint, direction: CGPoint) {
+        // Create dash trail
+        let trail = ParticleSystem.createTrail(at: position, color: .cyan)
+        trail.particleBirthRate = 200
+        trail.particleLifetime = 0.15
+        trail.particleSpeed = 300
+        trail.particleColor = .cyan
+        trail.name = "dashTrail"
+        addChild(trail)
+        
+        // Remove after dash duration
+        run(SKAction.sequence([
+            SKAction.wait(forDuration: ShipManeuvers.dashDuration),
+            SKAction.run { trail.removeFromParent() }
+        ]))
+        
+        // Create afterimage effect
+        if let player = playerNode {
+            let afterimage = player.copy() as! SKNode
+            afterimage.alpha = 0.5
+            afterimage.zPosition = player.zPosition - 1
+            addChild(afterimage)
+            
+            afterimage.run(SKAction.sequence([
+                SKAction.fadeOut(withDuration: ShipManeuvers.dashDuration),
+                SKAction.removeFromParent()
+            ]))
+        }
+    }
+    
+    func createZigzagEffect(at position: CGPoint) {
+        // Create zigzag particles
+        let sparkle = ParticleSystem.createSparkle(at: position, color: .yellow)
+        sparkle.numParticlesToEmit = 20
+        addChild(sparkle)
+        
+        sparkle.run(SKAction.sequence([
+            SKAction.wait(forDuration: 0.5),
+            SKAction.removeFromParent()
+        ]))
+    }
+    
+    func createStrafeEffect(at position: CGPoint, direction: CGFloat) {
+        // Create side thrusters effect
+        let emitter = SKEmitterNode()
+        emitter.particleColor = .orange
+        emitter.numParticlesToEmit = 15
+        emitter.particleBirthRate = 1000
+        emitter.particleLifetime = 0.2
+        emitter.particlePosition = position
+        emitter.particlePositionRange = CGVector(dx: 0, dy: 10)
+        emitter.particleSpeed = 150
+        emitter.particleSpeedRange = 50
+        emitter.particleAlpha = 0.8
+        emitter.particleScale = 0.3
+        emitter.particleBlendMode = .add
+        emitter.emissionAngle = direction > 0 ? 0 : .pi  // Left or right
+        emitter.emissionAngleRange = 0.3
+        emitter.name = "strafeEffect"
+        addChild(emitter)
+        
+        emitter.run(SKAction.sequence([
+            SKAction.wait(forDuration: ShipManeuvers.quickStrafeDuration),
+            SKAction.removeFromParent()
+        ]))
+    }
+    
+    func createBackwardThrustEffect(at position: CGPoint) {
+        // Create reverse engine glow
+        let emitter = SKEmitterNode()
+        emitter.particleColor = .red
+        emitter.numParticlesToEmit = 20
+        emitter.particleBirthRate = 1000
+        emitter.particleLifetime = 0.25
+        emitter.particlePosition = position
+        emitter.particlePositionRange = CGVector(dx: 15, dy: 0)
+        emitter.particleSpeed = 200
+        emitter.particleSpeedRange = 80
+        emitter.particleAlpha = 0.9
+        emitter.particleScale = 0.4
+        emitter.particleBlendMode = .add
+        emitter.emissionAngle = .pi / 2  // Upward (backward in center-origin)
+        emitter.emissionAngleRange = 0.4
+        emitter.name = "backwardThrust"
+        addChild(emitter)
+        
+        emitter.run(SKAction.sequence([
+            SKAction.wait(forDuration: ShipManeuvers.backwardThrustDuration),
+            SKAction.removeFromParent()
+        ]))
+    }
+    
+    func createBoostChargeEffect(at position: CGPoint) {
+        // Create charging ring
+        let ring = SKShapeNode(circleOfRadius: 30)
+        ring.strokeColor = .yellow
+        ring.fillColor = .clear
+        ring.lineWidth = 3
+        ring.alpha = 0.7
+        ring.position = position
+        ring.name = "boostChargeRing"
+        addChild(ring)
+        
+        // Pulsing animation
+        let pulse = SKAction.sequence([
+            SKAction.scale(to: 1.5, duration: 0.3),
+            SKAction.scale(to: 1.0, duration: 0.3)
+        ])
+        ring.run(SKAction.repeatForever(pulse))
+        
+        boostChargeNode = ring
+    }
+    
+    func updateBoostChargeVisual(chargeLevel: CGFloat) {
+        guard let ring = boostChargeNode as? SKShapeNode else { return }
+        
+        // Update ring size and color based on charge
+        let baseRadius: CGFloat = 30
+        ring.path = CGPath(ellipseIn: CGRect(x: -baseRadius, y: -baseRadius, width: baseRadius * 2, height: baseRadius * 2), transform: nil)
+        
+        // Color changes from yellow to orange to red as charge increases
+        if chargeLevel < 0.5 {
+            ring.strokeColor = .yellow
+        } else if chargeLevel < 0.8 {
+            ring.strokeColor = .orange
+        } else {
+            ring.strokeColor = .red
+        }
+        
+        // Scale with charge
+        ring.setScale(1.0 + chargeLevel * 0.5)
+        ring.alpha = 0.5 + chargeLevel * 0.5
+    }
+    
+    func removeBoostChargeVisual() {
+        boostChargeNode?.removeFromParent()
+        boostChargeNode = nil
+    }
+    
+    func createBoostReleaseEffect(at position: CGPoint, direction: CGPoint) {
+        // Create powerful boost trail
+        let emitter = SKEmitterNode()
+        emitter.particleColor = .red
+        emitter.numParticlesToEmit = 50
+        emitter.particleBirthRate = 2000
+        emitter.particleLifetime = 0.3
+        emitter.particlePosition = position
+        emitter.particleSpeed = 400
+        emitter.particleSpeedRange = 100
+        emitter.particleAlpha = 1.0
+        emitter.particleScale = 0.6
+        emitter.particleBlendMode = .add
+        
+        // Emit in opposite direction of movement
+        let angle = atan2(-direction.y, -direction.x)
+        emitter.emissionAngle = angle
+        emitter.emissionAngleRange = 0.5
+        
+        emitter.name = "boostRelease"
+        addChild(emitter)
+        
+        emitter.run(SKAction.sequence([
+            SKAction.wait(forDuration: 0.5),
+            SKAction.removeFromParent()
+        ]))
+        
+        // Screen shake
+        camera?.run(SKAction.sequence([
+            SKAction.moveBy(x: 5, y: 5, duration: 0.05),
+            SKAction.moveBy(x: -5, y: -5, duration: 0.05),
+            SKAction.moveBy(x: -5, y: 5, duration: 0.05),
+            SKAction.moveBy(x: 5, y: -5, duration: 0.05)
+        ]))
+    }
+    
+    func createBarrelRollEffect(at position: CGPoint) {
+        // Create spinning particle ring
+        let ring = SKShapeNode(circleOfRadius: 40)
+        ring.strokeColor = .cyan
+        ring.fillColor = .clear
+        ring.lineWidth = 4
+        ring.alpha = 0.8
+        ring.position = position
+        ring.name = "barrelRollRing"
+        addChild(ring)
+        
+        // Rotate and fade out
+        ring.run(SKAction.sequence([
+            SKAction.group([
+                SKAction.rotate(byAngle: .pi * 2, duration: ShipManeuvers.barrelRollDuration),
+                SKAction.fadeOut(withDuration: ShipManeuvers.barrelRollDuration)
+            ]),
+            SKAction.removeFromParent()
+        ]))
+        
+        // Create sparkle particles
+        let sparkle = ParticleSystem.createSparkle(at: position, color: .cyan)
+        sparkle.numParticlesToEmit = 30
+        sparkle.particleLifetime = ShipManeuvers.barrelRollDuration
+        addChild(sparkle)
+        
+        sparkle.run(SKAction.sequence([
+            SKAction.wait(forDuration: ShipManeuvers.barrelRollDuration),
+            SKAction.removeFromParent()
+        ]))
     }
 }

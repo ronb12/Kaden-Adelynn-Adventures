@@ -64,7 +64,7 @@ struct CreditsView: View {
                             VStack(alignment: .leading, spacing: 12) {
                                 CreditsRow(label: "Game", value: "Kaden & Adelynn Space Adventures")
                                 CreditsRow(label: "Version", value: "1.0")
-                                CreditsRow(label: "Developer", value: "Bradley Virtual Solutions, LLC")
+                                CreditsRow(label: "Developer", value: "Ronell Bradley")
                                 CreditsRow(label: "Copyright", value: "© \(Calendar.current.component(.year, from: Date()))")
                             }
                         }

@@ -26,7 +26,9 @@
 		C3EEC4D55989B7B0A173D814 /* GameStatsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01374DD4EFFE86490DCDC9AC /* GameStatsManager.swift */; };
 		C545ACA42D85870B98BDAA62 /* ShipSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 065F756C2CE6A29F1D88FE1E /* ShipSelectView.swift */; };
 		C646B5D53E969FB30E99GF2H /* ShipPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 176G7H8I9J0K1L2M3N4O5P6 /* ShipPreviewView.swift */; };
-		CDEFGHIJKLMNOPQRSTUVWXYZ /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCDEFGHIJKLMNOPQRSTUVWX /* ThemeManager.swift */; };
+		CDEFGHIJKLMNOPQRSTUVWXYZ /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCDEFGHIJKLMNOPQRSTUVWX /* ThemeManager.swift */; };		3F7F28CD6F3E44218F3E9AAF /* SkinManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C13A3DBE4394960AA4D5B07 /* SkinManager.swift */; };		614DCFDF978D4B69BC1F6C62 /* CustomizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7E7AF0EFE2A4F938D5498DF /* CustomizationManager.swift */; };
+
+
 		CEADA3D4C680EE2332082F30 /* MainMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA6CE6FE4CFC0EEC3B724BDA /* MainMenuView.swift */; };
 		D27F73F7A85434262D44119D /* GameEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32BF6B961780848C746CF45 /* GameEngine.swift */; };
 		D45A255D1747170349F4C676 /* LandingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F243176C2C01724D4F14D9 /* LandingView.swift */; };
@@ -46,6 +48,7 @@
 		GOOGLESERVICEINFOPLIST /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = GOOGLESERVICEINFOPLISTREF /* GoogleService-Info.plist */; };
 		HIJKLMNOPQRSTUVWXYZABCDE /* FirebaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFGHIJKLMNOPQRSTUVWXYZABC /* FirebaseService.swift */; };
 		I2J3K4L5M6N7O8P9Q0R1 /* ParticleSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = J3K4L5M6N7O8P9Q0R1S2 /* ParticleSystem.swift */; };
+		M9N0O1P2Q3R4S5T6U7V8 /* ShipManeuvers.swift in Sources */ = {isa = PBXBuildFile; fileRef = N0O1P2Q3R4S5T6U7V8W9 /* ShipManeuvers.swift */; };
 		IJKLMNOPQRSTUVWXYZABCDE /* CreditsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = JKLMNOPQRSTUVWXYZABCDEF /* CreditsView.swift */; };
 		K4L5M6N7O8P9Q0R1S2T3 /* VisualEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = L5M6N7O8P9Q0R1S2T3U4 /* VisualEffects.swift */; };
 		M1N2O3P4Q5R6S7T8U9V0W1 /* gameplay.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = FFFBBCBD74B64F00ABEDE7C8 /* gameplay.mp3 */; };
@@ -106,7 +109,9 @@
 		A1B2C3D4E5F6A7B8C9D0E1F4 /* GameCenterService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCenterService.swift; sourceTree = "<group>"; };
 		A4B5C6D7E8F9G0H1I2J3K4 /* CharacterGraphics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacterGraphics.swift; sourceTree = "<group>"; };
 		A8B9C0D1E2F3A4B5C6D7E8F9 /* CustomizationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomizationView.swift; sourceTree = "<group>"; };
-		ABCDEFGHIJKLMNOPQRSTUVWX /* ThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeManager.swift; sourceTree = "<group>"; };
+		ABCDEFGHIJKLMNOPQRSTUVWX /* ThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeManager.swift; sourceTree = "<group>"; };		6C13A3DBE4394960AA4D5B07 /* SkinManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkinManager.swift; sourceTree = "<group>"; };		A7E7AF0EFE2A4F938D5498DF /* CustomizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomizationManager.swift; sourceTree = "<group>"; };
+
+
 		AF4AD8EB535C5F1F13C51DFB /* GameLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameLogic.swift; sourceTree = "<group>"; };
 		B2C3D4E5F6A7B8C9D0E1F2A3 /* StatisticsDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsDashboardView.swift; sourceTree = "<group>"; };
 		B4C5D6E7F8G9H0I1J2K3L4 /* ToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastView.swift; sourceTree = "<group>"; };
@@ -131,6 +136,7 @@
 		GOOGLESERVICEINFOPLISTREF /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		H2I3J4K5L6M7N8O9P0Q1R2 /* GameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameView.swift; sourceTree = "<group>"; };
 		J3K4L5M6N7O8P9Q0R1S2 /* ParticleSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParticleSystem.swift; sourceTree = "<group>"; };
+		N0O1P2Q3R4S5T6U7V8W9 /* ShipManeuvers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipManeuvers.swift; sourceTree = "<group>"; };
 		JKLMNOPQRSTUVWXYZABCDEF /* CreditsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditsView.swift; sourceTree = "<group>"; };
 		L5M6N7O8P9Q0R1S2T3U4 /* VisualEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffects.swift; sourceTree = "<group>"; };
 		N7O8P9Q0R1S2T3U4V5W6 /* EnemyFormations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnemyFormations.swift; sourceTree = "<group>"; };
@@ -292,6 +298,7 @@
 				E32BF6B961780848C746CF45 /* GameEngine.swift */,
 				AF4AD8EB535C5F1F13C51DFB /* GameLogic.swift */,
 				J3K4L5M6N7O8P9Q0R1S2 /* ParticleSystem.swift */,
+				N0O1P2Q3R4S5T6U7V8W9 /* ShipManeuvers.swift */,
 				L5M6N7O8P9Q0R1S2T3U4 /* VisualEffects.swift */,
 				N7O8P9Q0R1S2T3U4V5W6 /* EnemyFormations.swift */,
 				V5W6X7Y8Z9A0B1C2D3E4 /* ShipGraphics.swift */,
@@ -330,8 +337,9 @@
 				ABCDEFGHIJKLMNOPQRSTUVWX /* ThemeManager.swift */,
 				BCDEFGHIJKLMNOPQRSTUVWXY /* ControllerManager.swift */,
 				CDEFGHIJKLMNOPQRSTUVWXYZA /* AdaptiveColors.swift */,
-				DEFGHIJKLMNOPQRSTUVWXYZAB /* AccessibilityHelper.swift */,
-			);
+				DEFGHIJKLMNOPQRSTUVWXYZAB /* AccessibilityHelper.swift */,			6C13A3DBE4394960AA4D5B07 /* SkinManager.swift */,
+			A7E7AF0EFE2A4F938D5498DF /* CustomizationManager.swift */,
+);
 			path = Utilities;
 			sourceTree = "<group>";
 		};
@@ -524,6 +532,7 @@
 				IJKLMNOPQRSTUVWXYZABCDE /* CreditsView.swift in Sources */,
 				G1H2I3J4K5L6M7N8O9P0Q1 /* GameView.swift in Sources */,
 				I2J3K4L5M6N7O8P9Q0R1 /* ParticleSystem.swift in Sources */,
+				M9N0O1P2Q3R4S5T6U7V8 /* ShipManeuvers.swift in Sources */,
 				K4L5M6N7O8P9Q0R1S2T3 /* VisualEffects.swift in Sources */,
 				M6N7O8P9Q0R1S2T3U4V5 /* EnemyFormations.swift in Sources */,
 				O8P9Q0R1S2T3U4V5W6X7 /* AudioManager.swift in Sources */,
@@ -533,6 +542,8 @@
 				Y1Z2A3B4C5D6E7F8G9H0I1 /* HapticManager.swift in Sources */,
 				A3B4C5D6E7F8G9H0I1J2K3 /* ToastView.swift in Sources */,
 				CDEFGHIJKLMNOPQRSTUVWXYZ /* ThemeManager.swift in Sources */,
+				3F7F28CD6F3E44218F3E9AAF /* SkinManager.swift in Sources */,
+				614DCFDF978D4B69BC1F6C62 /* CustomizationManager.swift in Sources */,
 				EFGHIJKLMNOPQRSTUVWXYZAB /* ControllerManager.swift in Sources */,
 				FGHIJKLMNOPQRSTUVWXYZABC /* AdaptiveColors.swift in Sources */,
 				GHIJKLMNOPQRSTUVWXYZABCD /* AccessibilityHelper.swift in Sources */,

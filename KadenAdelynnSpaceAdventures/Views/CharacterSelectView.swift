@@ -261,18 +261,19 @@ struct CharacterSelectView: View {
                         .padding(.horizontal, 20)
                     }
                     
-                    // Characters Grid
+                    // Characters Grid with staggered entrance
                     LazyVGrid(columns: [
                         GridItem(.flexible(), spacing: 15),
                         GridItem(.flexible(), spacing: 15)
                     ], spacing: 15) {
-                        ForEach(filteredCharacters, id: \.id) { character in
-                            EnhancedCharacterCard(
+                        ForEach(Array(filteredCharacters.enumerated()), id: \.element.id) { index, character in
+                            AnimatedCharacterCardWrapper(
                                 character: character,
                                 isSelected: gameState.selectedCharacter == character.id,
                                 isOwned: ownedCharacters.contains(character.id) || character.isDefault,
                                 isFavorite: favorites.contains(character.id),
                                 isComparing: comparingCharacters.contains(character.id),
+                                index: index,
                                 onSelect: {
                                     if ownedCharacters.contains(character.id) || character.isDefault {
                                         gameState.selectedCharacter = character.id
@@ -444,6 +445,47 @@ struct CharacterSelectView: View {
     }
 }
 
+// MARK: - Animated Character Card Wrapper
+private struct AnimatedCharacterCardWrapper: View {
+    let character: CharacterSelectView.Character
+    let isSelected: Bool
+    let isOwned: Bool
+    let isFavorite: Bool
+    let isComparing: Bool
+    let index: Int
+    let onSelect: () -> Void
+    let onFavorite: () -> Void
+    let onCompare: () -> Void
+    let onPreview: () -> Void
+    
+    @State private var isVisible = false
+    
+    var body: some View {
+        EnhancedCharacterCard(
+            character: character,
+            isSelected: isSelected,
+            isOwned: isOwned,
+            isFavorite: isFavorite,
+            isComparing: isComparing,
+            onSelect: onSelect,
+            onFavorite: onFavorite,
+            onCompare: onCompare,
+            onPreview: onPreview
+        )
+        .opacity(isVisible ? 1 : 0)
+        .scaleEffect(isVisible ? 1 : 0.7)
+        .offset(y: isVisible ? 0 : 30)
+        .onAppear {
+            withAnimation(
+                .spring(response: 0.6, dampingFraction: 0.8)
+                .delay(Double(index) * 0.08)
+            ) {
+                isVisible = true
+            }
+        }
+    }
+}
+
 // MARK: - Enhanced Character Card
 private struct EnhancedCharacterCard: View {
     let character: CharacterSelectView.Character
@@ -455,6 +497,22 @@ private struct EnhancedCharacterCard: View {
     let onFavorite: () -> Void
     let onCompare: () -> Void
     let onPreview: () -> Void
+    
+    @State private var floatOffset: CGFloat = 0
+    @State private var rotationAngle: Double = 0
+    @State private var isHovered = false
+    @State private var pulseScale: CGFloat = 1.0
+    @State private var animationDelay: Double = 0
+    @State private var dynamicRotation: Double = 0
+    @State private var waveOffset: CGFloat = 0
+    @State private var jumpOffset: CGFloat = 0
+    @State private var animationType: Int = 0
+    
+    // Calculate animation delay based on character ID
+    var calculatedDelay: Double {
+        let index = character.id.hashValue
+        return Double(abs(index) % 10) * 0.1
+    }
     
     var overallRating: Double {
         let speedScore = (character.speedValue / 10.0) * 0.3
@@ -514,14 +572,40 @@ private struct EnhancedCharacterCard: View {
                     .buttonStyle(.plain)
                 }
                 
-                // Character Portrait from Assets - Clean display like Mira (no extra background)
+                // Animated Character Portrait with gradient background
                 ZStack {
-                    // Transparent background - no extra elements
+                    // Character color gradient background (Option 2)
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    character.color1.opacity(0.6),
+                                    character.color2.opacity(0.4),
+                                    character.color1.opacity(0.3)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 110, height: 150)
+                        .shadow(
+                            color: character.color1.opacity(0.3),
+                            radius: 8
+                        )
+                    
+                    // Original character image from assets with movement animations
                     Image("\(character.id)_character")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 110, height: 150)
-                        .scaleEffect(isSelected ? 1.05 : 1.0)
+                        .scaleEffect(isSelected ? 1.1 : pulseScale)
+                        .offset(y: floatOffset + jumpOffset)
+                        .offset(x: waveOffset)
+                        .rotationEffect(.degrees(rotationAngle + dynamicRotation))
+                        .shadow(
+                            color: isSelected ? character.color1.opacity(0.8) : .black.opacity(0.3),
+                            radius: isSelected ? 15 : 8
+                        )
                 }
                 
                 // Name and Rating
@@ -708,10 +792,119 @@ private struct EnhancedCharacterCard: View {
                 }
             )
             .shadow(color: isSelected ? character.color1.opacity(0.6) : .black.opacity(0.3), radius: isSelected ? 20 : 10)
-            .scaleEffect(isSelected ? 1.02 : 1.0)
+            .scaleEffect(isSelected ? 1.05 : isHovered ? 1.02 : 1.0)
+            .offset(y: isHovered ? -8 : 0)
             .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
+            .animation(.spring(response: 0.2, dampingFraction: 0.8), value: isHovered)
+            // Prevent card from rotating/flipping - only character moves
+            .rotationEffect(.degrees(0))
+            .rotation3DEffect(.degrees(0), axis: (x: 0, y: 0, z: 0))
         }
         .buttonStyle(PlainButtonStyle())
+        .onAppear {
+            animationDelay = calculatedDelay
+            
+            // Determine animation type based on character ID
+            animationType = abs(character.id.hashValue) % 4
+            
+            // Base floating animation (always active)
+            withAnimation(
+                .easeInOut(duration: 2.5)
+                .repeatForever(autoreverses: true)
+                .delay(animationDelay)
+            ) {
+                floatOffset = -10
+            }
+            
+            // Gentle rotation animation (always active)
+            withAnimation(
+                .easeInOut(duration: 4.0)
+                .repeatForever(autoreverses: true)
+                .delay(animationDelay)
+            ) {
+                rotationAngle = 3
+            }
+            
+            // Dynamic movement based on animation type - only character moves, not the card
+            switch animationType {
+            case 0:
+                // Flip animation - character rotates/flips
+                withAnimation(
+                    .easeInOut(duration: 1.2)
+                    .repeatForever(autoreverses: false)
+                    .delay(animationDelay)
+                ) {
+                    dynamicRotation = 360
+                }
+                
+            case 1:
+                // Wave animation - character moves side to side (like waving)
+                withAnimation(
+                    .easeInOut(duration: 0.4)
+                    .repeatForever(autoreverses: true)
+                    .delay(animationDelay)
+                ) {
+                    waveOffset = 10
+                }
+                
+            case 2:
+                // Jump animation - character bounces up and down
+                withAnimation(
+                    .easeInOut(duration: 0.5)
+                    .repeatForever(autoreverses: true)
+                    .delay(animationDelay)
+                ) {
+                    jumpOffset = -20
+                }
+                
+            default:
+                // Spin animation - character spins continuously
+                withAnimation(
+                    .linear(duration: 2.0)
+                    .repeatForever(autoreverses: false)
+                    .delay(animationDelay)
+                ) {
+                    dynamicRotation = 360
+                }
+            }
+            
+            // Pulse animation for selected characters
+            if isSelected {
+                withAnimation(
+                    .easeInOut(duration: 1.5)
+                    .repeatForever(autoreverses: true)
+                ) {
+                    pulseScale = 1.15
+                }
+            }
+        }
+        .onChange(of: isSelected) { newValue in
+            if newValue {
+                withAnimation(
+                    .easeInOut(duration: 1.5)
+                    .repeatForever(autoreverses: true)
+                ) {
+                    pulseScale = 1.15
+                }
+            } else {
+                withAnimation {
+                    pulseScale = 1.0
+                }
+            }
+        }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    withAnimation(.spring(response: 0.2, dampingFraction: 0.8)) {
+                        isHovered = true
+                    }
+                }
+                .onEnded { _ in
+                    withAnimation(.spring(response: 0.2, dampingFraction: 0.8)) {
+                        isHovered = false
+                    }
+                }
+        )
     }
 }
 

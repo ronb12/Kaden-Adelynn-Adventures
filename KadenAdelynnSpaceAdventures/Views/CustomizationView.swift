@@ -64,7 +64,7 @@ struct CustomizationView: View {
                     HStack(spacing: 5) {
                         Image(systemName: "star.fill")
                             .font(.headline)
-                            .foregroundColor(.yellow)
+                            .foregroundColor(.black)
                         Text("\(coins)")
                             .font(.headline)
                             .fontWeight(.bold)
@@ -108,7 +108,7 @@ struct CustomizationView: View {
                                         .font(.subheadline)
                                         .fontWeight(.semibold)
                                 }
-                                .foregroundColor(activeCategory == category ? .white : (colorScheme == .dark ? Color.white : Color.black))
+                                .foregroundColor(activeCategory == category ? .white : .black)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 10)
                                 .background(
@@ -193,6 +193,9 @@ struct CustomizationView: View {
                     CustomizationItem(id: "electric", name: "Electric Yellow", cost: 350, isOwned: isItemOwned(category: "skins", itemId: "electric"), isSelected: isItemSelected(category: "skins", itemId: "electric")),
                     CustomizationItem(id: "ice", name: "Ice Blue", cost: 400, isOwned: isItemOwned(category: "skins", itemId: "ice"), isSelected: isItemSelected(category: "skins", itemId: "ice")),
                     CustomizationItem(id: "plasma", name: "Plasma Purple", cost: 450, isOwned: isItemOwned(category: "skins", itemId: "plasma"), isSelected: isItemSelected(category: "skins", itemId: "plasma")),
+                    CustomizationItem(id: "camouflage", name: "Green Camouflage", cost: 500, isOwned: isItemOwned(category: "skins", itemId: "camouflage"), isSelected: isItemSelected(category: "skins", itemId: "camouflage")),
+                    CustomizationItem(id: "kaden_camo", name: "Kaden - Blue Camouflage", cost: 550, isOwned: isItemOwned(category: "skins", itemId: "kaden_camo"), isSelected: isItemSelected(category: "skins", itemId: "kaden_camo")),
+                    CustomizationItem(id: "adelynn_camo", name: "Adelynn - Pink Camouflage", cost: 550, isOwned: isItemOwned(category: "skins", itemId: "adelynn_camo"), isSelected: isItemSelected(category: "skins", itemId: "adelynn_camo")),
                     CustomizationItem(id: "gold", name: "Gold Elite", cost: 600, isOwned: isItemOwned(category: "skins", itemId: "gold"), isSelected: isItemSelected(category: "skins", itemId: "gold")),
                     CustomizationItem(id: "rainbow", name: "Rainbow", cost: 750, isOwned: isItemOwned(category: "skins", itemId: "rainbow"), isSelected: isItemSelected(category: "skins", itemId: "rainbow"))
                 ],
@@ -351,11 +354,11 @@ struct CustomizationItemCard: View {
                 HStack(spacing: 4) {
                     Image(systemName: "star.fill")
                         .font(.caption)
-                        .foregroundColor(canAfford ? .yellow : .gray)
+                        .foregroundColor(.black)
                     Text("\(item.cost)")
                         .font(.subheadline)
                         .fontWeight(.semibold)
-                        .foregroundColor(canAfford ? (colorScheme == .dark ? Color.white : Color.black) : .gray)
+                        .foregroundColor(.black)
                 }
             } else {
                 Text("Free")
@@ -370,7 +373,7 @@ struct CustomizationItemCard: View {
                     Text(item.isSelected ? "Selected" : "Select")
                         .font(.subheadline)
                         .fontWeight(.semibold)
-                        .foregroundColor(item.isSelected ? Color.white : (colorScheme == .dark ? Color.white : Color.black))
+                        .foregroundColor(item.isSelected ? Color.white : Color.black)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 8)
                         .background(
@@ -386,7 +389,7 @@ struct CustomizationItemCard: View {
                     Text("Purchase")
                         .font(.subheadline)
                         .fontWeight(.semibold)
-                        .foregroundColor(canAfford ? (colorScheme == .dark ? Color.white : Color.black) : .gray)
+                        .foregroundColor(.black)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 8)
                         .background(
@@ -436,6 +439,9 @@ struct CustomizationItemCard: View {
         case "electric", "electric yellow", "electric trail", "electric bolt": return "bolt.circle.fill"
         case "ice", "ice blue", "ice shard": return "snowflake"
         case "plasma", "plasma purple", "plasma bolt": return "atom"
+        case "camouflage", "green camouflage": return "leaf.fill"
+        case "kaden", "kaden - blue camouflage": return "square.grid.3x3.fill" // Camouflage pattern icon
+        case "adelynn", "adelynn - pink camouflage": return "square.grid.3x3.fill" // Camouflage pattern icon
         case "gold", "gold elite": return "crown.fill"
         case "rainbow": return "paintpalette.fill"
         case "flame trail": return "flame.fill"
@@ -472,6 +478,12 @@ struct CustomizationItemCard: View {
             return LinearGradient(colors: [.cyan, .blue], startPoint: .topLeading, endPoint: .bottomTrailing)
         case "plasma", "plasma purple", "plasma bolt": 
             return LinearGradient(colors: [.purple, .pink], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case "camouflage", "green camouflage": 
+            return LinearGradient(colors: [.green, Color(red: 0.2, green: 0.6, blue: 0.2), Color(red: 0.3, green: 0.5, blue: 0.2)], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case "kaden", "kaden - blue camouflage": 
+            return LinearGradient(colors: [.blue, Color(red: 0.2, green: 0.4, blue: 0.8), Color(red: 0.3, green: 0.5, blue: 0.9)], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case "adelynn", "adelynn - pink camouflage": 
+            return LinearGradient(colors: [.pink, Color(red: 1.0, green: 0.4, blue: 0.8), Color(red: 0.9, green: 0.3, blue: 0.7)], startPoint: .topLeading, endPoint: .bottomTrailing)
         case "gold", "gold elite": 
             return LinearGradient(colors: [.yellow, .orange], startPoint: .topLeading, endPoint: .bottomTrailing)
         case "rainbow": 
@@ -485,7 +497,7 @@ struct CustomizationItemCard: View {
         case "energy orb": 
             return LinearGradient(colors: [.green, .cyan], startPoint: .topLeading, endPoint: .bottomTrailing)
         case "photon beam": 
-            return LinearGradient(colors: [.white, .cyan], startPoint: .topLeading, endPoint: .bottomTrailing)
+            return LinearGradient(colors: [.blue, .cyan, .purple], startPoint: .topLeading, endPoint: .bottomTrailing)
         case "neon city": 
             return LinearGradient(colors: [.cyan, .blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing)
         case "sunset": 
@@ -510,13 +522,16 @@ struct CustomizationItemCard: View {
         case "electric", "electric yellow", "electric trail", "electric bolt": return .yellow.opacity(0.5)
         case "ice", "ice blue", "ice shard": return .cyan.opacity(0.5)
         case "plasma", "plasma purple", "plasma bolt": return .purple.opacity(0.5)
+        case "camouflage", "green camouflage": return .green.opacity(0.5)
+        case "kaden", "kaden - blue camouflage": return .blue.opacity(0.5)
+        case "adelynn", "adelynn - pink camouflage": return .pink.opacity(0.5)
         case "gold", "gold elite": return .yellow.opacity(0.5)
         case "rainbow": return .purple.opacity(0.5)
         case "smoke trail": return .gray.opacity(0.5)
         case "nebula trail": return .purple.opacity(0.5)
         case "cosmic trail", "cosmic": return .blue.opacity(0.5)
         case "energy orb": return .green.opacity(0.5)
-        case "photon beam": return .cyan.opacity(0.5)
+        case "photon beam": return .blue.opacity(0.7)
         case "neon city": return .cyan.opacity(0.5)
         case "sunset": return .orange.opacity(0.5)
         case "ocean", "ocean deep": return .blue.opacity(0.5)

@@ -42,13 +42,14 @@ class GameStateManager: ObservableObject {
     
     // Daily Challenge
     var isDailyChallengeActive: Bool {
-        let today = Calendar.current.startOfDay(for: Date())
-        let lastPlayDate = UserDefaults.standard.object(forKey: "lastPlayDate") as? Date ?? today
-        return Calendar.current.isDate(lastPlayDate, inSameDayAs: today)
+        // Daily challenge is always active - it's a daily feature
+        // The challenge is to complete 5 games per day
+        return true
     }
     
     var dailyChallengeMultiplier: Float {
         // Daily challenge makes enemies 20% faster
+        // This multiplier is always active as part of the daily challenge
         return isDailyChallengeActive ? 1.2 : 1.0
     }
     

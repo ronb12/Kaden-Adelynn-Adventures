@@ -70,11 +70,29 @@ class ShipGraphics {
         sprite.size = finalSize
         sprite.zPosition = 1
         
-        // Add pink tint for Adelynn's ship
+        // Get base colors for character/ship
+        var baseShipColor: UIColor?
+        var baseAccentColor: UIColor?
+        
+        // Add pink tint for Adelynn's ship (base color)
         if shipId.lowercased() == "adelynn" || characterId.lowercased() == "adelynn" {
-            sprite.color = UIColor(red: 1.0, green: 0.4, blue: 0.8, alpha: 1.0) // Pink
-            sprite.colorBlendFactor = 0.4 // Blend 40% pink with original image
+            baseShipColor = UIColor(red: 1.0, green: 0.4, blue: 0.8, alpha: 1.0) // Pink
+            baseAccentColor = UIColor(red: 1.0, green: 0.0, blue: 1.0, alpha: 1.0) // Magenta
+        } else {
+            baseShipColor = UIColor(red: 0.31, green: 0.80, blue: 0.77, alpha: 1.0) // Default cyan
+            baseAccentColor = UIColor(red: 0.0, green: 1.0, blue: 1.0, alpha: 1.0) // Cyan
         }
+        
+        // Get selected skin from customization
+        let selectedSkin = SkinManager.getSelectedSkin()
+        let skinColors = SkinManager.getSkinColors(skinName: selectedSkin, baseShipColor: baseShipColor, baseAccentColor: baseAccentColor)
+        
+        // Apply skin color tinting
+        sprite.color = skinColors.shipColor
+        sprite.colorBlendFactor = 0.6 // Blend 60% of skin color with original image
+        
+        // Apply skin effects (glow, pulse, shine, etc.)
+        SkinManager.applySkinEffects(to: sprite, skinName: selectedSkin, colors: skinColors)
         
         ship.addChild(sprite)
         

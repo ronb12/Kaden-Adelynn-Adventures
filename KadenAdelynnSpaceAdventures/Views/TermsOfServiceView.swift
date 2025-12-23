@@ -10,65 +10,73 @@ struct TermsOfServiceView: View {
     @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
-        ZStack {
-            Group {
-                if colorScheme == .dark {
-                    LinearGradient(
-                        colors: [.black.opacity(0.95), .gray.opacity(0.8), .blue.opacity(0.6)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                } else {
-                    LinearGradient(
-                        colors: [.blue.opacity(0.9), .blue.opacity(0.7), .blue.opacity(0.6)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                }
-            }
-            .ignoresSafeArea(.all)
-            
-            VStack(spacing: 0) {
-                // Header - Fixed at top
-                HStack {
-                    Button(action: {
-                        gameState.currentScreen = .settings
-                    }) {
-                        HStack {
-                            Image(systemName: "chevron.left")
-                            Text("Back")
-                        }
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(Color.white.opacity(0.2))
-                        .cornerRadius(8)
+        GeometryReader { geometry in
+            ZStack {
+                Group {
+                    if colorScheme == .dark {
+                        LinearGradient(
+                            colors: [.black.opacity(0.95), .gray.opacity(0.8), .blue.opacity(0.6)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    } else {
+                        LinearGradient(
+                            colors: [.blue.opacity(0.9), .blue.opacity(0.7), .blue.opacity(0.6)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
                     }
-                    
-                    Spacer()
-                    
-                    Text("Terms of Service")
-                        .font(.title)
-                        .foregroundColor(.white)
-                        .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
-                    
-                    Spacer()
-                    
-                    // Spacer for balance
-                    Color.clear
-                        .frame(width: 60)
                 }
-                .padding(.top, 50) // Safe area padding
-                .padding(.horizontal)
-                .padding(.bottom, 10)
-                .background(
-                    LinearGradient(
-                        colors: [.blue.opacity(0.9), .blue.opacity(0.7)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
+                .ignoresSafeArea(.all)
+                
+                VStack(spacing: 0) {
+                    // Header - Blue extends all the way to top with no padding
+                    ZStack(alignment: .top) {
+                        LinearGradient(
+                            colors: [.blue.opacity(0.9), .blue.opacity(0.7)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                        .frame(height: 100)
+                        .frame(maxWidth: .infinity)
+                        .ignoresSafeArea(.all, edges: .top)
+                        
+                        HStack {
+                            Button(action: {
+                                gameState.currentScreen = .settings
+                            }) {
+                                HStack {
+                                    Image(systemName: "chevron.left")
+                                    Text("Back")
+                                }
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(Color.white.opacity(0.2))
+                                .cornerRadius(8)
+                            }
+                            
+                            Spacer()
+                            
+                            Text("Terms of Service")
+                                .font(.title)
+                                .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
+                            
+                            Spacer()
+                            
+                            // Spacer for balance
+                            Color.clear
+                                .frame(width: 60)
+                        }
+                        .padding(.top, 50) // Safe area padding for status bar
+                        .padding(.horizontal)
+                        .padding(.bottom, 10)
+                        .frame(maxWidth: .infinity, maxHeight: 100, alignment: .top)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .offset(y: 0)
                 
                 // Content - Full page scrollable
                 ScrollView {
@@ -76,7 +84,6 @@ struct TermsOfServiceView: View {
                         Text("Last Updated: December 21, 2024")
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.7))
-                            .padding(.top, 5)
                             .padding(.bottom, 10)
                         
                         Text("Terms of Service")
@@ -183,12 +190,14 @@ struct TermsOfServiceView: View {
                         Text("For questions about these Terms, please contact us through the app settings or support channels.")
                             .foregroundColor(.white)
                     }
-                    .padding()
+                    .padding(.horizontal)
                     .padding(.bottom, 30) // Extra padding at bottom
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .ignoresSafeArea(.all)
+        .edgesIgnoringSafeArea(.all)
+        }
     }
 }

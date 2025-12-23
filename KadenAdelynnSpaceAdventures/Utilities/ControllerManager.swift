@@ -25,6 +25,15 @@ class ControllerManager: ObservableObject {
     @Published var isShooting: Bool = false
     @Published var pausePressed: Bool = false
     
+    // Maneuver inputs
+    @Published var dashPressed: Bool = false
+    @Published var barrelRollPressed: Bool = false
+    @Published var quickStrafeLeftPressed: Bool = false
+    @Published var quickStrafeRightPressed: Bool = false
+    @Published var backwardThrustPressed: Bool = false
+    @Published var boostChargePressed: Bool = false
+    @Published var zigzagPressed: Bool = false
+    
     private init() {
         loadSettings()
         setupControllerObservers()
@@ -118,6 +127,13 @@ class ControllerManager: ObservableObject {
         movementDirection = .zero
         isShooting = false
         pausePressed = false
+        dashPressed = false
+        barrelRollPressed = false
+        quickStrafeLeftPressed = false
+        quickStrafeRightPressed = false
+        backwardThrustPressed = false
+        boostChargePressed = false
+        zigzagPressed = false
     }
     
     private func setupControllerInput(_ controller: GCController) {
@@ -163,6 +179,79 @@ class ControllerManager: ObservableObject {
                     }
                 }
             }
+            
+            // Maneuver buttons
+            // Right Shoulder (R1/RB) = Dash
+            gamepad.rightShoulder.valueChangedHandler = { [weak self] _, value, pressed in
+                guard let self = self, self.isEnabled else { return }
+                self.dashPressed = pressed
+            }
+            
+            // Left Shoulder (L1/LB) = Barrel Roll
+            gamepad.leftShoulder.valueChangedHandler = { [weak self] _, value, pressed in
+                guard let self = self, self.isEnabled else { return }
+                if pressed {
+                    self.barrelRollPressed = true
+                    // Reset after a short delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        self.barrelRollPressed = false
+                    }
+                }
+            }
+            
+            // Right Trigger (R2/RT) = Boost Charge (hold)
+            gamepad.rightTrigger.valueChangedHandler = { [weak self] _, value, pressed in
+                guard let self = self, self.isEnabled else { return }
+                self.boostChargePressed = pressed && value > 0.5
+            }
+            
+            // Left Trigger (L2/LT) = Backward Thrust
+            gamepad.leftTrigger.valueChangedHandler = { [weak self] _, value, pressed in
+                guard let self = self, self.isEnabled else { return }
+                if pressed && value > 0.5 {
+                    self.backwardThrustPressed = true
+                    // Reset after a short delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        self.backwardThrustPressed = false
+                    }
+                }
+            }
+            
+            // B button (Circle on PlayStation) = Zigzag
+            gamepad.buttonB.valueChangedHandler = { [weak self] _, value, pressed in
+                guard let self = self, self.isEnabled else { return }
+                if pressed {
+                    self.zigzagPressed = true
+                    // Reset after a short delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        self.zigzagPressed = false
+                    }
+                }
+            }
+            
+            // Y button (Triangle on PlayStation) = Quick Strafe Left
+            gamepad.buttonY.valueChangedHandler = { [weak self] _, value, pressed in
+                guard let self = self, self.isEnabled else { return }
+                if pressed {
+                    self.quickStrafeLeftPressed = true
+                    // Reset after a short delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        self.quickStrafeLeftPressed = false
+                    }
+                }
+            }
+            
+            // Right Thumbstick Click = Quick Strafe Right
+            gamepad.rightThumbstickButton?.valueChangedHandler = { [weak self] _, value, pressed in
+                guard let self = self, self.isEnabled else { return }
+                if pressed {
+                    self.quickStrafeRightPressed = true
+                    // Reset after a short delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        self.quickStrafeRightPressed = false
+                    }
+                }
+            }
         }
         // Fallback to micro gamepad (older controllers)
         else if let gamepad = controller.microGamepad {
@@ -186,6 +275,10 @@ class ControllerManager: ObservableObject {
                     }
                 }
             }
+            
+            // Maneuver buttons for micro gamepad (limited buttons)
+            // Note: Micro gamepads have fewer buttons, so we'll use what's available
+            // A button already used for shooting, so we'll skip maneuvers for micro gamepad
         }
     }
     

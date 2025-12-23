@@ -1,12 +1,32 @@
 {
-  "privacyTypes": [
+  "NSPrivacyCollectedDataTypes": [
     {
-      "identifier": "NSPrivacyTypeUserIDAndProfile",
-      "description": "User profile and identifiers are used for game progress and personalization."
+      "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeUserID",
+      "NSPrivacyCollectedDataTypeLinked": false,
+      "NSPrivacyCollectedDataTypeTracking": false,
+      "NSPrivacyCollectedDataTypePurposes": [
+        "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+      ],
+      "NSPrivacyCollectedDataTypeThirdPartySharing": true
+    },
+    {
+      "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeGameplayContent",
+      "NSPrivacyCollectedDataTypeLinked": false,
+      "NSPrivacyCollectedDataTypeTracking": false,
+      "NSPrivacyCollectedDataTypePurposes": [
+        "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+      ],
+      "NSPrivacyCollectedDataTypeThirdPartySharing": true
     }
   ],
-  "info": {
-    "version": 1,
-    "author": "xcode"
-  }
+  "NSPrivacyTracking": false,
+  "NSPrivacyTrackingDomains": [],
+  "NSPrivacyAccessedAPITypes": [
+    {
+      "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPITypeUserDefaults",
+      "NSPrivacyAccessedAPITypeReasons": [
+        "CA92.1"
+      ]
+    }
+  ]
 }
