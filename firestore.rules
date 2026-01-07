@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // High scores collection - leaderboard
+    // Supports both PWA format (player, createdAt) and iOS format (playerName, date, wave, level, etc.)
+    match /highScores/{document=**} {
+      // Anyone can read leaderboards (public)
+      allow read: if true;
+      
+      // Anyone can write scores (anonymous writes allowed)
+      // Validation: ensure score is an integer and player/playerName is a string
+      // Supports both PWA format (minimal) and iOS format (detailed)
+      allow create: if request.resource.data.score is int &&
+                      (request.resource.data.player is string || 
+                       request.resource.data.playerName is string) &&
+                      // iOS format fields (optional - may not exist for PWA)
+                      (request.resource.data.wave == null || request.resource.data.wave is int) &&
+                      (request.resource.data.level == null || request.resource.data.level is int) &&
+                      (request.resource.data.kills == null || request.resource.data.kills is int) &&
+                      (request.resource.data.combo == null || request.resource.data.combo is int) &&
+                      (request.resource.data.accuracy == null || request.resource.data.accuracy is number) &&
+                      // Date fields (either createdAt or date)
+                      (request.resource.data.createdAt == null || request.resource.data.createdAt is timestamp) &&
+                      (request.resource.data.date == null || request.resource.data.date is timestamp);
+      
+      // Users can update their own scores (if authenticated)
+      // For now, allow updates (you can restrict this later if needed)
+      allow update: if request.resource.data.score is int &&
+                      (request.resource.data.player is string || 
+                       request.resource.data.playerName is string);
+      
+      // Allow deletion (optional - for cleanup)
+      allow delete: if false; // Disable deletion for now
+    }
+    
+    // Default: deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
