@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { getCoins, spendCoins, getOwned, ownItem } from '../utils/wallet'
+import { imageForShipId } from '../utils/assetMapper'
 import './ShipSelector.css'
 
 function ShipSelector({ onClose, onSelectShip, selectedShip: initialSelectedShip }) {
@@ -15,104 +16,188 @@ function ShipSelector({ onClose, onSelectShip, selectedShip: initialSelectedShip
     return () => clearInterval(interval)
   }, [])
 
-  // Ship capabilities match character stats from iOS
-  const SHIP_CAPABILITIES = {
-    kaden: { 
-      speed: 'Medium', 
-      durability: 'Medium', 
-      firepower: 'Medium', 
-      maneuverability: 'Medium',
-      weapon: 'Laser'
-    },
-    adelynn: { 
-      speed: 'High', 
-      durability: 'Low', 
-      firepower: 'Low', 
-      maneuverability: 'High',
-      weapon: 'Spread'
-    },
-    orion: { 
-      speed: 'Medium', 
-      durability: 'High', 
-      firepower: 'High', 
-      maneuverability: 'Medium',
-      weapon: 'Plasma'
-    },
-    lyra: { 
-      speed: 'High', 
-      durability: 'Medium', 
-      firepower: 'Medium', 
-      maneuverability: 'High',
-      weapon: 'Lightning'
-    },
-    vega: { 
-      speed: 'Medium', 
-      durability: 'Medium', 
-      firepower: 'Medium', 
-      maneuverability: 'Medium',
-      weapon: 'Homing'
-    },
-    mira: { 
-      speed: 'Medium', 
-      durability: 'Medium', 
-      firepower: 'Medium', 
-      maneuverability: 'Medium',
-      weapon: 'Ice'
-    },
-    hero8: { 
-      speed: 'High', 
-      durability: 'Low', 
-      firepower: 'Low', 
-      maneuverability: 'High',
-      weapon: 'Beam'
-    },
-    hero9: { 
-      speed: 'Medium', 
-      durability: 'High', 
-      firepower: 'High', 
-      maneuverability: 'Medium',
-      weapon: 'Missile'
-    },
-    jax: { 
-      speed: 'Low', 
-      durability: 'High', 
-      firepower: 'High', 
-      maneuverability: 'Low',
-      weapon: 'Shotgun'
-    },
-    kael: { 
-      speed: 'Low', 
-      durability: 'High', 
-      firepower: 'High', 
-      maneuverability: 'Low',
-      weapon: 'Railgun'
-    },
-  }
-
-  // Ships match character IDs to align with iOS
+  // Ships match iOS ShipSelectView - ship names, stats, descriptions, and playstyles
   const SHIPS = [
-    { id: 'kaden', label: "🚀 Kaden's Ship", cost: 0 },
-    { id: 'adelynn', label: "✨ Adelynn's Ship", cost: 0 },
-    { id: 'orion', label: '🌟 Orion', cost: 300 },
-    { id: 'lyra', label: '⚡ Lyra', cost: 350 },
-    { id: 'vega', label: '🎯 Vega', cost: 300 },
-    { id: 'mira', label: '❄️ Mira', cost: 300 },
-    { id: 'hero8', label: '💫 Nova', cost: 600 },
-    { id: 'hero9', label: '💥 Rio', cost: 700 },
-    { id: 'jax', label: '🛡️ Jax', cost: 1500 },
-    { id: 'kael', label: '🔫 Kael', cost: 3500 },
+    {
+      id: 'kaden',
+      label: "🚀 Kaden's Ship",
+      icon: '🚀',
+      weapon: 'Laser',
+      speed: 'High',
+      durability: 'Medium',
+      firepower: 'Medium',
+      maneuverability: 'High',
+      cost: 0,
+      isDefault: true,
+      description: 'A balanced starter ship perfect for beginners. Reliable and versatile.',
+      playstyle: 'Best for: Beginners'
+    },
+    {
+      id: 'adelynn',
+      label: "✨ Adelynn's Ship",
+      icon: '✨',
+      weapon: 'Spread Shot',
+      speed: 'Very High',
+      durability: 'Low',
+      firepower: 'High',
+      maneuverability: 'Very High',
+      cost: 0,
+      isDefault: true,
+      description: 'Lightning-fast ship with spread shot capability. High risk, high reward.',
+      playstyle: 'Best for: Advanced players'
+    },
+    {
+      id: 'falcon',
+      label: '🦅 Falcon',
+      icon: '🦅',
+      weapon: 'Homing',
+      speed: 'Very High',
+      durability: 'Low',
+      firepower: 'Medium',
+      maneuverability: 'Very High',
+      cost: 300,
+      isDefault: false,
+      description: 'Swift interceptor with homing missiles. Perfect for hit-and-run tactics.',
+      playstyle: 'Best for: Speed enthusiasts'
+    },
+    {
+      id: 'comet',
+      label: '🌠 Comet',
+      icon: '🌠',
+      weapon: 'Freeze',
+      speed: 'Very High',
+      durability: 'Low',
+      firepower: 'Medium',
+      maneuverability: 'Very High',
+      cost: 300,
+      isDefault: false,
+      description: 'Ultra-fast interceptor with freeze weapons. Control the battlefield.',
+      playstyle: 'Best for: Speed and control'
+    },
+    {
+      id: 'phantom',
+      label: '👻 Phantom',
+      icon: '👻',
+      weapon: 'Electric',
+      speed: 'High',
+      durability: 'Medium',
+      firepower: 'Medium',
+      maneuverability: 'High',
+      cost: 350,
+      isDefault: false,
+      description: 'Stealthy ship with electric weapons. Balanced stats for all situations.',
+      playstyle: 'Best for: Versatile gameplay'
+    },
+    {
+      id: 'meteor',
+      label: '☄️ Meteor',
+      icon: '☄️',
+      weapon: 'Missile',
+      speed: 'Very High',
+      durability: 'Low',
+      firepower: 'High',
+      maneuverability: 'High',
+      cost: 600,
+      isDefault: false,
+      description: 'Fast-attack craft with explosive missiles. Speed and power combined.',
+      playstyle: 'Best for: Fast-paced action'
+    },
+    {
+      id: 'viper',
+      label: '🐍 Viper',
+      icon: '🐍',
+      weapon: 'Shotgun',
+      speed: 'High',
+      durability: 'Medium',
+      firepower: 'High',
+      maneuverability: 'High',
+      cost: 700,
+      isDefault: false,
+      description: 'Close-range specialist with devastating shotgun blasts.',
+      playstyle: 'Best for: Aggressive players'
+    },
+    {
+      id: 'nova',
+      label: '🌟 Nova',
+      icon: '🌟',
+      weapon: 'Plasma',
+      speed: 'High',
+      durability: 'Medium',
+      firepower: 'High',
+      maneuverability: 'Medium',
+      cost: 750,
+      isDefault: false,
+      description: 'Plasma-powered destroyer. Devastating firepower at medium range.',
+      playstyle: 'Best for: Damage dealers'
+    },
+    {
+      id: 'shadow',
+      label: '🌑 Shadow',
+      icon: '🌑',
+      weapon: 'Beam',
+      speed: 'Medium',
+      durability: 'High',
+      firepower: 'Medium',
+      maneuverability: 'Medium',
+      cost: 1400,
+      isDefault: false,
+      description: 'Stealth fighter with continuous beam weapons. Well-rounded performance.',
+      playstyle: 'Best for: Balanced gameplay'
+    },
+    {
+      id: 'raptor',
+      label: '🦖 Raptor',
+      icon: '🦖',
+      weapon: 'Laser Rifle',
+      speed: 'High',
+      durability: 'High',
+      firepower: 'High',
+      maneuverability: 'Medium',
+      cost: 1600,
+      isDefault: false,
+      description: 'Heavy fighter with rapid-fire laser rifles. Power and durability.',
+      playstyle: 'Best for: Sustained combat'
+    },
+    {
+      id: 'titan',
+      label: '🛡️ Titan',
+      icon: '🛡️',
+      weapon: 'Railgun',
+      speed: 'Low',
+      durability: 'Very High',
+      firepower: 'Very High',
+      maneuverability: 'Low',
+      cost: 3500,
+      isDefault: false,
+      description: 'Heavy armored battleship. NEARLY INDESTRUCTIBLE with MAXIMUM firepower.',
+      playstyle: 'Best for: Tank players'
+    },
+    {
+      id: 'aurora',
+      label: '🌈 Aurora',
+      icon: '🌈',
+      weapon: 'Plasma Rifle',
+      speed: 'Medium',
+      durability: 'Medium',
+      firepower: 'Very High',
+      maneuverability: 'Medium',
+      cost: 4000,
+      isDefault: false,
+      description: 'ULTIMATE damage dealer with plasma rifles. MAXIMUM firepower.',
+      playstyle: 'Best for: Maximum damage'
+    }
   ]
 
-  const buyShip = (id, cost) => {
-    if (ownedShips.includes(id)) return
-    if (cost === 0 || spendCoins(cost)) {
+  const buyShip = (ship) => {
+    if (ownedShips.includes(ship.id) || ship.isDefault) return
+    if (spendCoins(ship.cost)) {
       setCoins(getCoins())
-      const list = ownItem('ownedShips', id)
+      const list = ownItem('ownedShips', ship.id)
       setOwnedShips(list)
-      setToast('🚀 Ship unlocked!')
+      setToast(`🚀 ${ship.label} unlocked!`)
       setTimeout(() => setToast(''), 2000)
     } else {
-      setToast('Not enough coins!')
+      setToast(`Not enough stars! Need ${ship.cost}`)
       setTimeout(() => setToast(''), 1500)
     }
   }
@@ -125,44 +210,55 @@ function ShipSelector({ onClose, onSelectShip, selectedShip: initialSelectedShip
     onClose()
   }
 
-  // Ship thumbnail component (draws a mini ship on canvas)
-  const ShipThumb = ({ id }) => {
-    const canvasRef = useRef(null)
-    useEffect(() => {
-      const canvas = canvasRef.current
-      if (!canvas) return
-      const ctx = canvas.getContext('2d')
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      const palette = {
-        kaden: ['#4ecdc4', '#667eea'],
-        adelynn: ['#ff6b9a', '#ff00ff'],
-        orion: ['#ffd166', '#ef476f'],
-        lyra: ['#06d6a0', '#118ab2'],
-        vega: ['#a1c4fd', '#c2e9fb'],
-        mira: ['#ff9966', '#ff5e62'],
-        hero8: ['#7f00ff', '#e100ff'],
-        hero9: ['#00c6ff', '#0072ff'],
-        jax: ['#8d99ae', '#2b2d42'],
-        kael: ['#f7971e', '#ffd200'],
-      }
-      const colors = palette[id] || palette.kaden
-      ctx.save()
-      ctx.translate(canvas.width / 2, canvas.height / 2)
-      ctx.fillStyle = colors[0]
-      ctx.beginPath()
-      ctx.moveTo(0, -canvas.height / 2 + 4)
-      ctx.lineTo(-canvas.width / 4, canvas.height / 2 - 4)
-      ctx.lineTo(0, canvas.height / 2 - 8)
-      ctx.lineTo(canvas.width / 4, canvas.height / 2 - 4)
-      ctx.closePath()
-      ctx.fill()
-      ctx.restore()
-    }, [id])
-    return <canvas ref={canvasRef} width={64} height={44} className="ship-thumb" />
+  // Ship thumbnail component: displays actual ship images
+  const ShipThumb = ({ id, icon }) => {
+    const shipImage = imageForShipId(id)
+    return (
+      <div 
+        className="ship-thumb-container" 
+        style={{ 
+          width: 64, 
+          height: 64, 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          background: 'linear-gradient(135deg, rgba(78, 205, 196, 0.1), rgba(102, 126, 234, 0.1))',
+          borderRadius: 8, 
+          border: '2px solid rgba(255,255,255,0.3)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+          overflow: 'hidden',
+          position: 'relative'
+        }}
+      >
+        <img
+          src={shipImage}
+          alt={id}
+          className="ship-thumb"
+          style={{ 
+            width: '100%', 
+            height: '100%', 
+            objectFit: 'contain',
+            padding: '4px'
+          }}
+          onError={(e) => {
+            // Fallback to emoji icon if image fails to load
+            e.target.style.display = 'none'
+            const parent = e.target.parentElement
+            if (parent && !parent.querySelector('.ship-icon-fallback')) {
+              const fallback = document.createElement('div')
+              fallback.className = 'ship-icon-fallback'
+              fallback.style.cssText = 'font-size: 32px; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;'
+              fallback.textContent = icon || '🚀'
+              parent.appendChild(fallback)
+            }
+          }}
+        />
+      </div>
+    )
   }
 
   return (
-    <div className="selector-page">
+    <div className="selector-page ship-selector-page" data-page="ships">
       <div className="selector-background">
         <div className="selector-stars"></div>
       </div>
@@ -203,7 +299,7 @@ function ShipSelector({ onClose, onSelectShip, selectedShip: initialSelectedShip
                     if (owned) {
                       handleSelectShip(ship.id)
                     } else {
-                      buyShip(ship.id, ship.cost)
+                      buyShip(ship)
                     }
                   }}
                 >
@@ -214,37 +310,47 @@ function ShipSelector({ onClose, onSelectShip, selectedShip: initialSelectedShip
                     </div>
                   )}
                   <div className="selector-card-icon">
-                    <ShipThumb id={ship.id} />
+                    <ShipThumb id={ship.id} icon={ship.icon} />
                   </div>
                   <div className="selector-card-content">
                     <h3 className="selector-card-title">{ship.label}</h3>
+                    {ship.description && (
+                      <p className="ship-description" style={{ fontSize: '0.85em', color: '#ccc', marginTop: '4px', marginBottom: '8px' }}>
+                        {ship.description}
+                      </p>
+                    )}
                     <div className="ship-stats">
                       <div className="stat-item">
                         <span className="stat-icon">⚔️</span>
                         <span className="stat-label">Weapon:</span>
-                        <span className="stat-value weapon-value">{SHIP_CAPABILITIES[ship.id]?.weapon || 'Laser'}</span>
+                        <span className="stat-value weapon-value">{ship.weapon}</span>
                       </div>
                       <div className="stat-item">
                         <span className="stat-icon">💨</span>
                         <span className="stat-label">Speed:</span>
-                        <span className="stat-value">{SHIP_CAPABILITIES[ship.id]?.speed || 'Medium'}</span>
+                        <span className="stat-value">{ship.speed}</span>
                       </div>
                       <div className="stat-item">
                         <span className="stat-icon">🛡️</span>
                         <span className="stat-label">Durability:</span>
-                        <span className="stat-value">{SHIP_CAPABILITIES[ship.id]?.durability || 'Medium'}</span>
+                        <span className="stat-value">{ship.durability}</span>
                       </div>
                       <div className="stat-item">
                         <span className="stat-icon">💥</span>
                         <span className="stat-label">Firepower:</span>
-                        <span className="stat-value">{SHIP_CAPABILITIES[ship.id]?.firepower || 'Medium'}</span>
+                        <span className="stat-value">{ship.firepower}</span>
                       </div>
                       <div className="stat-item">
                         <span className="stat-icon">🎯</span>
                         <span className="stat-label">Maneuver:</span>
-                        <span className="stat-value">{SHIP_CAPABILITIES[ship.id]?.maneuverability || 'Medium'}</span>
+                        <span className="stat-value">{ship.maneuverability}</span>
                       </div>
                     </div>
+                    {ship.playstyle && (
+                      <div style={{ fontSize: '0.8em', color: '#4ecdc4', marginTop: '4px', fontStyle: 'italic' }}>
+                        {ship.playstyle}
+                      </div>
+                    )}
                     {!owned && (
                       <div className="selector-card-price">
                         <span className="price-icon">⭐</span>
@@ -272,4 +378,5 @@ function ShipSelector({ onClose, onSelectShip, selectedShip: initialSelectedShip
 }
 
 export default ShipSelector
+
 

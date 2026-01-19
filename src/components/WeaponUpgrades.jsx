@@ -63,7 +63,7 @@ function WeaponUpgrades({ onClose }) {
 
   return (
     <div className="store-overlay">
-      <div className="store-container">
+      <div className="store-modal-container">
         <button className="close-button" onClick={onClose}>
           ✕
         </button>

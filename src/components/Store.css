@@ -625,7 +625,8 @@
   animation: fadeIn 0.3s ease-in;
 }
 
-.store-container {
+/* Modal container for WeaponUpgrades and other modal components */
+.store-modal-container {
   position: relative;
   max-width: 900px;
   width: 90%;

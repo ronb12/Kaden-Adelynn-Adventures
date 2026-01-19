@@ -47,17 +47,23 @@ function Story({ onContinue, onStartMission }) {
 
   return (
     <div className="story-overlay">
+      <div className="story-background">
+        <div className="story-stars"></div>
+      </div>
       {!showMissionBriefing ? (
         <div className="story-container">
           <header className="story-header">
+            <div className="story-header-content">
+              <h1 className="story-main-title">
+                <span className="story-title-icon">📖</span>
+                Story Mode
+              </h1>
+              <p className="story-subtitle">Kaden & Adelynn's Epic Space Adventure</p>
+            </div>
             <button className="story-back-button" onClick={onContinue}>
-              ← Back
+              <span className="back-icon">←</span>
+              Back to Menu
             </button>
-            <h1 className="story-main-title">
-              <span className="story-title-icon">📖</span>
-              Story Mode
-            </h1>
-            <p className="story-subtitle">Kaden & Adelynn's Adventure</p>
           </header>
 
           <div className="story-intro">
@@ -150,6 +156,7 @@ function Story({ onContinue, onStartMission }) {
 
             <h1 className="story-briefing-title">{selectedMission?.title}</h1>
 
+            <div className="story-briefing-content">
             {preMissionDialogue.length > 0 && (
               <div className="story-briefing-dialogue">
                 {preMissionDialogue.slice(0, currentDialogueIndex + 1).map((dialogue, idx) => (
@@ -198,6 +205,7 @@ function Story({ onContinue, onStartMission }) {
               <span>Start Mission</span>
               <span className="story-start-icon">▶</span>
             </button>
+            </div>
           </div>
         </div>
       )}

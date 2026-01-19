@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getCoins, spendCoins, getOwned, ownItem } from '../utils/wallet'
+import { portraitForCharacterId } from '../utils/assetMapper'
 import './CharacterSelector.css'
 
 function CharacterSelector({ onClose, onSelectCharacter, selectedCharacter: initialSelectedCharacter }) {
@@ -54,7 +55,7 @@ function CharacterSelector({ onClose, onSelectCharacter, selectedCharacter: init
       weapon: 'Plasma',
       speed: 'Medium',
       strength: 'High',
-      cost: 300,
+      cost: 1000,
       isDefault: false,
       description: 'Powerful warrior with plasma weapons. High damage output and durability.',
       playstyle: 'Best for: Damage dealers',
@@ -69,72 +70,12 @@ function CharacterSelector({ onClose, onSelectCharacter, selectedCharacter: init
       weapon: 'Lightning',
       speed: 'High',
       strength: 'Medium',
-      cost: 350,
+      cost: 1500,
       isDefault: false,
       description: 'Swift electric warrior. Fast movement with chain lightning attacks.',
       playstyle: 'Best for: Speed and control',
       bio: 'A swift electric warrior with incredible speed and chain lightning capabilities.',
       abilities: ['Chain Lightning: Lightning attacks chain to 2 additional enemies'],
-    },
-    {
-      id: 'vega',
-      icon: '👩🏾‍🚀',
-      color: ['#a1c4fd', '#c2e9fb'],
-      label: 'Vega',
-      weapon: 'Homing',
-      speed: 'Medium',
-      strength: 'Medium',
-      cost: 300,
-      isDefault: false,
-      description: 'Well-rounded pilot with homing missiles. Balanced stats for versatility.',
-      playstyle: 'Best for: Versatile gameplay',
-      bio: 'A well-rounded pilot with advanced homing missile technology.',
-      abilities: ['Homing Precision: Missiles track enemies more accurately'],
-    },
-    {
-      id: 'mira',
-      icon: '👩🏽‍🚀',
-      color: ['#ff9966', '#ff5e62'],
-      label: 'Mira',
-      weapon: 'Ice',
-      speed: 'Medium',
-      strength: 'Medium',
-      cost: 300,
-      isDefault: false,
-      description: 'Cryo-warrior with freeze weapons. Balanced stats with crowd control.',
-      playstyle: 'Best for: Balanced gameplay',
-      bio: 'A cryo-warrior specializing in freeze weapons and crowd control.',
-      abilities: ['Frost Mastery: Ice attacks slow enemies by 30%'],
-    },
-    {
-      id: 'hero8',
-      icon: '👩🏼‍🚀',
-      color: ['#7f00ff', '#e100ff'],
-      label: 'Nova',
-      weapon: 'Beam',
-      speed: 'High',
-      strength: 'Low',
-      cost: 600,
-      isDefault: false,
-      description: 'Fast interceptor with continuous beam weapons. High speed, lower health.',
-      playstyle: 'Best for: Fast-paced action',
-      bio: 'A fast interceptor pilot with continuous beam weapon technology.',
-      abilities: ['Beam Focus: Continuous beam damage increases over time'],
-    },
-    {
-      id: 'hero9',
-      icon: '🧑🏻‍🚀',
-      color: ['#00c6ff', '#0072ff'],
-      label: 'Rio',
-      weapon: 'Missile',
-      speed: 'Medium',
-      strength: 'High',
-      cost: 700,
-      isDefault: false,
-      description: 'Explosive expert with missile launchers. High damage, balanced mobility.',
-      playstyle: 'Best for: Explosive combat',
-      bio: 'An explosive expert with advanced missile launcher systems.',
-      abilities: ['Explosive Expert: Missiles have larger blast radius'],
     },
     {
       id: 'jax',
@@ -144,12 +85,27 @@ function CharacterSelector({ onClose, onSelectCharacter, selectedCharacter: init
       weapon: 'Shotgun',
       speed: 'Low',
       strength: 'High',
-      cost: 1500,
+      cost: 2000,
       isDefault: false,
       description: 'Heavy armored fighter. Slow but devastating close-range power.',
       playstyle: 'Best for: Tank players',
       bio: 'A heavy armored fighter with devastating close-range capabilities.',
       abilities: ['Tank Armor: +30% health and damage resistance'],
+    },
+    {
+      id: 'vega',
+      icon: '👩🏾‍🚀',
+      color: ['#a1c4fd', '#c2e9fb'],
+      label: 'Vega',
+      weapon: 'Homing',
+      speed: 'Medium',
+      strength: 'Medium',
+      cost: 1250,
+      isDefault: false,
+      description: 'Well-rounded pilot with homing missiles. Balanced stats for versatility.',
+      playstyle: 'Best for: Versatile gameplay',
+      bio: 'A well-rounded pilot with advanced homing missile technology.',
+      abilities: ['Homing Precision: Missiles track enemies more accurately'],
     },
     {
       id: 'kael',
@@ -159,12 +115,57 @@ function CharacterSelector({ onClose, onSelectCharacter, selectedCharacter: init
       weapon: 'Railgun',
       speed: 'Low',
       strength: 'High',
-      cost: 3500,
+      cost: 5000,
       isDefault: false,
       description: 'Heavy weapons specialist. MAXIMUM firepower with railgun technology.',
       playstyle: 'Best for: Maximum damage',
       bio: 'A heavy weapons specialist with maximum firepower railgun technology.',
       abilities: ['Railgun Penetration: Railgun shots pierce through all enemies'],
+    },
+    {
+      id: 'nova',
+      icon: '👩🏼‍🚀',
+      color: ['#7f00ff', '#e100ff'],
+      label: 'Nova',
+      weapon: 'Beam',
+      speed: 'High',
+      strength: 'Low',
+      cost: 3000,
+      isDefault: false,
+      description: 'Fast interceptor with continuous beam weapons. High speed, lower health.',
+      playstyle: 'Best for: Fast-paced action',
+      bio: 'A fast interceptor pilot with continuous beam weapon technology.',
+      abilities: ['Beam Focus: Continuous beam damage increases over time'],
+    },
+    {
+      id: 'rio',
+      icon: '🧑🏻‍🚀',
+      color: ['#00c6ff', '#0072ff'],
+      label: 'Rio',
+      weapon: 'Missile',
+      speed: 'Medium',
+      strength: 'High',
+      cost: 4000,
+      isDefault: false,
+      description: 'Explosive expert with missile launchers. High damage, balanced mobility.',
+      playstyle: 'Best for: Explosive combat',
+      bio: 'An explosive expert with advanced missile launcher systems.',
+      abilities: ['Explosive Expert: Missiles have larger blast radius'],
+    },
+    {
+      id: 'mira',
+      icon: '👩🏽‍🚀',
+      color: ['#ff9966', '#ff5e62'],
+      label: 'Mira',
+      weapon: 'Ice',
+      speed: 'Medium',
+      strength: 'Medium',
+      cost: 2500,
+      isDefault: false,
+      description: 'Cryo-warrior with freeze weapons. Balanced stats with crowd control.',
+      playstyle: 'Best for: Balanced gameplay',
+      bio: 'A cryo-warrior specializing in freeze weapons and crowd control.',
+      abilities: ['Frost Mastery: Ice attacks slow enemies by 30%'],
     },
   ]
 
@@ -194,7 +195,7 @@ function CharacterSelector({ onClose, onSelectCharacter, selectedCharacter: init
   }
 
   return (
-    <div className="selector-page">
+    <div className="selector-page character-selector-page" data-page="characters">
       <div className="selector-background">
         <div className="selector-stars"></div>
       </div>
@@ -217,7 +218,7 @@ function CharacterSelector({ onClose, onSelectCharacter, selectedCharacter: init
         <div className="selector-balance-card">
           <div className="balance-content">
             <span className="balance-label">Your Balance</span>
-            <span className="balance-amount">💰 {coins.toLocaleString()}</span>
+            <span className="balance-amount">⭐ {coins.toLocaleString()}</span>
           </div>
         </div>
 
@@ -246,14 +247,12 @@ function CharacterSelector({ onClose, onSelectCharacter, selectedCharacter: init
                     </div>
                   )}
                   <div className="selector-card-icon">
-                    <div
+                    <img
+                      src={portraitForCharacterId(character.id)}
+                      alt={character.label}
                       className="character-avatar"
-                      style={{
-                        background: `linear-gradient(135deg, ${character.color[0]}, ${character.color[1]})`,
-                      }}
-                    >
-                      {character.icon}
-                    </div>
+                      style={{ width: 64, height: 64, borderRadius: 12, objectFit: 'cover', border: '1px solid rgba(255,255,255,0.2)' }}
+                    />
                   </div>
                   <div className="selector-card-content">
                     <h3 className="selector-card-title">{character.label}</h3>

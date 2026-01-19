@@ -3,7 +3,7 @@ import { getCoins, addCoins } from '../utils/wallet'
 import { playMenuMusic, playGameplayMusic, stopMenuMusic, forceUserGesture } from '../utils/music'
 import './MainMenu.css'
 
-function MainMenu({ onStartGame, onOpenStore, onOpenShips, onOpenCharacters, onOpenScores, onOpenTerms, onOpenPrivacy, onOpenStats, onOpenSaveLoad, onOpenWeaponUpgrades, onOpenCustomization, onOpenStoryMode, onOpenDailyVault, onOpenChallengeLadder, onOpenSeasonTrack, onOpenMissions, onOpenLeagues }) {
+function MainMenu({ onStartGame, onOpenShips, onOpenCharacters, onOpenScores, onOpenTerms, onOpenPrivacy, onOpenStats, onOpenSaveLoad, onOpenWeaponUpgrades, onOpenCustomization, onOpenStoryMode, onOpenDailyVault, onOpenChallengeLadder, onOpenSeasonTrack, onOpenMissions, onOpenLeagues }) {
   const [selectedDifficulty, setSelectedDifficulty] = useState('medium')
   const [selectedShip, setSelectedShip] = useState(() => localStorage.getItem('selectedShip') || 'kaden')
   const [selectedCharacter, setSelectedCharacter] = useState(() => localStorage.getItem('selectedCharacter') || 'kaden')
@@ -181,9 +181,6 @@ function MainMenu({ onStartGame, onOpenStore, onOpenShips, onOpenCharacters, onO
         </div>
 
         <div className="button-row centered">
-          <button className="settings-button compact" onClick={onOpenStore}>
-            <span className="cart-icon">🛒</span> Open Store
-          </button>
           <button className="settings-button compact" onClick={onOpenShips}>
             <span className="ship-icon">🚀</span> Choose Ship
           </button>
