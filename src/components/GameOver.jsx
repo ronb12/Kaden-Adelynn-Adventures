@@ -49,12 +49,8 @@ function GameOver({ score, onRestart, onMenu, wave, level, kills, combo }) {
 
         <div className="stats-grid">
           <div className="stat-item">
-            <div className="stat-label">Wave</div>
-            <div className="stat-value">{wave}</div>
-          </div>
-          <div className="stat-item">
             <div className="stat-label">Level</div>
-            <div className="stat-value">{level}</div>
+            <div className="stat-value">{level} / 100</div>
           </div>
           <div className="stat-item">
             <div className="stat-label">Kills</div>

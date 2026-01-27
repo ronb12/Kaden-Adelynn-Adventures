@@ -233,7 +233,7 @@ const synthesizeSound = (type, volume = 1) => {
     }
     
     case 'coin': {
-      // Coin collect sound
+      // Star collect sound
       const osc = ctx.createOscillator()
       const gain = ctx.createGain()
       osc.connect(gain)

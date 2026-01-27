@@ -63,39 +63,25 @@ export function portraitForCharacterId(id) {
 }
 
 // Maps ship IDs to ship image assets
-// Uses ship-specific images when available, falls back to ship icons
+// Uses actual ship sprite images from /ships/ folder
+// Mapping matches Game.jsx getShipImageNumber function
 export function imageForShipId(id) {
-  // Try ship image first (if ship-specific images exist)
-  const shipImagePath = `/ships/${id}_ship.png`
-  
-  // For now, use ship icons/portraits that represent the ship
-  // In the future, these can be replaced with actual ship sprite images
-  switch (id) {
-    case 'kaden':
-      return '/kaden_portrait.png' // Kaden's ship uses Kaden's portrait
-    case 'adelynn':
-      return '/adelynn_portrait.png' // Adelynn's ship uses Adelynn's portrait
-    case 'falcon':
-      return '/falcon_portrait.png'
-    case 'comet':
-      return '/comet_portrait.png'
-    case 'phantom':
-      return '/phantom_portrait.png'
-    case 'meteor':
-      return '/meteor_portrait.png'
-    case 'viper':
-      return '/viper_portrait.png'
-    case 'nova':
-      return '/nova_portrait.png'
-    case 'shadow':
-      return '/shadow_portrait.png'
-    case 'raptor':
-      return '/raptor_portrait.png'
-    case 'titan':
-      return '/titan_portrait.png'
-    case 'aurora':
-      return '/aurora_portrait.png'
-    default:
-      return '/kaden_portrait.png'
+  // Map ship IDs to Spaceship image numbers (matching Game.jsx)
+  const shipMap = {
+    'kaden': 0,
+    'adelynn': 1,
+    'falcon': 0,
+    'comet': 1,
+    'phantom': 2,
+    'meteor': 3,
+    'viper': 4,
+    'shadow': 5,
+    'raptor': 6,
+    'titan': 7,
+    'aurora': 8,
+    'nova': 7  // Nova uses same ship sprite as titan
   }
+  
+  const shipImageNum = shipMap[id] !== undefined ? shipMap[id] : 0
+  return `/ships/Spaceship_${shipImageNum}.png`
 }

@@ -97,7 +97,7 @@
 .selector-title-icon {
   font-size: 3.5rem;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
-  animation: float 3s ease-in-out infinite;
+  /* Animation removed - icon is now fixed/stationary */
 }
 
 .selector-header-subtitle {
@@ -337,7 +337,7 @@
   box-shadow:
     0 8px 24px rgba(0, 0, 0, 0.4),
     0 0 20px rgba(255, 255, 255, 0.2);
-  animation: float 3s ease-in-out infinite;
+  /* Animation removed - character avatars are now fixed/stationary */
   transition: transform 0.3s ease;
 }
 

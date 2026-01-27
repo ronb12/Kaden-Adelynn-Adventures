@@ -47,7 +47,7 @@ function WeaponUpgrades({ onClose }) {
 
     const cost = data.cost(current + 1)
     if (coins < cost) {
-      setMessage(`❌ Not enough coins! Need ${cost}`)
+      setMessage(`❌ Not enough stars! Need ${cost}`)
       setTimeout(() => setMessage(''), 2000)
       return
     }
@@ -72,7 +72,7 @@ function WeaponUpgrades({ onClose }) {
         
         <div style={{textAlign: 'center', marginBottom: '20px', padding: '15px', background: 'rgba(255, 193, 7, 0.1)', borderRadius: '10px', border: '2px solid rgba(255, 193, 7, 0.3)'}}>
           <div style={{fontSize: '2rem', fontWeight: 'bold', color: '#ffc107'}}>
-            💰 {coins.toLocaleString()} Coins
+            ⭐ {coins.toLocaleString()} Stars
           </div>
         </div>
 
@@ -145,7 +145,7 @@ function WeaponUpgrades({ onClose }) {
                     opacity: isMaxed || !canAfford ? 0.5 : 1
                   }}
                 >
-                  {isMaxed ? '✅ Maxed Out' : canAfford ? '⬆️ Upgrade' : '❌ Not Enough Coins'}
+                  {isMaxed ? '✅ Maxed Out' : canAfford ? '⬆️ Upgrade' : '❌ Not Enough Stars'}
                 </button>
               </div>
             )

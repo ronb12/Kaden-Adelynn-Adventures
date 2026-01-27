@@ -427,7 +427,7 @@ function MainMenu({ onStartGame, onOpenShips, onOpenCharacters, onOpenScores, on
             <li>Combo System</li>
             <li>Power-ups and Upgrades</li>
             <li>Ship and Character Unlocks</li>
-            <li>Store with Coin Economy</li>
+            <li>Store with Star Economy</li>
           </ul>
         </div>
 

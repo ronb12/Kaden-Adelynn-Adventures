@@ -29,6 +29,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
   const gameOverRef = useRef(false)
   const enemyImagesRef = useRef({})
   const playerShipImageRef = useRef(null)
+  const bossImagesRef = useRef([])
   
   // Load mission data from localStorage if in story mode
   const currentMission = mission || (() => {
@@ -66,6 +67,8 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     currentKills: 0,
     lastEnemySpawn: Date.now(),
     lastBulletShot: Date.now(),
+    missileSalvoTimer: 0,
+    lastMissileSalvoShot: 0,
     deltaTime: 0,
     lastFrameTime: Date.now(),
     scoreMultiplier: 1,
@@ -90,6 +93,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     waveStartTime: Date.now(),
     showWaveAnnouncement: false,
     bossWaveNext: false,
+    lastBossWave: 0, // last wave we spawned a boss (avoids respawn same wave)
     stars: [], // Starfield for space background
     fps: 60,
     frameCount: 0,
@@ -119,6 +123,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
   const healthRef = useRef(100)
   const livesRef = useRef(getStartingLives())
   const scoreRef = useRef(0)
+  const comboRef = useRef(0)
   const timeoutRefs = useRef([])
   const playerInput = useRef({ x: 0, y: 0, firing: false })
 
@@ -204,6 +209,19 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     loadEnemyImages()
   }, [])
 
+  // Load boss ship images (boss_01..boss_07 from public/boss-ships)
+  useEffect(() => {
+    const imgs = []
+    for (let i = 1; i <= 7; i++) {
+      const n = String(i).padStart(2, '0')
+      const img = new Image()
+      img.src = `/boss-ships/boss_${n}.png`
+      img.onerror = () => console.warn(`Failed to load boss image: boss_${n}.png`)
+      imgs.push(img)
+    }
+    bossImagesRef.current = imgs
+  }, [])
+
   // Helper function to get enemy ship image based on type
   const getEnemyShipImage = (enemy) => {
     const images = enemyImagesRef.current[enemy.type] || enemyImagesRef.current['normal']
@@ -252,10 +270,10 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     if (lives <= 0 && !gameOverRef.current) {
       gameOverRef.current = true
       if (onGameOver) {
-        onGameOver(scoreRef.current || score, wave, level, enemiesKilled, combo)
+        onGameOver(scoreRef.current || score, wave, level, enemiesKilled, comboRef.current)
       }
     }
-  }, [lives, onGameOver, score, wave, level, enemiesKilled, combo])
+  }, [lives, onGameOver, score, wave, level, enemiesKilled])
 
   const getWeaponColor = (weapon) => {
     // Map weapons to their visual colors
@@ -577,12 +595,12 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     const cw = canvas.width
     const ch = canvas.height
     const isMobile = cw < 520
-    // Increase bar height for readability on small screens
-    const barH = isMobile ? (cw < 400 ? 80 : 70) : 70
-    // Increase top margin on mobile to avoid notch/safe area - more space needed for iPhone notch
-    const topMargin = isMobile ? 35 : 0
+    // More compact bar height to maximize gameplay area
+    const barH = isMobile ? (cw < 400 ? 55 : 50) : 55
+    // Reduce top margin on mobile to maximize space
+    const topMargin = isMobile ? 20 : 0
 
-    // Enhanced scoreboard background with gradient
+    // Enhanced scoreboard background with gradient - FULL WIDTH TOP BAR
     const bgGrad = ctx.createLinearGradient(0, topMargin, 0, topMargin + barH)
     bgGrad.addColorStop(0, 'rgba(0, 0, 0, 0.9)')
     bgGrad.addColorStop(1, 'rgba(20, 20, 40, 0.95)')
@@ -597,19 +615,19 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     ctx.lineTo(cw, topMargin + barH)
     ctx.stroke()
 
-    // Larger font for mobile for readability
-    const fontSize = isMobile ? (cw < 400 ? 10.5 : 12) : 12
+    // Compact font and spacing to maximize gameplay area
+    const fontSize = isMobile ? (cw < 400 ? 9.5 : 10.5) : 11
     ctx.font = `bold ${fontSize}px "Courier New"`
-    const lineHeight = isMobile ? (cw < 400 ? 20 : 22) : 22
+    const lineHeight = isMobile ? (cw < 400 ? 15 : 16) : 17
     let row = 0
     let col = 0
     // On very small screens, show 2 columns instead of 4
     const cols = isMobile && cw < 400 ? 2 : 4
     const colWidth = cw / cols
-    const padding = isMobile ? 6 : 12
+    const padding = isMobile ? 4 : 6
     
     const placeItem = (label, value, color) => {
-      const y = topMargin + padding + 2 + row * lineHeight
+      const y = topMargin + padding + row * lineHeight
       const x = (isMobile && cw < 400 ? 15 : 55) + col * colWidth
       
       // Subtle pulse for readability + stronger contrast
@@ -634,7 +652,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     // Enhanced scoreboard with better visual hierarchy
     const currentScore = state.currentScore || score
     
-    // Row 1: Score, Lives, HP, Coins
+    // Row 1: Score, Lives, HP, Stars
     const scorePulse = 0.95 + 0.05 * Math.sin(Date.now() / 800)
     ctx.globalAlpha = scorePulse
     placeItem('⭐ SCORE', currentScore.toLocaleString(), '#ffd700')
@@ -646,7 +664,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     const healthColor = healthValue <= 25 ? '#ff3333' : healthValue <= 50 ? '#ff9900' : '#00ff00'
     placeItem('♥ HP', healthValue + '%', healthColor)
 
-    placeItem('⭐ COINS', state.coins.toLocaleString(), '#ffd700')
+    placeItem('⭐ STARS', state.coins.toLocaleString(), '#ffd700')
 
     // Row 2: Kills, Wave, Combo, Accuracy
     placeItem('🎯 KILLS', (state.currentKills || 0).toLocaleString(), '#00ffff')
@@ -654,18 +672,19 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     // Wave with pulsing effect
     const wavePulse = 0.9 + 0.1 * Math.sin(Date.now() / 500)
     ctx.globalAlpha = wavePulse
-    placeItem('🌊 WAVE', state.wave, '#ff00ff')
+    placeItem('LEVEL', `${state.wave} / 100`, '#ff00ff')
     ctx.globalAlpha = 1
     
     // Enhanced combo display with multiplier - shows actual multiplier
-    if (combo > 0) {
+    const currentCombo = comboRef.current
+    if (currentCombo > 0) {
       const actualMultiplier = state.comboMultiplier || 1.0
       const pulse = 0.8 + 0.2 * Math.sin(Date.now() / 80)
-      const comboColor = combo >= 30 ? '#ff00ff' : combo >= 20 ? '#ff00aa' : combo >= 10 ? '#ffd700' : combo >= 5 ? '#ffff00' : '#ffaa00'
+      const comboColor = currentCombo >= 30 ? '#ff00ff' : currentCombo >= 20 ? '#ff00aa' : currentCombo >= 10 ? '#ffd700' : currentCombo >= 5 ? '#ffff00' : '#ffaa00'
       ctx.globalAlpha = pulse
-      ctx.shadowBlur = combo >= 10 ? 12 : 8
+      ctx.shadowBlur = currentCombo >= 10 ? 12 : 8
       ctx.shadowColor = comboColor
-      placeItem('⚡ COMBO', `${combo}x (${actualMultiplier.toFixed(1)}x)`, comboColor)
+      placeItem('⚡ COMBO', `${currentCombo}x (${actualMultiplier.toFixed(1)}x)`, comboColor)
       ctx.shadowBlur = 0
       ctx.globalAlpha = 1
     } else {
@@ -677,34 +696,51 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     const accColor = accuracy >= 75 ? '#00ff00' : accuracy >= 50 ? '#ffff00' : '#ff6b6b'
     placeItem('🎯 ACC', accuracy + '%', accColor)
     
-    // Row 3: Weapon
-    const wpn = state.currentWeapon.charAt(0).toUpperCase() + state.currentWeapon.slice(1).toLowerCase()
-    placeItem('⚔ WPN', wpn, '#00ff99')
+    // Row 3: Weapon (or Missile Salvo when active)
+    const salvoActive = (state.missileSalvoTimer || 0) > 0
+    const wpn = salvoActive
+      ? `Salvo ${Math.ceil(state.missileSalvoTimer / 1000)}s`
+      : state.currentWeapon.charAt(0).toUpperCase() + state.currentWeapon.slice(1).toLowerCase()
+    placeItem('⚔ WPN', wpn, salvoActive ? '#ff6600' : '#00ff99')
     
     // Row 4: FPS
     const fpsColor = state.fps >= 55 ? '#00ff00' : state.fps >= 30 ? '#ffff00' : '#ff6b6b'
     placeItem('⚙ FPS', state.fps, fpsColor)
     
-    // Mission Objectives (Story Mode)
+    // Mission Objectives (Story Mode) - positioned below scoreboard, centered, compact
     if (isStoryMode && missionObjectivesRef.current && missionObjectivesRef.current.length > 0) {
       ctx.font = `bold ${fontSize - 1}px "Courier New"`
-      const objY = topMargin + barH + 10
+      const objY = topMargin + barH + 4 // Reduced spacing from scoreboard
+      const objBoxWidth = cw - 20
+      const objBoxX = 10
+      const compactLineHeight = lineHeight - 3 // More compact line spacing
       ctx.fillStyle = 'rgba(0, 0, 0, 0.85)'
-      ctx.fillRect(10, objY, cw - 20, missionObjectivesRef.current.length * (lineHeight - 2) + 10)
+      ctx.fillRect(objBoxX, objY, objBoxWidth, missionObjectivesRef.current.length * compactLineHeight + 6)
       ctx.strokeStyle = '#4ecdc4'
       ctx.lineWidth = 1
-      ctx.strokeRect(10, objY, cw - 20, missionObjectivesRef.current.length * (lineHeight - 2) + 10)
+      ctx.strokeRect(objBoxX, objY, objBoxWidth, missionObjectivesRef.current.length * compactLineHeight + 6)
       
       missionObjectivesRef.current.forEach((obj, idx) => {
-        const y = objY + 15 + idx * (lineHeight - 2)
+        const y = objY + 8 + idx * compactLineHeight
         const status = obj.isCompleted ? '✓' : '○'
         const statusColor = obj.isCompleted ? '#00ff00' : '#ffff00'
         const progressText = obj.type === MissionObjectiveType.ACCURACY 
           ? `${obj.progress}%` 
           : `${obj.progress}/${obj.target}`
         
+        const objText = `${status} ${obj.description}: ${progressText}`
+        
+        // Center the text horizontally
+        const textMetrics = ctx.measureText(objText)
+        const textX = objBoxX + (objBoxWidth / 2) - (textMetrics.width / 2)
+        
         ctx.fillStyle = statusColor
-        ctx.fillText(`${status} ${obj.description}: ${progressText}`, 20, y)
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)'
+        ctx.shadowBlur = 4
+        ctx.shadowOffsetX = 0.5
+        ctx.shadowOffsetY = 0.5
+        ctx.fillText(objText, textX, y)
+        ctx.shadowBlur = 0
       })
     }
   }
@@ -713,83 +749,215 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     const canvas = canvasRef.current
     if (!canvas) return
 
-    // Spawn boss on every 5th wave (5, 10, 15, etc.)
-    const shouldSpawnBoss = state.wave > 0 && state.wave % 5 === 0 && state.enemies.length === 0 && !state.boss
+    const kills = state.currentKills || 0
+    const alreadySpawnedBossThisWave = (state.lastBossWave != null && state.lastBossWave >= state.wave)
+    // Boss every 3 waves starting at wave 3 (first at 100 kills): 3, 6, 9, 12…
+    const onBossWave = state.wave >= 3 && state.wave % 3 === 0
+    // Fallback: guarantee first boss by 60 kills if none spawned yet (wave can lag)
+    const firstBossFallback = kills >= 60 && !state.boss && (state.lastBossWave == null || state.lastBossWave === 0)
+    const shouldSpawnBoss = !state.boss && !alreadySpawnedBossThisWave && (onBossWave || firstBossFallback)
 
     if (shouldSpawnBoss) {
+      const effectiveWave = firstBossFallback ? Math.max(3, state.wave) : state.wave
+      state.lastBossWave = effectiveWave
       const bossTypes = ['type1', 'type2', 'type3']
-      const bossType = bossTypes[Math.floor(state.wave / 5) % bossTypes.length]
+      const bossType = bossTypes[Math.floor(effectiveWave / 3) % bossTypes.length]
       
-      // More challenging bosses - exponential health scaling
-      const bossBaseHealth = state.wave <= 5 ? 20 + state.wave * 3 : 35 + (state.wave - 5) * 5 + (state.wave - 5) * (state.wave - 5) * 2
+      const bossBaseHealth = effectiveWave <= 5 ? 20 + effectiveWave * 3 : 35 + (effectiveWave - 5) * 5 + (effectiveWave - 5) * (effectiveWave - 5) * 2
       const bossHealth = Math.round(bossBaseHealth * difficultyModifier())
       
+      const spriteIndex = (effectiveWave - 1) % 7
+      const bossSpeed = 1.8 + effectiveWave * 0.12
       state.boss = {
         x: canvas.width / 2 - 40,
-        y: -80,
+        y: Math.min(120, canvas.height / 4),
         width: 80,
         height: 80,
         health: bossHealth,
         maxHealth: bossHealth,
-        speed: 1.5 + state.wave * 0.15, // Bosses move faster in later waves
+        speed: bossSpeed,
         type: bossType,
+        spriteIndex,
+        vx: bossSpeed * 0.6,
+        vy: bossSpeed * 0.4,
         shootTimer: 0,
-        shootInterval: Math.max(100, 300 - state.wave * 12), // Bosses shoot faster in later waves
-        pattern: 'sine',
+        shootInterval: Math.max(80, 280 - effectiveWave * 10),
+        weaponPhase: 0,
         patternTime: 0,
-        baseX: canvas.width / 2 - 40,
+        waypointTime: 0,
+        specialTimer: 0,
+        specialCooldown: 0,
+        shieldActive: false,
+        rageActive: false,
       }
       playSound('bossSpawn', 0.5)
     }
 
-    // Update boss position if it exists
+    // Update boss position and behaviour
     if (state.boss) {
+      const canvas = canvasRef.current
+      if (!canvas) return
       const timeScale = Math.min(state.deltaTime / 16.67, 2)
-      
-      // Movement pattern
-      state.boss.patternTime += timeScale
-      if (state.boss.pattern === 'sine') {
-        state.boss.x = state.boss.baseX + Math.sin(state.boss.patternTime / 20) * 100
-      } else if (state.boss.pattern === 'figure8') {
-        const t = state.boss.patternTime / 30
-        state.boss.x = state.boss.baseX + Math.sin(t) * 80
+      const b = state.boss
+      const margin = 25
+      const xMin = margin
+      const xMax = canvas.width - b.width - margin
+      const yMin = 55
+      const yMax = canvas.height - b.height - margin
+
+      // ---- Movement: roam anywhere on screen ----
+      b.patternTime += timeScale
+      b.waypointTime += timeScale
+      if (b.waypointTime > 90) {
+        b.waypointTime = 0
+        const t = b.patternTime * 0.02
+        const nx = (xMin + xMax) / 2 + Math.sin(t) * (xMax - xMin) * 0.4
+        const ny = (yMin + yMax) / 2 + Math.cos(t * 1.3) * (yMax - yMin) * 0.35
+        const dx = nx - (b.x + b.width / 2)
+        const dy = ny - (b.y + b.height / 2)
+        const d = Math.hypot(dx, dy) || 1
+        b.vx = (dx / d) * b.speed * timeScale * 8
+        b.vy = (dy / d) * b.speed * timeScale * 8
       }
-      
-      // Keep boss in bounds
-      state.boss.x = Math.max(20, Math.min(canvas.width - 100, state.boss.x))
-      
-      // Boss descent
-      if (state.boss.y < 150) {
-        state.boss.y += state.boss.speed * timeScale
+      b.x += b.vx * timeScale
+      b.y += b.vy * timeScale
+      if (b.x < xMin) { b.x = xMin; b.vx = Math.abs(b.vx) * 0.5 }
+      if (b.x > xMax) { b.x = xMax; b.vx = -Math.abs(b.vx) * 0.5 }
+      if (b.y < yMin) { b.y = yMin; b.vy = Math.abs(b.vy) * 0.5 }
+      if (b.y > yMax) { b.y = yMax; b.vy = -Math.abs(b.vy) * 0.5 }
+
+      // ---- Special abilities ----
+      b.specialTimer += timeScale
+      if (b.specialCooldown > 0) b.specialCooldown -= timeScale
+
+      if (b.type === 'type1') {
+        // Rage: below 50% HP, faster attacks + stronger bullets for 8s, then 15s cooldown
+        if (!b.rageActive && b.specialCooldown <= 0 && b.health / b.maxHealth <= 0.5) {
+          b.rageActive = true
+          b.rageUntil = b.patternTime + 480
+        }
+        if (b.rageActive && b.patternTime >= b.rageUntil) {
+          b.rageActive = false
+          b.specialCooldown = 900
+        }
+      } else if (b.type === 'type2') {
+        // Shield: periodic 4s of 50% damage reduction
+        if (!b.shieldActive && b.specialCooldown <= 0 && b.specialTimer > 420) {
+          b.shieldActive = true
+          b.shieldUntil = b.patternTime + 240
+          b.specialTimer = 0
+        }
+        if (b.shieldActive && b.patternTime >= b.shieldUntil) {
+          b.shieldActive = false
+          b.specialCooldown = 540
+        }
+      } else if (b.type === 'type3') {
+        // Summon: spawn 2 minions near boss periodically
+        if (b.specialCooldown <= 0 && b.specialTimer > 660) {
+          b.specialTimer = 0
+          b.specialCooldown = 660
+          const base = { pattern: 'normal', type: 'normal', health: 1, color: '#ff6666', isSilver: false }
+          for (let i = 0; i < 2; i++) {
+            const ox = (i === 0 ? -1 : 1) * (b.width * 0.6 + 15)
+            const ex = Math.max(15, Math.min(canvas.width - 45, b.x + b.width / 2 + ox - 15))
+            const ey = Math.max(50, Math.min(canvas.height - 50, b.y + b.height + 10))
+            state.enemies.push({
+              id: `minion_${Date.now()}_${i}_${Math.random().toString(36).slice(2, 8)}`,
+              x: ex,
+              y: ey,
+              speed: 1.2,
+              ...base,
+            })
+          }
+          if (state.enemiesSpawned != null) state.enemiesSpawned += 2
+        }
       }
-      
-      // Boss shooting
-      state.boss.shootTimer++
-      if (state.boss.shootTimer > state.boss.shootInterval) {
-        // Boss shoots in multiple directions
-        for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 3) {
+
+      // ---- Multi-weapon shooting ----
+      const interval = b.rageActive ? Math.max(40, b.shootInterval * 0.5) : b.shootInterval
+      const bulletSpeed = (b.rageActive ? 1.5 : 1) * 5
+      const bulletSize = b.rageActive ? { w: 6, h: 6 } : { w: 5, h: 5 }
+      b.shootTimer++
+      if (b.shootTimer > interval) {
+        b.shootTimer = 0
+        const cx = b.x + b.width / 2
+        const cy = b.y + b.height
+        const px = state.player.x + state.player.width / 2
+        const py = state.player.y
+        const phase = b.weaponPhase % 5
+        b.weaponPhase++
+
+        const push = (vx, vy, color = '#ff6666', w = bulletSize.w, h = bulletSize.h) => {
+          if (state.enemyBullets.length >= 200) return
+          const norm = Math.hypot(vx, vy) || 1
           state.enemyBullets.push({
-            x: state.boss.x + state.boss.width / 2,
-            y: state.boss.y + state.boss.height,
-            vx: Math.sin(angle) * 5,
-            vy: Math.cos(angle) * 5,
-            width: 5,
-            height: 5,
+            x: cx - w / 2,
+            y: cy,
+            vx: (vx / norm) * bulletSpeed,
+            vy: (vy / norm) * bulletSpeed,
+            width: w,
+            height: h,
+            color,
           })
         }
-        playSound('missile', 0.3)
-        state.boss.shootTimer = 0
+
+        if (phase === 0) {
+          for (let i = 0; i < 6; i++) {
+            const a = (Math.PI * 2 * i) / 6 + b.patternTime * 0.02
+            push(Math.sin(a), Math.cos(a), '#ff8866')
+          }
+        } else if (phase === 1) {
+          const dx = px - cx
+          const dy = py - cy
+          const d = Math.hypot(dx, dy) || 1
+          for (let j = -1; j <= 1; j++) {
+            const spread = j * 0.15
+            const tx = dx / d + spread * (dy / d)
+            const ty = dy / d - spread * (dx / d)
+            const nd = Math.hypot(tx, ty) || 1
+            push(tx / nd, ty / nd, '#ffaa44')
+          }
+        } else if (phase === 2) {
+          for (let i = 0; i < 12; i++) {
+            const a = (Math.PI * 2 * i) / 12
+            push(Math.sin(a), Math.cos(a), '#ff4488', 4, 4)
+          }
+        } else if (phase === 3) {
+          const off = b.patternTime * 0.5
+          for (let i = 0; i < 8; i++) {
+            const a = (Math.PI * 2 * i) / 8 + off
+            push(Math.sin(a), Math.cos(a), '#ff66aa', 4, 6)
+          }
+        } else {
+          for (let i = -2; i <= 2; i++) {
+            const a = Math.PI / 2 + i * 0.25
+            push(Math.sin(a), Math.cos(a), '#ff6644', 3, 6)
+          }
+        }
+        playSound('missile', 0.25)
       }
     }
   }
 
+  // Flying formations: wing offsets { dx, dy } from leader (y+ = down)
+  const FORMATION_OFFSETS = {
+    v: [{ dx: -28, dy: 28 }, { dx: 28, dy: 28 }],
+    line: [{ dx: -36, dy: 0 }, { dx: 36, dy: 0 }],
+    wedge: [{ dx: -24, dy: -24 }, { dx: 24, dy: -24 }],
+    column: [{ dx: 0, dy: 32 }, { dx: 0, dy: 64 }],
+    diamond: [{ dx: -26, dy: 0 }, { dx: 26, dy: 0 }, { dx: 0, dy: 26 }],
+  }
+  const FORMATION_TYPES = ['v', 'line', 'wedge', 'column', 'diamond']
+
   const spawnEnemies = (state) => {
     const canvas = canvasRef.current
     if (!canvas) return
+    // Don't spawn regular enemies during a boss fight (boss encounters stay focused)
+    if (state.boss) return
 
     const now = Date.now()
-    // More aggressive spawn rate - enemies spawn much faster in later waves
-    const baseRate = state.wave <= 2 ? 2400 : state.wave <= 4 ? 1800 : state.wave <= 8 ? 1200 : Math.max(400, 1000 - (state.wave * 50))
+    // Each wave harder: spawn rate decreases steadily with wave (faster spawns)
+    const baseRate = Math.max(320, 2500 - state.wave * 95)
     let spawnRate = baseRate / difficultyModifier()
 
     if (now - state.lastEnemySpawn > spawnRate) {
@@ -802,66 +970,120 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
 
       const patternsEarly = ['normal', 'zigzag']
       const patternsMore = ['normal', 'zigzag', 'sway', 'dash']
-      const pool = state.wave < 3 ? patternsEarly : patternsMore
+      const pool = state.wave < 2 ? patternsEarly : patternsMore
       const pattern = pool[Math.floor(Math.random() * pool.length)]
       
-      // Enhanced enemy variety
+      // Tougher types unlock earlier and scale with wave (each wave harder)
       const enemyTypeRoll = Math.random()
+      const fastChance = Math.min(0.35, 0.04 + state.wave * 0.014)
+      const tankChance = Math.min(0.4, 0.06 + state.wave * 0.015)
+      const shieldChance = Math.min(0.45, 0.06 + state.wave * 0.016)
       let enemyType = 'normal'
       let health = 1
       let speedMult = 1
       let color = '#ff0000'
 
-      if (state.wave >= 5 && enemyTypeRoll < 0.15) {
-        // Fast weak enemies
+      if (state.wave >= 2 && enemyTypeRoll < fastChance) {
         enemyType = 'fast'
         health = 1
         speedMult = 2.2
         color = '#ff00ff'
-      } else if (state.wave >= 3 && enemyTypeRoll < 0.25) {
-        // Tank enemies - increased minimum speed so they don't look stationary
+      } else if (state.wave >= 2 && enemyTypeRoll < fastChance + tankChance) {
         enemyType = 'tank'
-        health = 3
-        speedMult = 0.9 // Increased from 0.6 to 0.9 for better visibility
+        health = Math.min(6, 2 + Math.floor(state.wave / 4))
+        speedMult = 0.9
         color = '#ffaa00'
-      } else if (state.wave >= 4 && enemyTypeRoll < 0.35) {
-        // Shielded
+      } else if (state.wave >= 3 && enemyTypeRoll < fastChance + tankChance + shieldChance) {
         enemyType = 'shield'
-        health = 2
+        health = Math.min(5, 2 + Math.floor(state.wave / 5))
         speedMult = 1.1
         color = '#00ffff'
       } else {
-        // Default
-        health = state.wave < 3 ? 1 : 2
+        health = Math.min(5, 1 + Math.floor(state.wave / 4))
         speedMult = 1
         color = Math.random() > 0.7 ? '#ffff00' : '#ff0000'
       }
 
       const baseSpeed = difficultyModifier() * speedMult
-      const baseSilverChance = state.wave >= 4 ? 0.4 : 0.25
+      const baseSilverChance = Math.min(0.55, 0.15 + state.wave * 0.018)
       const isSilver = Math.random() < baseSilverChance
       
-      // More aggressive speed scaling: +0.2 per wave, exponential after wave 10
-      const waveSpeedBonus = state.wave <= 10 
-        ? 1.0 + (state.wave * 0.2)
-        : 3.0 + ((state.wave - 10) * 0.3) // Exponential scaling after wave 10
+      // Speed scales every wave: steeper ramp, then exponential after 10
+      const waveSpeedBonus = state.wave <= 10
+        ? 1.0 + (state.wave * 0.26)
+        : 3.6 + ((state.wave - 10) * 0.38)
       
-      // Create unique ID using timestamp, spawn count, and random component
-      const uniqueId = `${Date.now()}_${state.enemiesSpawned}_${Math.random().toString(36).substr(2, 9)}`
-      
-      const enemy = {
-        id: uniqueId, // Unique string ID for each enemy
-        x: Math.random() * (canvas.width - 30) + 15,
-        y: -30,
-        speed: baseSpeed * waveSpeedBonus * (isSilver ? 0.95 : 1.0),
-        pattern,
-        health: isSilver ? 4 : health,
-        type: enemyType,
-        color: color,
-        isSilver: isSilver,
+      const speed = baseSpeed * waveSpeedBonus * (isSilver ? 0.95 : 1.0)
+      const baseHealth = isSilver ? Math.max(4, health + 2) : health
+
+      // Formation spawn chance: wave >= 2, 18% + wave * 0.6% (cap 45%)
+      const formationChance = state.wave < 2 ? 0 : Math.min(0.45, 0.18 + state.wave * 0.006)
+      const spawnFormation = Math.random() < formationChance
+
+      if (spawnFormation) {
+        const formationType = FORMATION_TYPES[Math.floor(Math.random() * FORMATION_TYPES.length)]
+        const offsets = FORMATION_OFFSETS[formationType]
+        const formationId = `f_${(state.nextFormationId || 0)}`
+        state.nextFormationId = (state.nextFormationId || 0) + 1
+        // Leader x: keep formation on screen (margin ~55 each side)
+        const margin = 55
+        const leaderX = margin + Math.random() * (canvas.width - 2 * margin - 30) + 15
+        const leaderY = -30
+
+        const leaderId = `${Date.now()}_${state.enemiesSpawned}_${Math.random().toString(36).substr(2, 9)}`
+        const leader = {
+          id: leaderId,
+          x: leaderX,
+          y: leaderY,
+          speed,
+          pattern,
+          health: baseHealth,
+          type: enemyType,
+          color,
+          isSilver,
+          formationId,
+          formationRole: 'leader',
+        }
+        state.enemies.push(leader)
+        state.enemiesSpawned++
+
+        for (let i = 0; i < offsets.length; i++) {
+          const { dx, dy } = offsets[i]
+          const wingId = `${Date.now()}_${state.enemiesSpawned}_${Math.random().toString(36).substr(2, 9)}`
+          const wing = {
+            id: wingId,
+            x: leaderX + dx,
+            y: leaderY + dy,
+            speed,
+            pattern,
+            health: baseHealth,
+            type: enemyType,
+            color,
+            isSilver,
+            formationId,
+            formationRole: 'wing',
+            formationLeaderId: leaderId,
+            formationOffset: { dx, dy },
+          }
+          state.enemies.push(wing)
+          state.enemiesSpawned++
+        }
+      } else {
+        const uniqueId = `${Date.now()}_${state.enemiesSpawned}_${Math.random().toString(36).substr(2, 9)}`
+        const enemy = {
+          id: uniqueId,
+          x: Math.random() * (canvas.width - 30) + 15,
+          y: -30,
+          speed,
+          pattern,
+          health: baseHealth,
+          type: enemyType,
+          color,
+          isSilver,
+        }
+        state.enemies.push(enemy)
+        state.enemiesSpawned++
       }
-      state.enemies.push(enemy)
-      state.enemiesSpawned++
 
       state.lastEnemySpawn = now
     }
@@ -906,17 +1128,18 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
           const healthChance = Math.min(0.15, baseHealthChance * luckMultiplier)
           const shieldChance = Math.min(0.12, baseShieldChance * luckMultiplier)
           const damageChance = Math.min(0.10, baseDamageChance * luckMultiplier)
+          const missileSalvoChance = Math.min(0.08, 0.05 * luckMultiplier)
           
           const roll = Math.random()
           if (!state.powerUps) state.powerUps = []
           
           if (roll < coinChance) {
-            // 35% - coins
+            // coins
             const upgradeEffects = getUpgradeEffects()
             // Enhanced coin rewards: base + wave bonus + combo bonus
             const baseCoins = 1
             const waveBonus = Math.floor(state.wave * 0.2) // More coins in later waves
-            const comboBonus = combo >= 10 ? 2 : combo >= 5 ? 1 : 0 // Bonus for high combos
+            const comboBonus = comboRef.current >= 10 ? 2 : comboRef.current >= 5 ? 1 : 0 // Bonus for high combos
             const coinsEarned = Math.floor((baseCoins + waveBonus + comboBonus) * upgradeEffects.starMultiplier)
             state.coins += coinsEarned
             state.powerUps.push({
@@ -957,8 +1180,18 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
               height: 24,
               vy: -0.6,
             })
+          } else if (roll < coinChance + healthChance + shieldChance + damageChance + missileSalvoChance) {
+            // Missile Salvo – shoot 4 missiles in a row
+            state.powerUps.push({
+              x: popup.x,
+              y: popup.y,
+              type: 'missileSalvo',
+              width: 26,
+              height: 26,
+              vy: -0.65,
+            })
           } else {
-            // 44% - weapon collectible
+            // weapon collectible
             const randomWeapon = weaponNames[Math.floor(Math.random() * weaponNames.length)]
             state.powerUps.push({
               x: popup.x,
@@ -1002,7 +1235,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
             // Enhanced coin rewards: base + wave bonus + combo bonus
             const baseCoins = 1
             const waveBonus = Math.floor(state.wave * 0.2) // More coins in later waves
-            const comboBonus = combo >= 10 ? 2 : combo >= 5 ? 1 : 0 // Bonus for high combos
+            const comboBonus = comboRef.current >= 10 ? 2 : comboRef.current >= 5 ? 1 : 0 // Bonus for high combos
             const coinsEarned = Math.floor((baseCoins + waveBonus + comboBonus) * upgradeEffects.starMultiplier)
             state.coins += coinsEarned
             playSound('coin', 0.3)
@@ -1021,8 +1254,10 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
             state.damageMul = 2
             state.damageBoostTimer = 5000 // 5 seconds
             playSound('powerup', 0.5)
+          } else if (p.type === 'missileSalvo') {
+            state.missileSalvoTimer = 20000 // 20 seconds – shoot 4 missiles per salvo
+            playSound('powerup', 0.6)
           } else if (p.type === 'weapon') {
-            // Switch to collected weapon
             state.currentWeapon = p.weapon
             playSound('powerup', 0.6)
           }
@@ -1044,18 +1279,16 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
 
     if (!state.lastAsteroidSpawn) state.lastAsteroidSpawn = Date.now()
     const now = Date.now()
-    const asteroidRate = 3000 - (state.wave * 200)
+    const asteroidRate = Math.max(650, 3200 - state.wave * 115)
 
-    // Asteroids spawn starting from wave 1, but more frequently in later waves
     if (now - state.lastAsteroidSpawn > asteroidRate && state.wave >= 1) {
       if (!state.asteroids) state.asteroids = []
-      const maxAsteroids = state.wave < 3 ? 8 : state.wave < 5 ? 12 : 15
+      const maxAsteroids = Math.min(24, 5 + state.wave)
       if (state.asteroids.length < maxAsteroids) {
         const roll = Math.random()
         const asteroidSize = roll < 0.5 ? 'small' : roll < 0.85 ? 'medium' : 'large'
         
-        // Speed increases with wave, minimum 2.5 to ensure visibility
-        const baseSpeed = 2.5 + (state.wave * 0.2)
+        const baseSpeed = 2.5 + (state.wave * 0.28)
         const speedVariation = Math.random() * 1.5
         
         state.asteroids.push({
@@ -1120,16 +1353,16 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     })
     
     // Reset combo if no kills - shorter window for higher combos (more challenging)
-    if (combo > 0) {
+    const currentCombo = comboRef.current
+    if (currentCombo > 0) {
       if (!state.lastComboKill) state.lastComboKill = Date.now()
       const timeSinceLastKill = Date.now() - state.lastComboKill
-      // Higher combos have shorter time window (more skill required)
-      const comboTimeout = combo >= 20 ? 2000 : combo >= 10 ? 2500 : 3000
+      const comboTimeout = currentCombo >= 20 ? 2000 : currentCombo >= 10 ? 2500 : 3000
       if (timeSinceLastKill > comboTimeout) {
+        comboRef.current = 0
         setCombo(0)
         state.comboMultiplier = 1.0
         state.lastComboKill = null
-        // Visual feedback for combo loss
         playSound('hit', 0.2)
       }
     }
@@ -1231,7 +1464,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
           break
           
         case MissionObjectiveType.COMBO:
-          objective.progress = combo
+          objective.progress = comboRef.current
           if (objective.progress >= objective.target) {
             objective.isCompleted = true
             playSound('level-complete', 0.3)
@@ -1613,6 +1846,32 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
         ctx.fillText(weaponLetter, p.x, p.y)
         
         ctx.restore()
+      } else if (p.type === 'missileSalvo') {
+        ctx.save()
+        const glow = Math.sin(Date.now() / 80 + p.x) * 5 + 12
+        ctx.shadowBlur = glow
+        ctx.shadowColor = 'rgba(255, 100, 0, 0.9)'
+        ctx.fillStyle = 'rgba(255, 100, 0, 0.2)'
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.width / 1.3, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.fillStyle = '#ff6600'
+        ctx.strokeStyle = '#ffaa00'
+        ctx.lineWidth = 1.5
+        ctx.beginPath()
+        ctx.moveTo(p.x, p.y - p.width / 2 + 2)
+        ctx.lineTo(p.x + 4, p.y + p.width / 4)
+        ctx.lineTo(p.x, p.y + p.width / 2 - 2)
+        ctx.lineTo(p.x - 4, p.y + p.width / 4)
+        ctx.closePath()
+        ctx.fill()
+        ctx.stroke()
+        ctx.fillStyle = '#ffd700'
+        ctx.font = 'bold 10px Arial'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText('x4', p.x, p.y)
+        ctx.restore()
       }
     })
   }
@@ -1628,59 +1887,71 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     const MAX_ENEMIES = 50
 
     state.enemies = state.enemies.slice(0, MAX_ENEMIES).filter((enemy) => {
-      // Freeze effect - slow down frozen enemies
-      if (enemy.frozen && enemy.frozen > 0) {
-        enemy.frozen--
-        enemy.y += enemy.speed * timeScale * 0.5 // 50% slower when frozen
-      } else {
-        enemy.y += enemy.speed * timeScale
-      }
-      
-      // Poison effect - damage over time
+      // Poison effect - damage over time (all enemies)
       if (enemy.poisoned && enemy.poisoned > 0) {
         enemy.poisoned--
-        if (enemy.poisoned % 30 === 0) { // Damage every 30 frames
+        if (enemy.poisoned % 30 === 0) {
           enemy.health = (typeof enemy.health === 'number' ? enemy.health : 1) - 1
         }
       }
 
-      // Enhanced movement patterns based on enemy type
-      if (enemy.type === 'fast') {
-        // Fast enemies use erratic patterns
-        if (!enemy.patternTime) enemy.patternTime = 0
-        enemy.patternTime += timeScale
-        enemy.x += Math.sin(enemy.patternTime / 10) * 4 * timeScale
-        enemy.x += Math.cos(enemy.patternTime / 15) * 2 * timeScale
-      } else if (enemy.pattern === 'zigzag') {
-        enemy.x += Math.sin(enemy.y / 20) * 2.5 * timeScale
-      } else if (enemy.pattern === 'sway') {
-        enemy.x += Math.sin(enemy.y / 30) * 3.5 * timeScale
-      } else if (enemy.pattern === 'dash') {
-        if (Math.random() < 0.02) {
-          if (!enemy.dashCooldown) enemy.dashCooldown = 0
-          if (enemy.dashCooldown <= 0) {
-            enemy.y += 30 * timeScale
-            enemy.dashCooldown = 500
-          }
+      // Formation: wingmen follow leader; break formation if leader dead
+      let skipMovement = false
+      if (enemy.formationRole === 'wing' && enemy.formationLeaderId && enemy.formationOffset) {
+        const leader = state.enemies.find((e) => e.id === enemy.formationLeaderId)
+        if (leader) {
+          enemy.x = leader.x + enemy.formationOffset.dx
+          enemy.y = leader.y + enemy.formationOffset.dy
+          skipMovement = true
+        } else {
+          delete enemy.formationId
+          delete enemy.formationRole
+          delete enemy.formationLeaderId
+          delete enemy.formationOffset
         }
-        if (enemy.dashCooldown) enemy.dashCooldown -= state.deltaTime
       }
 
-      // Intelligent AI: Avoid bullets by moving toward clear areas
-      if (Math.random() < 0.05 && state.enemyBullets.length < 50) {
-        // Check if there's a nearby bullet
-        for (let i = 0; i < state.bullets.length; i++) {
-          const bullet = state.bullets[i]
-          if (bullet && bullet.y < enemy.y && bullet.y + 100 > enemy.y) {
-            const dist = Math.abs(bullet.x - enemy.x)
-            if (dist < 80) {
-              // Evasive maneuver
-              if (bullet.x < enemy.x) {
-                enemy.x += 8 * timeScale
-              } else {
-                enemy.x -= 8 * timeScale
+      if (!skipMovement) {
+        // Freeze effect - slow down frozen enemies
+        if (enemy.frozen && enemy.frozen > 0) {
+          enemy.frozen--
+          enemy.y += enemy.speed * timeScale * 0.5
+        } else {
+          enemy.y += enemy.speed * timeScale
+        }
+
+        // Enhanced movement patterns (leaders / solos only)
+        if (enemy.type === 'fast') {
+          if (!enemy.patternTime) enemy.patternTime = 0
+          enemy.patternTime += timeScale
+          enemy.x += Math.sin(enemy.patternTime / 10) * 4 * timeScale
+          enemy.x += Math.cos(enemy.patternTime / 15) * 2 * timeScale
+        } else if (enemy.pattern === 'zigzag') {
+          enemy.x += Math.sin(enemy.y / 20) * 2.5 * timeScale
+        } else if (enemy.pattern === 'sway') {
+          enemy.x += Math.sin(enemy.y / 30) * 3.5 * timeScale
+        } else if (enemy.pattern === 'dash') {
+          if (Math.random() < 0.02) {
+            if (!enemy.dashCooldown) enemy.dashCooldown = 0
+            if (enemy.dashCooldown <= 0) {
+              enemy.y += 30 * timeScale
+              enemy.dashCooldown = 500
+            }
+          }
+          if (enemy.dashCooldown) enemy.dashCooldown -= state.deltaTime
+        }
+
+        // Bullet avoidance (leaders / solos only; wings stay in formation)
+        if (Math.random() < 0.05 && state.enemyBullets.length < 50) {
+          for (let i = 0; i < state.bullets.length; i++) {
+            const bullet = state.bullets[i]
+            if (bullet && bullet.y < enemy.y && bullet.y + 100 > enemy.y) {
+              const dist = Math.abs(bullet.x - enemy.x)
+              if (dist < 80) {
+                if (bullet.x < enemy.x) enemy.x += 8 * timeScale
+                else enemy.x -= 8 * timeScale
+                break
               }
-              break
             }
           }
         }
@@ -1689,51 +1960,50 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
       // Keep enemies within canvas bounds (left/right)
       enemy.x = Math.max(5, Math.min(canvas.width - 35, enemy.x))
 
-      // Intelligent shooting pattern
-      // More aggressive shooting - increases with wave
+      // Shooting: more frequent and accurate each wave (each wave harder)
       const baseShootChance = 0.01 * difficultyModifier()
-      const waveShootBonus = state.wave * 0.003 // Enemies shoot more frequently in later waves
-      let shootChance = Math.min(0.08, baseShootChance + waveShootBonus)
+      const waveShootBonus = state.wave * 0.0045
+      let shootChance = Math.min(0.095, baseShootChance + waveShootBonus)
       
-      // Shield enemies shoot less often
       if (enemy.type === 'shield') shootChance *= 0.5
-      // Tank enemies shoot more often
       else if (enemy.type === 'tank') shootChance *= 1.5
-      // Fast enemies shoot more frequently
       else if (enemy.type === 'fast') shootChance *= 1.2
       
       if (Math.random() < shootChance && enemy.y > 50 && enemy.y < canvas.height - 100) {
-        if (state.enemyBullets.length < 180) {
-          // Smart aim: try to shoot towards player
-          const playerX = state.player.x + state.player.width / 2
-          const playerY = state.player.y
-          const dx = playerX - (enemy.x + 15)
-          const dy = playerY - (enemy.y + 30)
-          const dist = Math.sqrt(dx * dx + dy * dy)
-          const aim = 0.6 + (state.wave > 10 ? 0.3 : 0) // Better aim at higher waves
-          
-          let vx = 0
-          let vy = 3
-          if (Math.random() < aim && dist > 0) {
-            vx = (dx / dist) * 2
-            vy = Math.min(4, (dy / dist) * 3)
-          }
-          
-          // Apply mission mutators
-          let bulletSpeed = 3 * timeScale
-          if (currentMission && currentMission.mutator === 'fastEnemyBullets') {
-            bulletSpeed = 5 * timeScale // Faster enemy bullets
-          }
-          
+        const playerX = state.player.x + state.player.width / 2
+        const playerY = state.player.y
+        const dx = playerX - (enemy.x + 15)
+        const dy = playerY - (enemy.y + 30)
+        const dist = Math.sqrt(dx * dx + dy * dy)
+        const aim = Math.min(0.92, 0.48 + state.wave * 0.035)
+        let baseVx = 0
+        let baseVy = 3
+        if (Math.random() < aim && dist > 0) {
+          baseVx = (dx / dist) * 2
+          baseVy = Math.min(4, (dy / dist) * 3)
+        }
+        const speedMul = (currentMission && currentMission.mutator === 'fastEnemyBullets') ? (5 + state.wave * 0.1) / (3 + state.wave * 0.14) : 1
+        const numMissiles = enemy.type === 'tank' ? 4 : enemy.type === 'fast' ? 2 : enemy.type === 'shield' ? 2 : 3
+        const spreadAngles = numMissiles === 2 ? [-0.12, 0.12] : numMissiles === 3 ? [-0.15, 0, 0.15] : [-0.2, -0.07, 0.07, 0.2]
+        const baseMag = (Math.hypot(baseVx, baseVy) || 3) * speedMul
+        const sx = enemy.x + 15
+        const sy = enemy.y + 30
+        for (let i = 0; i < numMissiles && state.enemyBullets.length < 180; i++) {
+          const off = spreadAngles[i]
+          const cos = Math.cos(off)
+          const sin = Math.sin(off)
+          const vx = baseVx * cos - baseVy * sin
+          const vy = baseVx * sin + baseVy * cos
+          const norm = Math.hypot(vx, vy) || 1
           state.enemyBullets.push({
-            x: enemy.x + 15,
-            y: enemy.y + 30,
-            vx: vx,
-            vy: vy,
-            speed: bulletSpeed,
+            x: sx,
+            y: sy,
+            vx: (vx / norm) * baseMag,
+            vy: (vy / norm) * baseMag,
             owner: 'enemy',
-            width: 3,
-            height: 8,
+            width: enemy.type === 'tank' ? 4 : 3,
+            height: enemy.type === 'tank' ? 10 : 8,
+            color: enemy.type === 'fast' ? '#ff66aa' : enemy.type === 'tank' ? '#ffaa44' : enemy.type === 'shield' ? '#44aaff' : '#ff6666',
           })
         }
       }
@@ -1796,7 +2066,8 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
               return newScore
             })
 
-            const newCombo = combo + 1
+            const newCombo = comboRef.current + 1
+            comboRef.current = newCombo
             setCombo(newCombo)
             setKillStreak((k) => k + 1)
             setEnemiesKilled((e) => e + 1)
@@ -1925,10 +2196,101 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
       }
     }
 
+    // Player missiles vs enemies (4-missile salvo collectible)
+    const missilesToRemove = []
+    if (state.missiles && state.missiles.length > 0 && state.enemies.length > 0) {
+      for (let mi = 0; mi < state.missiles.length; mi++) {
+        const m = state.missiles[mi]
+        if (m.owner !== 'player') continue
+        const mw = 6
+        const mh = 12
+        for (let j = 0; j < state.enemies.length; j++) {
+          if (enemiesToRemove.includes(j)) continue
+          const enemy = state.enemies[j]
+          if (!enemy) continue
+          if (
+            m.x < enemy.x + 30 && m.x + mw > enemy.x &&
+            m.y < enemy.y + 30 && m.y + mh > enemy.y
+          ) {
+            state.shotsHit++
+            const comboMult = state.comboMultiplier || 1.0
+            const waveBonus = 1.0 + (state.wave * 0.1)
+            const healthPercent = healthRef.current / Math.floor(100 * getUpgradeEffects().maxHealthMultiplier)
+            const riskBonus = healthPercent < 0.3 ? 1.5 : healthPercent < 0.5 ? 1.3 : 1.0
+            const points = Math.floor(14 * state.scoreMultiplier * comboMult * waveBonus * riskBonus)
+            if (state.scorePopups.length < 10) {
+              state.scorePopups.push({
+                x: enemy.x + 15,
+                y: enemy.y + 15,
+                value: points,
+                life: 60,
+                vy: -2,
+                scale: 1,
+              })
+            }
+            setScore((s) => {
+              const newScore = s + points
+              state.currentScore = newScore
+              return newScore
+            })
+            const newCombo = comboRef.current + 1
+            comboRef.current = newCombo
+            setCombo(newCombo)
+            setKillStreak((k) => k + 1)
+            setEnemiesKilled((e) => e + 1)
+            state.currentKills = (state.currentKills || 0) + 1
+            state.lastComboKill = Date.now()
+            if (newCombo <= 10) state.comboMultiplier = 1.0 + (newCombo * 0.15)
+            else if (newCombo <= 20) state.comboMultiplier = 2.5 + ((newCombo - 10) * 0.2)
+            else state.comboMultiplier = 4.5 + ((newCombo - 20) * 0.25)
+            if (!state.comboEffects) state.comboEffects = []
+            const isMilestone = newCombo % 5 === 0 || newCombo === 10 || newCombo === 20 || newCombo === 30
+            const isSuperMilestone = newCombo === 10 || newCombo === 20 || newCombo === 30 || newCombo === 50
+            if (isMilestone || (newCombo > 10 && newCombo % 3 === 0) || newCombo <= 5) {
+              state.comboEffects.push({
+                x: enemy.x + 15,
+                y: enemy.y + 15,
+                text: isSuperMilestone ? `🔥 COMBO x${newCombo}! 🔥` : `COMBO x${newCombo}!`,
+                life: isSuperMilestone ? 90 : isMilestone ? 60 : 45,
+                alpha: 1,
+                scale: isSuperMilestone ? 2.0 : isMilestone ? 1.5 : 1.2,
+                glow: isMilestone,
+                color: isSuperMilestone ? '#ff00ff' : isMilestone ? '#ffd700' : '#ffff00',
+              })
+              if (isSuperMilestone) { playSound('level-complete', 0.4); addScreenShake(state, 3) }
+              else if (isMilestone) playSound('powerup', 0.3)
+            }
+            const upgradeEffects = getUpgradeEffects()
+            let dmg = Math.max(3, Math.round((state.damageMul || 1) * 3))
+            dmg = Math.round(dmg * upgradeEffects.damageMultiplier)
+            if (upgradeEffects.berserker) {
+              const killBonus = Math.min(2.0, 1.0 + (state.currentKills || 0) * 0.01)
+              dmg = Math.round(dmg * killBonus)
+            }
+            if (upgradeEffects.critChance > 0 && Math.random() < upgradeEffects.critChance) dmg = Math.round(dmg * 3)
+            enemy.health = (typeof enemy.health === 'number' ? enemy.health : 1) - dmg
+            missilesToRemove.push(mi)
+            if (enemy.health <= 0) {
+              enemiesToRemove.push(j)
+              createExplosion(state, enemy.x + 15, enemy.y + 15, 'medium', enemy.type)
+            }
+            playSound('hit', 0.4)
+            addScreenShake(state, 1)
+            break
+          }
+        }
+      }
+    }
+
     bulletsToRemove
       .sort((a, b) => b - a)
       .forEach((index) => {
         state.bullets.splice(index, 1)
+      })
+    missilesToRemove
+      .sort((a, b) => b - a)
+      .forEach((index) => {
+        if (state.missiles && state.missiles[index]) state.missiles.splice(index, 1)
       })
     enemiesToRemove
       .sort((a, b) => b - a)
@@ -1936,16 +2298,18 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
         state.enemies.splice(index, 1)
       })
 
-    // Wave progression: advance wave every 50 enemies killed
+    // Level progression: advance every 50 kills, cap at 100 levels
     if (!state.lastWaveMilestone) state.lastWaveMilestone = 0
     const kills = state.currentKills || 0
     const waveMilestone = Math.floor(kills / 50)
     if (waveMilestone > state.lastWaveMilestone) {
       state.lastWaveMilestone = waveMilestone
-      const newWave = waveMilestone + 1 // Start at wave 1, then 2, 3, etc.
-      if (newWave !== state.wave) {
-        state.wave = newWave
-        setWave(newWave)
+      const newLevel = Math.min(100, waveMilestone + 1)
+      if (newLevel !== state.wave) {
+        state.wave = newLevel
+        state.level = newLevel
+        setWave(newLevel)
+        setLevel(newLevel)
         state.showWaveAnnouncement = true
         state.waveStartTime = Date.now()
         playSound('levelUp', 0.4)
@@ -2099,69 +2463,63 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
             }
           })
       }
-
-      // Enemy bullets
-      const bulletsToRemove = []
-      for (let i = 0; i < state.enemyBullets.length; i++) {
-        const bullet = state.enemyBullets[i]
-        const size = (bullet.width && bullet.height)
-          ? Math.max(bullet.width, bullet.height)
-          : (bullet.width || bullet.height || 10)
-        const r = size / 2
-        const bx = (bullet.x || 0) - r
-        const by = (bullet.y || 0) - r
-        const bw = r * 2
-        const bh = r * 2
-        if (
-          bx < state.player.x + state.player.width &&
-          bx + bw > state.player.x &&
-          by < state.player.y + state.player.height &&
-          by + bh > state.player.y
-        ) {
-          setHealth((h) => {
-            const upgradeEffects = getUpgradeEffects()
-            let damage = getDamageAmount()
-            // Apply damage reduction
-            damage = Math.max(1, Math.floor(damage * (1 - upgradeEffects.damageReduction)))
-            // Apply fragile player mutator (double damage)
-            if (currentMission && currentMission.mutator === 'fragilePlayer') {
-              damage = damage * 2
-            }
-            const newHealth = h - damage
-            if (newHealth <= 0) {
-              setLives((l) => Math.max(0, l - 1))
-              state.invulnerable = true
-              if (state.invulnerableTimer) {
-                clearTimeout(state.invulnerableTimer)
-              }
-              state.invulnerableTimer = setTimeout(() => {
-                state.invulnerable = false
-                state.invulnerableTimer = null
-              }, 2000)
-              timeoutRefs.current.push(state.invulnerableTimer)
-              const canvas = canvasRef.current
-              if (canvas) {
-                state.player.x = Math.max(20, canvas.width / 2 - state.player.width / 2)
-                state.player.y = Math.max(50, canvas.height - state.player.height - 60)
-              }
-              state.enemyBullets = []
-              const upgradeEffects = getUpgradeEffects()
-              const maxHealth = Math.floor(100 * upgradeEffects.maxHealthMultiplier)
-              return maxHealth
-            }
-            return newHealth
-          })
-          bulletsToRemove.push(i)
-          playSound('hit', 0.5)
-        }
-      }
-
-      bulletsToRemove
-        .sort((a, b) => b - a)
-        .forEach((index) => {
-          state.enemyBullets.splice(index, 1)
-        })
     }
+
+    // Enemy bullets vs player: always check, always remove on hit (no pass-through).
+    // Only apply damage when not invulnerable and not shielded.
+    const enemyBulletsToRemove = []
+    for (let i = 0; i < state.enemyBullets.length; i++) {
+      const bullet = state.enemyBullets[i]
+      const size = (bullet.width && bullet.height)
+        ? Math.max(bullet.width, bullet.height)
+        : (bullet.width || bullet.height || 10)
+      const r = size / 2
+      const bx = (bullet.x || 0) - r
+      const by = (bullet.y || 0) - r
+      const bw = r * 2
+      const bh = r * 2
+      const hit = bx < state.player.x + state.player.width &&
+        bx + bw > state.player.x &&
+        by < state.player.y + state.player.height &&
+        by + bh > state.player.y
+      if (!hit) continue
+      enemyBulletsToRemove.push(i)
+      if (!state.invulnerable && !state.shield) {
+        setHealth((h) => {
+          const upgradeEffects = getUpgradeEffects()
+          let damage = getDamageAmount()
+          damage = Math.max(1, Math.floor(damage * (1 - upgradeEffects.damageReduction)))
+          if (currentMission && currentMission.mutator === 'fragilePlayer') damage = damage * 2
+          const newHealth = h - damage
+          if (newHealth <= 0) {
+            setLives((l) => Math.max(0, l - 1))
+            state.invulnerable = true
+            if (state.invulnerableTimer) clearTimeout(state.invulnerableTimer)
+            state.invulnerableTimer = setTimeout(() => {
+              state.invulnerable = false
+              state.invulnerableTimer = null
+            }, 2000)
+            timeoutRefs.current.push(state.invulnerableTimer)
+            const canvas = canvasRef.current
+            if (canvas) {
+              state.player.x = Math.max(20, canvas.width / 2 - state.player.width / 2)
+              state.player.y = Math.max(50, canvas.height - state.player.height - 60)
+            }
+            state.enemyBullets = []
+            return Math.floor(100 * upgradeEffects.maxHealthMultiplier)
+          }
+          return newHealth
+        })
+        playSound('hit', 0.5)
+        addScreenShake(state, 2)
+      } else if (state.shield) {
+        playSound('hit', 0.2)
+        addScreenShake(state, 1)
+      }
+    }
+    enemyBulletsToRemove
+      .sort((a, b) => b - a)
+      .forEach((index) => { state.enemyBullets.splice(index, 1) })
 
     // Asteroid-bullet collisions
     if (state.asteroids && state.asteroids.length > 0 && state.bullets.length > 0) {
@@ -2293,8 +2651,9 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
           bullet.y < state.boss.y + state.boss.height &&
           bullet.y + bulletHeight > state.boss.y
         ) {
-          // Hit the boss
-          const dmg = Math.max(3, Math.round(state.damageMul || 1) * 2)
+          // Hit the boss (Type2 shield: 50% damage reduction)
+          let dmg = Math.max(3, Math.round(state.damageMul || 1) * 2)
+          if (state.boss.shieldActive) dmg = Math.max(1, Math.floor(dmg * 0.5))
           state.boss.health -= dmg
           
           if (!bullet.pierce) bulletsToRemoveBoss.push(i)
@@ -2397,6 +2756,57 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
           })
       }
     }
+  }
+
+  const shootMissileSalvo = (state) => {
+    const cx = state.player.x + state.player.width / 2
+    const cy = state.player.y
+    const offsets = [-24, -8, 8, 24]
+    for (const dx of offsets) {
+      state.missiles.push({
+        x: cx + dx - 3,
+        y: cy,
+        speed: 8,
+        owner: 'player',
+      })
+    }
+    playSound('missile', 0.35)
+    state.shotsFired += 4
+  }
+
+  const updateMissiles = (state) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const timeScale = Math.min(state.deltaTime / 16.67, 2)
+    const MAX_MISSILES = 50
+    if (!state.missiles) state.missiles = []
+    state.missiles = state.missiles.slice(0, MAX_MISSILES).filter((m) => {
+      if (m.owner !== 'player') return m.y < canvas.height + 50
+      m.y -= (m.speed || 8) * timeScale
+      m.speed = Math.min(15, (m.speed || 8) + 0.3 * timeScale)
+      return m.y > -50 && m.y < canvas.height + 50
+    })
+  }
+
+  const drawMissiles = (ctx, state) => {
+    if (!state.missiles) return
+    state.missiles.forEach((m) => {
+      if (m.owner !== 'player') return
+      ctx.save()
+      ctx.fillStyle = '#ff6600'
+      ctx.shadowColor = '#ffaa00'
+      ctx.shadowBlur = 6
+      ctx.beginPath()
+      ctx.moveTo(m.x + 3, m.y)
+      ctx.lineTo(m.x - 2, m.y + 14)
+      ctx.lineTo(m.x + 8, m.y + 14)
+      ctx.closePath()
+      ctx.fill()
+      ctx.shadowBlur = 0
+      ctx.fillStyle = '#ffd700'
+      ctx.fillRect(m.x + 1, m.y + 4, 4, 8)
+      ctx.restore()
+    })
   }
 
   const updateEnemyBullets = (state) => {
@@ -2600,11 +3010,22 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
       state.player.y = Math.min(canvas.height - state.player.height - 20, state.player.y + speed * timeScale)
 
     const now = Date.now()
+    if (state.missileSalvoTimer > 0) {
+      state.missileSalvoTimer = Math.max(0, state.missileSalvoTimer - state.deltaTime)
+    }
+    const salvoActive = state.missileSalvoTimer > 0
+    const salvoRate = 400
     const baseFireRate = state.rapidFire ? 100 : 200
     const fireRate = baseFireRate / upgradeEffects.fireRateMultiplier
-    if ((state.keys[' '] || state.keys['Spacebar']) && now - state.lastBulletShot > fireRate) {
-      shootBullet(state, upgradeEffects)
-      state.lastBulletShot = now
+    if (state.keys[' '] || state.keys['Spacebar']) {
+      if (salvoActive && now - (state.lastMissileSalvoShot || 0) >= salvoRate) {
+        shootMissileSalvo(state)
+        state.lastMissileSalvoShot = now
+        state.lastBulletShot = now
+      } else if (!salvoActive && now - state.lastBulletShot > fireRate) {
+        shootBullet(state, upgradeEffects)
+        state.lastBulletShot = now
+      }
     }
   }
 
@@ -2616,51 +3037,73 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     
     ctx.save()
     
-    // Boss glow
-    ctx.shadowBlur = 20
-    ctx.shadowColor = 'rgba(255, 0, 255, 0.8)'
+    const idx = Math.max(0, Math.min(6, boss.spriteIndex ?? 0))
+    const bossImg = bossImagesRef.current[idx]
+    const useImage = bossImg && bossImg.complete && bossImg.naturalWidth > 0
     
-    // Main boss body
-    const gradient = ctx.createLinearGradient(boss.x, boss.y, boss.x, boss.y + boss.height)
-    gradient.addColorStop(0, '#ff00ff')
-    gradient.addColorStop(0.5, '#cc00ff')
-    gradient.addColorStop(1, '#8800cc')
-    ctx.fillStyle = gradient
-    ctx.strokeStyle = '#ff00ff'
-    ctx.lineWidth = 3
-    
-    // Draw boss shape based on type
-    if (boss.type === 'type1') {
-      // Star/spiky boss
-      ctx.beginPath()
-      for (let i = 0; i < 8; i++) {
-        const angle = (Math.PI * 2 * i) / 8 - Math.PI / 2
-        const r = i % 2 === 0 ? 40 : 25
-        const x = boss.x + boss.width / 2 + Math.cos(angle) * r
-        const y = boss.y + boss.height / 2 + Math.sin(angle) * r
-        if (i === 0) ctx.moveTo(x, y)
-        else ctx.lineTo(x, y)
-      }
-      ctx.closePath()
-    } else if (boss.type === 'type2') {
-      // Diamond boss
-      ctx.beginPath()
-      ctx.moveTo(boss.x + boss.width / 2, boss.y)
-      ctx.lineTo(boss.x + boss.width, boss.y + boss.height / 2)
-      ctx.lineTo(boss.x + boss.width / 2, boss.y + boss.height)
-      ctx.lineTo(boss.x, boss.y + boss.height / 2)
-      ctx.closePath()
+    if (useImage) {
+      ctx.shadowBlur = 16
+      ctx.shadowColor = 'rgba(255, 100, 0, 0.7)'
+      ctx.drawImage(bossImg, boss.x, boss.y, boss.width, boss.height)
     } else {
-      // Sphere boss
-      ctx.beginPath()
-      ctx.arc(boss.x + boss.width / 2, boss.y + boss.height / 2, boss.width / 2 - 5, 0, Math.PI * 2)
+      ctx.shadowBlur = 20
+      ctx.shadowColor = 'rgba(255, 0, 255, 0.8)'
+      const gradient = ctx.createLinearGradient(boss.x, boss.y, boss.x, boss.y + boss.height)
+      gradient.addColorStop(0, '#ff00ff')
+      gradient.addColorStop(0.5, '#cc00ff')
+      gradient.addColorStop(1, '#8800cc')
+      ctx.fillStyle = gradient
+      ctx.strokeStyle = '#ff00ff'
+      ctx.lineWidth = 3
+      if (boss.type === 'type1') {
+        ctx.beginPath()
+        for (let i = 0; i < 8; i++) {
+          const angle = (Math.PI * 2 * i) / 8 - Math.PI / 2
+          const r = i % 2 === 0 ? 40 : 25
+          const x = boss.x + boss.width / 2 + Math.cos(angle) * r
+          const y = boss.y + boss.height / 2 + Math.sin(angle) * r
+          if (i === 0) ctx.moveTo(x, y)
+          else ctx.lineTo(x, y)
+        }
+        ctx.closePath()
+      } else if (boss.type === 'type2') {
+        ctx.beginPath()
+        ctx.moveTo(boss.x + boss.width / 2, boss.y)
+        ctx.lineTo(boss.x + boss.width, boss.y + boss.height / 2)
+        ctx.lineTo(boss.x + boss.width / 2, boss.y + boss.height)
+        ctx.lineTo(boss.x, boss.y + boss.height / 2)
+        ctx.closePath()
+      } else {
+        ctx.beginPath()
+        ctx.arc(boss.x + boss.width / 2, boss.y + boss.height / 2, boss.width / 2 - 5, 0, Math.PI * 2)
+      }
+      ctx.fill()
+      ctx.stroke()
     }
     
-    ctx.fill()
-    ctx.stroke()
+    ctx.shadowBlur = 0
+    
+    // Type2 shield overlay
+    if (boss.shieldActive) {
+      ctx.strokeStyle = 'rgba(0, 255, 255, 0.6)'
+      ctx.lineWidth = 4
+      ctx.beginPath()
+      ctx.arc(boss.x + boss.width / 2, boss.y + boss.height / 2, boss.width / 2 + 8, 0, Math.PI * 2)
+      ctx.stroke()
+      ctx.fillStyle = 'rgba(0, 200, 255, 0.08)'
+      ctx.fill()
+    }
+    // Type1 rage glow
+    if (boss.rageActive) {
+      ctx.shadowBlur = 20
+      ctx.shadowColor = 'rgba(255, 50, 50, 0.9)'
+      ctx.strokeStyle = 'rgba(255, 80, 80, 0.5)'
+      ctx.lineWidth = 2
+      ctx.strokeRect(boss.x - 4, boss.y - 4, boss.width + 8, boss.height + 8)
+      ctx.shadowBlur = 0
+    }
     
     // Health bar
-    ctx.shadowBlur = 0
     ctx.fillStyle = 'rgba(50, 50, 50, 0.8)'
     ctx.fillRect(boss.x, boss.y - 15, boss.width, 8)
     ctx.fillStyle = healthPercent > 0.3 ? '#00ff00' : '#ff6600'
@@ -2675,17 +3118,19 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     ctx.textAlign = 'center'
     ctx.fillText(`BOSS HP: ${Math.ceil(boss.health)}/${boss.maxHealth}`, boss.x + boss.width / 2, boss.y - 20)
     
-    // Energy cores
-    ctx.fillStyle = '#ffff00'
-    for (let i = 0; i < 3; i++) {
-      const offset = (i - 1) * 25
-      const glow = Math.sin(Date.now() / 200 + i) * 3 + 5
-      ctx.globalAlpha = 0.6 + Math.sin(Date.now() / 200 + i) * 0.4
-      ctx.beginPath()
-      ctx.arc(boss.x + boss.width / 2 + offset, boss.y + boss.height / 2, glow, 0, Math.PI * 2)
-      ctx.fill()
+    // Energy cores (only when using fallback shape, not boss ship image)
+    if (!useImage) {
+      ctx.fillStyle = '#ffff00'
+      for (let i = 0; i < 3; i++) {
+        const offset = (i - 1) * 25
+        const glow = Math.sin(Date.now() / 200 + i) * 3 + 5
+        ctx.globalAlpha = 0.6 + Math.sin(Date.now() / 200 + i) * 0.4
+        ctx.beginPath()
+        ctx.arc(boss.x + boss.width / 2 + offset, boss.y + boss.height / 2, glow, 0, Math.PI * 2)
+        ctx.fill()
+      }
+      ctx.globalAlpha = 1
     }
-    ctx.globalAlpha = 1
     
     ctx.restore()
   }
@@ -2755,6 +3200,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
       
       updatePlayer(state)
       updateBullets(state)
+      updateMissiles(state)
       updateEnemyBullets(state)
       spawnBoss(state)
       spawnEnemies(state)
@@ -2773,13 +3219,14 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     drawEnemies(ctx, state)
     drawBoss(ctx, state)
     drawBullets(ctx, state)
+    drawMissiles(ctx, state)
     drawParticles(ctx, state)
     drawCollectibles(ctx, state)
     drawComboEffects(ctx, state)
 
-    // Draw enemy bullets
-    ctx.fillStyle = '#ff6666'
+    // Draw enemy bullets (boss uses per-bullet color/size)
     state.enemyBullets.forEach((b) => {
+      ctx.fillStyle = b.color || '#ff6666'
       ctx.fillRect(b.x, b.y, b.width || 3, b.height || 8)
     })
 
@@ -2808,13 +3255,13 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
       ctx.font = 'bold 48px Arial'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
-      ctx.fillText(`WAVE ${state.wave}`, canvas.width / 2, canvas.height / 2)
+      ctx.fillText(`LEVEL ${state.wave} / 100`, canvas.width / 2, canvas.height / 2)
       
-      // Difficulty info below
+      // Difficulty info below (100 levels total)
       ctx.font = 'bold 20px Arial'
       ctx.shadowBlur = 10
       ctx.fillStyle = '#ff9999'
-      const difficultyText = state.wave <= 3 ? 'EASY' : state.wave <= 6 ? 'MEDIUM' : state.wave <= 10 ? 'HARD' : 'BRUTAL'
+      const difficultyText = state.wave <= 3 ? 'EASY' : state.wave <= 10 ? 'MEDIUM' : state.wave <= 25 ? 'HARD' : state.wave <= 50 ? 'BRUTAL' : 'EXTREME'
       ctx.fillText(difficultyText, canvas.width / 2, canvas.height / 2 + 50)
       
       ctx.shadowBlur = 0
@@ -2866,12 +3313,19 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
       // Try Firebase first
       const saveData = await loadSaveSlot('current')
       if (saveData) {
+        const w = Math.min(100, Math.max(1, saveData.wave || 1))
+        const lvl = Math.min(100, Math.max(1, saveData.level || 1))
         setScore(saveData.score)
-        setWave(saveData.wave)
-        setLevel(saveData.level)
+        setWave(w)
+        setLevel(lvl)
+        state.wave = w
+        state.level = lvl
         state.player.lives = saveData.lives
         state.player.x = saveData.playerX
         state.player.y = saveData.playerY
+        comboRef.current = 0
+        state.comboMultiplier = 1.0
+        state.lastComboKill = null
         setToast('📁 Game Loaded from Cloud!')
         setTimeout(() => setToast(''), 3000)
         console.log('✅ Game loaded successfully!', saveData)
@@ -2923,6 +3377,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     playGameplayMusic()
     state.wave = wave
     state.level = level
+    comboRef.current = 0
 
     // Update canvas reference in state for collision checks
     state.canvasWidth = canvas.width
@@ -3244,7 +3699,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
               setHealth(0)
               gameOverRef.current = true
               if (onGameOver) {
-                onGameOver(scoreRef.current || score, wave, level, enemiesKilled, combo)
+                onGameOver(scoreRef.current || score, wave, level, enemiesKilled, comboRef.current)
               }
               const panel = document.getElementById('fab-panel'); if (panel) panel.style.display = 'none'
             }}

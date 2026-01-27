@@ -29,7 +29,7 @@ function TermsOfService({ onClose }) {
           <section className="legal-section">
             <h2>2. Description of Service</h2>
             <p>
-              The Game is a free-to-play browser-based space shooter game. All in-game currency (coins) are earned through gameplay and cannot be purchased with real money. No real money transactions are available or accepted.
+              The Game is a free-to-play browser-based space shooter game. All in-game currency (stars) are earned through gameplay and cannot be purchased with real money. No real money transactions are available or accepted.
             </p>
           </section>
 

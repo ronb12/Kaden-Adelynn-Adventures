@@ -97,7 +97,7 @@
 .selector-title-icon {
   font-size: 3.5rem;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
-  animation: float 3s ease-in-out infinite;
+  /* Animation removed - icon is now fixed/stationary */
 }
 
 .selector-header-subtitle {
@@ -328,27 +328,27 @@
 
 .ship-thumb {
   filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
-  animation: float 3s ease-in-out infinite;
+  /* Animation removed - ships are now fixed/stationary */
 }
 
 .selector-card:nth-child(2) .ship-thumb {
-  animation-delay: 0.1s;
+  /* Animation delay removed */
 }
 
 .selector-card:nth-child(3) .ship-thumb {
-  animation-delay: 0.2s;
+  /* Animation delay removed */
 }
 
 .selector-card:nth-child(4) .ship-thumb {
-  animation-delay: 0.3s;
+  /* Animation delay removed */
 }
 
 .selector-card:nth-child(5) .ship-thumb {
-  animation-delay: 0.4s;
+  /* Animation delay removed */
 }
 
 .selector-card:nth-child(6) .ship-thumb {
-  animation-delay: 0.5s;
+  /* Animation delay removed */
 }
 
 @keyframes float {

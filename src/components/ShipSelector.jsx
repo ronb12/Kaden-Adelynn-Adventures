@@ -4,10 +4,19 @@ import { imageForShipId } from '../utils/assetMapper'
 import './ShipSelector.css'
 
 function ShipSelector({ onClose, onSelectShip, selectedShip: initialSelectedShip }) {
-  const [selectedShip, setSelectedShip] = useState(initialSelectedShip)
+  // Get default ship from localStorage or use 'kaden' as fallback
+  const defaultShip = initialSelectedShip || localStorage.getItem('selectedShip') || 'kaden'
+  const [selectedShip, setSelectedShip] = useState(defaultShip)
   const [coins, setCoins] = useState(() => getCoins())
   const [toast, setToast] = useState('')
   const [ownedShips, setOwnedShips] = useState(() => getOwned('ownedShips'))
+  
+  // Update selectedShip when prop changes
+  useEffect(() => {
+    if (initialSelectedShip) {
+      setSelectedShip(initialSelectedShip)
+    }
+  }, [initialSelectedShip])
 
   useEffect(() => {
     const interval = setInterval(() => {

@@ -358,7 +358,7 @@ function Store({ onClose, initialTab = 'permanent' }) {
       setToast(`${emoji} ${name} Purchased!`)
       setTimeout(() => setToast(''), 2000)
     } else {
-      setToast('Not enough coins!')
+      setToast('Not enough stars!')
       setTimeout(() => setToast(''), 1500)
     }
   }
@@ -375,7 +375,7 @@ function Store({ onClose, initialTab = 'permanent' }) {
 
     const cost = data.cost(current + 1)
     if (coins < cost) {
-      setToast(`❌ Not enough coins! Need ${cost}`)
+      setToast(`❌ Not enough stars! Need ${cost}`)
       setTimeout(() => setToast(''), 2000)
       return
     }
@@ -420,7 +420,7 @@ function Store({ onClose, initialTab = 'permanent' }) {
         <div className="store-currency-notice">
           <span className="notice-icon">ℹ️</span>
           <span className="notice-text">
-            <strong>In-Game Currency Only:</strong> All purchases use coins earned during gameplay. 
+            <strong>In-Game Currency Only:</strong> All purchases use stars earned during gameplay. 
             No real money is required or accepted.
           </span>
         </div>
@@ -500,7 +500,7 @@ function Store({ onClose, initialTab = 'permanent' }) {
                         onClick={() => handlePurchase(upgrade.key, upgrade.cost, upgrade.title, upgrade.emoji)}
                         disabled={purchased}
                       >
-                        {purchased ? 'Owned' : canAfford ? 'Purchase' : 'Need More Coins'}
+                        {purchased ? 'Owned' : canAfford ? 'Purchase' : 'Need More Stars'}
                       </button>
                     </div>
                   </div>
@@ -563,7 +563,7 @@ function Store({ onClose, initialTab = 'permanent' }) {
                           onClick={() => handleWeaponUpgrade(key)}
                           disabled={isMaxed || !canAfford}
                         >
-                          {isMaxed ? 'Maxed Out' : canAfford ? 'Upgrade' : 'Need More Coins'}
+                          {isMaxed ? 'Maxed Out' : canAfford ? 'Upgrade' : 'Need More Stars'}
                         </button>
                       </div>
                     </div>
