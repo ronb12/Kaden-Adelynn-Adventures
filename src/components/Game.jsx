@@ -76,6 +76,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     comboMultiplier: 1.0,
     keys: {},
     shield: false,
+    shieldTimer: 0,
     rapidFire: false,
     slowMotion: false,
     coinDoubler: false,
@@ -94,7 +95,10 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     showWaveAnnouncement: false,
     bossWaveNext: false,
     lastBossWave: 0, // last wave we spawned a boss (avoids respawn same wave)
-    stars: [], // Starfield for space background
+    stars: [],
+    snow: [],
+    sand: [],
+    prevEnvironment: null,
     fps: 60,
     frameCount: 0,
     lastFpsUpdate: Date.now(),
@@ -332,19 +336,125 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     if (!stars || stars.length === 0) return
     
     stars.forEach((star) => {
-      // Move star downward
       star.y += star.speed
-      
-      // Wrap around when star goes off screen
       if (star.y > canvas.height) {
         star.y = 0
         star.x = Math.random() * canvas.width
       }
-      
-      // Draw star with twinkling effect
       const twinkle = Math.sin(Date.now() / 1000 + star.x) * 0.3 + 0.7
       ctx.fillStyle = `rgba(255, 255, 255, ${star.brightness * twinkle})`
       ctx.fillRect(star.x, star.y, star.size, star.size)
+    })
+  }
+
+  /** Environment: 'space' (1–33), 'winter' (34–66), 'desert' (67–100). Separate full-screen game environments. */
+  const getEnvironment = (wave) => {
+    const w = Math.min(100, Math.max(1, wave))
+    if (w <= 33) return 'space'
+    if (w <= 66) return 'winter'
+    return 'desert'
+  }
+
+  const initSnow = (canvas) => {
+    const particles = []
+    const count = 100
+    const cw = canvas.width
+    const ch = canvas.height
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x: Math.random() * cw,
+        y: Math.random() * ch,
+        size: Math.random() * 2 + 1,
+        speed: Math.random() * 1.5 + 0.3,
+        wobble: Math.random() * 0.5,
+      })
+    }
+    return particles
+  }
+
+  const initSand = (canvas) => {
+    const particles = []
+    const count = 80
+    const cw = canvas.width
+    const ch = canvas.height
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x: Math.random() * cw,
+        y: Math.random() * ch,
+        size: Math.random() * 1.5 + 0.5,
+        vx: (Math.random() - 0.5) * 0.8,
+        vy: -(Math.random() * 0.4 + 0.2),
+        alpha: Math.random() * 0.4 + 0.3,
+      })
+    }
+    return particles
+  }
+
+  const drawSpaceBackground = (ctx, canvas) => {
+    ctx.fillStyle = '#000'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+  }
+
+  const drawWinterBackground = (ctx, canvas) => {
+    const cw = canvas.width
+    const ch = canvas.height
+    const g = ctx.createLinearGradient(0, 0, 0, ch)
+    g.addColorStop(0, '#b8dce8')
+    g.addColorStop(0.3, '#8bc4d4')
+    g.addColorStop(0.6, '#5a9fb8')
+    g.addColorStop(1, '#2d5f7a')
+    ctx.fillStyle = g
+    ctx.fillRect(0, 0, cw, ch)
+  }
+
+  const drawDesertBackground = (ctx, canvas) => {
+    const cw = canvas.width
+    const ch = canvas.height
+    const g = ctx.createLinearGradient(0, 0, 0, ch)
+    g.addColorStop(0, '#e8d4a8')
+    g.addColorStop(0.3, '#d4b872')
+    g.addColorStop(0.6, '#c9a050')
+    g.addColorStop(1, '#a08030')
+    ctx.fillStyle = g
+    ctx.fillRect(0, 0, cw, ch)
+  }
+
+  const drawSnow = (ctx, canvas, snow) => {
+    if (!snow || snow.length === 0) return
+    const cw = canvas.width
+    const ch = canvas.height
+    snow.forEach((p) => {
+      p.y += p.speed
+      p.x += Math.sin(Date.now() * 0.002 + p.x) * p.wobble
+      if (p.y > ch) {
+        p.y = 0
+        p.x = Math.random() * cw
+      }
+      ctx.fillStyle = `rgba(255, 255, 255, ${0.5 + Math.sin(Date.now() * 0.003 + p.x) * 0.2})`
+      ctx.beginPath()
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+      ctx.fill()
+    })
+  }
+
+  const drawSand = (ctx, canvas, sand) => {
+    if (!sand || sand.length === 0) return
+    const cw = canvas.width
+    const ch = canvas.height
+    sand.forEach((p) => {
+      p.x += p.vx
+      p.y += p.vy
+      if (p.x < 0 || p.x > cw) p.vx *= -1
+      if (p.y < 0) {
+        p.y = ch - 1
+        p.x = Math.random() * cw
+      }
+      if (p.y > ch) {
+        p.y = 1
+        p.x = Math.random() * cw
+      }
+      ctx.fillStyle = `rgba(210, 180, 140, ${p.alpha})`
+      ctx.fillRect(p.x, p.y, p.size, p.size)
     })
   }
 
@@ -417,6 +527,22 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
         state.player.width * 0.3,
         state.player.height * 0.3
       )
+    }
+
+    if (state.shield) {
+      const cx = state.player.x + state.player.width / 2
+      const cy = state.player.y + state.player.height / 2
+      const r = Math.max(state.player.width, state.player.height) / 2 + 10
+      ctx.globalAlpha = 0.5 + Math.sin(Date.now() / 120) * 0.2
+      ctx.strokeStyle = 'rgba(0, 200, 255, 0.9)'
+      ctx.lineWidth = 3
+      ctx.shadowBlur = 14
+      ctx.shadowColor = 'rgba(0, 200, 255, 0.8)'
+      ctx.beginPath()
+      ctx.arc(cx, cy, r, 0, Math.PI * 2)
+      ctx.stroke()
+      ctx.shadowBlur = 0
+      ctx.globalAlpha = 1
     }
 
     ctx.restore()
@@ -589,16 +715,36 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     }
   }
 
+  const getScoreboardHeight = (canvas) => {
+    const cw = canvas.width
+    const isMobile = cw < 520
+    const narrow = isMobile && cw < 400
+    const lineHeight = narrow ? 14 : isMobile ? 16 : 17
+    const padding = narrow ? 3 : isMobile ? 4 : 6
+    const rows = Math.ceil(10 / (narrow ? 2 : 4))
+    const contentH = padding + rows * lineHeight + 4
+    const healthBarHeight = 6
+    const barH = Math.max(contentH, isMobile ? (narrow ? 78 : 58) : 55) + healthBarHeight
+    const topMargin = isMobile ? 24 : 10
+    return topMargin + barH
+  }
+
   const drawUI = (ctx, state) => {
     const canvas = canvasRef.current
     if (!canvas) return
     const cw = canvas.width
     const ch = canvas.height
     const isMobile = cw < 520
-    // More compact bar height to maximize gameplay area
-    const barH = isMobile ? (cw < 400 ? 55 : 50) : 55
-    // Reduce top margin on mobile to maximize space
-    const topMargin = isMobile ? 20 : 0
+    const narrow = isMobile && cw < 400
+    const cols = narrow ? 2 : 4
+    const lineHeight = narrow ? 14 : isMobile ? 16 : 17
+    const fontSize = narrow ? 9 : isMobile ? 10.5 : 11
+    const padding = narrow ? 3 : isMobile ? 4 : 6
+    const rows = Math.ceil(10 / cols)
+    const contentH = padding + rows * lineHeight + 4
+    const healthBarHeight = 6
+    const barH = Math.max(contentH, isMobile ? (narrow ? 78 : 58) : 55) + healthBarHeight
+    const topMargin = isMobile ? 24 : 10
 
     // Enhanced scoreboard background with gradient - FULL WIDTH TOP BAR
     const bgGrad = ctx.createLinearGradient(0, topMargin, 0, topMargin + barH)
@@ -615,22 +761,22 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     ctx.lineTo(cw, topMargin + barH)
     ctx.stroke()
 
-    // Compact font and spacing to maximize gameplay area
-    const fontSize = isMobile ? (cw < 400 ? 9.5 : 10.5) : 11
     ctx.font = `bold ${fontSize}px "Courier New"`
-    const lineHeight = isMobile ? (cw < 400 ? 15 : 16) : 17
     let row = 0
     let col = 0
-    // On very small screens, show 2 columns instead of 4
-    const cols = isMobile && cw < 400 ? 2 : 4
     const colWidth = cw / cols
-    const padding = isMobile ? 4 : 6
+    const leftPad = narrow ? 64 : isMobile ? 108 : 55
     
     const placeItem = (label, value, color) => {
       const y = topMargin + padding + row * lineHeight
-      const x = (isMobile && cw < 400 ? 15 : 55) + col * colWidth
-      
-      // Subtle pulse for readability + stronger contrast
+      const x = leftPad + col * colWidth
+      let text = `${label} ${value}`
+      if (narrow) {
+        const maxW = colWidth - 6
+        const full = text
+        while (text.length > 2 && ctx.measureText(text + '…').width > maxW) text = text.slice(0, -1)
+        if (text.length < full.length) text = text + '…'
+      }
       const pulse = 0.9 + 0.1 * Math.sin(Date.now() / 600)
       ctx.globalAlpha = pulse
       ctx.shadowColor = 'rgba(0, 0, 0, 0.9)'
@@ -638,15 +784,11 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
       ctx.shadowOffsetX = 0.5
       ctx.shadowOffsetY = 0.5
       ctx.fillStyle = color
-      ctx.fillText(`${label} ${value}`, x, y)
+      ctx.fillText(text, x, y)
       ctx.shadowBlur = 0
       ctx.globalAlpha = 1
-      
       col++
-      if (col >= cols) {
-        col = 0
-        row++
-      }
+      if (col >= cols) { col = 0; row++ }
     }
 
     // Enhanced scoreboard with better visual hierarchy
@@ -665,6 +807,16 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     placeItem('♥ HP', healthValue + '%', healthColor)
 
     placeItem('⭐ STARS', state.coins.toLocaleString(), '#ffd700')
+
+    // Player ship health bar (full-width, bottom of scoreboard)
+    const hpBarY = topMargin + barH - healthBarHeight
+    ctx.fillStyle = 'rgba(30, 30, 40, 0.95)'
+    ctx.fillRect(2, hpBarY + 1, cw - 4, healthBarHeight - 2)
+    ctx.fillStyle = healthColor
+    ctx.fillRect(2, hpBarY + 1, Math.max(0, (cw - 4) * (healthValue / 100)), healthBarHeight - 2)
+    ctx.strokeStyle = 'rgba(78, 205, 196, 0.6)'
+    ctx.lineWidth = 1
+    ctx.strokeRect(2, hpBarY + 1, cw - 4, healthBarHeight - 2)
 
     // Row 2: Kills, Wave, Combo, Accuracy
     placeItem('🎯 KILLS', (state.currentKills || 0).toLocaleString(), '#00ffff')
@@ -696,12 +848,21 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     const accColor = accuracy >= 75 ? '#00ff00' : accuracy >= 50 ? '#ffff00' : '#ff6b6b'
     placeItem('🎯 ACC', accuracy + '%', accColor)
     
-    // Row 3: Weapon (or Missile Salvo when active)
+    // Row 3: Weapon, Missile Salvo, or Shield when active
     const salvoActive = (state.missileSalvoTimer || 0) > 0
-    const wpn = salvoActive
-      ? `Salvo ${Math.ceil(state.missileSalvoTimer / 1000)}s`
-      : state.currentWeapon.charAt(0).toUpperCase() + state.currentWeapon.slice(1).toLowerCase()
-    placeItem('⚔ WPN', wpn, salvoActive ? '#ff6600' : '#00ff99')
+    const shieldActive = state.shield && (state.shieldTimer || 0) > 0
+    let wpn, wpnColor
+    if (salvoActive) {
+      wpn = `Salvo ${Math.ceil(state.missileSalvoTimer / 1000)}s`
+      wpnColor = '#ff6600'
+    } else if (shieldActive) {
+      wpn = `Shield ${Math.ceil(state.shieldTimer / 1000)}s`
+      wpnColor = '#00c8ff'
+    } else {
+      wpn = state.currentWeapon.charAt(0).toUpperCase() + state.currentWeapon.slice(1).toLowerCase()
+      wpnColor = '#00ff99'
+    }
+    placeItem('⚔ WPN', wpn, wpnColor)
     
     // Row 4: FPS
     const fpsColor = state.fps >= 55 ? '#00ff00' : state.fps >= 30 ? '#ffff00' : '#ff6b6b'
@@ -764,7 +925,8 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
       const bossType = bossTypes[Math.floor(effectiveWave / 3) % bossTypes.length]
       
       const bossBaseHealth = effectiveWave <= 5 ? 20 + effectiveWave * 3 : 35 + (effectiveWave - 5) * 5 + (effectiveWave - 5) * (effectiveWave - 5) * 2
-      const bossHealth = Math.round(bossBaseHealth * difficultyModifier())
+      const bossHealth = Math.round(bossBaseHealth * difficultyModifier() * 2.2)
+      const armorHits = 6 + Math.min(18, effectiveWave * 2)
       
       const spriteIndex = (effectiveWave - 1) % 7
       const bossSpeed = 1.8 + effectiveWave * 0.12
@@ -775,6 +937,8 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
         height: 80,
         health: bossHealth,
         maxHealth: bossHealth,
+        armorHits,
+        armorHitsMax: armorHits,
         speed: bossSpeed,
         type: bossType,
         spriteIndex,
@@ -1120,13 +1284,12 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
           const luckMultiplier = upgradeEffects.luckBoost
           const baseCoinChance = 0.35
           const baseHealthChance = 0.08
-          const baseShieldChance = 0.07
+          const baseShieldChance = 0.11
           const baseDamageChance = 0.06
           
-          // Adjust probabilities with luck boost (more power-ups, fewer weapons)
           const coinChance = Math.min(0.5, baseCoinChance * luckMultiplier)
           const healthChance = Math.min(0.15, baseHealthChance * luckMultiplier)
-          const shieldChance = Math.min(0.12, baseShieldChance * luckMultiplier)
+          const shieldChance = Math.min(0.16, baseShieldChance * luckMultiplier)
           const damageChance = Math.min(0.10, baseDamageChance * luckMultiplier)
           const missileSalvoChance = Math.min(0.08, 0.05 * luckMultiplier)
           
@@ -2287,6 +2450,69 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
       .forEach((index) => {
         state.bullets.splice(index, 1)
       })
+    // Player missiles vs boss (same armor logic as bullets)
+    if (state.boss && state.missiles && state.missiles.length > 0) {
+      const mw = 6
+      const mh = 12
+      for (let mi = 0; mi < state.missiles.length; mi++) {
+        const m = state.missiles[mi]
+        if (m.owner !== 'player') continue
+        if (
+          m.x < state.boss.x + state.boss.width && m.x + mw > state.boss.x &&
+          m.y < state.boss.y + state.boss.height && m.y + mh > state.boss.y
+        ) {
+          if (!missilesToRemove.includes(mi)) missilesToRemove.push(mi)
+          const armor = state.boss.armorHits ?? 0
+          if (armor > 0) {
+            state.boss.armorHits = armor - 1
+            addScreenShake(state, 0.8)
+            createExplosion(state, m.x + mw / 2, m.y + mh / 2, 'small')
+          } else {
+            let dmg = Math.max(4, Math.round((state.damageMul || 1) * 3))
+            if (state.boss.shieldActive) dmg = Math.max(1, Math.floor(dmg * 0.5))
+            state.boss.health -= dmg
+            addScreenShake(state, 2)
+            createExplosion(state, m.x + mw / 2, m.y + mh / 2, 'medium')
+          }
+          if (state.boss.health <= 0) {
+            state.bossDefeated = true
+            createExplosion(state, state.boss.x + state.boss.width / 2, state.boss.y + state.boss.height / 2, 'large')
+            addScreenShake(state, 5)
+            playSound('bossSpawn', 0.5)
+            if (!currentMission || currentMission.mutator !== 'noPowerups') {
+              for (let j = 0; j < 5; j++) {
+                if (!state.powerUps) state.powerUps = []
+                state.powerUps.push({
+                  x: state.boss.x + Math.random() * state.boss.width,
+                  y: state.boss.y,
+                  type: 'coin',
+                  width: 12,
+                  height: 12,
+                  vy: -3 + Math.random() * 2,
+                })
+              }
+            }
+            if (currentMission && currentMission.mutator === 'doubleBossMinions') {
+              for (let j = 0; j < 3; j++) {
+                if (!state.enemies) state.enemies = []
+                state.enemies.push({
+                  x: state.boss.x + Math.random() * state.boss.width,
+                  y: state.boss.y,
+                  type: 'basic',
+                  health: 1,
+                  width: 30,
+                  height: 30,
+                  speed: 1 + Math.random(),
+                })
+              }
+            }
+            state.boss = null
+          }
+          break
+        }
+      }
+    }
+
     missilesToRemove
       .sort((a, b) => b - a)
       .forEach((index) => {
@@ -2651,15 +2877,20 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
           bullet.y < state.boss.y + state.boss.height &&
           bullet.y + bulletHeight > state.boss.y
         ) {
-          // Hit the boss (Type2 shield: 50% damage reduction)
-          let dmg = Math.max(3, Math.round(state.damageMul || 1) * 2)
-          if (state.boss.shieldActive) dmg = Math.max(1, Math.floor(dmg * 0.5))
-          state.boss.health -= dmg
-          
           if (!bullet.pierce) bulletsToRemoveBoss.push(i)
           
-          addScreenShake(state, 2)
-          createExplosion(state, bullet.x, bullet.y, 'medium')
+          const armor = state.boss.armorHits ?? 0
+          if (armor > 0) {
+            state.boss.armorHits = armor - 1
+            addScreenShake(state, 0.8)
+            createExplosion(state, bullet.x, bullet.y, 'small')
+          } else {
+            let dmg = Math.max(3, Math.round(state.damageMul || 1) * 2)
+            if (state.boss.shieldActive) dmg = Math.max(1, Math.floor(dmg * 0.5))
+            state.boss.health -= dmg
+            addScreenShake(state, 2)
+            createExplosion(state, bullet.x, bullet.y, 'medium')
+          }
           
           if (state.boss.health <= 0) {
             // Boss defeated!
@@ -3013,6 +3244,10 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     if (state.missileSalvoTimer > 0) {
       state.missileSalvoTimer = Math.max(0, state.missileSalvoTimer - state.deltaTime)
     }
+    if (state.shieldTimer > 0) {
+      state.shieldTimer = Math.max(0, state.shieldTimer - state.deltaTime)
+      if (state.shieldTimer <= 0) state.shield = false
+    }
     const salvoActive = state.missileSalvoTimer > 0
     const salvoRate = 400
     const baseFireRate = state.rapidFire ? 100 : 200
@@ -3103,6 +3338,22 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
       ctx.shadowBlur = 0
     }
     
+    const armor = boss.armorHits ?? 0
+    if (armor > 0) {
+      ctx.fillStyle = 'rgba(80, 80, 120, 0.9)'
+      ctx.fillRect(boss.x, boss.y - 24, boss.width, 6)
+      const armorPct = armor / (boss.armorHitsMax ?? armor)
+      ctx.fillStyle = '#8899ff'
+      ctx.fillRect(boss.x, boss.y - 24, boss.width * Math.min(1, armorPct), 6)
+      ctx.strokeStyle = '#aaccff'
+      ctx.lineWidth = 1
+      ctx.strokeRect(boss.x, boss.y - 24, boss.width, 6)
+      ctx.fillStyle = '#aaccff'
+      ctx.font = 'bold 10px Arial'
+      ctx.textAlign = 'center'
+      ctx.fillText(`ARMOR ${armor}`, boss.x + boss.width / 2, boss.y - 28)
+    }
+    
     // Health bar
     ctx.fillStyle = 'rgba(50, 50, 50, 0.8)'
     ctx.fillRect(boss.x, boss.y - 15, boss.width, 8)
@@ -3166,16 +3417,28 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
       shakeY = (Math.random() - 0.5) * state.shakeIntensity * 2
     }
 
-    ctx.fillStyle = '#000'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-    
-    // Initialize starfield if not yet initialized
-    if (!state.stars || state.stars.length === 0) {
-      state.stars = initStarfield(canvas)
+    const environment = getEnvironment(state.wave)
+    state.environment = environment
+    const prevEnv = state.prevEnvironment
+    if (prevEnv !== environment) {
+      state.prevEnvironment = environment
+      state.stars = []
+      state.snow = []
+      state.sand = []
     }
-    
-    // Draw animated starfield
-    drawStarfield(ctx, canvas, state.stars)
+    if (environment === 'space') {
+      drawSpaceBackground(ctx, canvas)
+      if (!state.stars || state.stars.length === 0) state.stars = initStarfield(canvas)
+      drawStarfield(ctx, canvas, state.stars)
+    } else if (environment === 'winter') {
+      drawWinterBackground(ctx, canvas)
+      if (!state.snow || state.snow.length === 0) state.snow = initSnow(canvas)
+      drawSnow(ctx, canvas, state.snow)
+    } else {
+      drawDesertBackground(ctx, canvas)
+      if (!state.sand || state.sand.length === 0) state.sand = initSand(canvas)
+      drawSand(ctx, canvas, state.sand)
+    }
     
     ctx.save()
     ctx.translate(shakeX, shakeY)
@@ -3385,23 +3648,14 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
 
     const isMobileDevice = typeof window !== 'undefined' && (window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 900)
 
+    const isMobileView = canvas.width < 520
+
     const handleKeyDown = (e) => {
       state.keys[e.key] = true
-      
-      // Pause game with P or Escape
-      if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
-        togglePause()
-      }
-      
-      // Save game with S
-      if (e.key === 's' || e.key === 'S') {
-        saveGameState()
-      }
-      
-      // Load game with L
-      if (e.key === 'l' || e.key === 'L') {
-        loadGameState()
-      }
+      if (isMobileView) return
+      if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') togglePause()
+      if (e.key === 's' || e.key === 'S') saveGameState()
+      if (e.key === 'l' || e.key === 'L') loadGameState()
     }
     const handleKeyUp = (e) => {
       state.keys[e.key] = false
@@ -3415,31 +3669,28 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
       const canvas = canvasRef.current
       if (!canvas) return
       
-      // Start music on first touch (user gesture required for autoplay)
       if (!state.musicStarted) {
         playGameplayMusic()
         state.musicStarted = true
-        // Also ensure it's playing after a brief delay
-        setTimeout(() => {
-          ensureMusicPlaying()
-        }, 100)
+        setTimeout(() => ensureMusicPlaying(), 100)
       } else {
-        // Ensure music stays playing on subsequent touches
         ensureMusicPlaying()
       }
       
       const rect = canvas.getBoundingClientRect()
       const touchX = touch.clientX - rect.left
       const touchY = touch.clientY - rect.top
+      const canvasY = (touchY / rect.height) * canvas.height
+      const scoreboardH = getScoreboardHeight(canvas)
+      const isMobile = canvas.width < 520
+      const inScoreboard = isMobile && canvasY < scoreboardH
       
-      // Direct position mapping: touch position maps to player position (full 2D control)
+      if (inScoreboard) return
+      
       const playerX = (touchX / rect.width) * canvas.width
       const playerY = (touchY / rect.height) * canvas.height
-      // Keep player within screen bounds - match keyboard controls
       state.player.x = Math.max(20, Math.min(canvas.width - state.player.width - 20, playerX))
       state.player.y = Math.max(50, Math.min(canvas.height - state.player.height - 20, playerY))
-      
-      // Enable rapid fire on touch
       state.keys[' '] = true
     }
 
@@ -3453,15 +3704,17 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
       const rect = canvas.getBoundingClientRect()
       const touchX = touch.clientX - rect.left
       const touchY = touch.clientY - rect.top
+      const canvasY = (touchY / rect.height) * canvas.height
+      const scoreboardH = getScoreboardHeight(canvas)
+      const isMobile = canvas.width < 520
+      const inScoreboard = isMobile && canvasY < scoreboardH
       
-      // Continuous movement - directly follow touch position with smooth mapping (full 2D)
+      if (inScoreboard) return
+      
       const playerX = (touchX / rect.width) * canvas.width
       const playerY = (touchY / rect.height) * canvas.height
-      // Keep player within screen bounds - match keyboard controls
       state.player.x = Math.max(20, Math.min(canvas.width - state.player.width - 20, playerX))
       state.player.y = Math.max(50, Math.min(canvas.height - state.player.height - 20, playerY))
-      
-      // Keep firing while moving
       state.keys[' '] = true
     }
 

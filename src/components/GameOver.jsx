@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { getHighScores, saveScore, getPersonalBest } from '../utils/scoreTracking'
+import { saveCloudScore } from '../utils/cloudScores'
 import './GameOver.css'
 
 function GameOver({ score, onRestart, onMenu, wave, level, kills, combo }) {
@@ -11,20 +12,24 @@ function GameOver({ score, onRestart, onMenu, wave, level, kills, combo }) {
   useEffect(() => {
     // Prevent duplicate score saving - only save once per component mount
     if (hasSavedScore.current) return
-    
+
+    const name = typeof window !== 'undefined' ? (localStorage.getItem('playerName') || 'Player') : 'Player'
+
     // Check previous best BEFORE saving to ensure correct "NEW RECORD" logic
     const previousBest = getPersonalBest()
     setPersonalBest(previousBest)
     const newRecord = score > previousBest
     setIsNewRecord(newRecord)
 
-    // Save the score after capturing previous best
-    saveScore(score)
+    // Save the score (name, score, wave, level)
+    saveScore(name, score, wave, level)
     hasSavedScore.current = true
+
+    saveCloudScore(score, name).catch(() => {})
 
     // Load top scores
     setHighScores(getHighScores())
-  }, [score])
+  }, [score, wave, level])
 
   return (
     <div className="game-over-overlay">
@@ -89,7 +94,7 @@ function GameOver({ score, onRestart, onMenu, wave, level, kills, combo }) {
                 
                 // Safe score formatting
                 const displayScore = (scoreEntry.score || 0).toLocaleString()
-                const entryKey = `${scoreEntry.timestamp || index}-${scoreEntry.score || 0}`
+                const entryKey = `${scoreEntry.date ?? scoreEntry.timestamp ?? index}-${scoreEntry.score ?? 0}`
                 
                 return (
                   <div

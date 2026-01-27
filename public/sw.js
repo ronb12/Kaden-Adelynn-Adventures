@@ -1,6 +1,6 @@
 // Service Worker for PWA offline support
-// Version: 16 - Make UI more compact to maximize gameplay area
-const CACHE_VERSION = 'v16'
+// Version: 17 - Music from root paths; audio network-only to fix loading
+const CACHE_VERSION = 'v17'
 const CACHE_NAME = `space-adventures-${CACHE_VERSION}`
 const RUNTIME_CACHE = `runtime-cache-${CACHE_VERSION}`
 
@@ -88,9 +88,17 @@ self.addEventListener('fetch', (event) => {
   const isCSS = url.pathname.endsWith('.css')
   const isManifest = url.pathname.endsWith('manifest.json')
   const isSW = url.pathname.endsWith('sw.js')
+  const isAudio = /\.(mp3|ogg|wav|m4a)$/i.test(url.pathname) ||
+    url.pathname.startsWith('/music/') || url.pathname.startsWith('/sfx/')
 
   // Always fetch service worker and manifest from network (no cache)
   if (isSW || isManifest) {
+    event.respondWith(fetch(event.request))
+    return
+  }
+
+  // Network-only for audio: avoid caching HTML (SPA fallback) as audio
+  if (isAudio) {
     event.respondWith(fetch(event.request))
     return
   }

@@ -6,11 +6,8 @@ let soundEnabled = true
 let audioContext = null
 let sfxUnlocked = false
 
-// Sound effect cache
+// One Audio per type; reuse never clone (avoids WebMediaPlayer limit crbug.com/1144736)
 const soundCache = new Map()
-
-// Preloaded audio elements
-const preloadedSounds = {}
 
 // Sound file paths
 const SOUND_FILES = {
@@ -263,38 +260,29 @@ const synthesizeSound = (type, volume = 1) => {
   }
 }
 
-// Try to play sound file, fallback to synthesis
+// Play from file using a single reused Audio per type (no cloneNode – prevents WebMediaPlayer limit)
 const playFromFile = (type, volume) => {
   const path = SOUND_FILES[type]
   if (!path) {
     synthesizeSound(type, volume)
     return
   }
-  
-  // Check cache first
+
   let audio = soundCache.get(type)
-  
   if (!audio) {
     audio = new Audio(path)
     audio.playsInline = true
     audio.crossOrigin = 'anonymous'
     audio.onerror = () => {
-      // Fallback to synthesized sound
       soundCache.delete(type)
       synthesizeSound(type, volume)
     }
     soundCache.set(type, audio)
   }
-  
-  // Clone for overlapping sounds
-  const clone = audio.cloneNode()
-  clone.playsInline = true
-  clone.crossOrigin = 'anonymous'
-  clone.volume = volume * soundVolume
-  clone.play().catch(() => {
-    // Fallback to synthesis if file play fails
-    synthesizeSound(type, volume)
-  })
+
+  audio.volume = volume * soundVolume
+  audio.currentTime = 0
+  audio.play().catch(() => synthesizeSound(type, volume))
 }
 
 // Explicit unlock for mobile/touch autoplay policies
@@ -315,7 +303,6 @@ export const ensureSfxUnlocked = () => {
     osc.start()
     osc.stop(ctx.currentTime + 0.01)
   }
-  preloadSounds()
   sfxUnlocked = true
 }
 
@@ -341,13 +328,3 @@ export const setSoundEnabled = (enabled) => {
 }
 
 export const isSoundEnabled = () => soundEnabled
-
-// Preload common sounds
-export const preloadSounds = () => {
-  Object.entries(SOUND_FILES).forEach(([type, path]) => {
-    const audio = new Audio()
-    audio.preload = 'auto'
-    audio.src = path
-    preloadedSounds[type] = audio
-  })
-}

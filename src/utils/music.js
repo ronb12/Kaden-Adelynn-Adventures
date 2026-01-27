@@ -9,11 +9,11 @@ let isInitialized = false
 let audioContext = null
 let hasUserGesture = false
 
-// Track sources
+// Track sources (root-level paths; /music/* can 404 behind SPA rewrites)
 const TRACKS = {
-  gameplay: '/music/gameplay.mp3',
-  boss: '/music/boss.mp3',
-  menu: '/music/menu.mp3',
+  gameplay: '/gameplay.mp3',
+  boss: '/boss.mp3',
+  menu: '/menu.mp3',
 }
 
 // Set flag on first user interaction
@@ -107,43 +107,36 @@ const initAudio = () => {
   }
 }
 
-// Create and configure audio element
-const createAudioElement = (src) => {
-  const audio = new Audio(src)
-  audio.volume = musicVolume
-  audio.loop = true // CRITICAL: Enable looping so music never stops
-  audio.preload = 'auto'
-  
-  // Handle errors with logging for debugging
-  audio.onerror = (e) => {
-    console.error('Music loading error:', src, e)
+// Single reused Audio element (avoids WebMediaPlayer limit crbug.com/1144736)
+let musicAudioEl = null
+
+const getMusicAudio = () => {
+  if (musicAudioEl) return musicAudioEl
+  musicAudioEl = new Audio()
+  musicAudioEl.loop = true
+  musicAudioEl.preload = 'auto'
+  musicAudioEl.onerror = (e) => {
+    console.error('Music loading error:', musicAudioEl?.src, e)
   }
-  
-  // Log when music loads successfully
-  audio.oncanplaythrough = () => {
-    console.log('Music loaded successfully:', src)
+  musicAudioEl.oncanplaythrough = () => {
+    console.log('Music loaded successfully:', musicAudioEl?.src)
   }
-  
-  // Add multiple event listeners to ensure looping
-  audio.addEventListener('ended', () => {
-    if (audio.loop) {
-      audio.currentTime = 0
-      audio.play().catch((err) => console.warn('Auto-restart failed:', err))
+  musicAudioEl.addEventListener('ended', () => {
+    if (musicAudioEl?.loop) {
+      musicAudioEl.currentTime = 0
+      musicAudioEl.play().catch(() => {})
     }
   })
-  
-  // Monitor and restart if paused unexpectedly
-  audio.addEventListener('pause', () => {
-    if (currentMusic === audio && currentTrack) {
+  musicAudioEl.addEventListener('pause', () => {
+    if (currentMusic === musicAudioEl && currentTrack) {
       setTimeout(() => {
-        if (currentMusic === audio && audio.paused) {
-          audio.play().catch((err) => console.warn('Unpause failed:', err))
+        if (currentMusic === musicAudioEl && musicAudioEl.paused) {
+          musicAudioEl.play().catch(() => {})
         }
       }, 100)
     }
   })
-  
-  return audio
+  return musicAudioEl
 }
 
 // Play a specific music track
@@ -169,35 +162,27 @@ const playTrack = (trackName) => {
     return
   }
   
-  // We have user gesture, safe to create and play
-  // Stop current music if playing
-  if (currentMusic) {
-    currentMusic.pause()
-    currentMusic.currentTime = 0
-    currentMusic = null
-  }
-  
-  // Create AudioContext if needed
+  // Reuse single Audio element; switch src when changing track
+  const audio = getMusicAudio()
+  audio.pause()
+  audio.currentTime = 0
+  audio.volume = musicVolume
+  audio.src = src
+  currentMusic = audio
+  currentTrack = trackName
+  pendingTrack = null
+
   if (!audioContext) {
     try {
       audioContext = new (window.AudioContext || window.webkitAudioContext)()
-      console.log('AudioContext created')
     } catch (e) {
       console.error('AudioContext creation failed:', e)
     }
   }
-  
-  // Try to initialize/resume audio context
   initAudio()
-  
-  // Create new audio element
-  currentMusic = createAudioElement(src)
-  currentTrack = trackName
-  pendingTrack = null
-  
+
   console.log('Starting playback:', trackName)
-  
-  // Play with promise handling
+
   const playPromise = currentMusic.play()
   if (playPromise !== undefined) {
     playPromise

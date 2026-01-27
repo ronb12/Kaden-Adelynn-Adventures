@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { getHighScores, getMergedTopScores, getPersonalBest } from '../utils/scoreTracking'
-import { fetchPlayerRank } from '../utils/cloudScores'
+import { getHighScores, getPersonalBest } from '../utils/scoreTracking'
+import { fetchTopScores, fetchPlayerRank } from '../utils/cloudScores'
 import './TopScores.css'
 
 function TopScores({ onClose }) {
@@ -18,12 +18,11 @@ function TopScores({ onClose }) {
 
   const handleRefreshCloud = async () => {
     setIsLoading(true)
+    setActiveTab('cloud')
     try {
-      const global = await getMergedTopScores()
-      setGlobalScores(global)
-      setActiveTab('cloud')
-      
-      // Calculate player's rank
+      const cloud = await fetchTopScores(100)
+      setGlobalScores(cloud || [])
+
       const personalBest = getPersonalBest()
       if (personalBest > 0 && playerName) {
         const rank = await fetchPlayerRank(playerName, personalBest)
@@ -31,6 +30,7 @@ function TopScores({ onClose }) {
       }
     } catch (error) {
       console.error('Error fetching cloud scores:', error)
+      setGlobalScores([])
     } finally {
       setIsLoading(false)
     }
@@ -46,10 +46,12 @@ function TopScores({ onClose }) {
     return String(score || 0).padStart(8, '0')
   }
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A'
+  const formatDate = (dateInput) => {
+    if (dateInput == null) return 'N/A'
     try {
-      const date = new Date(dateString)
+      const date = typeof dateInput?.toDate === 'function'
+        ? dateInput.toDate()
+        : new Date(dateInput)
       if (isNaN(date.getTime())) return 'N/A'
       return date.toLocaleDateString()
     } catch {
@@ -111,7 +113,7 @@ function TopScores({ onClose }) {
                       <div className="rank-col">
                         <span className="rank-number">{String(index + 1).padStart(2, '0')}</span>
                       </div>
-                      <div className="player-col">{score.player || 'Player'}</div>
+                      <div className="player-col">{score.name || score.player || 'Player'}</div>
                       <div className="score-col">{formatScore(score.score)}</div>
                       <div className="date-col">{formatDate(score.date || score.timestamp)}</div>
                     </div>
@@ -160,7 +162,7 @@ function TopScores({ onClose }) {
                           {isCurrentPlayer && <span className="player-badge"> (You)</span>}
                         </div>
                         <div className="score-col">{formatScore(score.score)}</div>
-                        <div className="date-col">{formatDate(score.date || score.timestamp)}</div>
+                        <div className="date-col">{formatDate(score.createdAt || score.date || score.timestamp)}</div>
                       </div>
                     )
                   })}

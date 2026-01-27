@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { getCoins, addCoins } from '../utils/wallet'
+import { useState, useEffect, useRef } from 'react'
+import { getCoins } from '../utils/wallet'
 import { playMenuMusic, playGameplayMusic, stopMenuMusic, forceUserGesture } from '../utils/music'
 import './MainMenu.css'
 
@@ -8,6 +8,10 @@ function MainMenu({ onStartGame, onOpenShips, onOpenCharacters, onOpenScores, on
   const [selectedShip, setSelectedShip] = useState(() => localStorage.getItem('selectedShip') || 'kaden')
   const [selectedCharacter, setSelectedCharacter] = useState(() => localStorage.getItem('selectedCharacter') || 'kaden')
   const [showSettings, setShowSettings] = useState(false)
+  const [openDropdown, setOpenDropdown] = useState(null)
+  const [showFeatures, setShowFeatures] = useState(false)
+  const dropdownRef = useRef(null)
+  const legalRef = useRef(null)
   const [playerName, setPlayerName] = useState(() => localStorage.getItem('playerName') || 'Player')
   const [coins, setCoins] = useState(() => getCoins())
   const [toast, setToast] = useState('')
@@ -61,6 +65,18 @@ function MainMenu({ onStartGame, onOpenShips, onOpenCharacters, onOpenScores, on
   useEffect(() => {
     localStorage.setItem('controllerDeadzone', controllerDeadzone.toString())
   }, [controllerDeadzone])
+
+  useEffect(() => {
+    const close = (e) => {
+      const inMain = dropdownRef.current?.contains(e.target)
+      const inLegal = legalRef.current?.contains(e.target)
+      if (!inMain && !inLegal) setOpenDropdown(null)
+    }
+    if (openDropdown) {
+      document.addEventListener('click', close, true)
+      return () => document.removeEventListener('click', close, true)
+    }
+  }, [openDropdown])
 
   useEffect(() => {
     // Try to start menu music immediately
@@ -117,6 +133,9 @@ function MainMenu({ onStartGame, onOpenShips, onOpenCharacters, onOpenScores, on
   return (
     <div className="main-menu">
       <div className="menu-container glass">
+        <div className="menu-app-icon">
+          <img src="/app-icon-ios.png" alt="Kaden & Adelynn Space Adventures" />
+        </div>
         <h1 className="game-title">
           <span className="title-emoji">🌟</span>
           <span className="title-text">
@@ -142,17 +161,6 @@ function MainMenu({ onStartGame, onOpenShips, onOpenCharacters, onOpenScores, on
                 <span className="coin-icon">⭐</span>
                 <span className="coin-amount">{coins.toLocaleString()}</span>
               </div>
-            <button
-                className="coin-add-button"
-              onClick={() => {
-                addCoins(100)
-                setCoins(getCoins())
-              }}
-                title="Earn stars by playing! Defeat enemies and complete waves to collect stars."
-            >
-                <span className="coin-add-icon">+</span>
-                <span className="coin-add-amount">100</span>
-            </button>
             </div>
             <div className="wallet-hint">
               💡 Earn stars by playing • Spend in the Store
@@ -180,92 +188,6 @@ function MainMenu({ onStartGame, onOpenShips, onOpenCharacters, onOpenScores, on
           </button>
         </div>
 
-        <div className="button-row centered">
-          <button className="settings-button compact" onClick={onOpenShips}>
-            <span className="ship-icon">🚀</span> Choose Ship
-          </button>
-          <button className="settings-button compact" onClick={onOpenCharacters}>
-            <span className="character-icon">🧑‍🚀</span> Choose Character
-          </button>
-          <button className="settings-button compact" onClick={onOpenScores}>
-            <span className="trophy-icon">🏆</span> Top Scores
-          </button>
-        </div>
-
-        <div className="button-row centered">
-          <button className="settings-button compact smaller" onClick={onOpenStats}>
-            <span className="stats-icon">📊</span> Statistics
-          </button>
-          <button className="settings-button compact smaller" onClick={onOpenSaveLoad}>
-            <span className="save-icon">💾</span> Save/Load
-          </button>
-          <button className="settings-button compact smaller" onClick={onOpenWeaponUpgrades}>
-            <span className="upgrade-icon">⚔️</span> Upgrades
-          </button>
-          <button className="settings-button compact smaller" onClick={onOpenCustomization}>
-            <span className="custom-icon">🎨</span> Customize
-          </button>
-        </div>
-
-        <div className="button-row centered">
-          <button className="settings-button compact smaller" onClick={onOpenDailyVault}>
-            <span className="vault-icon">🗓️</span> Daily Vault
-          </button>
-          <button className="settings-button compact smaller" onClick={onOpenChallengeLadder}>
-            <span className="ladder-icon">🏁</span> Challenge Ladder
-          </button>
-          <button className="settings-button compact smaller" onClick={onOpenSeasonTrack}>
-            <span className="season-icon">📅</span> Season Track
-          </button>
-          <button className="settings-button compact smaller" onClick={onOpenMissions}>
-            <span className="mission-icon">🎯</span> Missions
-          </button>
-          <button className="settings-button compact smaller" onClick={onOpenLeagues}>
-            <span className="league-icon">🏆</span> Leagues
-          </button>
-        </div>
-
-        <div className="menu-section">
-          <h3>🗓️ Daily Challenge</h3>
-          <div className="daily-challenge-container">
-            <div className="challenge-active">
-              <span className="challenge-label">Active:</span>
-              <span className="challenge-name">{challengeLabel}</span>
-            </div>
-            <div className="challenge-description">
-              {challengeIdx === 0 && '⚡ Enemies spawn 20% faster and move 20% faster'}
-              {challengeIdx === 1 && '🌌 Reduced gravity affects enemy movement patterns'}
-              {challengeIdx === 2 && '✨ Powerups spawn at double the normal rate'}
-            </div>
-            <div className="challenge-controls">
-            <button
-              className="settings-button small"
-              onClick={() => {
-                const next = (challengeIdx + 1) % 3
-                localStorage.setItem('challengeOverride', String(next))
-                setToast('Daily Challenge cycled')
-                setTimeout(() => setToast(''), 1200)
-              }}
-            >
-              Cycle
-            </button>
-            <button
-              className="settings-button small"
-              onClick={() => {
-                localStorage.removeItem('challengeOverride')
-                setToast('Daily Challenge reset')
-                setTimeout(() => setToast(''), 1200)
-              }}
-            >
-              Reset
-            </button>
-            </div>
-            <div className="challenge-info">
-              <small>3 Daily Challenges rotate automatically each day</small>
-            </div>
-          </div>
-        </div>
-
         <div className="menu-section">
           <h3>Difficulty</h3>
           <div className="difficulty-selector">
@@ -290,15 +212,66 @@ function MainMenu({ onStartGame, onOpenShips, onOpenCharacters, onOpenScores, on
           </div>
         </div>
 
-        <button className="start-button" onClick={() => {
-          // Navigate to character select for custom game
-          onOpenCharacters()
-        }}>
-          🎮 Custom Game
-        </button>
+        <div className="menu-dropdowns" ref={dropdownRef}>
+          <div className="menu-dropdown-wrap">
+            <button
+              className={`menu-dropdown-trigger ${openDropdown === 'customize' ? 'open' : ''}`}
+              onClick={() => setOpenDropdown(openDropdown === 'customize' ? null : 'customize')}
+            >
+              🎨 Customize <span className="dropdown-chevron">▾</span>
+            </button>
+            {openDropdown === 'customize' && (
+              <div className="menu-dropdown-panel">
+                <button className="menu-dropdown-item" onClick={() => { onOpenShips(); setOpenDropdown(null); }}>🚀 Choose Ship</button>
+                <button className="menu-dropdown-item" onClick={() => { onOpenCharacters(); setOpenDropdown(null); }}>🧑‍🚀 Choose Character</button>
+                <button className="menu-dropdown-item" onClick={() => { onOpenWeaponUpgrades(); setOpenDropdown(null); }}>⚔️ Upgrades</button>
+                <button className="menu-dropdown-item" onClick={() => { onOpenCustomization(); setOpenDropdown(null); }}>🎨 Customize</button>
+              </div>
+            )}
+          </div>
+          <div className="menu-dropdown-wrap">
+            <button
+              className={`menu-dropdown-trigger ${openDropdown === 'progress' ? 'open' : ''}`}
+              onClick={() => setOpenDropdown(openDropdown === 'progress' ? null : 'progress')}
+            >
+              📊 Progress <span className="dropdown-chevron">▾</span>
+            </button>
+            {openDropdown === 'progress' && (
+              <div className="menu-dropdown-panel">
+                <button className="menu-dropdown-item" onClick={() => { onOpenScores(); setOpenDropdown(null); }}>🏆 Top Scores</button>
+                <button className="menu-dropdown-item" onClick={() => { onOpenStats(); setOpenDropdown(null); }}>📊 Statistics</button>
+                <button className="menu-dropdown-item" onClick={() => { onOpenSaveLoad(); setOpenDropdown(null); }}>💾 Save/Load</button>
+                <button className="menu-dropdown-item" onClick={() => { onOpenMissions(); setOpenDropdown(null); }}>🎯 Missions</button>
+              </div>
+            )}
+          </div>
+          <div className="menu-dropdown-wrap">
+            <button
+              className={`menu-dropdown-trigger ${openDropdown === 'challenges' ? 'open' : ''}`}
+              onClick={() => setOpenDropdown(openDropdown === 'challenges' ? null : 'challenges')}
+            >
+              🏁 Challenges <span className="dropdown-chevron">▾</span>
+            </button>
+            {openDropdown === 'challenges' && (
+              <div className="menu-dropdown-panel">
+                <button className="menu-dropdown-item" onClick={() => { onOpenDailyVault(); setOpenDropdown(null); }}>🗓️ Daily Vault</button>
+                <button className="menu-dropdown-item" onClick={() => { onOpenChallengeLadder(); setOpenDropdown(null); }}>🏁 Challenge Ladder</button>
+                <button className="menu-dropdown-item" onClick={() => { onOpenSeasonTrack(); setOpenDropdown(null); }}>📅 Season Track</button>
+                <button className="menu-dropdown-item" onClick={() => { onOpenLeagues(); setOpenDropdown(null); }}>🏆 Leagues</button>
+                <div className="menu-dropdown-daily">
+                  <span className="daily-label">Today: {challengeLabel}</span>
+                  <div className="daily-actions">
+                    <button type="button" className="menu-dropdown-item small" onClick={() => { const next = (challengeIdx + 1) % 3; localStorage.setItem('challengeOverride', String(next)); setToast('Challenge cycled'); setTimeout(() => setToast(''), 1200); }}>Cycle</button>
+                    <button type="button" className="menu-dropdown-item small" onClick={() => { localStorage.removeItem('challengeOverride'); setToast('Challenge reset'); setTimeout(() => setToast(''), 1200); }}>Reset</button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
 
         <div className="button-row">
-          <button className="settings-button" onClick={() => setShowSettings(!showSettings)}>
+          <button className="settings-button" onClick={() => { setShowSettings(!showSettings); setOpenDropdown(null); }}>
             ⚙️ Settings
           </button>
         </div>
@@ -418,27 +391,40 @@ function MainMenu({ onStartGame, onOpenShips, onOpenCharacters, onOpenScores, on
 
 
         <div className="game-features">
-          <h4>🌟 Key Features</h4>
-          <ul>
-            <li>25 Lives System</li>
-            <li>15+ Weapon Types</li>
-            <li>Boss Battles</li>
-            <li>Achievements</li>
-            <li>Combo System</li>
-            <li>Power-ups and Upgrades</li>
-            <li>Ship and Character Unlocks</li>
-            <li>Store with Star Economy</li>
-          </ul>
+          <button type="button" className="game-features-toggle" onClick={() => setShowFeatures(!showFeatures)}>
+            🌟 Key Features <span className="dropdown-chevron">{showFeatures ? '▴' : '▾'}</span>
+          </button>
+          {showFeatures && (
+            <ul className="game-features-list">
+              <li>25 Lives System</li>
+              <li>15+ Weapon Types</li>
+              <li>Boss Battles</li>
+              <li>Achievements</li>
+              <li>Combo System</li>
+              <li>Power-ups and Upgrades</li>
+              <li>Ship and Character Unlocks</li>
+              <li>Store with Star Economy</li>
+            </ul>
+          )}
         </div>
 
         <div className="menu-footer">
-          <div className="footer-buttons">
-            <button className="settings-button compact footer-button" onClick={onOpenTerms}>
-              📜 Terms of Service
-            </button>
-            <button className="settings-button compact footer-button" onClick={onOpenPrivacy}>
-              🔒 Privacy Policy
-            </button>
+          <div className="footer-buttons" ref={legalRef}>
+            <div className="menu-dropdown-wrap footer-dropdown">
+              <button
+                type="button"
+                className={`menu-dropdown-trigger footer-trigger ${openDropdown === 'legal' ? 'open' : ''}`}
+                onClick={() => setOpenDropdown(openDropdown === 'legal' ? null : 'legal')}
+              >
+                📜 Legal <span className="dropdown-chevron">▾</span>
+              </button>
+              {openDropdown === 'legal' && (
+                <div className="menu-dropdown-panel footer-panel">
+                  <button type="button" className="menu-dropdown-item" onClick={() => { onOpenTerms(); setOpenDropdown(null); }}>Terms of Service</button>
+                  <button type="button" className="menu-dropdown-item" onClick={() => { onOpenPrivacy(); setOpenDropdown(null); }}>Privacy Policy</button>
+                </div>
+              )}
+            </div>
           </div>
           <div className="footer-copyright">
             © {new Date().getFullYear()} Bradley Virtual Solutions, LLC. All rights reserved.

@@ -22,6 +22,20 @@
   max-height: 100%;
 }
 
+@media (max-width: 520px) {
+  .game-container {
+    touch-action: none;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: auto;
+  }
+  .game-container canvas {
+    touch-action: none;
+  }
+  .controls-hint {
+    display: none !important;
+  }
+}
+
 /* Pause button positioning */
 .pause-button {
   position: fixed !important;
