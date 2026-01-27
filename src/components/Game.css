@@ -1,16 +1,21 @@
 .game-container {
-  width: 100vw;
-  height: 100vh;
+  /* Fit any iOS/Android screen: safe-area insets + dynamic viewport (--vh fixes iOS address bar) */
   position: fixed;
   top: 0;
   left: 0;
+  right: 0;
+  width: 100%;
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
+  min-height: 100dvh; /* dynamic viewport where supported (iOS 15.4+, Android) */
+  padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+  box-sizing: border-box;
   background: #000;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   margin: 0;
-  padding: 0;
 }
 
 .game-canvas {
@@ -36,11 +41,11 @@
   }
 }
 
-/* Pause button positioning */
+/* Pause button positioning — respect safe areas (notch, home indicator) */
 .pause-button {
   position: fixed !important;
-  top: 14px !important;
-  right: 14px !important;
+  top: calc(14px + env(safe-area-inset-top, 0)) !important;
+  right: calc(14px + env(safe-area-inset-right, 0)) !important;
 }
 
 /* Responsive text sizing for mobile */
@@ -57,7 +62,7 @@
 /* Mobile vertical orientation - adjust pause button */
 @media (max-width: 520px) and (orientation: portrait) {
   .pause-button {
-    top: 80px !important;
+    top: calc(80px + env(safe-area-inset-top, 0)) !important;
   }
 }
 
@@ -67,7 +72,7 @@
   }
   
   .pause-button {
-    top: 80px !important;
+    top: calc(80px + env(safe-area-inset-top, 0)) !important;
     padding: 6px 10px !important;
     font-size: 0.85rem !important;
   }

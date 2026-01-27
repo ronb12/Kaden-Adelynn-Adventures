@@ -4,6 +4,7 @@ import { playGameplayMusic, ensureMusicPlaying } from '../utils/music'
 import { saveSaveSlot, loadSaveSlot } from '../utils/firebaseData'
 import { getUpgradeEffects } from '../utils/upgrades'
 import { storyModeManager, MissionObjectiveType } from '../utils/storyModeModels'
+import { getLevelObjective, LevelObjectiveType } from '../utils/levelObjectives'
 import './Game.css'
 
 function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onReturnToMenu, mission, runMode }) {
@@ -48,6 +49,9 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
       ? currentMission.objectives.map(obj => ({ ...obj, progress: 0, isCompleted: false }))
       : []
   )
+
+  // Quick Play: unique objective per level (1–100)
+  const levelObjectiveRef = useRef(null)
   
   const gameStateRef = useRef({
     player: { x: 400, y: 550, width: 40, height: 40 },
@@ -107,6 +111,13 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     missionNoDamageDuration: 0,
     bossDefeated: false,
     missionCompleted: false,
+    levelStartKills: 0,
+    levelStartStars: 0,
+    levelStartTime: Date.now(),
+    levelStartShotsFired: 0,
+    levelStartShotsHit: 0,
+    maxComboThisLevel: 0,
+    levelNoDamageStartTime: null,
   })
 
   const [score, setScore] = useState(0)
@@ -904,6 +915,37 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
         ctx.shadowBlur = 0
       })
     }
+
+    // Level objective (Quick Play) - single objective per level, below scoreboard
+    if (!isStoryMode && levelObjectiveRef.current) {
+      const obj = levelObjectiveRef.current
+      ctx.font = `bold ${fontSize - 1}px "Courier New"`
+      const objY = topMargin + barH + 4
+      const objBoxWidth = cw - 20
+      const objBoxX = 10
+      const compactLineHeight = lineHeight - 3
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.85)'
+      ctx.fillRect(objBoxX, objY, objBoxWidth, compactLineHeight + 6)
+      ctx.strokeStyle = '#4ecdc4'
+      ctx.lineWidth = 1
+      ctx.strokeRect(objBoxX, objY, objBoxWidth, compactLineHeight + 6)
+      const y = objY + 8
+      const status = obj.isCompleted ? '✓' : '○'
+      const statusColor = obj.isCompleted ? '#00ff00' : '#ffff00'
+      const progressText = obj.type === LevelObjectiveType.ACCURACY
+        ? `${obj.progress}%`
+        : `${obj.progress}/${obj.target}`
+      const objText = `${status} L${state.wave} ${obj.description}: ${progressText}`
+      const textMetrics = ctx.measureText(objText)
+      const textX = objBoxX + (objBoxWidth / 2) - (textMetrics.width / 2)
+      ctx.fillStyle = statusColor
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.9)'
+      ctx.shadowBlur = 4
+      ctx.shadowOffsetX = 0.5
+      ctx.shadowOffsetY = 0.5
+      ctx.fillText(objText, textX, y)
+      ctx.shadowBlur = 0
+    }
   }
 
   const spawnBoss = (state) => {
@@ -1675,6 +1717,72 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
           onReturnToMenu()
         }
       }, 3000)
+    }
+  }
+
+  // Update Quick Play level objective (unique per level 1–100)
+  const updateLevelObjective = (state) => {
+    if (isStoryMode) return
+    if (!levelObjectiveRef.current) {
+      const o = getLevelObjective(state.wave || 1)
+      if (o) levelObjectiveRef.current = { ...o, progress: 0, isCompleted: false }
+      return
+    }
+    const obj = levelObjectiveRef.current
+    if (obj.isCompleted) return
+
+    const now = Date.now()
+    const maxHealth = Math.floor(100 * getUpgradeEffects().maxHealthMultiplier)
+    state.maxComboThisLevel = Math.max(state.maxComboThisLevel || 0, comboRef.current)
+
+    if (state.levelNoDamageStartTime != null && healthRef.current < maxHealth) {
+      state.levelNoDamageStartTime = null
+    }
+    if (healthRef.current >= maxHealth && state.levelNoDamageStartTime == null) {
+      state.levelNoDamageStartTime = now
+    }
+
+    const levelKills = (state.currentKills || 0) - (state.levelStartKills || 0)
+    const levelStars = (state.coins || 0) - (state.levelStartStars || 0)
+    const levelTime = (now - (state.levelStartTime || now)) / 1000
+    const levelShotsFired = (state.shotsFired || 0) - (state.levelStartShotsFired || 0)
+    const levelShotsHit = (state.shotsHit || 0) - (state.levelStartShotsHit || 0)
+    const levelAccuracy = levelShotsFired > 0 ? Math.round((levelShotsHit / levelShotsFired) * 100) : 0
+    const noDamageSec = state.levelNoDamageStartTime
+      ? Math.floor((now - state.levelNoDamageStartTime) / 1000)
+      : 0
+
+    switch (obj.type) {
+      case LevelObjectiveType.KILL_ENEMIES:
+        obj.progress = levelKills
+        break
+      case LevelObjectiveType.COLLECT_STARS:
+        obj.progress = levelStars
+        break
+      case LevelObjectiveType.COMBO:
+        obj.progress = state.maxComboThisLevel || 0
+        break
+      case LevelObjectiveType.SURVIVE:
+        obj.progress = Math.floor(levelTime)
+        break
+      case LevelObjectiveType.ACCURACY:
+        obj.progress = levelAccuracy
+        break
+      case LevelObjectiveType.NO_DAMAGE:
+        obj.progress = noDamageSec
+        break
+      case LevelObjectiveType.DEFEAT_BOSS:
+        obj.progress = state.bossDefeated ? 1 : 0
+        break
+      default:
+        break
+    }
+
+    if (obj.progress >= obj.target) {
+      obj.isCompleted = true
+      playSound('level-complete', 0.3)
+      setToast(`✓ ${obj.description}`)
+      setTimeout(() => setToast(''), 2000)
     }
   }
 
@@ -2538,6 +2646,18 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
         setLevel(newLevel)
         state.showWaveAnnouncement = true
         state.waveStartTime = Date.now()
+        state.levelStartKills = kills
+        state.levelStartStars = state.coins || 0
+        state.levelStartTime = Date.now()
+        state.levelStartShotsFired = state.shotsFired || 0
+        state.levelStartShotsHit = state.shotsHit || 0
+        state.maxComboThisLevel = 0
+        state.levelNoDamageStartTime = null
+        state.bossDefeated = false
+        if (!isStoryMode) {
+          const obj = getLevelObjective(newLevel)
+          levelObjectiveRef.current = obj ? { ...obj, progress: 0, isCompleted: false } : null
+        }
         playSound('levelUp', 0.4)
       }
     }
@@ -3474,6 +3594,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
       updateParticles(state)
       updateComboEffects(state)
       updateMissionObjectives(state)
+      updateLevelObjective(state)
       checkCollisions(state)
     }
 
@@ -3589,6 +3710,18 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
         comboRef.current = 0
         state.comboMultiplier = 1.0
         state.lastComboKill = null
+        state.lastWaveMilestone = Math.max(0, lvl - 1)
+        if (!isStoryMode) {
+          state.levelStartKills = state.currentKills || 0
+          state.levelStartStars = state.coins || 0
+          state.levelStartTime = Date.now()
+          state.levelStartShotsFired = state.shotsFired || 0
+          state.levelStartShotsHit = state.shotsHit || 0
+          state.maxComboThisLevel = 0
+          state.levelNoDamageStartTime = null
+          const o = getLevelObjective(lvl)
+          levelObjectiveRef.current = o ? { ...o, progress: 0, isCompleted: false } : null
+        }
         setToast('📁 Game Loaded from Cloud!')
         setTimeout(() => setToast(''), 3000)
         console.log('✅ Game loaded successfully!', saveData)
@@ -3629,8 +3762,11 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     state.player.x = canvas.width / 2 - state.player.width / 2
     state.player.y = canvas.height - 100
 
-    // Update on window resize
     window.addEventListener('resize', resizeCanvas)
+    const onOrientationChange = () => {
+      setTimeout(resizeCanvas, 100)
+    }
+    window.addEventListener('orientationchange', onOrientationChange)
 
     // Unlock SFX on first user interaction (mobile autoplay policies)
     const unlock = () => ensureSfxUnlocked()
@@ -3740,6 +3876,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
       canvas.removeEventListener('touchmove', handleTouchMove)
       canvas.removeEventListener('touchend', handleTouchEnd)
       window.removeEventListener('resize', resizeCanvas)
+      window.removeEventListener('orientationchange', onOrientationChange)
       timeoutRefs.current.forEach(clearTimeout)
     }
   }, [])
@@ -3759,7 +3896,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
   }, [wave, level])
 
   return (
-    <div className='game-container' style={{ width: '100vw', height: '100vh', display: 'flex', overflow: 'hidden', margin: 0, padding: 0 }}>
+    <div className='game-container'>
       <canvas ref={canvasRef} style={{ display: 'block', flex: 1 }} />
       {paused && (
         <div className='pause-overlay'>
