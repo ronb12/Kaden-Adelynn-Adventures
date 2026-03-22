@@ -943,144 +943,183 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
       ctx.shadowBlur = 0
     }
 
+    // ── Helper: clip text to fit within maxWidth ─────────────────────────
+    const clipText = (text, maxW) => {
+      if (ctx.measureText(text).width <= maxW) return text
+      let t = text
+      while (t.length > 1 && ctx.measureText(t + '…').width > maxW) t = t.slice(0, -1)
+      return t + '…'
+    }
+
     // ── MOBILE layout (3 cols × 2 rows) ───────────────────────────────────
     if (isMobile) {
-      const col3 = cw / 3
-      const lSz = 8   // label font
-      const vSz = 13  // value font
-      const row1Y = panelY + 7   // label baseline
-      const row2Y = panelY + 44  // label baseline
+      const colW = cw / 3          // width of each of the 3 columns
+      const lSz  = 8               // label font size
+      const vSz  = 12              // value font size
+      const PAD  = 5               // inner left pad per column
+      const row1Y = panelY + 6    // label top baseline
+      const row2Y = panelY + 40   // label top baseline row 2
+      const maxTxt = colW - PAD * 2   // max text width per column
 
-      // Row 1: SCORE | LIVES | LEVEL
-      drawStat(6,          row1Y, 'SCORE', currentScore.toLocaleString(), '#ffd700', lSz, vSz, 'rgba(255,200,0,0.5)')
-
-      const livesStr = lives > 5 ? `${lives} UP` : '♥'.repeat(Math.min(lives, 5)) || '0'
-      const livesW = ctx.measureText(livesStr).width
-      drawStat(col3 * 1.5 - livesW / 2, row1Y, '', '', '#ff6b6b', lSz, vSz)
+      // ── Row 1: SCORE (left) | LIVES (center) | LEVEL (right) ──────────
+      // SCORE
       ctx.font = `${lSz}px Arial`
       ctx.fillStyle = 'rgba(160,185,220,0.70)'
-      const lvlLbl = 'LIVES'
-      ctx.fillText(lvlLbl, col3 * 1.5 - ctx.measureText(lvlLbl).width / 2, row1Y)
+      ctx.fillText('SCORE', colW * 0 + PAD, row1Y + lSz)
+      ctx.font = `bold ${vSz}px Arial`
+      ctx.fillStyle = '#ffd700'
+      ctx.shadowBlur = 6; ctx.shadowColor = 'rgba(255,200,0,0.5)'
+      ctx.fillText(clipText(currentScore.toLocaleString(), maxTxt), colW * 0 + PAD, row1Y + lSz + vSz + 2)
+      ctx.shadowBlur = 0
+
+      // LIVES – centered in col 1
+      const livesStr = lives > 5 ? `${lives} UP` : '♥'.repeat(Math.min(lives, 5)) || '0'
+      ctx.font = `${lSz}px Arial`
+      ctx.fillStyle = 'rgba(160,185,220,0.70)'
+      const lLblX = colW * 1 + (colW - ctx.measureText('LIVES').width) / 2
+      ctx.fillText('LIVES', lLblX, row1Y + lSz)
       ctx.font = `bold ${vSz}px Arial`
       ctx.fillStyle = '#ff6b6b'
-      ctx.fillText(livesStr, col3 * 1.5 - livesW / 2, row1Y + vSz + 2)
+      const lValX = colW * 1 + (colW - ctx.measureText(livesStr).width) / 2
+      ctx.fillText(livesStr, lValX, row1Y + lSz + vSz + 2)
 
+      // LEVEL – right-aligned in col 2
       const levelStr = `${state.wave}/100`
       const wavePulse = 0.85 + 0.15 * Math.sin(now / 600)
       ctx.globalAlpha = wavePulse
-      const lvlValW = ctx.measureText(levelStr).width
       ctx.font = `${lSz}px Arial`
       ctx.fillStyle = 'rgba(160,185,220,0.70)'
-      const llbl = 'LEVEL'
-      ctx.fillText(llbl, cw - 6 - Math.max(lvlValW, ctx.measureText(llbl).width), row1Y)
+      ctx.fillText('LEVEL', colW * 2 + PAD, row1Y + lSz)
       ctx.font = `bold ${vSz}px Arial`
       ctx.fillStyle = '#cc88ff'
-      ctx.shadowBlur = 6; ctx.shadowColor = 'rgba(180,80,255,0.5)'
-      ctx.fillText(levelStr, cw - 6 - lvlValW, row1Y + vSz + 2)
-      ctx.shadowBlur = 0
-      ctx.globalAlpha = 1
+      ctx.shadowBlur = 5; ctx.shadowColor = 'rgba(180,80,255,0.5)'
+      ctx.fillText(clipText(levelStr, maxTxt), colW * 2 + PAD, row1Y + lSz + vSz + 2)
+      ctx.shadowBlur = 0; ctx.globalAlpha = 1
 
-      // Row 2: KILLS | COMBO | WEAPON
-      drawStat(6, row2Y, 'KILLS', currentKills.toLocaleString(), '#44ddff', lSz, vSz, 'rgba(40,200,255,0.4)')
+      // ── Row 2: KILLS (left) | COMBO (center) | WEAPON (right) ─────────
+      // KILLS
+      drawStat(colW * 0 + PAD, row2Y + lSz, 'KILLS', clipText(currentKills.toLocaleString(), maxTxt), '#44ddff', lSz, vSz, 'rgba(40,200,255,0.4)')
 
+      // COMBO – centered
       const comboStr = currentCombo > 0 ? `${currentCombo}x` : '--'
       const comboPulse = currentCombo >= 5 ? (0.72 + 0.28 * Math.sin(now / 80)) : 1
       ctx.globalAlpha = comboPulse
-      const comboW = (() => { ctx.font = `bold ${vSz}px Arial`; return ctx.measureText(comboStr).width })()
       ctx.font = `${lSz}px Arial`
       ctx.fillStyle = 'rgba(160,185,220,0.70)'
-      const cLbl = 'COMBO'
-      ctx.fillText(cLbl, col3 * 1.5 - ctx.measureText(cLbl).width / 2, row2Y)
+      const cLblX = colW * 1 + (colW - ctx.measureText('COMBO').width) / 2
+      ctx.fillText('COMBO', cLblX, row2Y + lSz)
       ctx.font = `bold ${vSz}px Arial`
-      ctx.fillStyle = currentCombo > 0 ? comboColor : '#555'
-      if (currentCombo >= 5) { ctx.shadowBlur = 10; ctx.shadowColor = comboColor }
-      ctx.fillText(comboStr, col3 * 1.5 - comboW / 2, row2Y + vSz + 2)
-      ctx.shadowBlur = 0
-      ctx.globalAlpha = 1
+      ctx.fillStyle = currentCombo > 0 ? comboColor : '#555555'
+      if (currentCombo >= 5) { ctx.shadowBlur = 8; ctx.shadowColor = comboColor }
+      const cValX = colW * 1 + (colW - ctx.measureText(comboStr).width) / 2
+      ctx.fillText(comboStr, cValX, row2Y + lSz + vSz + 2)
+      ctx.shadowBlur = 0; ctx.globalAlpha = 1
 
-      // Weapon right-aligned
-      const wpnShort = wpnLabel.length > 8 ? wpnLabel.slice(0, 8) : wpnLabel
-      ctx.font = `bold ${vSz}px Arial`
-      const wpnW = ctx.measureText(wpnShort).width
+      // WEAPON
+      const wpnShort = clipText(wpnLabel, maxTxt)
       ctx.font = `${lSz}px Arial`
-      const wLbl = 'WEAPON'
-      const wLblW = ctx.measureText(wLbl).width
       ctx.fillStyle = 'rgba(160,185,220,0.70)'
-      ctx.fillText(wLbl, cw - 6 - Math.max(wpnW, wLblW), row2Y)
+      ctx.fillText('WEAPON', colW * 2 + PAD, row2Y + lSz)
       ctx.font = `bold ${vSz}px Arial`
       ctx.fillStyle = wpnColor
-      ctx.fillText(wpnShort, cw - 6 - wpnW, row2Y + vSz + 2)
+      ctx.fillText(wpnShort, colW * 2 + PAD, row2Y + lSz + vSz + 2)
 
     // ── DESKTOP layout (4 cols × 2 rows) ─────────────────────────────────
     } else {
-      const colW = cw / 4
-      const lSz  = 9
-      const vSz  = 14
-      const sBig = 20   // big score font
-      const row1Y = panelY + 8
-      const row2Y = panelY + 50
+      const colW  = cw / 4         // exact quarter-width columns
+      const PAD   = 10             // inner left pad per column
+      const lSz   = 9             // label font
+      const vSz   = 13            // value font (consistent)
+      // Score font: scale to fit within one column minus padding & gutter
+      const maxScoreW = colW - PAD - 8
+      const sBig  = Math.min(17, Math.max(12, Math.floor(maxScoreW / 8.5)))
+      const row1Y = panelY + 6
+      const row2Y = panelY + 48
+      const maxTxt = colW - PAD - 6   // max text width per column
 
-      // ── Row 1: SCORE (big) | LIVES | LEVEL | WEAPON ──────────────────
-      // Score – prominent gold with glow
+      // Column x-anchors
+      const c0 = colW * 0 + PAD
+      const c1 = colW * 1 + PAD
+      const c2 = colW * 2 + PAD
+      const c3 = colW * 3 + PAD
+
+      // ── Row 1: SCORE | LIVES | LEVEL | WEAPON ────────────────────────
+      // SCORE
       ctx.font = `${lSz}px Arial`
       ctx.fillStyle = 'rgba(160,185,220,0.70)'
-      ctx.fillText('SCORE', 10, row1Y + 10)
+      ctx.fillText('SCORE', c0, row1Y + lSz)
       ctx.font = `bold ${sBig}px Arial`
       ctx.fillStyle = '#ffd700'
       ctx.shadowBlur = 10; ctx.shadowColor = 'rgba(255,200,0,0.55)'
-      ctx.fillText(currentScore.toLocaleString(), 10, row1Y + 10 + sBig)
+      ctx.fillText(clipText(currentScore.toLocaleString(), maxScoreW), c0, row1Y + lSz + sBig + 2)
       ctx.shadowBlur = 0
 
-      // Lives
-      const livesStr = lives > 6 ? `x${lives} ♥` : '♥'.repeat(Math.min(lives, 6)) || '0'
-      drawStat(colW + 10, row1Y + 10, 'LIVES', livesStr, '#ff6b6b', lSz, vSz)
+      // Thin vertical divider between columns
+      const divColor = 'rgba(80,100,180,0.25)'
+      ctx.strokeStyle = divColor; ctx.lineWidth = 1
+      ;[colW, colW * 2, colW * 3].forEach(dx => {
+        ctx.beginPath(); ctx.moveTo(dx, panelY + 4); ctx.lineTo(dx, panelY + panelH - 18); ctx.stroke()
+      })
 
-      // Level – pulsing purple
+      // LIVES
+      const livesStr = lives > 7 ? `x${lives} ♥` : '♥'.repeat(Math.min(lives, 7)) || '0'
+      ctx.font = `${lSz}px Arial`
+      ctx.fillStyle = 'rgba(160,185,220,0.70)'
+      ctx.fillText('LIVES', c1, row1Y + lSz)
+      ctx.font = `bold ${vSz}px Arial`
+      ctx.fillStyle = '#ff6b6b'
+      ctx.fillText(clipText(livesStr, maxTxt), c1, row1Y + lSz + vSz + 2)
+
+      // LEVEL
       const wavePulse = 0.85 + 0.15 * Math.sin(now / 600)
       ctx.globalAlpha = wavePulse
       ctx.font = `${lSz}px Arial`
       ctx.fillStyle = 'rgba(160,185,220,0.70)'
-      ctx.fillText('LEVEL', colW * 2 + 10, row1Y + 10)
+      ctx.fillText('LEVEL', c2, row1Y + lSz)
       ctx.font = `bold ${vSz}px Arial`
       ctx.fillStyle = '#cc88ff'
-      ctx.shadowBlur = 8; ctx.shadowColor = 'rgba(180,80,255,0.5)'
-      ctx.fillText(`${state.wave} / 100`, colW * 2 + 10, row1Y + 10 + vSz + 2)
-      ctx.shadowBlur = 0
-      ctx.globalAlpha = 1
+      ctx.shadowBlur = 7; ctx.shadowColor = 'rgba(180,80,255,0.5)'
+      ctx.fillText(clipText(`${state.wave} / 100`, maxTxt), c2, row1Y + lSz + vSz + 2)
+      ctx.shadowBlur = 0; ctx.globalAlpha = 1
 
-      // Weapon
-      drawStat(colW * 3 + 10, row1Y + 10, 'WEAPON', wpnLabel, wpnColor, lSz, vSz)
+      // WEAPON
+      ctx.font = `${lSz}px Arial`
+      ctx.fillStyle = 'rgba(160,185,220,0.70)'
+      ctx.fillText('WEAPON', c3, row1Y + lSz)
+      ctx.font = `bold ${vSz}px Arial`
+      ctx.fillStyle = wpnColor
+      ctx.fillText(clipText(wpnLabel, maxTxt), c3, row1Y + lSz + vSz + 2)
 
       // ── Row 2: KILLS | COMBO | ACCURACY | FPS ────────────────────────
-      drawStat(10, row2Y, 'KILLS', currentKills.toLocaleString(), '#44ddff', lSz, vSz, 'rgba(40,200,255,0.4)')
+      // KILLS
+      drawStat(c0, row2Y + lSz, 'KILLS', clipText(currentKills.toLocaleString(), maxTxt), '#44ddff', lSz, vSz, 'rgba(40,200,255,0.4)')
 
-      // Combo
+      // COMBO
       const comboStr = currentCombo > 0
-        ? `${currentCombo}x  ×${(state.comboMultiplier || 1).toFixed(1)}`
+        ? `${currentCombo}x ×${(state.comboMultiplier || 1).toFixed(1)}`
         : '--'
       const comboPulse = currentCombo >= 5 ? (0.72 + 0.28 * Math.sin(now / 80)) : 1
       ctx.globalAlpha = comboPulse
       ctx.font = `${lSz}px Arial`
       ctx.fillStyle = 'rgba(160,185,220,0.70)'
-      ctx.fillText('COMBO', colW + 10, row2Y)
+      ctx.fillText('COMBO', c1, row2Y + lSz)
       ctx.font = `bold ${vSz}px Arial`
-      ctx.fillStyle = currentCombo > 0 ? comboColor : '#555'
-      if (currentCombo >= 5) { ctx.shadowBlur = 12; ctx.shadowColor = comboColor }
-      ctx.fillText(comboStr, colW + 10, row2Y + vSz + 2)
-      ctx.shadowBlur = 0
-      ctx.globalAlpha = 1
+      ctx.fillStyle = currentCombo > 0 ? comboColor : '#555555'
+      if (currentCombo >= 5) { ctx.shadowBlur = 10; ctx.shadowColor = comboColor }
+      ctx.fillText(clipText(comboStr, maxTxt), c1, row2Y + lSz + vSz + 2)
+      ctx.shadowBlur = 0; ctx.globalAlpha = 1
 
-      // Accuracy
-      drawStat(colW * 2 + 10, row2Y, 'ACCURACY', `${accuracy}%`, accColor, lSz, vSz)
+      // ACCURACY
+      drawStat(c2, row2Y + lSz, 'ACCURACY', `${accuracy}%`, accColor, lSz, vSz)
 
-      // FPS – smaller, subtle
+      // FPS – subtle
       ctx.font = `${lSz}px Arial`
       ctx.fillStyle = 'rgba(120,140,180,0.55)'
-      ctx.fillText('FPS', colW * 3 + 10, row2Y)
+      ctx.fillText('FPS', c3, row2Y + lSz)
       ctx.font = `bold ${lSz + 1}px Arial`
       ctx.fillStyle = fpsColor
       ctx.globalAlpha = 0.75
-      ctx.fillText(`${state.fps}`, colW * 3 + 10, row2Y + lSz + 3)
+      ctx.fillText(`${state.fps}`, c3, row2Y + lSz * 2 + 3)
       ctx.globalAlpha = 1
     }
 
