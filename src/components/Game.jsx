@@ -820,223 +820,326 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     }
   }
 
+  // Returns total pixel height of the HUD panel (used by touch handlers)
   const getScoreboardHeight = (canvas) => {
     const cw = canvas.width
     const isMobile = cw < 520
-    const narrow = isMobile && cw < 400
-    const lineHeight = narrow ? 14 : isMobile ? 16 : 17
-    const padding = narrow ? 3 : isMobile ? 4 : 6
-    const rows = Math.ceil(10 / (narrow ? 2 : 4))
-    const contentH = padding + rows * lineHeight + 4
-    const healthBarHeight = 6
-    const barH = Math.max(contentH, isMobile ? (narrow ? 78 : 58) : 55) + healthBarHeight
-    const topMargin = isMobile ? 24 : 10
-    return topMargin + barH
+    // topMargin + panelH (2 stat rows + HP bar)
+    return isMobile ? 98 : 96
   }
 
   const drawUI = (ctx, state) => {
     const canvas = canvasRef.current
     if (!canvas) return
     const cw = canvas.width
-    const ch = canvas.height
     const isMobile = cw < 520
-    const narrow = isMobile && cw < 400
-    const cols = narrow ? 2 : 4
-    const lineHeight = narrow ? 14 : isMobile ? 16 : 17
-    const fontSize = narrow ? 9 : isMobile ? 10.5 : 11
-    const padding = narrow ? 3 : isMobile ? 4 : 6
-    const rows = Math.ceil(10 / cols)
-    const contentH = padding + rows * lineHeight + 4
-    const healthBarHeight = 6
-    const barH = Math.max(contentH, isMobile ? (narrow ? 78 : 58) : 55) + healthBarHeight
-    const topMargin = isMobile ? 24 : 10
 
-    // Enhanced scoreboard background with gradient - FULL WIDTH TOP BAR
-    const bgGrad = ctx.createLinearGradient(0, topMargin, 0, topMargin + barH)
-    bgGrad.addColorStop(0, 'rgba(0, 0, 0, 0.9)')
-    bgGrad.addColorStop(1, 'rgba(20, 20, 40, 0.95)')
+    const topMargin = isMobile ? 18 : 8
+    const panelH = isMobile ? 80 : 88
+    const panelY = topMargin
+    const now = Date.now()
+
+    // ── Panel Background ──────────────────────────────────────────────────
+    const bgGrad = ctx.createLinearGradient(0, panelY, 0, panelY + panelH)
+    bgGrad.addColorStop(0, 'rgba(4, 6, 24, 0.97)')
+    bgGrad.addColorStop(1, 'rgba(8, 12, 40, 0.95)')
     ctx.fillStyle = bgGrad
-    ctx.fillRect(0, topMargin, cw, barH)
-    
-    // Top border accent
-    ctx.strokeStyle = '#4ecdc4'
-    ctx.lineWidth = 2
+    ctx.fillRect(0, panelY, cw, panelH)
+
+    // Bottom border glow line
+    const borderGrad = ctx.createLinearGradient(0, 0, cw, 0)
+    borderGrad.addColorStop(0,   'rgba(60, 120, 255, 0)')
+    borderGrad.addColorStop(0.3, 'rgba(80, 140, 255, 0.9)')
+    borderGrad.addColorStop(0.7, 'rgba(80, 140, 255, 0.9)')
+    borderGrad.addColorStop(1,   'rgba(60, 120, 255, 0)')
+    ctx.strokeStyle = borderGrad
+    ctx.lineWidth = 1.5
     ctx.beginPath()
-    ctx.moveTo(0, topMargin + barH)
-    ctx.lineTo(cw, topMargin + barH)
+    ctx.moveTo(0, panelY + panelH)
+    ctx.lineTo(cw, panelY + panelH)
     ctx.stroke()
 
-    ctx.font = `bold ${fontSize}px "Courier New"`
-    let row = 0
-    let col = 0
-    const colWidth = cw / cols
-    const leftPad = narrow ? 64 : isMobile ? 108 : 55
-    
-    const placeItem = (label, value, color) => {
-      const y = topMargin + padding + row * lineHeight
-      const x = leftPad + col * colWidth
-      let text = `${label} ${value}`
-      if (narrow) {
-        const maxW = colWidth - 6
-        const full = text
-        while (text.length > 2 && ctx.measureText(text + '…').width > maxW) text = text.slice(0, -1)
-        if (text.length < full.length) text = text + '…'
-      }
-      const pulse = 0.9 + 0.1 * Math.sin(Date.now() / 600)
-      ctx.globalAlpha = pulse
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.9)'
-      ctx.shadowBlur = 4
-      ctx.shadowOffsetX = 0.5
-      ctx.shadowOffsetY = 0.5
-      ctx.fillStyle = color
-      ctx.fillText(text, x, y)
-      ctx.shadowBlur = 0
-      ctx.globalAlpha = 1
-      col++
-      if (col >= cols) { col = 0; row++ }
-    }
+    // ── Shared values ─────────────────────────────────────────────────────
+    const currentScore  = state.currentScore || score
+    const currentKills  = state.currentKills  || 0
+    const currentCombo  = comboRef.current
+    const lives         = livesRef.current
+    const healthValue   = Math.max(0, Math.min(100, healthRef.current))
+    const accuracy      = state.shotsFired > 0
+                            ? Math.round((state.shotsHit / state.shotsFired) * 100)
+                            : 0
 
-    // Enhanced scoreboard with better visual hierarchy
-    const currentScore = state.currentScore || score
-    
-    // Row 1: Score, Lives, HP, Stars
-    const scorePulse = 0.95 + 0.05 * Math.sin(Date.now() / 800)
-    ctx.globalAlpha = scorePulse
-    placeItem('⭐ SCORE', currentScore.toLocaleString(), '#ffd700')
-    ctx.globalAlpha = 1
-    
-    placeItem('❤ LIVES', livesRef.current, '#ff6b6b')
-    
-    const healthValue = Math.round(Math.max(0, Math.min(100, healthRef.current)))
-    const healthColor = healthValue <= 25 ? '#ff3333' : healthValue <= 50 ? '#ff9900' : '#00ff00'
-    placeItem('♥ HP', healthValue + '%', healthColor)
+    const healthColor = healthValue <= 25 ? '#ff3333'
+                      : healthValue <= 50 ? '#ff8800' : '#00cc66'
+    const healthGlow  = healthValue <= 25 ? 'rgba(255,50,50,0.6)'
+                      : healthValue <= 50 ? 'rgba(255,136,0,0.5)' : 'rgba(0,200,100,0.5)'
+    const accColor    = accuracy >= 75 ? '#44ff88' : accuracy >= 50 ? '#ffee44' : '#ff6b6b'
+    const fpsColor    = state.fps >= 50 ? '#44ff88' : state.fps >= 30 ? '#ffee44' : '#ff6b6b'
+    const comboColor  = currentCombo >= 30 ? '#ff44ff'
+                      : currentCombo >= 20 ? '#ff44aa'
+                      : currentCombo >= 10 ? '#ffd700'
+                      : currentCombo >=  5 ? '#ffee44' : '#ffaa44'
 
-    placeItem('⭐ STARS', state.coins.toLocaleString(), '#ffd700')
-
-    // Player ship health bar (full-width, bottom of scoreboard)
-    const hpBarY = topMargin + barH - healthBarHeight
-    ctx.fillStyle = 'rgba(30, 30, 40, 0.95)'
-    ctx.fillRect(2, hpBarY + 1, cw - 4, healthBarHeight - 2)
-    ctx.fillStyle = healthColor
-    ctx.fillRect(2, hpBarY + 1, Math.max(0, (cw - 4) * (healthValue / 100)), healthBarHeight - 2)
-    ctx.strokeStyle = 'rgba(78, 205, 196, 0.6)'
-    ctx.lineWidth = 1
-    ctx.strokeRect(2, hpBarY + 1, cw - 4, healthBarHeight - 2)
-
-    // Row 2: Kills, Wave, Combo, Accuracy
-    placeItem('🎯 KILLS', (state.currentKills || 0).toLocaleString(), '#00ffff')
-    
-    // Wave with pulsing effect
-    const wavePulse = 0.9 + 0.1 * Math.sin(Date.now() / 500)
-    ctx.globalAlpha = wavePulse
-    placeItem('LEVEL', `${state.wave} / 100`, '#ff00ff')
-    ctx.globalAlpha = 1
-    
-    // Enhanced combo display with multiplier - shows actual multiplier
-    const currentCombo = comboRef.current
-    if (currentCombo > 0) {
-      const actualMultiplier = state.comboMultiplier || 1.0
-      const pulse = 0.8 + 0.2 * Math.sin(Date.now() / 80)
-      const comboColor = currentCombo >= 30 ? '#ff00ff' : currentCombo >= 20 ? '#ff00aa' : currentCombo >= 10 ? '#ffd700' : currentCombo >= 5 ? '#ffff00' : '#ffaa00'
-      ctx.globalAlpha = pulse
-      ctx.shadowBlur = currentCombo >= 10 ? 12 : 8
-      ctx.shadowColor = comboColor
-      placeItem('⚡ COMBO', `${currentCombo}x (${actualMultiplier.toFixed(1)}x)`, comboColor)
-      ctx.shadowBlur = 0
-      ctx.globalAlpha = 1
-    } else {
-      placeItem('⚡ COMBO', '0x', '#666666')
-    }
-    
-    // Shooting accuracy
-    const accuracy = state.shotsFired > 0 ? Math.round((state.shotsHit / state.shotsFired) * 100) : 0
-    const accColor = accuracy >= 75 ? '#00ff00' : accuracy >= 50 ? '#ffff00' : '#ff6b6b'
-    placeItem('🎯 ACC', accuracy + '%', accColor)
-    
-    // Row 3: Weapon, Missile Salvo, or Shield when active
-    const salvoActive = (state.missileSalvoTimer || 0) > 0
+    // Weapon label
+    const salvoActive  = (state.missileSalvoTimer || 0) > 0
     const shieldActive = state.shield && (state.shieldTimer || 0) > 0
-    let wpn, wpnColor
+    let wpnLabel, wpnColor
     if (salvoActive) {
-      wpn = `Salvo ${Math.ceil(state.missileSalvoTimer / 1000)}s`
-      wpnColor = '#ff6600'
+      wpnLabel = `SALVO ${Math.ceil(state.missileSalvoTimer / 1000)}s`
+      wpnColor  = '#ff6600'
     } else if (shieldActive) {
-      wpn = `Shield ${Math.ceil(state.shieldTimer / 1000)}s`
-      wpnColor = '#00c8ff'
+      wpnLabel = `SHIELD ${Math.ceil(state.shieldTimer / 1000)}s`
+      wpnColor  = '#44ccff'
     } else {
-      wpn = state.currentWeapon.charAt(0).toUpperCase() + state.currentWeapon.slice(1).toLowerCase()
-      wpnColor = '#00ff99'
+      wpnLabel = state.currentWeapon.toUpperCase()
+      wpnColor  = '#44ffcc'
     }
-    placeItem('⚔ WPN', wpn, wpnColor)
-    
-    // Row 4: FPS
-    const fpsColor = state.fps >= 55 ? '#00ff00' : state.fps >= 30 ? '#ffff00' : '#ff6b6b'
-    placeItem('⚙ FPS', state.fps, fpsColor)
-    
-    // Mission Objectives (Story Mode) - positioned below scoreboard, centered, compact
+
+    // ── HP Bar (bottom of panel) ──────────────────────────────────────────
+    const hpBarH = isMobile ? 11 : 13
+    const hpBarY = panelY + panelH - hpBarH - 4
+    const hpFillW = Math.max(0, (cw - 12) * (healthValue / 100))
+
+    // Track
+    ctx.fillStyle = 'rgba(255,255,255,0.07)'
+    ctx.beginPath()
+    if (ctx.roundRect) ctx.roundRect(6, hpBarY, cw - 12, hpBarH, 3)
+    else ctx.rect(6, hpBarY, cw - 12, hpBarH)
+    ctx.fill()
+
+    // Fill
+    if (hpFillW > 0) {
+      const hpGrad = ctx.createLinearGradient(6, 0, 6 + hpFillW, 0)
+      hpGrad.addColorStop(0, healthColor)
+      hpGrad.addColorStop(1, healthValue <= 25 ? '#ff7777'
+                           : healthValue <= 50  ? '#ffcc44' : '#66ffbb')
+      ctx.fillStyle = hpGrad
+      ctx.shadowBlur = 8
+      ctx.shadowColor = healthGlow
+      ctx.beginPath()
+      if (ctx.roundRect) ctx.roundRect(6, hpBarY, hpFillW, hpBarH, 3)
+      else ctx.rect(6, hpBarY, hpFillW, hpBarH)
+      ctx.fill()
+      ctx.shadowBlur = 0
+    }
+
+    // HP label
+    const hpFontSz = isMobile ? 8 : 9
+    ctx.font = `bold ${hpFontSz}px Arial`
+    ctx.fillStyle = 'rgba(255,255,255,0.85)'
+    ctx.shadowBlur = 0
+    ctx.fillText(`HP  ${Math.round(healthValue)}%`, 10, hpBarY + hpBarH - 2)
+
+    // ── Helper: draw one stat card ────────────────────────────────────────
+    const drawStat = (x, y, label, value, valColor, labelSz, valSz, glow) => {
+      ctx.shadowBlur = 0
+      ctx.font = `${labelSz}px Arial`
+      ctx.fillStyle = 'rgba(160, 185, 220, 0.70)'
+      ctx.fillText(label, x, y)
+      ctx.font = `bold ${valSz}px Arial`
+      ctx.fillStyle = valColor
+      if (glow) { ctx.shadowBlur = 10; ctx.shadowColor = glow }
+      ctx.fillText(value, x, y + valSz + 2)
+      ctx.shadowBlur = 0
+    }
+
+    // ── MOBILE layout (3 cols × 2 rows) ───────────────────────────────────
+    if (isMobile) {
+      const col3 = cw / 3
+      const lSz = 8   // label font
+      const vSz = 13  // value font
+      const row1Y = panelY + 7   // label baseline
+      const row2Y = panelY + 44  // label baseline
+
+      // Row 1: SCORE | LIVES | LEVEL
+      drawStat(6,          row1Y, 'SCORE', currentScore.toLocaleString(), '#ffd700', lSz, vSz, 'rgba(255,200,0,0.5)')
+
+      const livesStr = lives > 5 ? `${lives} UP` : '♥'.repeat(Math.min(lives, 5)) || '0'
+      const livesW = ctx.measureText(livesStr).width
+      drawStat(col3 * 1.5 - livesW / 2, row1Y, '', '', '#ff6b6b', lSz, vSz)
+      ctx.font = `${lSz}px Arial`
+      ctx.fillStyle = 'rgba(160,185,220,0.70)'
+      const lvlLbl = 'LIVES'
+      ctx.fillText(lvlLbl, col3 * 1.5 - ctx.measureText(lvlLbl).width / 2, row1Y)
+      ctx.font = `bold ${vSz}px Arial`
+      ctx.fillStyle = '#ff6b6b'
+      ctx.fillText(livesStr, col3 * 1.5 - livesW / 2, row1Y + vSz + 2)
+
+      const levelStr = `${state.wave}/100`
+      const wavePulse = 0.85 + 0.15 * Math.sin(now / 600)
+      ctx.globalAlpha = wavePulse
+      const lvlValW = ctx.measureText(levelStr).width
+      ctx.font = `${lSz}px Arial`
+      ctx.fillStyle = 'rgba(160,185,220,0.70)'
+      const llbl = 'LEVEL'
+      ctx.fillText(llbl, cw - 6 - Math.max(lvlValW, ctx.measureText(llbl).width), row1Y)
+      ctx.font = `bold ${vSz}px Arial`
+      ctx.fillStyle = '#cc88ff'
+      ctx.shadowBlur = 6; ctx.shadowColor = 'rgba(180,80,255,0.5)'
+      ctx.fillText(levelStr, cw - 6 - lvlValW, row1Y + vSz + 2)
+      ctx.shadowBlur = 0
+      ctx.globalAlpha = 1
+
+      // Row 2: KILLS | COMBO | WEAPON
+      drawStat(6, row2Y, 'KILLS', currentKills.toLocaleString(), '#44ddff', lSz, vSz, 'rgba(40,200,255,0.4)')
+
+      const comboStr = currentCombo > 0 ? `${currentCombo}x` : '--'
+      const comboPulse = currentCombo >= 5 ? (0.72 + 0.28 * Math.sin(now / 80)) : 1
+      ctx.globalAlpha = comboPulse
+      const comboW = (() => { ctx.font = `bold ${vSz}px Arial`; return ctx.measureText(comboStr).width })()
+      ctx.font = `${lSz}px Arial`
+      ctx.fillStyle = 'rgba(160,185,220,0.70)'
+      const cLbl = 'COMBO'
+      ctx.fillText(cLbl, col3 * 1.5 - ctx.measureText(cLbl).width / 2, row2Y)
+      ctx.font = `bold ${vSz}px Arial`
+      ctx.fillStyle = currentCombo > 0 ? comboColor : '#555'
+      if (currentCombo >= 5) { ctx.shadowBlur = 10; ctx.shadowColor = comboColor }
+      ctx.fillText(comboStr, col3 * 1.5 - comboW / 2, row2Y + vSz + 2)
+      ctx.shadowBlur = 0
+      ctx.globalAlpha = 1
+
+      // Weapon right-aligned
+      const wpnShort = wpnLabel.length > 8 ? wpnLabel.slice(0, 8) : wpnLabel
+      ctx.font = `bold ${vSz}px Arial`
+      const wpnW = ctx.measureText(wpnShort).width
+      ctx.font = `${lSz}px Arial`
+      const wLbl = 'WEAPON'
+      const wLblW = ctx.measureText(wLbl).width
+      ctx.fillStyle = 'rgba(160,185,220,0.70)'
+      ctx.fillText(wLbl, cw - 6 - Math.max(wpnW, wLblW), row2Y)
+      ctx.font = `bold ${vSz}px Arial`
+      ctx.fillStyle = wpnColor
+      ctx.fillText(wpnShort, cw - 6 - wpnW, row2Y + vSz + 2)
+
+    // ── DESKTOP layout (4 cols × 2 rows) ─────────────────────────────────
+    } else {
+      const colW = cw / 4
+      const lSz  = 9
+      const vSz  = 14
+      const sBig = 20   // big score font
+      const row1Y = panelY + 8
+      const row2Y = panelY + 50
+
+      // ── Row 1: SCORE (big) | LIVES | LEVEL | WEAPON ──────────────────
+      // Score – prominent gold with glow
+      ctx.font = `${lSz}px Arial`
+      ctx.fillStyle = 'rgba(160,185,220,0.70)'
+      ctx.fillText('SCORE', 10, row1Y + 10)
+      ctx.font = `bold ${sBig}px Arial`
+      ctx.fillStyle = '#ffd700'
+      ctx.shadowBlur = 10; ctx.shadowColor = 'rgba(255,200,0,0.55)'
+      ctx.fillText(currentScore.toLocaleString(), 10, row1Y + 10 + sBig)
+      ctx.shadowBlur = 0
+
+      // Lives
+      const livesStr = lives > 6 ? `x${lives} ♥` : '♥'.repeat(Math.min(lives, 6)) || '0'
+      drawStat(colW + 10, row1Y + 10, 'LIVES', livesStr, '#ff6b6b', lSz, vSz)
+
+      // Level – pulsing purple
+      const wavePulse = 0.85 + 0.15 * Math.sin(now / 600)
+      ctx.globalAlpha = wavePulse
+      ctx.font = `${lSz}px Arial`
+      ctx.fillStyle = 'rgba(160,185,220,0.70)'
+      ctx.fillText('LEVEL', colW * 2 + 10, row1Y + 10)
+      ctx.font = `bold ${vSz}px Arial`
+      ctx.fillStyle = '#cc88ff'
+      ctx.shadowBlur = 8; ctx.shadowColor = 'rgba(180,80,255,0.5)'
+      ctx.fillText(`${state.wave} / 100`, colW * 2 + 10, row1Y + 10 + vSz + 2)
+      ctx.shadowBlur = 0
+      ctx.globalAlpha = 1
+
+      // Weapon
+      drawStat(colW * 3 + 10, row1Y + 10, 'WEAPON', wpnLabel, wpnColor, lSz, vSz)
+
+      // ── Row 2: KILLS | COMBO | ACCURACY | FPS ────────────────────────
+      drawStat(10, row2Y, 'KILLS', currentKills.toLocaleString(), '#44ddff', lSz, vSz, 'rgba(40,200,255,0.4)')
+
+      // Combo
+      const comboStr = currentCombo > 0
+        ? `${currentCombo}x  ×${(state.comboMultiplier || 1).toFixed(1)}`
+        : '--'
+      const comboPulse = currentCombo >= 5 ? (0.72 + 0.28 * Math.sin(now / 80)) : 1
+      ctx.globalAlpha = comboPulse
+      ctx.font = `${lSz}px Arial`
+      ctx.fillStyle = 'rgba(160,185,220,0.70)'
+      ctx.fillText('COMBO', colW + 10, row2Y)
+      ctx.font = `bold ${vSz}px Arial`
+      ctx.fillStyle = currentCombo > 0 ? comboColor : '#555'
+      if (currentCombo >= 5) { ctx.shadowBlur = 12; ctx.shadowColor = comboColor }
+      ctx.fillText(comboStr, colW + 10, row2Y + vSz + 2)
+      ctx.shadowBlur = 0
+      ctx.globalAlpha = 1
+
+      // Accuracy
+      drawStat(colW * 2 + 10, row2Y, 'ACCURACY', `${accuracy}%`, accColor, lSz, vSz)
+
+      // FPS – smaller, subtle
+      ctx.font = `${lSz}px Arial`
+      ctx.fillStyle = 'rgba(120,140,180,0.55)'
+      ctx.fillText('FPS', colW * 3 + 10, row2Y)
+      ctx.font = `bold ${lSz + 1}px Arial`
+      ctx.fillStyle = fpsColor
+      ctx.globalAlpha = 0.75
+      ctx.fillText(`${state.fps}`, colW * 3 + 10, row2Y + lSz + 3)
+      ctx.globalAlpha = 1
+    }
+
+    // ── Mission / Level objectives below scoreboard ───────────────────────
+    const hudBottom = topMargin + panelH
+    const objFontSz = isMobile ? 9 : 10
+    const objLineH  = objFontSz + 6
+
     if (isStoryMode && missionObjectivesRef.current && missionObjectivesRef.current.length > 0) {
-      ctx.font = `bold ${fontSize - 1}px "Courier New"`
-      const objY = topMargin + barH + 4 // Reduced spacing from scoreboard
-      const objBoxWidth = cw - 20
-      const objBoxX = 10
-      const compactLineHeight = lineHeight - 3 // More compact line spacing
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.85)'
-      ctx.fillRect(objBoxX, objY, objBoxWidth, missionObjectivesRef.current.length * compactLineHeight + 6)
-      ctx.strokeStyle = '#4ecdc4'
+      ctx.font = `bold ${objFontSz}px Arial`
+      const objBoxH   = missionObjectivesRef.current.length * objLineH + 6
+      const objBoxX   = 10
+      const objBoxW   = cw - 20
+      const objY      = hudBottom + 4
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.80)'
+      ctx.fillRect(objBoxX, objY, objBoxW, objBoxH)
+      ctx.strokeStyle = 'rgba(78, 205, 196, 0.6)'
       ctx.lineWidth = 1
-      ctx.strokeRect(objBoxX, objY, objBoxWidth, missionObjectivesRef.current.length * compactLineHeight + 6)
-      
+      ctx.strokeRect(objBoxX, objY, objBoxW, objBoxH)
+
       missionObjectivesRef.current.forEach((obj, idx) => {
-        const y = objY + 8 + idx * compactLineHeight
+        const y = objY + 8 + idx * objLineH
         const status = obj.isCompleted ? '✓' : '○'
-        const statusColor = obj.isCompleted ? '#00ff00' : '#ffff00'
-        const progressText = obj.type === MissionObjectiveType.ACCURACY 
-          ? `${obj.progress}%` 
+        const statusColor = obj.isCompleted ? '#44ff88' : '#ffee44'
+        const progressText = obj.type === MissionObjectiveType.ACCURACY
+          ? `${obj.progress}%`
           : `${obj.progress}/${obj.target}`
-        
         const objText = `${status} ${obj.description}: ${progressText}`
-        
-        // Center the text horizontally
-        const textMetrics = ctx.measureText(objText)
-        const textX = objBoxX + (objBoxWidth / 2) - (textMetrics.width / 2)
-        
+        const textX = objBoxX + (objBoxW - ctx.measureText(objText).width) / 2
         ctx.fillStyle = statusColor
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)'
+        ctx.shadowColor = 'rgba(0,0,0,0.8)'
         ctx.shadowBlur = 4
-        ctx.shadowOffsetX = 0.5
-        ctx.shadowOffsetY = 0.5
         ctx.fillText(objText, textX, y)
         ctx.shadowBlur = 0
       })
     }
 
-    // Level objective (Quick Play) - single objective per level, below scoreboard
     if (!isStoryMode && levelObjectiveRef.current) {
       const obj = levelObjectiveRef.current
-      ctx.font = `bold ${fontSize - 1}px "Courier New"`
-      const objY = topMargin + barH + 4
-      const objBoxWidth = cw - 20
+      ctx.font = `bold ${objFontSz}px Arial`
       const objBoxX = 10
-      const compactLineHeight = lineHeight - 3
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.85)'
-      ctx.fillRect(objBoxX, objY, objBoxWidth, compactLineHeight + 6)
-      ctx.strokeStyle = '#4ecdc4'
+      const objBoxW = cw - 20
+      const objY    = hudBottom + 4
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.80)'
+      ctx.fillRect(objBoxX, objY, objBoxW, objLineH + 6)
+      ctx.strokeStyle = 'rgba(78, 205, 196, 0.6)'
       ctx.lineWidth = 1
-      ctx.strokeRect(objBoxX, objY, objBoxWidth, compactLineHeight + 6)
+      ctx.strokeRect(objBoxX, objY, objBoxW, objLineH + 6)
       const y = objY + 8
       const status = obj.isCompleted ? '✓' : '○'
-      const statusColor = obj.isCompleted ? '#00ff00' : '#ffff00'
+      const statusColor = obj.isCompleted ? '#44ff88' : '#ffee44'
       const progressText = obj.type === LevelObjectiveType.ACCURACY
         ? `${obj.progress}%`
         : `${obj.progress}/${obj.target}`
-      const objText = `${status} L${state.wave} ${obj.description}: ${progressText}`
-      const textMetrics = ctx.measureText(objText)
-      const textX = objBoxX + (objBoxWidth / 2) - (textMetrics.width / 2)
+      const objText = `${status} L${state.wave}: ${obj.description}  ${progressText}`
+      const textX = objBoxX + (objBoxW - ctx.measureText(objText).width) / 2
       ctx.fillStyle = statusColor
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.9)'
+      ctx.shadowColor = 'rgba(0,0,0,0.8)'
       ctx.shadowBlur = 4
-      ctx.shadowOffsetX = 0.5
-      ctx.shadowOffsetY = 0.5
       ctx.fillText(objText, textX, y)
       ctx.shadowBlur = 0
     }
