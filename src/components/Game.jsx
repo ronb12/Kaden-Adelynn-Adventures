@@ -230,7 +230,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     for (let i = 1; i <= 7; i++) {
       const n = String(i).padStart(2, '0')
       const img = new Image()
-      img.src = `/boss-ships/boss_${n}.png`
+      img.src = `/boss-ships/boss_${n}.png?v=2`
       img.onerror = () => console.warn(`Failed to load boss image: boss_${n}.png`)
       imgs.push(img)
     }
@@ -823,282 +823,203 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
   // Returns total pixel height of the HUD panel (used by touch handlers)
   const getScoreboardHeight = (canvas) => {
     const cw = canvas.width
-    const isMobile = cw < 520
-    // topMargin + panelH (2 stat rows + HP bar)
-    return isMobile ? 98 : 96
+    const isMobile = cw < 600
+    return isMobile ? 116 : 112
   }
 
   const drawUI = (ctx, state) => {
     const canvas = canvasRef.current
     if (!canvas) return
     const cw = canvas.width
-    const isMobile = cw < 520
+    const isMobile = cw < 600
 
-    const topMargin = isMobile ? 18 : 8
-    const panelH = isMobile ? 80 : 88
-    const panelY = topMargin
-    const now = Date.now()
+    const panelY  = 0
+    const panelH  = isMobile ? 116 : 112
+    const now     = Date.now()
 
-    // ── Panel Background ──────────────────────────────────────────────────
-    const bgGrad = ctx.createLinearGradient(0, panelY, 0, panelY + panelH)
-    bgGrad.addColorStop(0, 'rgba(4, 6, 24, 0.97)')
-    bgGrad.addColorStop(1, 'rgba(8, 12, 40, 0.95)')
-    ctx.fillStyle = bgGrad
+    // ── Panel Background — solid dark so text is always readable ─────────
+    ctx.fillStyle = 'rgba(5, 8, 28, 0.96)'
     ctx.fillRect(0, panelY, cw, panelH)
 
-    // Bottom border glow line
+    // Accent line along the bottom
     const borderGrad = ctx.createLinearGradient(0, 0, cw, 0)
-    borderGrad.addColorStop(0,   'rgba(60, 120, 255, 0)')
-    borderGrad.addColorStop(0.3, 'rgba(80, 140, 255, 0.9)')
-    borderGrad.addColorStop(0.7, 'rgba(80, 140, 255, 0.9)')
-    borderGrad.addColorStop(1,   'rgba(60, 120, 255, 0)')
+    borderGrad.addColorStop(0,   'rgba(60,120,255,0)')
+    borderGrad.addColorStop(0.2, 'rgba(80,160,255,0.9)')
+    borderGrad.addColorStop(0.8, 'rgba(80,160,255,0.9)')
+    borderGrad.addColorStop(1,   'rgba(60,120,255,0)')
     ctx.strokeStyle = borderGrad
-    ctx.lineWidth = 1.5
+    ctx.lineWidth = 2
     ctx.beginPath()
-    ctx.moveTo(0, panelY + panelH)
-    ctx.lineTo(cw, panelY + panelH)
+    ctx.moveTo(0, panelH)
+    ctx.lineTo(cw, panelH)
     ctx.stroke()
 
-    // ── Shared values ─────────────────────────────────────────────────────
-    const currentScore  = state.currentScore || score
-    const currentKills  = state.currentKills  || 0
-    const currentCombo  = comboRef.current
-    const lives         = livesRef.current
-    const healthValue   = Math.max(0, Math.min(100, healthRef.current))
-    const accuracy      = state.shotsFired > 0
-                            ? Math.round((state.shotsHit / state.shotsFired) * 100)
-                            : 0
+    // ── Shared game values ────────────────────────────────────────────────
+    const currentScore = state.currentScore || score
+    const currentKills = state.currentKills  || 0
+    const currentCombo = comboRef.current
+    const lives        = livesRef.current
+    const healthValue  = Math.max(0, Math.min(100, healthRef.current))
+    const accuracy     = state.shotsFired > 0
+                           ? Math.round((state.shotsHit / state.shotsFired) * 100) : 0
 
-    const healthColor = healthValue <= 25 ? '#ff3333'
-                      : healthValue <= 50 ? '#ff8800' : '#00cc66'
-    const healthGlow  = healthValue <= 25 ? 'rgba(255,50,50,0.6)'
-                      : healthValue <= 50 ? 'rgba(255,136,0,0.5)' : 'rgba(0,200,100,0.5)'
+    const healthColor = healthValue <= 25 ? '#ff3333' : healthValue <= 50 ? '#ff8800' : '#00dd66'
+    const healthGlow  = healthValue <= 25 ? 'rgba(255,50,50,0.7)'
+                      : healthValue <= 50 ? 'rgba(255,136,0,0.6)' : 'rgba(0,220,100,0.6)'
     const accColor    = accuracy >= 75 ? '#44ff88' : accuracy >= 50 ? '#ffee44' : '#ff6b6b'
     const fpsColor    = state.fps >= 50 ? '#44ff88' : state.fps >= 30 ? '#ffee44' : '#ff6b6b'
-    const comboColor  = currentCombo >= 30 ? '#ff44ff'
-                      : currentCombo >= 20 ? '#ff44aa'
-                      : currentCombo >= 10 ? '#ffd700'
-                      : currentCombo >=  5 ? '#ffee44' : '#ffaa44'
+    const comboColor  = currentCombo >= 30 ? '#ff44ff' : currentCombo >= 20 ? '#ff44aa'
+                      : currentCombo >= 10 ? '#ffd700' : currentCombo >= 5 ? '#ffee44' : '#ffaa44'
 
-    // Weapon label
     const salvoActive  = (state.missileSalvoTimer || 0) > 0
     const shieldActive = state.shield && (state.shieldTimer || 0) > 0
     let wpnLabel, wpnColor
-    if (salvoActive) {
-      wpnLabel = `SALVO ${Math.ceil(state.missileSalvoTimer / 1000)}s`
-      wpnColor  = '#ff6600'
-    } else if (shieldActive) {
-      wpnLabel = `SHIELD ${Math.ceil(state.shieldTimer / 1000)}s`
-      wpnColor  = '#44ccff'
-    } else {
-      wpnLabel = state.currentWeapon.toUpperCase()
-      wpnColor  = '#44ffcc'
-    }
+    if (salvoActive)       { wpnLabel = `SALVO ${Math.ceil(state.missileSalvoTimer/1000)}s`; wpnColor = '#ff8844' }
+    else if (shieldActive) { wpnLabel = `SHIELD ${Math.ceil(state.shieldTimer/1000)}s`;       wpnColor = '#44ccff' }
+    else                   { wpnLabel = state.currentWeapon.toUpperCase();                     wpnColor = '#44ffcc' }
 
-    // ── HP Bar (bottom of panel) ──────────────────────────────────────────
-    const hpBarH = isMobile ? 11 : 13
-    const hpBarY = panelY + panelH - hpBarH - 4
-    const hpFillW = Math.max(0, (cw - 12) * (healthValue / 100))
-
-    // Track
-    ctx.fillStyle = 'rgba(255,255,255,0.07)'
-    ctx.beginPath()
-    if (ctx.roundRect) ctx.roundRect(6, hpBarY, cw - 12, hpBarH, 3)
-    else ctx.rect(6, hpBarY, cw - 12, hpBarH)
-    ctx.fill()
-
-    // Fill
-    if (hpFillW > 0) {
-      const hpGrad = ctx.createLinearGradient(6, 0, 6 + hpFillW, 0)
-      hpGrad.addColorStop(0, healthColor)
-      hpGrad.addColorStop(1, healthValue <= 25 ? '#ff7777'
-                           : healthValue <= 50  ? '#ffcc44' : '#66ffbb')
-      ctx.fillStyle = hpGrad
-      ctx.shadowBlur = 8
-      ctx.shadowColor = healthGlow
-      ctx.beginPath()
-      if (ctx.roundRect) ctx.roundRect(6, hpBarY, hpFillW, hpBarH, 3)
-      else ctx.rect(6, hpBarY, hpFillW, hpBarH)
-      ctx.fill()
-      ctx.shadowBlur = 0
-    }
-
-    // HP label
-    const hpFontSz = isMobile ? 8 : 9
-    ctx.font = `bold ${hpFontSz}px Arial`
-    ctx.fillStyle = 'rgba(255,255,255,0.85)'
-    ctx.shadowBlur = 0
-    ctx.fillText(`HP  ${Math.round(healthValue)}%`, 10, hpBarY + hpBarH - 2)
-
-    // ── Helper: draw one stat card ────────────────────────────────────────
-    const drawStat = (x, y, label, value, valColor, labelSz, valSz, glow) => {
-      ctx.shadowBlur = 0
-      ctx.font = `${labelSz}px Arial`
-      ctx.fillStyle = 'rgba(160, 185, 220, 0.70)'
-      ctx.fillText(label, x, y)
-      ctx.font = `bold ${valSz}px Arial`
-      ctx.fillStyle = valColor
-      if (glow) { ctx.shadowBlur = 10; ctx.shadowColor = glow }
-      ctx.fillText(value, x, y + valSz + 2)
-      ctx.shadowBlur = 0
-    }
-
-    // ── Helper: clip text to fit within maxWidth ─────────────────────────
-    const clipText = (text, maxW) => {
+    // ── Clip helper ───────────────────────────────────────────────────────
+    const clip = (text, maxW) => {
       if (ctx.measureText(text).width <= maxW) return text
       let t = text
       while (t.length > 1 && ctx.measureText(t + '…').width > maxW) t = t.slice(0, -1)
       return t + '…'
     }
 
-    // ── MOBILE layout (3 cols × 2 rows) ───────────────────────────────────
-    if (isMobile) {
-      const colW = cw / 3          // width of each of the 3 columns
-      const lSz  = 8               // label font size
-      const vSz  = 12              // value font size
-      const PAD  = 5               // inner left pad per column
-      const row1Y = panelY + 6    // label top baseline
-      const row2Y = panelY + 40   // label top baseline row 2
-      const maxTxt = colW - PAD * 2   // max text width per column
-
-      // ── Row 1: SCORE (left) | LIVES (center) | LEVEL (right) ──────────
-      // SCORE
-      ctx.font = `${lSz}px Arial`
-      ctx.fillStyle = 'rgba(160,185,220,0.70)'
-      ctx.fillText('SCORE', colW * 0 + PAD, row1Y + lSz)
-      ctx.font = `bold ${vSz}px Arial`
-      ctx.fillStyle = '#ffd700'
-      ctx.shadowBlur = 6; ctx.shadowColor = 'rgba(255,200,0,0.5)'
-      ctx.fillText(clipText(currentScore.toLocaleString(), maxTxt), colW * 0 + PAD, row1Y + lSz + vSz + 2)
+    // ── Generic stat block: label (small) above value (large bold) ────────
+    const stat = (x, labelY, label, value, valColor, lSz, vSz, maxW, glow) => {
       ctx.shadowBlur = 0
+      ctx.font = `${lSz}px Arial`
+      ctx.fillStyle = 'rgba(180,200,230,0.85)'
+      ctx.fillText(label, x, labelY)
+      ctx.font = `bold ${vSz}px Arial`
+      ctx.fillStyle = valColor
+      if (glow) { ctx.shadowBlur = 8; ctx.shadowColor = glow }
+      ctx.fillText(clip(value, maxW || 9999), x, labelY + vSz + 3)
+      ctx.shadowBlur = 0
+    }
 
-      // LIVES – centered in col 1
+    // ── HP BAR (spans full width, sits at bottom of panel) ───────────────
+    const hpBarH = isMobile ? 14 : 16
+    const hpBarY = panelH - hpBarH - 3
+    const hpFillW = Math.max(0, (cw - 8) * (healthValue / 100))
+
+    ctx.fillStyle = 'rgba(255,255,255,0.10)'
+    ctx.fillRect(4, hpBarY, cw - 8, hpBarH)
+
+    if (hpFillW > 0) {
+      const hpGrad = ctx.createLinearGradient(4, 0, 4 + hpFillW, 0)
+      hpGrad.addColorStop(0, healthColor)
+      hpGrad.addColorStop(1, healthValue <= 25 ? '#ff8888' : healthValue <= 50 ? '#ffdd44' : '#88ffcc')
+      ctx.fillStyle = hpGrad
+      ctx.shadowBlur = 10; ctx.shadowColor = healthGlow
+      ctx.fillRect(4, hpBarY, hpFillW, hpBarH)
+      ctx.shadowBlur = 0
+    }
+
+    // HP percentage label inside the bar
+    const hpLabel = `HP  ${Math.round(healthValue)}%`
+    ctx.font = `bold ${isMobile ? 10 : 11}px Arial`
+    ctx.fillStyle = 'rgba(255,255,255,0.95)'
+    ctx.fillText(hpLabel, 10, hpBarY + hpBarH - 3)
+
+    // ── MOBILE layout ─────────────────────────────────────────────────────
+    // 3 equal columns × 2 rows, large readable fonts
+    if (isMobile) {
+      const colW  = cw / 3
+      const lSz   = 10   // label size
+      const vSz   = 17   // value size — big enough to read during gameplay
+      const PAD   = 8
+      const row1  = 10   // label baseline for row 1
+      const row2  = row1 + vSz + lSz + 10  // label baseline for row 2
+      const maxW  = colW - PAD * 2
+
+      // SCORE
+      stat(PAD, row1 + lSz, 'SCORE', currentScore.toLocaleString(),
+           '#ffd700', lSz, vSz, maxW, 'rgba(255,200,0,0.6)')
+
+      // LIVES (centered)
       const livesStr = lives > 5 ? `${lives} UP` : '♥'.repeat(Math.min(lives, 5)) || '0'
-      ctx.font = `${lSz}px Arial`
-      ctx.fillStyle = 'rgba(160,185,220,0.70)'
-      const lLblX = colW * 1 + (colW - ctx.measureText('LIVES').width) / 2
-      ctx.fillText('LIVES', lLblX, row1Y + lSz)
-      ctx.font = `bold ${vSz}px Arial`
-      ctx.fillStyle = '#ff6b6b'
-      const lValX = colW * 1 + (colW - ctx.measureText(livesStr).width) / 2
-      ctx.fillText(livesStr, lValX, row1Y + lSz + vSz + 2)
+      ctx.font = `${lSz}px Arial`; ctx.fillStyle = 'rgba(180,200,230,0.85)'
+      ctx.fillText('LIVES', colW + (colW - ctx.measureText('LIVES').width) / 2, row1 + lSz)
+      ctx.font = `bold ${vSz}px Arial`; ctx.fillStyle = '#ff6b6b'
+      ctx.fillText(livesStr, colW + (colW - ctx.measureText(livesStr).width) / 2, row1 + lSz + vSz + 3)
 
-      // LEVEL – right-aligned in col 2
-      const levelStr = `${state.wave}/100`
-      const wavePulse = 0.85 + 0.15 * Math.sin(now / 600)
+      // LEVEL (right col)
+      const wavePulse = 0.82 + 0.18 * Math.sin(now / 600)
       ctx.globalAlpha = wavePulse
-      ctx.font = `${lSz}px Arial`
-      ctx.fillStyle = 'rgba(160,185,220,0.70)'
-      ctx.fillText('LEVEL', colW * 2 + PAD, row1Y + lSz)
-      ctx.font = `bold ${vSz}px Arial`
-      ctx.fillStyle = '#cc88ff'
-      ctx.shadowBlur = 5; ctx.shadowColor = 'rgba(180,80,255,0.5)'
-      ctx.fillText(clipText(levelStr, maxTxt), colW * 2 + PAD, row1Y + lSz + vSz + 2)
-      ctx.shadowBlur = 0; ctx.globalAlpha = 1
+      stat(colW * 2 + PAD, row1 + lSz, 'LEVEL', `${state.wave}/100`, '#cc88ff', lSz, vSz, maxW, 'rgba(180,80,255,0.5)')
+      ctx.globalAlpha = 1
 
-      // ── Row 2: KILLS (left) | COMBO (center) | WEAPON (right) ─────────
       // KILLS
-      drawStat(colW * 0 + PAD, row2Y + lSz, 'KILLS', clipText(currentKills.toLocaleString(), maxTxt), '#44ddff', lSz, vSz, 'rgba(40,200,255,0.4)')
+      stat(PAD, row2 + lSz, 'KILLS', currentKills.toLocaleString(), '#44ddff', lSz, vSz, maxW)
 
-      // COMBO – centered
+      // COMBO (centered)
       const comboStr = currentCombo > 0 ? `${currentCombo}x` : '--'
-      const comboPulse = currentCombo >= 5 ? (0.72 + 0.28 * Math.sin(now / 80)) : 1
+      const comboPulse = currentCombo >= 5 ? (0.7 + 0.3 * Math.sin(now / 80)) : 1
       ctx.globalAlpha = comboPulse
-      ctx.font = `${lSz}px Arial`
-      ctx.fillStyle = 'rgba(160,185,220,0.70)'
-      const cLblX = colW * 1 + (colW - ctx.measureText('COMBO').width) / 2
-      ctx.fillText('COMBO', cLblX, row2Y + lSz)
+      ctx.font = `${lSz}px Arial`; ctx.fillStyle = 'rgba(180,200,230,0.85)'
+      ctx.fillText('COMBO', colW + (colW - ctx.measureText('COMBO').width) / 2, row2 + lSz)
       ctx.font = `bold ${vSz}px Arial`
-      ctx.fillStyle = currentCombo > 0 ? comboColor : '#555555'
-      if (currentCombo >= 5) { ctx.shadowBlur = 8; ctx.shadowColor = comboColor }
-      const cValX = colW * 1 + (colW - ctx.measureText(comboStr).width) / 2
-      ctx.fillText(comboStr, cValX, row2Y + lSz + vSz + 2)
+      ctx.fillStyle = currentCombo > 0 ? comboColor : '#555'
+      if (currentCombo >= 5) { ctx.shadowBlur = 10; ctx.shadowColor = comboColor }
+      ctx.fillText(comboStr, colW + (colW - ctx.measureText(comboStr).width) / 2, row2 + lSz + vSz + 3)
       ctx.shadowBlur = 0; ctx.globalAlpha = 1
 
-      // WEAPON
-      const wpnShort = clipText(wpnLabel, maxTxt)
-      ctx.font = `${lSz}px Arial`
-      ctx.fillStyle = 'rgba(160,185,220,0.70)'
-      ctx.fillText('WEAPON', colW * 2 + PAD, row2Y + lSz)
-      ctx.font = `bold ${vSz}px Arial`
-      ctx.fillStyle = wpnColor
-      ctx.fillText(wpnShort, colW * 2 + PAD, row2Y + lSz + vSz + 2)
+      // WEAPON (right col)
+      stat(colW * 2 + PAD, row2 + lSz, 'WEAPON', clip(wpnLabel, maxW), wpnColor, lSz, vSz)
 
-    // ── DESKTOP layout (4 cols × 2 rows) ─────────────────────────────────
+    // ── DESKTOP layout ────────────────────────────────────────────────────
+    // 4 columns × 2 rows, large readable fonts
     } else {
-      const colW  = cw / 4         // exact quarter-width columns
-      const PAD   = 10             // inner left pad per column
-      const lSz   = 9             // label font
-      const vSz   = 13            // value font (consistent)
-      // Score font: scale to fit within one column minus padding & gutter
-      const maxScoreW = colW - PAD - 8
-      const sBig  = Math.min(17, Math.max(12, Math.floor(maxScoreW / 8.5)))
-      const row1Y = panelY + 6
-      const row2Y = panelY + 48
-      const maxTxt = colW - PAD - 6   // max text width per column
+      const colW  = cw / 4
+      const PAD   = 12
+      const lSz   = 11   // label size — noticeably larger than before
+      const vSz   = 18   // value size — big and bold
+      const sBig  = Math.min(22, Math.max(16, Math.floor((colW - PAD*2) / 7)))
+      const row1  = 8    // label baseline for row 1
+      const row2  = row1 + sBig + lSz + 8
+      const maxW  = colW - PAD * 2
 
-      // Column x-anchors
-      const c0 = colW * 0 + PAD
-      const c1 = colW * 1 + PAD
+      const c0 = PAD
+      const c1 = colW + PAD
       const c2 = colW * 2 + PAD
       const c3 = colW * 3 + PAD
 
-      // ── Row 1: SCORE | LIVES | LEVEL | WEAPON ────────────────────────
-      // SCORE
-      ctx.font = `${lSz}px Arial`
-      ctx.fillStyle = 'rgba(160,185,220,0.70)'
-      ctx.fillText('SCORE', c0, row1Y + lSz)
-      ctx.font = `bold ${sBig}px Arial`
-      ctx.fillStyle = '#ffd700'
-      ctx.shadowBlur = 10; ctx.shadowColor = 'rgba(255,200,0,0.55)'
-      ctx.fillText(clipText(currentScore.toLocaleString(), maxScoreW), c0, row1Y + lSz + sBig + 2)
-      ctx.shadowBlur = 0
-
-      // Thin vertical divider between columns
-      const divColor = 'rgba(80,100,180,0.25)'
-      ctx.strokeStyle = divColor; ctx.lineWidth = 1
-      ;[colW, colW * 2, colW * 3].forEach(dx => {
-        ctx.beginPath(); ctx.moveTo(dx, panelY + 4); ctx.lineTo(dx, panelY + panelH - 18); ctx.stroke()
+      // Dividers between columns
+      ctx.strokeStyle = 'rgba(80,120,200,0.3)'; ctx.lineWidth = 1
+      ;[colW, colW*2, colW*3].forEach(dx => {
+        ctx.beginPath(); ctx.moveTo(dx, 6); ctx.lineTo(dx, panelH - hpBarH - 10); ctx.stroke()
       })
+
+      // SCORE — biggest, gold, glowing
+      ctx.font = `${lSz}px Arial`; ctx.fillStyle = 'rgba(180,200,230,0.85)'
+      ctx.fillText('SCORE', c0, row1 + lSz)
+      ctx.font = `bold ${sBig}px Arial`; ctx.fillStyle = '#ffd700'
+      ctx.shadowBlur = 12; ctx.shadowColor = 'rgba(255,200,0,0.6)'
+      ctx.fillText(clip(currentScore.toLocaleString(), maxW), c0, row1 + lSz + sBig + 2)
+      ctx.shadowBlur = 0
 
       // LIVES
       const livesStr = lives > 7 ? `x${lives} ♥` : '♥'.repeat(Math.min(lives, 7)) || '0'
-      ctx.font = `${lSz}px Arial`
-      ctx.fillStyle = 'rgba(160,185,220,0.70)'
-      ctx.fillText('LIVES', c1, row1Y + lSz)
-      ctx.font = `bold ${vSz}px Arial`
-      ctx.fillStyle = '#ff6b6b'
-      ctx.fillText(clipText(livesStr, maxTxt), c1, row1Y + lSz + vSz + 2)
+      stat(c1, row1 + lSz, 'LIVES', livesStr, '#ff6b6b', lSz, vSz, maxW)
 
       // LEVEL
-      const wavePulse = 0.85 + 0.15 * Math.sin(now / 600)
+      const wavePulse = 0.82 + 0.18 * Math.sin(now / 600)
       ctx.globalAlpha = wavePulse
-      ctx.font = `${lSz}px Arial`
-      ctx.fillStyle = 'rgba(160,185,220,0.70)'
-      ctx.fillText('LEVEL', c2, row1Y + lSz)
-      ctx.font = `bold ${vSz}px Arial`
-      ctx.fillStyle = '#cc88ff'
-      ctx.shadowBlur = 7; ctx.shadowColor = 'rgba(180,80,255,0.5)'
-      ctx.fillText(clipText(`${state.wave} / 100`, maxTxt), c2, row1Y + lSz + vSz + 2)
-      ctx.shadowBlur = 0; ctx.globalAlpha = 1
+      stat(c2, row1 + lSz, 'LEVEL', `${state.wave} / 100`, '#cc88ff', lSz, vSz, maxW, 'rgba(180,80,255,0.5)')
+      ctx.globalAlpha = 1
 
       // WEAPON
-      ctx.font = `${lSz}px Arial`
-      ctx.fillStyle = 'rgba(160,185,220,0.70)'
-      ctx.fillText('WEAPON', c3, row1Y + lSz)
-      ctx.font = `bold ${vSz}px Arial`
-      ctx.fillStyle = wpnColor
-      ctx.fillText(clipText(wpnLabel, maxTxt), c3, row1Y + lSz + vSz + 2)
+      stat(c3, row1 + lSz, 'WEAPON', clip(wpnLabel, maxW), wpnColor, lSz, vSz)
 
-      // ── Row 2: KILLS | COMBO | ACCURACY | FPS ────────────────────────
       // KILLS
-      drawStat(c0, row2Y + lSz, 'KILLS', clipText(currentKills.toLocaleString(), maxTxt), '#44ddff', lSz, vSz, 'rgba(40,200,255,0.4)')
+      stat(c0, row2 + lSz, 'KILLS', currentKills.toLocaleString(), '#44ddff', lSz, vSz, maxW, 'rgba(40,200,255,0.4)')
 
       // COMBO
       const comboStr = currentCombo > 0
-        ? `${currentCombo}x ×${(state.comboMultiplier || 1).toFixed(1)}`
-        : '--'
-      const comboPulse = currentCombo >= 5 ? (0.72 + 0.28 * Math.sin(now / 80)) : 1
+        ? `${currentCombo}x  ×${(state.comboMultiplier || 1).toFixed(1)}` : '--'
+      const comboPulse = currentCombo >= 5 ? (0.7 + 0.3 * Math.sin(now / 80)) : 1
       ctx.globalAlpha = comboPulse
       ctx.font = `${lSz}px Arial`
       ctx.fillStyle = 'rgba(160,185,220,0.70)'
@@ -1116,15 +1037,27 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
       ctx.font = `${lSz}px Arial`
       ctx.fillStyle = 'rgba(120,140,180,0.55)'
       ctx.fillText('FPS', c3, row2Y + lSz)
-      ctx.font = `bold ${lSz + 1}px Arial`
-      ctx.fillStyle = fpsColor
-      ctx.globalAlpha = 0.75
-      ctx.fillText(`${state.fps}`, c3, row2Y + lSz * 2 + 3)
+      ctx.font = `${lSz}px Arial`; ctx.fillStyle = 'rgba(180,200,230,0.85)'
+      ctx.fillText('COMBO', c1, row2 + lSz)
+      ctx.font = `bold ${vSz}px Arial`
+      ctx.fillStyle = currentCombo > 0 ? comboColor : '#555'
+      if (currentCombo >= 5) { ctx.shadowBlur = 10; ctx.shadowColor = comboColor }
+      ctx.fillText(clip(comboStr, maxW), c1, row2 + lSz + vSz + 3)
+      ctx.shadowBlur = 0; ctx.globalAlpha = 1
+
+      // ACCURACY
+      stat(c2, row2 + lSz, 'ACCURACY', `${accuracy}%`, accColor, lSz, vSz, maxW)
+
+      // FPS — small and subtle
+      ctx.font = `${lSz}px Arial`; ctx.fillStyle = 'rgba(140,160,200,0.55)'
+      ctx.fillText('FPS', c3, row2 + lSz)
+      ctx.font = `bold ${lSz}px Arial`; ctx.fillStyle = fpsColor; ctx.globalAlpha = 0.7
+      ctx.fillText(`${state.fps}`, c3, row2 + lSz * 2 + 4)
       ctx.globalAlpha = 1
     }
 
     // ── Mission / Level objectives below scoreboard ───────────────────────
-    const hudBottom = topMargin + panelH
+    const hudBottom = panelH
     const objFontSz = isMobile ? 9 : 10
     const objLineH  = objFontSz + 6
 
