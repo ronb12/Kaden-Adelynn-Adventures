@@ -330,14 +330,20 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
 
   const initStarfield = (canvas) => {
     const stars = []
-    const numStars = 150
+    const numStars = 220
+    // Star colors: mostly white/blue-white, some warm, some colored
+    const starColors = ['#ffffff', '#e8eeff', '#ffeedd', '#ddeeff', '#ffe8e8', '#eeffee']
     for (let i = 0; i < numStars; i++) {
+      const layer = i < 80 ? 0 : i < 160 ? 1 : 2 // 0=far/slow, 1=mid, 2=close/fast
       stars.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        size: Math.random() * 2 + 0.5,
-        speed: Math.random() * 2 + 0.5,
+        size: layer === 0 ? Math.random() * 1 + 0.3 : layer === 1 ? Math.random() * 1.5 + 0.5 : Math.random() * 2.5 + 0.8,
+        speed: layer === 0 ? Math.random() * 0.4 + 0.1 : layer === 1 ? Math.random() * 0.8 + 0.4 : Math.random() * 1.8 + 0.8,
         brightness: Math.random() * 0.5 + 0.5,
+        color: starColors[Math.floor(Math.random() * starColors.length)],
+        layer,
+        twinkleOffset: Math.random() * Math.PI * 2,
       })
     }
     return stars
@@ -345,17 +351,30 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
 
   const drawStarfield = (ctx, canvas, stars) => {
     if (!stars || stars.length === 0) return
-    
+    const t = Date.now()
+
     stars.forEach((star) => {
       star.y += star.speed
       if (star.y > canvas.height) {
         star.y = 0
         star.x = Math.random() * canvas.width
       }
-      const twinkle = Math.sin(Date.now() / 1000 + star.x) * 0.3 + 0.7
-      ctx.fillStyle = `rgba(255, 255, 255, ${star.brightness * twinkle})`
-      ctx.fillRect(star.x, star.y, star.size, star.size)
+      const twinkle = Math.sin(t / (800 + star.layer * 200) + star.twinkleOffset) * 0.25 + 0.75
+      const alpha = star.brightness * twinkle
+
+      if (star.layer === 2 && star.size > 2) {
+        // Bright close stars get a tiny glow
+        ctx.shadowBlur = 4
+        ctx.shadowColor = star.color
+      }
+      ctx.fillStyle = star.color
+      ctx.globalAlpha = alpha
+      ctx.beginPath()
+      ctx.arc(star.x, star.y, star.size / 2, 0, Math.PI * 2)
+      ctx.fill()
+      if (star.layer === 2 && star.size > 2) ctx.shadowBlur = 0
     })
+    ctx.globalAlpha = 1
   }
 
   /** Environment: 'space' (1–33), 'winter' (34–66), 'desert' (67–100). Separate full-screen game environments. */
@@ -402,8 +421,32 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
   }
 
   const drawSpaceBackground = (ctx, canvas) => {
-    ctx.fillStyle = '#000'
+    // Deep space gradient
+    const bgGrad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height)
+    bgGrad.addColorStop(0, '#010510')
+    bgGrad.addColorStop(0.5, '#030818')
+    bgGrad.addColorStop(1, '#050010')
+    ctx.fillStyle = bgGrad
     ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    // Nebula clouds — fixed positions relative to canvas size for consistent look
+    const nebulas = [
+      { rx: 0.18, ry: 0.25, r: 130, cr: [70, 0, 120],  a: 0.09 },
+      { rx: 0.78, ry: 0.45, r: 110, cr: [0, 60, 160],  a: 0.07 },
+      { rx: 0.50, ry: 0.75, r: 95,  cr: [160, 50, 0],  a: 0.07 },
+      { rx: 0.08, ry: 0.68, r: 85,  cr: [0, 100, 80],  a: 0.06 },
+      { rx: 0.88, ry: 0.20, r: 75,  cr: [180, 0, 80],  a: 0.05 },
+    ]
+    nebulas.forEach(({ rx, ry, r, cr, a }) => {
+      const x = canvas.width * rx
+      const y = canvas.height * ry
+      const neb = ctx.createRadialGradient(x, y, 0, x, y, r)
+      neb.addColorStop(0, `rgba(${cr[0]}, ${cr[1]}, ${cr[2]}, ${a})`)
+      neb.addColorStop(0.5, `rgba(${cr[0]}, ${cr[1]}, ${cr[2]}, ${a * 0.4})`)
+      neb.addColorStop(1, 'rgba(0,0,0,0)')
+      ctx.fillStyle = neb
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+    })
   }
 
   const drawWinterBackground = (ctx, canvas) => {
@@ -537,6 +580,57 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
         state.player.y + state.player.height * 0.5,
         state.player.width * 0.3,
         state.player.height * 0.3
+      )
+    }
+
+    // ---- Thruster flames ----
+    {
+      const t = Date.now()
+      const px = state.player.x
+      const py = state.player.y
+      const pw = state.player.width
+      const ph = state.player.height
+      const flicker1 = 0.75 + Math.sin(t / 55) * 0.25
+      const flicker2 = 0.70 + Math.cos(t / 42) * 0.30
+      const flicker3 = 0.80 + Math.sin(t / 70 + 1) * 0.20
+
+      const drawFlame = (cx, baseY, height, colors) => {
+        const flameGrad = ctx.createLinearGradient(cx, baseY, cx, baseY + height)
+        flameGrad.addColorStop(0, colors[0])
+        flameGrad.addColorStop(0.45, colors[1])
+        flameGrad.addColorStop(1, 'rgba(0,0,0,0)')
+        ctx.fillStyle = flameGrad
+        ctx.shadowBlur = 10
+        ctx.shadowColor = colors[1]
+        ctx.beginPath()
+        ctx.moveTo(cx - 5, baseY)
+        ctx.quadraticCurveTo(cx - 2, baseY + height * 0.6, cx, baseY + height)
+        ctx.quadraticCurveTo(cx + 2, baseY + height * 0.6, cx + 5, baseY)
+        ctx.closePath()
+        ctx.fill()
+        ctx.shadowBlur = 0
+      }
+
+      // Main center thruster
+      drawFlame(
+        px + pw / 2,
+        py + ph,
+        26 * flicker1,
+        ['rgba(120,200,255,0.95)', 'rgba(60,80,255,0.7)']
+      )
+      // Left mini thruster
+      drawFlame(
+        px + pw * 0.25,
+        py + ph - 4,
+        16 * flicker2,
+        ['rgba(0,220,255,0.85)', 'rgba(0,100,220,0.5)']
+      )
+      // Right mini thruster
+      drawFlame(
+        px + pw * 0.75,
+        py + ph - 4,
+        16 * flicker3,
+        ['rgba(0,220,255,0.85)', 'rgba(0,100,220,0.5)']
       )
     }
 
@@ -1163,8 +1257,10 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
 
     const now = Date.now()
     // Each wave harder: spawn rate decreases steadily with wave (faster spawns)
-    const baseRate = Math.max(320, 2500 - state.wave * 95)
+    const baseRate = Math.max(280, 2000 - state.wave * 90)
     let spawnRate = baseRate / difficultyModifier()
+    // First enemy spawns quickly so the game feels active right away
+    if (state.enemiesSpawned === 0) spawnRate = 600
 
     if (now - state.lastEnemySpawn > spawnRate) {
       // Wave announcement on new waves
@@ -1789,11 +1885,19 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
   const drawParticles = (ctx, state) => {
     if (!state.particles) return
     state.particles.forEach((p) => {
+      const alpha = Math.max(0, p.life / (p.maxLife || 60))
+      ctx.globalAlpha = alpha
+      const r = p.size || 2
+      // Add a faint glow for larger particles
+      if (r >= 3) {
+        ctx.shadowBlur = r * 2.5
+        ctx.shadowColor = p.color
+      }
       ctx.fillStyle = p.color
-      ctx.globalAlpha = p.life / 60
       ctx.beginPath()
-      ctx.arc(p.x, p.y, p.size || 2, 0, Math.PI * 2)
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2)
       ctx.fill()
+      if (r >= 3) ctx.shadowBlur = 0
     })
     ctx.globalAlpha = 1
   }
@@ -3301,41 +3405,60 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
   }
 
   const createExplosion = (state, x, y, size = 'small', enemyType = 'normal') => {
-    let particleCount = size === 'small' ? 6 : size === 'medium' ? 12 : 20
-    let colors = ['#ffaa00', '#ff6600']
-    let velocity = size === 'small' ? 3 : size === 'medium' ? 5 : 7
-    
+    let particleCount = size === 'small' ? 10 : size === 'medium' ? 18 : 28
+    let colors = ['#ffaa00', '#ff6600', '#ffdd44']
+    let velocity = size === 'small' ? 4 : size === 'medium' ? 6.5 : 9
+
     // Adjust particles and colors based on enemy type
     if (enemyType === 'fast') {
-      colors = ['#ff00ff', '#ff66ff', '#aa00ff']
-      particleCount = Math.ceil(particleCount * 0.8) // Fewer particles for fast
+      colors = ['#ff00ff', '#ff66ff', '#aa00ff', '#ffffff']
+      particleCount = Math.ceil(particleCount * 0.9)
     } else if (enemyType === 'tank') {
-      colors = ['#ff9900', '#ffcc66', '#ff6600']
-      particleCount = Math.ceil(particleCount * 1.3) // More particles for tank
-      velocity *= 1.1
+      colors = ['#ff9900', '#ffcc44', '#ff6600', '#ff3300']
+      particleCount = Math.ceil(particleCount * 1.4)
+      velocity *= 1.2
     } else if (enemyType === 'shield') {
-      colors = ['#00ffff', '#66ffff', '#00aa99']
+      colors = ['#00ffff', '#66ffff', '#00aaff', '#ffffff']
       particleCount = Math.ceil(particleCount * 1.2)
     } else if (enemyType === 'silver' || size === 'large') {
-      colors = ['#ffffff', '#e0e0e0', '#ffff99']
+      colors = ['#ffffff', '#eeeeee', '#ffff99', '#ffee88']
+      particleCount = Math.ceil(particleCount * 1.5)
+      velocity *= 1.1
     }
-    
+
+    // Core burst particles
     for (let i = 0; i < particleCount; i++) {
-      const angle = (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 0.5
-      const vel = velocity + (Math.random() - 0.5) * 2
+      const angle = (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 0.6
+      const vel = velocity * (0.7 + Math.random() * 0.6)
       const color = colors[Math.floor(Math.random() * colors.length)]
       state.particles.push({
         x,
         y,
         vx: Math.cos(angle) * vel,
         vy: Math.sin(angle) * vel,
-        life: 60,
-        maxLife: 60,
-        color: color,
-        size: size === 'small' ? 2 : size === 'medium' ? 3 : 4,
+        life: size === 'small' ? 45 : size === 'medium' ? 55 : 70,
+        maxLife: size === 'small' ? 45 : size === 'medium' ? 55 : 70,
+        color,
+        size: size === 'small' ? 2.5 : size === 'medium' ? 3.5 : 5,
       })
     }
-    state.shakeIntensity = Math.min(5, state.shakeIntensity + (size === 'small' ? 0.5 : size === 'medium' ? 1.5 : 2))
+    // Spark/ember particles that drift with slight gravity
+    const sparkCount = size === 'small' ? 4 : size === 'medium' ? 7 : 12
+    for (let i = 0; i < sparkCount; i++) {
+      const angle = Math.random() * Math.PI * 2
+      const vel = (velocity * 0.5) * Math.random()
+      state.particles.push({
+        x: x + (Math.random() - 0.5) * 8,
+        y: y + (Math.random() - 0.5) * 8,
+        vx: Math.cos(angle) * vel,
+        vy: Math.sin(angle) * vel - 1,
+        life: 30 + Math.floor(Math.random() * 30),
+        maxLife: 60,
+        color: '#ffffff',
+        size: 1.2,
+      })
+    }
+    state.shakeIntensity = Math.min(6, state.shakeIntensity + (size === 'small' ? 0.7 : size === 'medium' ? 1.8 : 2.8))
   }
 
   const addScreenShake = (state, intensity) => {
@@ -3608,10 +3731,43 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     drawCollectibles(ctx, state)
     drawComboEffects(ctx, state)
 
-    // Draw enemy bullets (boss uses per-bullet color/size)
+    // Draw enemy bullets — glowing round projectiles
     state.enemyBullets.forEach((b) => {
-      ctx.fillStyle = b.color || '#ff6666'
-      ctx.fillRect(b.x, b.y, b.width || 3, b.height || 8)
+      const bColor = b.color || '#ff4444'
+      const bw = (b.width || 3)
+      const bh = (b.height || 8)
+      const cx = b.x + bw / 2
+      const cy = b.y + bh / 2
+      const radius = Math.max(bw, bh) / 2
+
+      ctx.save()
+      // Outer soft glow
+      const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius * 2.2)
+      grd.addColorStop(0, bColor)
+      grd.addColorStop(0.4, bColor)
+      grd.addColorStop(1, 'rgba(0,0,0,0)')
+      ctx.globalAlpha = 0.35
+      ctx.fillStyle = grd
+      ctx.beginPath()
+      ctx.arc(cx, cy, radius * 2.2, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.globalAlpha = 1
+
+      // Core bullet
+      ctx.shadowBlur = 8
+      ctx.shadowColor = bColor
+      ctx.fillStyle = bColor
+      ctx.beginPath()
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2)
+      ctx.fill()
+
+      // Bright white center
+      ctx.shadowBlur = 0
+      ctx.fillStyle = 'rgba(255,255,255,0.75)'
+      ctx.beginPath()
+      ctx.arc(cx - radius * 0.25, cy - radius * 0.25, radius * 0.4, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.restore()
     })
 
     ctx.restore()
