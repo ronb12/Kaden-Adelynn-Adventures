@@ -1,9 +1,12 @@
 // Music Manager - Handles background music playback with looping
+import { synthMusic } from './synthMusic.js'
+
 let currentMusic = null
 let musicVolume = 0.3
 let currentTrack = null
 let pendingTrack = null // Track waiting for user gesture
 let isInitialized = false
+let usingSynth = false  // true when mp3 files are unavailable
 
 // Audio context for better control - DO NOT CREATE AT MODULE LOAD
 let audioContext = null
@@ -115,8 +118,13 @@ const getMusicAudio = () => {
   musicAudioEl = new Audio()
   musicAudioEl.loop = true
   musicAudioEl.preload = 'auto'
-  musicAudioEl.onerror = (e) => {
-    console.error('Music loading error:', musicAudioEl?.src, e)
+  musicAudioEl.onerror = () => {
+    // mp3 file missing/empty — fall back to synthesizer
+    if (!usingSynth && currentTrack) {
+      usingSynth = true
+      synthMusic.setVolume(musicVolume)
+      synthMusic.play(currentTrack)
+    }
   }
   musicAudioEl.oncanplaythrough = () => {
     console.log('Music loaded successfully:', musicAudioEl?.src)
@@ -212,6 +220,7 @@ export const playMenuMusic = () => {
 }
 
 export const stopMusic = () => {
+  if (usingSynth) { synthMusic.stop(); usingSynth = false }
   if (currentMusic) {
     currentMusic.pause()
     currentMusic.currentTime = 0
@@ -264,9 +273,8 @@ export const ensureMusicPlaying = () => {
 
 export const setMusicVolume = (volume) => {
   musicVolume = Math.max(0, Math.min(1, volume))
-  if (currentMusic) {
-    currentMusic.volume = musicVolume
-  }
+  if (currentMusic) currentMusic.volume = musicVolume
+  if (usingSynth) synthMusic.setVolume(musicVolume)
 }
 
 export const getMusicVolume = () => musicVolume

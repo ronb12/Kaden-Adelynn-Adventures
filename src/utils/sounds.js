@@ -5,6 +5,15 @@ let soundEnabled = true
 // Audio context for synthesized sounds
 let audioContext = null
 let sfxUnlocked = false
+let gestureReceived = false   // guard against pre-gesture AudioContext spam
+
+// Mark gesture received on first user interaction (mirrors music.js)
+if (typeof window !== 'undefined') {
+  const onGesture = () => { gestureReceived = true }
+  ;['click', 'keydown', 'touchstart', 'touchend', 'pointerdown'].forEach(ev =>
+    window.addEventListener(ev, onGesture, { once: true })
+  )
+}
 
 // One Audio per type; reuse never clone (avoids WebMediaPlayer limit crbug.com/1144736)
 const soundCache = new Map()
@@ -26,15 +35,14 @@ const SOUND_FILES = {
   // 'coin' uses synthesized sound instead
 }
 
-// Initialize audio context
+// Initialize audio context — only after a user gesture to prevent console spam
 const initAudio = () => {
   if (audioContext) return audioContext
-  
+  if (!gestureReceived) return null   // silent no-op before first gesture
   try {
     audioContext = new (window.AudioContext || window.webkitAudioContext)()
     return audioContext
   } catch (e) {
-    console.warn('Web Audio API not supported')
     return null
   }
 }
