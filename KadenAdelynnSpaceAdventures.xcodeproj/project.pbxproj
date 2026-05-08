@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0A1B2C3D4E5F60718293A4B5 /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0A1B2C3D4E5F60718293A4B6 /* AppIntents.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		0B629D46EEBDEEA337A57C5F /* ScoresView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 368E6687528DE2D1520EAD14 /* ScoresView.swift */; };
 		32FC15B8F8D6126A0C7E337F /* PrivacyPolicyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138DF663A1072FBBAEA52A91 /* PrivacyPolicyView.swift */; };
 		46BB3C2DDF940E9CFD7ED34F /* GameModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75A0E342017744F97A6C4895 /* GameModels.swift */; };
@@ -65,6 +66,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0A1B2C3D4E5F60718293A4B6 /* AppIntents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppIntents.framework; path = System/Library/Frameworks/AppIntents.framework; sourceTree = SDKROOT; };
 		01374DD4EFFE86490DCDC9AC /* GameStatsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStatsManager.swift; sourceTree = "<group>"; };
 		01F243176C2C01724D4F14D9 /* LandingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandingView.swift; sourceTree = "<group>"; };
 		058FE837EB5537609C8E7606 /* Pods-KadenAdelynnSpaceAdventuresUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KadenAdelynnSpaceAdventuresUITests.debug.xcconfig"; path = "Target Support Files/Pods-KadenAdelynnSpaceAdventuresUITests/Pods-KadenAdelynnSpaceAdventuresUITests.debug.xcconfig"; sourceTree = "<group>"; };
@@ -161,6 +163,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0A1B2C3D4E5F60718293A4B5 /* AppIntents.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -288,6 +291,7 @@
 		8B06B5CFDDAE5748F06735F5 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				0A1B2C3D4E5F60718293A4B6 /* AppIntents.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
