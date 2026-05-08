@@ -79,7 +79,11 @@ class GameScene: SKScene {
         // Start music after a brief delay to ensure audio session is ready
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
             guard let self = self else { return }
-            self.audioManager.startBackgroundMusic(in: self)
+            self.audioManager.startGameplayMusic(
+                for: self.gameState.selectedGameMode,
+                stageName: self.gameState.currentStageName,
+                in: self
+            )
         }
     }
     
@@ -575,6 +579,12 @@ class GameScene: SKScene {
         
         // Update game logic
         gameLogic.update(bounds: gameBounds, currentTime: currentTime, timeScale: CGFloat(timeScale))
+        audioManager.updateGameplayMusic(
+            for: gameState.selectedGameMode,
+            stageName: gameState.currentStageName,
+            bossActive: gameLogic.boss != nil,
+            in: self
+        )
         
         // Show wave transition if wave changed
         if gameState.wave > previousWave {

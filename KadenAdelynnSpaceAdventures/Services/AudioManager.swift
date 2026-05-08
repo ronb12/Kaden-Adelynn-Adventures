@@ -17,6 +17,7 @@ class AudioManager: ObservableObject {
     private var soundEffects: [String: SKAction] = [:]
     private var backgroundMusic: SKAudioNode?
     private var audioPlayer: AVAudioPlayer?
+    private var currentMusicKey: String?
     private var isMusicEnabled = true
     private var isSoundEnabled = true
     private var musicVolume: Float = 0.5
@@ -189,110 +190,113 @@ class AudioManager: ObservableObject {
     }
     
     func startBackgroundMusic(in scene: SKScene) {
+        playMusic(
+            key: "gameplay",
+            candidates: ["gameplay", "gameplay_starfield", "background", "space_music", "game_music", "menu"],
+            scene: scene
+        )
+    }
+
+    func startGameplayMusic(for mode: GameMode, stageName: String, in scene: SKScene) {
+        updateGameplayMusic(for: mode, stageName: stageName, bossActive: false, in: scene)
+    }
+
+    func updateGameplayMusic(for mode: GameMode, stageName: String, bossActive: Bool, in scene: SKScene) {
+        guard isMusicEnabled else { return }
+
+        if bossActive || mode == .bossRush {
+            playMusic(key: "boss", candidates: ["boss", "boss_music", "boss_battle", "gameplay"], scene: scene)
+            return
+        }
+
+        let profile: (key: String, candidates: [String], rate: Float)
+        switch mode {
+        case .training:
+            profile = ("training", ["gameplay_training", "training", "menu", "gameplay"], 0.92)
+        case .timeAttack:
+            profile = ("time_attack", ["gameplay_time_attack", "time_attack", "gameplay", "boss"], 1.08)
+        case .survival:
+            profile = ("survival", ["gameplay_survival", "survival", "gameplay", "boss"], 1.04)
+        case .dailyChallenge:
+            profile = ("daily", ["gameplay_daily", "daily_challenge", "gameplay", "menu"], 1.03)
+        case .coOp:
+            profile = ("coop", ["gameplay_coop", "coop", "gameplay", "menu"], 0.98)
+        default:
+            switch stageName {
+            case "Asteroid Belt":
+                profile = ("asteroid", ["gameplay_asteroid", "asteroid_belt", "gameplay", "boss"], 1.04)
+            case "Nebula Clouds":
+                profile = ("nebula", ["gameplay_nebula", "nebula", "menu", "gameplay"], 0.96)
+            case "Laser Gate":
+                profile = ("laser_gate", ["gameplay_laser_gate", "laser_gate", "gameplay", "boss"], 1.06)
+            default:
+                profile = ("starfield", ["gameplay_starfield", "gameplay", "menu"], 1.0)
+            }
+        }
+
+        playMusic(key: profile.key, candidates: profile.candidates, scene: scene, rate: profile.rate)
+    }
+
+    private func playMusic(key: String, candidates: [String], scene: SKScene, rate: Float = 1.0) {
         guard isMusicEnabled else { 
-            print("🔇 Music disabled, not starting background music")
+            print("🔇 Music disabled, not starting \(key) music")
             return 
         }
-        
-        // Stop existing music
-        stopBackgroundMusic()
-        
-        // Ensure audio session is active
+
+        guard currentMusicKey != key || audioPlayer?.isPlaying != true else {
+            return
+        }
+
+        guard let url = firstAvailableMusicURL(from: candidates) else {
+            print("⚠️ No music file found for \(key). Expected one of: \(candidates.joined(separator: ", "))")
+            return
+        }
+
+        currentMusicKey = key
+        audioPlayer?.stop()
+        audioPlayer = nil
+        backgroundMusic?.removeFromParent()
+        backgroundMusic = nil
+
         do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
             try AVAudioSession.sharedInstance().setActive(true)
         } catch {
             print("⚠️ Failed to activate audio session: \(error)")
         }
-        
-        // Try to load music file from bundle - same as PWA: gameplay.mp3 (prioritize gameplay, then menu)
-        let musicFiles = ["gameplay", "menu", "background", "space_music", "game_music"]
-        var musicURL: URL?
-        
-        for fileName in musicFiles {
-            if let url = Bundle.main.url(forResource: fileName, withExtension: "mp3") {
-                musicURL = url
-                print("✅ Found music file: \(fileName).mp3")
-                break
-            } else if let url = Bundle.main.url(forResource: fileName, withExtension: "m4a") {
-                musicURL = url
-                print("✅ Found music file: \(fileName).m4a")
-                break
-            } else if let url = Bundle.main.url(forResource: fileName, withExtension: "wav") {
-                musicURL = url
-                print("✅ Found music file: \(fileName).wav")
-                break
+
+        do {
+            audioPlayer = try AVAudioPlayer(contentsOf: url)
+            audioPlayer?.numberOfLoops = -1
+            audioPlayer?.enableRate = true
+            audioPlayer?.rate = rate
+            audioPlayer?.volume = musicVolume
+            audioPlayer?.prepareToPlay()
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) { [weak self] in
+                guard let self = self else { return }
+                if self.audioPlayer?.play() == true {
+                    print("✅ Music started [\(key)]: \(url.lastPathComponent), rate \(rate)")
+                } else {
+                    print("❌ AVAudioPlayer failed for \(url.lastPathComponent), using SKAudioNode fallback")
+                    self.fallbackToSKAudioNode(url: url, in: scene)
+                }
             }
+        } catch {
+            print("❌ Failed to play \(key) music: \(error.localizedDescription)")
+            fallbackToSKAudioNode(url: url, in: scene)
         }
-        
-        if let url = musicURL {
-            // Use AVAudioPlayer for better control
-            do {
-                audioPlayer = try AVAudioPlayer(contentsOf: url)
-                audioPlayer?.numberOfLoops = -1 // Loop indefinitely
-                audioPlayer?.volume = musicVolume
-                audioPlayer?.prepareToPlay()
-                
-                // Ensure audio session is active and configured before playing
-                do {
-                    try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
-                    try AVAudioSession.sharedInstance().setActive(true)
-                    print("✅ Audio session activated and configured for playback")
-                } catch {
-                    print("⚠️ Failed to activate audio session: \(error)")
-                }
-                
-                // Play with a small delay to ensure audio session is fully ready
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-                    guard let self = self else { return }
-                    let success = self.audioPlayer?.play() ?? false
-                    if success {
-                        print("✅ Background music started: \(url.lastPathComponent) at volume \(self.musicVolume)")
-                        if let fileSize = try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int64 {
-                            print("   File size: \(fileSize) bytes")
-                        }
-                        print("   Audio session category: \(AVAudioSession.sharedInstance().category.rawValue)")
-                        print("   Audio session isActive: \(AVAudioSession.sharedInstance().isOtherAudioPlaying)")
-                    } else {
-                        print("❌ AVAudioPlayer failed to start playback, trying fallback...")
-                        print("   Audio session state: \(AVAudioSession.sharedInstance().isOtherAudioPlaying)")
-                        // Try again after a brief moment
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-                            guard let self = self else { return }
-                            if self.audioPlayer?.play() ?? false {
-                                print("✅ Background music started on retry")
-                            } else {
-                                print("❌ Retry failed, using SKAudioNode fallback")
-                                self.fallbackToSKAudioNode(url: url, in: scene)
-                            }
-                        }
-                    }
-                }
-            } catch {
-                print("❌ Failed to play background music: \(error.localizedDescription)")
-                print("   Error details: \(error)")
-                // Fallback to SKAudioNode
-                fallbackToSKAudioNode(url: url, in: scene)
-            }
-        } else {
-            // No music file found - log warning with debug info
-            print("⚠️ No music file found in bundle. Sound effects will still work.")
-            print("   Expected files: gameplay.mp3, menu.mp3, background.mp3, space_music.mp3, or game_music.mp3")
-            // Debug: List all files in bundle
-            if let resourcePath = Bundle.main.resourcePath {
-                let fileManager = FileManager.default
-                do {
-                    let files = try fileManager.contentsOfDirectory(atPath: resourcePath)
-                    let mp3Files = files.filter { $0.hasSuffix(".mp3") }
-                    if !mp3Files.isEmpty {
-                        print("   Found .mp3 files in bundle: \(mp3Files.joined(separator: ", "))")
-                    } else {
-                        print("   No .mp3 files found in bundle resource path: \(resourcePath)")
-                    }
-                } catch {
-                    print("   Could not list bundle contents: \(error)")
+    }
+
+    private func firstAvailableMusicURL(from candidates: [String]) -> URL? {
+        for fileName in candidates {
+            for fileExtension in ["mp3", "m4a", "wav", "ogg"] {
+                if let url = Bundle.main.url(forResource: fileName, withExtension: fileExtension) {
+                    return url
                 }
             }
         }
+        return nil
     }
     
     private func fallbackToSKAudioNode(url: URL?, in scene: SKScene) {
@@ -305,38 +309,7 @@ class AudioManager: ObservableObject {
     }
     
     func startBossMusic(in scene: SKScene) {
-        guard isMusicEnabled else { return }
-        stopBackgroundMusic()
-        
-        // Try to load boss music - same as PWA: boss.mp3
-        let bossMusicFiles = ["boss", "boss_music", "boss_battle"]
-        var musicURL: URL?
-        
-        for fileName in bossMusicFiles {
-            if let url = Bundle.main.url(forResource: fileName, withExtension: "mp3") {
-                musicURL = url
-                break
-            } else if let url = Bundle.main.url(forResource: fileName, withExtension: "m4a") {
-                musicURL = url
-                break
-            }
-        }
-        
-        if let url = musicURL {
-            do {
-                audioPlayer = try AVAudioPlayer(contentsOf: url)
-                audioPlayer?.numberOfLoops = -1
-                audioPlayer?.volume = musicVolume
-                audioPlayer?.prepareToPlay()
-                audioPlayer?.play()
-                print("✅ Boss music started: \(url.lastPathComponent)")
-            } catch {
-                print("❌ Failed to play boss music: \(error)")
-            }
-        } else {
-            // Fallback to regular background music
-            startBackgroundMusic(in: scene)
-        }
+        playMusic(key: "boss", candidates: ["boss", "boss_music", "boss_battle", "gameplay"], scene: scene)
     }
     
     func startMenuMusic() {
@@ -412,6 +385,7 @@ class AudioManager: ObservableObject {
     func stopBackgroundMusic() {
         audioPlayer?.stop()
         audioPlayer = nil
+        currentMusicKey = nil
         backgroundMusic?.removeFromParent()
         backgroundMusic = nil
     }
