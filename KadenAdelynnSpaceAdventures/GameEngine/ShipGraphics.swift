@@ -453,12 +453,12 @@ class ShipGraphics {
         }
     }
     
-    static func createBossShip(size: CGSize) -> SKNode {
+    static func createBossShip(size: CGSize, variant: Int? = nil) -> SKNode {
         let ship = SKNode()
         
         // Select random boss ship design from available assets (1-10)
         let bossShips = ["boss_ship_1", "boss_ship_2", "boss_ship_3", "boss_ship_4", "boss_ship_5", "boss_ship_6", "boss_ship_7", "boss_ship_8", "boss_ship_9", "boss_ship_10"]
-        let imageName = bossShips.randomElement() ?? "boss_ship_1"
+        let imageName = variant.map { bossShips[abs($0) % bossShips.count] } ?? (bossShips.randomElement() ?? "boss_ship_1")
         
         // Try to load the boss ship image from assets
         guard let image = UIImage(named: imageName) else {

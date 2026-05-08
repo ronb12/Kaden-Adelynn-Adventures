@@ -701,7 +701,14 @@ class GameLogic {
         ).normalized()
         let baseAngle = atan2(aimedVector.y, aimedVector.x)
 
-        func addBossBullet(angle: CGFloat, speed: CGFloat? = nil, size: CGSize = CGSize(width: 7, height: 14), offset: CGPoint = .zero) {
+        func addBossBullet(
+            angle: CGFloat,
+            speed: CGFloat? = nil,
+            size: CGSize = CGSize(width: 7, height: 14),
+            offset: CGPoint = .zero,
+            visualStyle: Bullet.BulletVisualStyle = .bossPlasma,
+            damageMultiplier: Float = 1.0
+        ) {
             guard bullets.count < 200 else { return }
             let shotSpeed = speed ?? bulletSpeed
             bullets.append(
@@ -710,39 +717,97 @@ class GameLogic {
                     velocity: CGPoint(x: cos(angle) * shotSpeed, y: sin(angle) * shotSpeed),
                     size: size,
                     owner: .enemy,
-                    damage: damage
+                    damage: max(1, Int(Float(damage) * damageMultiplier)),
+                    visualStyle: visualStyle
                 )
             )
         }
 
-        switch currentBoss.attackPattern {
-        case .fan:
-            for angleOffset in [-0.38, -0.19, 0, 0.19, 0.38] as [CGFloat] {
-                addBossBullet(angle: baseAngle + angleOffset)
+        switch currentBoss.combatStyle {
+        case .dreadnought:
+            let spread: [CGFloat] = currentBoss.patternStep % 3 == 0
+                ? [-0.48, -0.24, 0, 0.24, 0.48]
+                : [-0.32, -0.16, 0.16, 0.32]
+            for angleOffset in spread {
+                addBossBullet(
+                    angle: baseAngle + angleOffset,
+                    speed: bulletSpeed * 0.9,
+                    size: CGSize(width: 10, height: 18),
+                    visualStyle: .bossPlasma,
+                    damageMultiplier: 1.05
+                )
             }
-        case .spiral:
-            for index in 0..<8 {
-                let spin = CGFloat(currentBoss.patternStep) * 0.38
-                addBossBullet(angle: spin + CGFloat(index) * (.pi * 2 / 8), speed: bulletSpeed * 0.78, size: CGSize(width: 6, height: 12))
+
+        case .striker:
+            let side = currentBoss.patternStep % 2 == 0 ? -1.0 : 1.0
+            for offsetX in [-32, 32] as [CGFloat] {
+                addBossBullet(
+                    angle: baseAngle + CGFloat(side) * 0.08,
+                    speed: bulletSpeed * 1.35,
+                    size: CGSize(width: 5, height: 28),
+                    offset: CGPoint(x: offsetX, y: -currentBoss.size.height * 0.18),
+                    visualStyle: .bossBeam,
+                    damageMultiplier: 0.85
+                )
             }
-        case .laserSweep:
-            let sweepStart = -0.75 + CGFloat(currentBoss.patternStep % 6) * 0.3
-            for index in 0..<4 {
-                addBossBullet(angle: -.pi / 2 + sweepStart + CGFloat(index) * 0.18, speed: bulletSpeed * 1.15, size: CGSize(width: 5, height: 24))
+            if currentBoss.patternStep % 3 == 0 {
+                for angleOffset in [-0.18, 0.18] as [CGFloat] {
+                    addBossBullet(angle: baseAngle + angleOffset, speed: bulletSpeed * 1.12, size: CGSize(width: 5, height: 16), visualStyle: .bossShard, damageMultiplier: 0.75)
+                }
             }
-        case .mineDrop:
+
+        case .prism:
+            let spin = CGFloat(currentBoss.patternStep) * 0.34
+            let ringCount = currentBoss.patternStep % 2 == 0 ? 8 : 6
+            for index in 0..<ringCount {
+                addBossBullet(
+                    angle: spin + CGFloat(index) * (.pi * 2 / CGFloat(ringCount)),
+                    speed: bulletSpeed * 0.72,
+                    size: CGSize(width: 7, height: 13),
+                    visualStyle: .bossShard,
+                    damageMultiplier: 0.78
+                )
+            }
+            if currentBoss.patternStep % 3 == 1 {
+                addBossBullet(angle: baseAngle, speed: bulletSpeed * 1.05, size: CGSize(width: 12, height: 12), visualStyle: .bossPulse, damageMultiplier: 1.0)
+            }
+
+        case .mineLayer:
             for offsetX in [-42, 0, 42] as [CGFloat] {
-                addBossBullet(angle: -.pi / 2, speed: 2.2, size: CGSize(width: 18, height: 18), offset: CGPoint(x: offsetX, y: -currentBoss.size.height * 0.28))
+                addBossBullet(
+                    angle: -.pi / 2,
+                    speed: 2.0,
+                    size: CGSize(width: 20, height: 20),
+                    offset: CGPoint(x: offsetX, y: -currentBoss.size.height * 0.28),
+                    visualStyle: .bossMine,
+                    damageMultiplier: 1.2
+                )
             }
             if currentBoss.patternStep % 2 == 0 {
-                addBossBullet(angle: baseAngle, speed: bulletSpeed)
+                for angleOffset in [-0.22, 0.22] as [CGFloat] {
+                    addBossBullet(angle: baseAngle + angleOffset, speed: bulletSpeed * 0.82, size: CGSize(width: 8, height: 14), visualStyle: .bossPlasma)
+                }
             }
-        case .summonWing:
+
+        case .carrier:
             if currentBoss.patternStep % 2 == 0 {
                 summonBossWingmen(around: currentBoss.position)
             }
-            for angleOffset in [-0.28, 0, 0.28] as [CGFloat] {
-                addBossBullet(angle: baseAngle + angleOffset)
+            let wingOffsets: [CGFloat] = [-currentBoss.size.width * 0.34, currentBoss.size.width * 0.34]
+            for offsetX in wingOffsets {
+                addBossBullet(
+                    angle: baseAngle + (offsetX < 0 ? -0.14 : 0.14),
+                    speed: bulletSpeed * 0.92,
+                    size: CGSize(width: 8, height: 16),
+                    offset: CGPoint(x: offsetX, y: -currentBoss.size.height * 0.1),
+                    visualStyle: .bossPulse,
+                    damageMultiplier: 0.9
+                )
+            }
+            if currentBoss.patternStep % 3 == 2 {
+                for angleOffset in [-0.36, 0, 0.36] as [CGFloat] {
+                    addBossBullet(angle: baseAngle + angleOffset, speed: bulletSpeed * 0.8, size: CGSize(width: 7, height: 13), visualStyle: .bossPlasma)
+                }
             }
         }
     }

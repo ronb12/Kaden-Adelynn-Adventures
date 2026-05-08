@@ -768,7 +768,7 @@ class GameScene: SKScene {
         }
         
         if bossNode == nil {
-            let node = ShipGraphics.createBossShip(size: boss.size)
+            let node = ShipGraphics.createBossShip(size: boss.size, variant: boss.visualVariant)
             node.name = "boss"
             node.zPosition = 8
             
@@ -973,16 +973,17 @@ class GameScene: SKScene {
                 bulletNode.zPosition = 0
                 bulletContainer.addChild(bulletNode)
             } else {
-                // Enemy bullets - red/orange
-                let glow = SKShapeNode(rectOf: CGSize(width: bullet.size.width + 3, height: bullet.size.height + 3))
-                glow.fillColor = .orange.withAlphaComponent(0.3)
+                let (color, glowColor, strokeColor, shape) = getEnemyBulletVisuals(for: bullet)
+                let glowSize = CGSize(width: bullet.size.width + 5, height: bullet.size.height + 5)
+                let glow = makeBulletShape(shape: shape, size: glowSize)
+                glow.fillColor = glowColor.withAlphaComponent(0.34)
                 glow.strokeColor = .clear
                 glow.zPosition = -1
                 bulletContainer.addChild(glow)
                 
-                let bulletNode = SKShapeNode(rectOf: bullet.size)
-                bulletNode.fillColor = .red
-                bulletNode.strokeColor = .orange
+                let bulletNode = makeBulletShape(shape: shape, size: bullet.size)
+                bulletNode.fillColor = color
+                bulletNode.strokeColor = strokeColor
                 bulletNode.lineWidth = 1.5
                 bulletNode.zPosition = 0
                 bulletContainer.addChild(bulletNode)
@@ -990,6 +991,65 @@ class GameScene: SKScene {
             
             addChild(bulletContainer)
             bulletNodes.append(bulletContainer)
+        }
+    }
+
+    private func makeBulletShape(shape: String, size: CGSize) -> SKShapeNode {
+        switch shape {
+        case "circle":
+            return SKShapeNode(circleOfRadius: max(size.width, size.height) / 2)
+        case "diamond":
+            let path = CGMutablePath()
+            path.move(to: CGPoint(x: 0, y: size.height / 2))
+            path.addLine(to: CGPoint(x: size.width / 2, y: 0))
+            path.addLine(to: CGPoint(x: 0, y: -size.height / 2))
+            path.addLine(to: CGPoint(x: -size.width / 2, y: 0))
+            path.closeSubpath()
+            return SKShapeNode(path: path)
+        default:
+            return SKShapeNode(rectOf: size, cornerRadius: shape == "beam" ? 2 : 0)
+        }
+    }
+
+    private func getEnemyBulletVisuals(for bullet: Bullet) -> (UIColor, UIColor, UIColor, String) {
+        switch bullet.visualStyle {
+        case .normal:
+            return (.red, .orange, .orange, "rectangle")
+        case .bossPlasma:
+            return (
+                UIColor(red: 0.95, green: 0.12, blue: 0.22, alpha: 1),
+                UIColor(red: 1.0, green: 0.35, blue: 0.10, alpha: 1),
+                UIColor(red: 1.0, green: 0.62, blue: 0.30, alpha: 1),
+                "diamond"
+            )
+        case .bossShard:
+            return (
+                UIColor(red: 0.58, green: 0.18, blue: 1.0, alpha: 1),
+                UIColor(red: 0.20, green: 0.82, blue: 1.0, alpha: 1),
+                UIColor(red: 0.75, green: 0.92, blue: 1.0, alpha: 1),
+                "diamond"
+            )
+        case .bossBeam:
+            return (
+                UIColor(red: 1.0, green: 0.24, blue: 0.08, alpha: 1),
+                UIColor(red: 1.0, green: 0.78, blue: 0.12, alpha: 1),
+                UIColor(red: 1.0, green: 0.88, blue: 0.36, alpha: 1),
+                "beam"
+            )
+        case .bossMine:
+            return (
+                UIColor(red: 0.86, green: 0.05, blue: 0.12, alpha: 1),
+                UIColor(red: 0.90, green: 0.16, blue: 0.30, alpha: 1),
+                UIColor(red: 0.18, green: 0.02, blue: 0.04, alpha: 1),
+                "circle"
+            )
+        case .bossPulse:
+            return (
+                UIColor(red: 0.12, green: 0.86, blue: 1.0, alpha: 1),
+                UIColor(red: 0.22, green: 0.36, blue: 1.0, alpha: 1),
+                UIColor(red: 0.72, green: 0.92, blue: 1.0, alpha: 1),
+                "circle"
+            )
         }
     }
     

@@ -250,18 +250,29 @@ struct Bullet {
     var size: CGSize
     var owner: BulletOwner
     var damage: Int
+    var visualStyle: BulletVisualStyle
     
     enum BulletOwner {
         case player
         case enemy
     }
+
+    enum BulletVisualStyle {
+        case normal
+        case bossPlasma
+        case bossShard
+        case bossBeam
+        case bossMine
+        case bossPulse
+    }
     
-    init(position: CGPoint, velocity: CGPoint, size: CGSize = CGSize(width: 5, height: 10), owner: BulletOwner = .player, damage: Int = 1) {
+    init(position: CGPoint, velocity: CGPoint, size: CGSize = CGSize(width: 5, height: 10), owner: BulletOwner = .player, damage: Int = 1, visualStyle: BulletVisualStyle = .normal) {
         self.position = position
         self.velocity = velocity
         self.size = size
         self.owner = owner
         self.damage = damage
+        self.visualStyle = visualStyle
     }
     
     mutating func update(timeScale: CGFloat = 1.0) {
@@ -355,6 +366,34 @@ struct Boss {
         case summonWing
     }
 
+    enum CombatStyle: CaseIterable {
+        case dreadnought
+        case striker
+        case prism
+        case mineLayer
+        case carrier
+
+        var primaryPattern: AttackPattern {
+            switch self {
+            case .dreadnought: return .fan
+            case .striker: return .laserSweep
+            case .prism: return .spiral
+            case .mineLayer: return .mineDrop
+            case .carrier: return .summonWing
+            }
+        }
+
+        var fireInterval: TimeInterval {
+            switch self {
+            case .dreadnought: return 1.05
+            case .striker: return 0.62
+            case .prism: return 0.82
+            case .mineLayer: return 1.25
+            case .carrier: return 1.15
+            }
+        }
+    }
+
     var position: CGPoint
     var size: CGSize
     var health: Int
@@ -363,6 +402,8 @@ struct Boss {
     var shootTimer: TimeInterval
     var movementTimer: TimeInterval
     var attackPattern: AttackPattern
+    var combatStyle: CombatStyle
+    var visualVariant: Int
     var patternStep: Int
 
     init(position: CGPoint, wave: Int = 1, difficultyMultiplier: Float = 1.0) {
@@ -379,8 +420,12 @@ struct Boss {
         )
         self.shootTimer = 0
         self.movementTimer = 0
-        let patterns = AttackPattern.allCases
-        self.attackPattern = patterns[(max(wave, 1) / 5) % patterns.count]
+        let styles = CombatStyle.allCases
+        let bossIndex = max(0, (max(wave, 1) / 5) - 1)
+        let styleIndex = bossIndex % styles.count
+        self.combatStyle = styles[styleIndex]
+        self.attackPattern = self.combatStyle.primaryPattern
+        self.visualVariant = bossIndex % 10
         self.patternStep = 0
     }
 
@@ -434,7 +479,7 @@ struct Boss {
     }
     
     func shouldShoot() -> Bool {
-        return shootTimer >= 1.0 // Shoot every second
+        return shootTimer >= combatStyle.fireInterval
     }
     
     mutating func resetShootTimer() {
