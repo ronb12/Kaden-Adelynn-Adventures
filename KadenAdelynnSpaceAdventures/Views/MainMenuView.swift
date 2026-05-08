@@ -17,12 +17,13 @@ struct MainMenuView: View {
     @State private var personalBest: Int = 0
     @State private var recentAchievements: [String] = []
     @State private var dailyChallengeProgress: Double = 0.0
-    
+    @State private var sharedEventProgress: SharedEventProgressData?
+
     var body: some View {
         ZStack {
             // Animated cosmic background
             AnimatedCosmicBackground()
-            
+
             ScrollView {
                 VStack(spacing: 16) {
                     // Enhanced Title Section
@@ -70,7 +71,7 @@ struct MainMenuView: View {
                             }
                             animateStars = true
                         }
-                        
+
                         // Subtitle with animated border
                         HStack(spacing: 10) {
                             Image(systemName: "sparkles")
@@ -78,7 +79,7 @@ struct MainMenuView: View {
                                 .foregroundColor(.cyan)
                                 .scaleEffect(animateStars ? 1.2 : 1.0)
                                 .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: animateStars)
-                            
+
                             Text("SPACE ADVENTURES")
                                 .font(AccessibilityHelper.scaledFont(size: 18, weight: .bold, design: .rounded))
                                 .foregroundStyle(
@@ -89,7 +90,7 @@ struct MainMenuView: View {
                                     )
                                 )
                                 .accessibilityLabel("Space Adventures")
-                            
+
                             Image(systemName: "sparkles")
                                 .font(.system(size: 22, weight: .bold))
                                 .foregroundColor(.purple)
@@ -108,7 +109,7 @@ struct MainMenuView: View {
                                             endPoint: .trailing
                                         )
                                     )
-                                
+
                                 RoundedRectangle(cornerRadius: 16)
                                     .stroke(
                                         LinearGradient(
@@ -121,7 +122,7 @@ struct MainMenuView: View {
                             }
                         )
                         .shadow(color: .cyan.opacity(0.3), radius: 15)
-                        
+
                         HStack(spacing: 8) {
                             Image(systemName: "bolt.fill")
                             Text("Epic Space Shooter")
@@ -132,7 +133,7 @@ struct MainMenuView: View {
                         .padding(.top, 5)
                     }
                     .padding(.top, 82)
-                    
+
                     // Stats Cards Row
                     HStack(spacing: 12) {
                         // Stars Balance Card
@@ -155,7 +156,7 @@ struct MainMenuView: View {
                             RoundedRectangle(cornerRadius: 12)
                                 .fill(LinearGradient(colors: [.yellow.opacity(0.3), .orange.opacity(0.2)], startPoint: .leading, endPoint: .trailing))
                         )
-                        
+
                         // Personal Best Card
                         VStack(alignment: .leading, spacing: 5) {
                             Text("BEST SCORE")
@@ -178,7 +179,7 @@ struct MainMenuView: View {
                         )
                     }
                     .padding(.horizontal, 20)
-                    
+
                     // Main Action Buttons
                     VStack(spacing: 10) {
                         // Quick Play Button
@@ -188,12 +189,13 @@ struct MainMenuView: View {
                             gradient: [.yellow, .orange],
                             size: .large
                         ) {
-                            // Use default character and ship, skip to story
+                            // Arcade is the fast global-score quick play mode.
                             gameState.selectedCharacter = "kaden"
                             gameState.selectedShip = "kaden"
-                            gameState.currentScreen = .story
+                            gameState.configureMode(.arcade)
+                            gameState.currentScreen = .playing
                         }
-                        
+
                         EnhancedMenuButton(
                             title: "Start Game",
                             icon: "play.fill",
@@ -204,7 +206,7 @@ struct MainMenuView: View {
                                 gameState.currentScreen = .characterSelect
                             }
                         )
-                        
+
                         EnhancedMenuButton(
                             title: "Open Store",
                             icon: "cart.fill",
@@ -214,7 +216,7 @@ struct MainMenuView: View {
                                 gameState.currentScreen = .store
                             }
                         )
-                        
+
                         EnhancedMenuButton(
                             title: "Choose Ship",
                             icon: "airplane",
@@ -224,7 +226,7 @@ struct MainMenuView: View {
                                 gameState.currentScreen = .shipSelect
                             }
                         )
-                        
+
                         EnhancedMenuButton(
                             title: "Choose Character",
                             icon: "person.fill",
@@ -236,7 +238,7 @@ struct MainMenuView: View {
                         )
                     }
                     .padding(.horizontal, 18)
-                    
+
                     // Secondary Features Grid
                     LazyVGrid(columns: [
                         GridItem(.flexible(), spacing: 10),
@@ -250,7 +252,7 @@ struct MainMenuView: View {
                         ) {
                             gameState.currentScreen = .scores
                         }
-                        
+
                         EnhancedMenuButton(
                             title: "Statistics",
                             icon: "chart.bar.fill",
@@ -259,7 +261,7 @@ struct MainMenuView: View {
                         ) {
                             gameState.currentScreen = .statistics
                         }
-                        
+
                         EnhancedMenuButton(
                             title: "Upgrades",
                             icon: "arrow.up.circle.fill",
@@ -268,7 +270,7 @@ struct MainMenuView: View {
                         ) {
                             gameState.currentScreen = .weaponUpgrades
                         }
-                        
+
                         EnhancedMenuButton(
                             title: "Customize",
                             icon: "paintbrush.fill",
@@ -277,7 +279,7 @@ struct MainMenuView: View {
                         ) {
                             gameState.currentScreen = .customization
                         }
-                        
+
                         EnhancedMenuButton(
                             title: "Save/Load",
                             icon: "square.and.arrow.down.on.square.fill",
@@ -286,16 +288,56 @@ struct MainMenuView: View {
                         ) {
                             gameState.currentScreen = .saveLoad
                         }
+
+                        EnhancedMenuButton(
+                            title: "Game Modes",
+                            icon: "square.grid.2x2.fill",
+                            gradient: [.teal, .blue],
+                            size: .small
+                        ) {
+                            gameState.currentScreen = .modeSelect
+                        }
                     }
                     .padding(.horizontal, 18)
-                    
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack {
+                            Image(systemName: gameState.selectedGameMode.icon)
+                                .foregroundColor(.cyan)
+                            Text("Mode: \(gameState.selectedGameMode.title)")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                            Spacer()
+                            Button("Change") {
+                                gameState.currentScreen = .modeSelect
+                            }
+                            .font(.caption.weight(.bold))
+                            .foregroundColor(.cyan)
+                        }
+
+                        Text(gameState.selectedGameMode.subtitle)
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.72))
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(.ultraThinMaterial)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color.cyan.opacity(0.28), lineWidth: 1)
+                            )
+                    )
+                    .padding(.horizontal, 18)
+
                     // Recent Achievements
                     if !recentAchievements.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
                             Label("Recent Achievements", systemImage: "trophy.fill")
                                 .font(.headline)
                                 .foregroundColor(.white)
-                            
+
                             ForEach(recentAchievements.prefix(3), id: \.self) { achievement in
                                 HStack {
                                     Image(systemName: "star.fill")
@@ -320,7 +362,7 @@ struct MainMenuView: View {
                         )
                         .padding(.horizontal, 20)
                     }
-                    
+
                     // Daily Challenge Card
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
@@ -335,7 +377,7 @@ struct MainMenuView: View {
                                 .font(.caption)
                                 .foregroundColor(.cyan)
                         }
-                        
+
                         // Progress Bar
                         GeometryReader { geometry in
                             ZStack(alignment: .leading) {
@@ -343,7 +385,7 @@ struct MainMenuView: View {
                                     .fill(Color.white.opacity(0.2))
                                     .frame(height: 6)
                                     .cornerRadius(3)
-                                
+
                                 Rectangle()
                                     .fill(LinearGradient(colors: [.cyan, .blue], startPoint: .leading, endPoint: .trailing))
                                     .frame(width: geometry.size.width * dailyChallengeProgress, height: 6)
@@ -351,13 +393,13 @@ struct MainMenuView: View {
                             }
                         }
                         .frame(height: 6)
-                        
-                        Text("Active: Fast Enemies")
+
+                        Text(gameState.selectedGameMode == .dailyChallenge ? "Active: Fast Enemies" : "Select Daily Challenge to activate")
                             .font(.subheadline)
                             .foregroundColor(.cyan)
                             .fontWeight(.semibold)
-                        
-                        Text("Enemies spawn 20% faster and move 20% faster")
+
+                        Text("Daily and weekly challenge progress is saved for global competition.")
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.7))
                     }
@@ -379,13 +421,45 @@ struct MainMenuView: View {
                             )
                     )
                     .padding(.horizontal, 18)
-                    
+
+                    if let sharedEventProgress {
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack {
+                                Label(sharedEventProgress.eventName, systemImage: "globe.americas.fill")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                Spacer()
+                                Text("\(sharedEventProgress.playerContribution)/\(sharedEventProgress.communityGoal)")
+                                    .font(.caption.weight(.bold))
+                                    .foregroundColor(.yellow)
+                            }
+
+                            ProgressView(value: min(Double(sharedEventProgress.playerContribution) / Double(sharedEventProgress.communityGoal), 1.0))
+                                .tint(.yellow)
+
+                            Text("Shared event progress syncs globally when Firebase is available.")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.7))
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(.ultraThinMaterial)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(Color.yellow.opacity(0.28), lineWidth: 1)
+                                )
+                        )
+                        .padding(.horizontal, 18)
+                    }
+
                     // Difficulty Selector
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Difficulty Level")
                             .font(.headline)
                             .foregroundColor(.white)
-                        
+
                         HStack(spacing: 12) {
                             EnhancedDifficultyButton(
                                 title: "Easy",
@@ -395,7 +469,7 @@ struct MainMenuView: View {
                             ) {
                                 gameState.difficulty = "easy"
                             }
-                            
+
                             EnhancedDifficultyButton(
                                 title: "Medium",
                                 emoji: "🟡",
@@ -404,7 +478,7 @@ struct MainMenuView: View {
                             ) {
                                 gameState.difficulty = "medium"
                             }
-                            
+
                             EnhancedDifficultyButton(
                                 title: "Hard",
                                 emoji: "🔴",
@@ -426,7 +500,7 @@ struct MainMenuView: View {
                             )
                     )
                     .padding(.horizontal, 18)
-                    
+
                     // Player Name Input
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
@@ -437,7 +511,7 @@ struct MainMenuView: View {
                                 .font(.headline)
                                 .foregroundColor(.white)
                         }
-                        
+
                         HStack {
                             TextField("Enter gamer tag...", text: $gameState.playerName)
                                 .textFieldStyle(.plain)
@@ -448,7 +522,7 @@ struct MainMenuView: View {
                                 .onChange(of: gameState.playerName) { _ in
                                     gameState.savePlayerName()
                                 }
-                            
+
                             Button(action: {
                                 gameState.savePlayerName()
                             }) {
@@ -457,7 +531,7 @@ struct MainMenuView: View {
                                     .foregroundColor(.green)
                             }
                         }
-                        
+
                         Label("For Your Safety: Use a gamer tag only. Do not use your real name.", systemImage: "shield.fill")
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.6))
@@ -473,7 +547,7 @@ struct MainMenuView: View {
                             )
                     )
                     .padding(.horizontal, 18)
-                    
+
                     // Settings Button
                     Button(action: {
                         gameState.currentScreen = .settings
@@ -496,7 +570,7 @@ struct MainMenuView: View {
                         )
                     }
                     .padding(.horizontal, 18)
-                    
+
                     // Footer
                     VStack(spacing: 10) {
                         HStack(spacing: 20) {
@@ -507,7 +581,7 @@ struct MainMenuView: View {
                             }
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.7))
-                            
+
                             Button {
                                 gameState.currentScreen = .privacyPolicy
                             } label: {
@@ -516,7 +590,7 @@ struct MainMenuView: View {
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.7))
                         }
-                        
+
                         Text("Version 1.0")
                             .font(.caption2)
                             .foregroundColor(.white.opacity(0.5))
@@ -530,6 +604,7 @@ struct MainMenuView: View {
             loadPersonalBest()
             loadRecentAchievements()
             loadDailyChallengeProgress()
+            loadSharedEventProgress()
             // Start menu music
             audioManager.startMenuMusic()
         }
@@ -538,23 +613,23 @@ struct MainMenuView: View {
             audioManager.stopBackgroundMusic()
         }
     }
-    
+
     private func loadCoins() {
         coins = UserDefaults.standard.integer(forKey: "walletCoins")
         gameState.coins = coins
     }
-    
+
     private func loadPersonalBest() {
         Task {
             let scores = (try? await gameState.cloudKitService.fetchHighScores(limit: 100)) ?? []
             let best = scores.map { $0.score }.max() ?? 0
-            
+
             await MainActor.run {
                 personalBest = best
             }
         }
     }
-    
+
     private func loadRecentAchievements() {
         // Load recent achievements from UserDefaults
         if let data = UserDefaults.standard.data(forKey: "recentAchievements"),
@@ -562,13 +637,13 @@ struct MainMenuView: View {
             recentAchievements = Array(achievements.prefix(5))
         }
     }
-    
+
     private func loadDailyChallengeProgress() {
         // Calculate daily challenge progress (based on games played today)
         let today = Calendar.current.startOfDay(for: Date())
         let lastPlayDate = UserDefaults.standard.object(forKey: "lastPlayDate") as? Date ?? today
         let gamesToday = UserDefaults.standard.integer(forKey: "gamesToday")
-        
+
         // Reset if new day
         if !Calendar.current.isDate(lastPlayDate, inSameDayAs: today) {
             UserDefaults.standard.set(0, forKey: "gamesToday")
@@ -579,12 +654,166 @@ struct MainMenuView: View {
             dailyChallengeProgress = min(Double(gamesToday) / 5.0, 1.0)
         }
     }
+
+    private func loadSharedEventProgress() {
+        if let data = UserDefaults.standard.data(forKey: "sharedEvent_bossRushWeekend"),
+           let decoded = try? JSONDecoder().decode(SharedEventProgressData.self, from: data) {
+            sharedEventProgress = decoded
+        } else {
+            sharedEventProgress = SharedEventProgressData(
+                eventId: "bossRushWeekend",
+                eventName: "Defeat 1,000 Boss Ships",
+                playerContribution: 0,
+                communityGoal: 1000,
+                lastUpdated: Date()
+            )
+        }
+
+        Task {
+            guard let remoteProgress = try? await FirebaseService.shared.fetchSharedEventProgress(eventId: "bossRushWeekend") else { return }
+            await MainActor.run {
+                sharedEventProgress = remoteProgress
+                if let encoded = try? JSONEncoder().encode(remoteProgress) {
+                    UserDefaults.standard.set(encoded, forKey: "sharedEvent_bossRushWeekend")
+                }
+            }
+        }
+    }
+}
+
+struct GameModeSelectView: View {
+    @EnvironmentObject var gameState: GameStateManager
+
+    private let columns = [
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12)
+    ]
+
+    var body: some View {
+        ZStack {
+            AnimatedCosmicBackground()
+
+            ScrollView {
+                VStack(spacing: 18) {
+                    HStack {
+                        Button {
+                            gameState.currentScreen = .mainMenu
+                        } label: {
+                            Image(systemName: "chevron.left.circle.fill")
+                                .font(.system(size: 30, weight: .bold))
+                                .foregroundColor(.white)
+                        }
+
+                        Spacer()
+
+                        Text("Game Modes")
+                            .font(.system(size: 32, weight: .black, design: .rounded))
+                            .foregroundStyle(LinearGradient(colors: [.cyan, .blue, .pink], startPoint: .leading, endPoint: .trailing))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+
+                        Spacer()
+
+                        Image(systemName: "chevron.left.circle.fill")
+                            .font(.system(size: 30))
+                            .foregroundColor(.clear)
+                    }
+                    .padding(.top, 78)
+                    .padding(.horizontal, 20)
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label("Global-ready modes", systemImage: "network")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        Text("Leaderboards, cloud progress, daily challenges, shared events, and ghost runs now track by mode.")
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.72))
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(.ultraThinMaterial)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color.cyan.opacity(0.25), lineWidth: 1)
+                            )
+                    )
+                    .padding(.horizontal, 18)
+
+                    LazyVGrid(columns: columns, spacing: 12) {
+                        ForEach(GameMode.allCases) { mode in
+                            Button {
+                                gameState.configureMode(mode)
+                                if mode == .story {
+                                    gameState.currentScreen = .story
+                                } else {
+                                    gameState.currentScreen = .playing
+                                }
+                            } label: {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    HStack {
+                                        Image(systemName: mode.icon)
+                                            .font(.system(size: 22, weight: .bold))
+                                            .foregroundColor(.white)
+                                            .frame(width: 38, height: 38)
+                                            .background(Circle().fill(mode == gameState.selectedGameMode ? Color.cyan : Color.white.opacity(0.16)))
+
+                                        Spacer()
+
+                                        if mode == gameState.selectedGameMode {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .foregroundColor(.green)
+                                        }
+                                    }
+
+                                    Text(mode.title)
+                                        .font(.headline)
+                                        .foregroundColor(.white)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.78)
+
+                                    Text(mode.subtitle)
+                                        .font(.caption)
+                                        .foregroundColor(.white.opacity(0.7))
+                                        .lineLimit(3)
+                                        .multilineTextAlignment(.leading)
+                                        .frame(minHeight: 48, alignment: .topLeading)
+                                }
+                                .padding(14)
+                                .frame(maxWidth: .infinity, minHeight: 150, alignment: .topLeading)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .fill(
+                                            LinearGradient(
+                                                colors: mode == gameState.selectedGameMode
+                                                    ? [Color.cyan.opacity(0.42), Color.blue.opacity(0.3)]
+                                                    : [Color.white.opacity(0.12), Color.white.opacity(0.06)],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        )
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 14)
+                                                .stroke(mode == gameState.selectedGameMode ? Color.cyan : Color.white.opacity(0.18), lineWidth: 1.5)
+                                        )
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.horizontal, 18)
+                    .padding(.bottom, 30)
+                }
+            }
+        }
+    }
 }
 
 // Animated Cosmic Background
 struct AnimatedCosmicBackground: View {
     @State private var animate = false
-    
+
     var body: some View {
         ZStack {
             // Base gradient - Blue theme
@@ -598,7 +827,7 @@ struct AnimatedCosmicBackground: View {
                 endPoint: .bottomTrailing
             )
             .ignoresSafeArea()
-            
+
             // Animated radial gradients
             RadialGradient(
                 colors: [Color(red: 0.47, green: 0.47, blue: 0.78).opacity(0.3), .clear],
@@ -609,7 +838,7 @@ struct AnimatedCosmicBackground: View {
             .ignoresSafeArea()
             .opacity(animate ? 1.0 : 0.5)
             .animation(.easeInOut(duration: 20).repeatForever(autoreverses: true), value: animate)
-            
+
             RadialGradient(
                 colors: [Color(red: 1.0, green: 0.42, blue: 0.42).opacity(0.2), .clear],
                 center: UnitPoint(x: 0.8, y: 0.8),
@@ -619,7 +848,7 @@ struct AnimatedCosmicBackground: View {
             .ignoresSafeArea()
             .opacity(animate ? 0.5 : 1.0)
             .animation(.easeInOut(duration: 15).repeatForever(autoreverses: true), value: animate)
-            
+
             RadialGradient(
                 colors: [Color(red: 0.31, green: 0.80, blue: 0.77).opacity(0.2), .clear],
                 center: UnitPoint(x: 0.4, y: 0.2),
@@ -644,10 +873,10 @@ struct EnhancedMenuButton: View {
     var size: ButtonSize = .normal
     var accessibilityHint: String? = nil
     let action: () -> Void
-    
+
     enum ButtonSize {
         case small, normal, large
-        
+
         var fontSize: CGFloat {
             switch self {
             case .small: return 14
@@ -655,7 +884,7 @@ struct EnhancedMenuButton: View {
             case .large: return 20
             }
         }
-        
+
         var iconSize: CGFloat {
             switch self {
             case .small: return 16
@@ -663,7 +892,7 @@ struct EnhancedMenuButton: View {
             case .large: return 24
             }
         }
-        
+
         var padding: CGFloat {
             switch self {
             case .small: return 10
@@ -672,7 +901,7 @@ struct EnhancedMenuButton: View {
             }
         }
     }
-    
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 12) {
@@ -680,15 +909,15 @@ struct EnhancedMenuButton: View {
                     .font(.system(size: size.iconSize, weight: .semibold))
                     .foregroundColor(.white)
                     .accessibilityHidden(true) // Icon is decorative, text provides meaning
-                
+
                 Text(title)
                     .font(AccessibilityHelper.scaledFont(size: size.fontSize, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.78)
-                
+
                 Spacer()
-                
+
                 Image(systemName: "chevron.right")
                     .font(.system(size: size.iconSize * 0.7, weight: .bold))
                     .foregroundColor(.white.opacity(0.6))
@@ -706,7 +935,7 @@ struct EnhancedMenuButton: View {
                                 endPoint: .trailing
                             )
                         )
-                    
+
                     RoundedRectangle(cornerRadius: 16)
                         .stroke(Color.white.opacity(0.3), lineWidth: 1)
                 }
@@ -736,13 +965,13 @@ struct EnhancedDifficultyButton: View {
     let isSelected: Bool
     let color: Color
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             VStack(spacing: 4) {
                 Text(emoji)
                     .font(.system(size: 24))
-                
+
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(.semibold)
@@ -766,7 +995,7 @@ struct EnhancedDifficultyButton: View {
                                 endPoint: .bottom
                             )
                         )
-                    
+
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(
                             isSelected ? color.opacity(0.8) : Color.white.opacity(0.2),

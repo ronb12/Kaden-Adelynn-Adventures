@@ -8,7 +8,7 @@ import SwiftUI
 struct StoryView: View {
     @EnvironmentObject var gameState: GameStateManager
     @State private var showContinue = false
-    
+
     var body: some View {
         ZStack {
             LinearGradient(
@@ -17,7 +17,7 @@ struct StoryView: View {
                 endPoint: .bottom
             )
             .ignoresSafeArea()
-            
+
             ScrollView {
                 VStack(spacing: 30) {
                     // Header with back button
@@ -30,9 +30,9 @@ struct StoryView: View {
                                 .foregroundColor(.black)
                                 .shadow(color: .white.opacity(0.5), radius: 2)
                         }
-                        
+
                         Spacer()
-                        
+
                         HStack(spacing: 8) {
                             Image(systemName: "sparkles")
                                 .font(.system(size: 30, weight: .bold))
@@ -46,9 +46,9 @@ struct StoryView: View {
                                 .minimumScaleFactor(0.85)
                         }
                         .shadow(color: .black.opacity(0.8), radius: 4, x: 0, y: 2)
-                        
+
                         Spacer()
-                        
+
                         // Spacer for balance
                         Image(systemName: "chevron.left.circle.fill")
                             .font(.title)
@@ -56,47 +56,47 @@ struct StoryView: View {
                     }
                     .padding(.top, 70) // Safe area padding
                     .padding(.horizontal, 20)
-                    
+
                     VStack(alignment: .leading, spacing: 20) {
                         Text("The Adventure Begins")
                             .font(.title)
                             .foregroundColor(.cyan)
                             .shadow(color: .black.opacity(0.8), radius: 3, x: 0, y: 2)
-                        
+
                         Text("Kaden and Adelynn, two brave space explorers, embark on an epic journey through the galaxy to save their home planet from an alien invasion.")
                             .foregroundColor(.black)
                             .font(.body)
                             .shadow(color: .white.opacity(0.5), radius: 2)
                             .padding(.top, 5)
-                        
+
                         Text("The Mission")
                             .font(.title2)
                             .foregroundColor(.yellow)
                             .shadow(color: .black.opacity(0.8), radius: 3, x: 0, y: 2)
                             .padding(.top)
-                        
+
                         Text("Armed with advanced spacecraft and powerful weapons, Kaden and Adelynn must battle through waves of enemies, defeat powerful bosses, and collect resources to upgrade their ships.")
                             .foregroundColor(.black)
                             .font(.body)
                             .shadow(color: .white.opacity(0.5), radius: 2)
-                        
+
                         Text("The Challenge")
                             .font(.title2)
                             .foregroundColor(.orange)
                             .shadow(color: .black.opacity(0.8), radius: 3, x: 0, y: 2)
                             .padding(.top)
-                        
+
                         Text("With 25 lives and countless enemies ahead, can you help Kaden and Adelynn complete their mission and become legendary space heroes?")
                             .foregroundColor(.black)
                             .font(.body)
                             .shadow(color: .white.opacity(0.5), radius: 2)
-                        
+
                         Text("Controls:")
                             .font(.headline)
                             .foregroundColor(.green)
                             .shadow(color: .black.opacity(0.8), radius: 3, x: 0, y: 2)
                             .padding(.top)
-                        
+
                         Text("• Touch and drag to move your ship")
                             .foregroundColor(.white)
                         Text("• Your ship automatically shoots while touching")
@@ -113,8 +113,9 @@ struct StoryView: View {
                     .background(Color.white.opacity(0.1))
                     .cornerRadius(12)
                     .padding(.horizontal, 40)
-                    
+
                     Button(action: {
+                        gameState.configureMode(.story)
                         gameState.currentScreen = .playing
                     }) {
                         Label("Start Adventure", systemImage: "paperplane.fill")

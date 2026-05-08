@@ -11,40 +11,40 @@ import Combine
 
 class CloudKitService: ObservableObject {
     static let shared = CloudKitService()
-    
+
     private let firebaseService = FirebaseService.shared
-    
+
     @Published var isCloudAvailable: Bool = false
     @Published var lastSyncDate: Date?
-    
+
     private init() {
         checkAccountStatus()
     }
-    
+
     // MARK: - Account Status
-    
+
     func checkAccountStatus() {
         // Check Firebase availability
         isCloudAvailable = firebaseService.isAvailable
         lastSyncDate = firebaseService.lastSyncDate
     }
-    
+
     // MARK: - High Scores
-    
+
     func saveHighScore(_ score: HighScoreData) async throws {
         // Use Firebase service
         try await firebaseService.saveHighScore(score)
         lastSyncDate = Date()
     }
-    
+
     func fetchHighScores(limit: Int = 100) async throws -> [HighScoreData] {
         // Use Firebase service
         return try await firebaseService.fetchHighScores(limit: limit)
     }
-    
-    
+
+
     // MARK: - Game Statistics
-    
+
     func saveGameStats(_ stats: GameStatsData) async throws {
         // CloudKit disabled - save to UserDefaults
         guard isCloudAvailable else { return }
@@ -53,7 +53,7 @@ class CloudKitService: ObservableObject {
             lastSyncDate = Date()
         }
     }
-    
+
     func fetchGameStats() async throws -> GameStatsData? {
         // CloudKit disabled - load from UserDefaults
         guard isCloudAvailable else { return nil }
@@ -63,9 +63,9 @@ class CloudKitService: ObservableObject {
         }
         return nil
     }
-    
+
     // MARK: - Achievements
-    
+
     func saveAchievements(_ achievements: [AchievementData]) async throws {
         // CloudKit disabled - save to UserDefaults
         guard isCloudAvailable else { return }
@@ -74,7 +74,7 @@ class CloudKitService: ObservableObject {
             lastSyncDate = Date()
         }
     }
-    
+
     func fetchAchievements() async throws -> [AchievementData] {
         // CloudKit disabled - load from UserDefaults
         guard isCloudAvailable else { return [] }
@@ -84,9 +84,9 @@ class CloudKitService: ObservableObject {
         }
         return []
     }
-    
+
     // MARK: - Player Progress
-    
+
     func savePlayerProgress(_ progress: PlayerProgressData) async throws {
         // CloudKit disabled - save to UserDefaults
         guard isCloudAvailable else { return }
@@ -95,7 +95,7 @@ class CloudKitService: ObservableObject {
             lastSyncDate = Date()
         }
     }
-    
+
     func fetchPlayerProgress() async throws -> PlayerProgressData? {
         // CloudKit disabled - load from UserDefaults
         guard isCloudAvailable else { return nil }
@@ -105,18 +105,18 @@ class CloudKitService: ObservableObject {
         }
         return nil
     }
-    
+
     // MARK: - Sync All Data
-    
+
     func syncAllData(localStats: GameStatsData, localAchievements: [AchievementData], localProgress: PlayerProgressData) async {
         guard isCloudAvailable else { return }
-        
+
         do {
             // Sync in parallel
             async let statsTask: Void = saveGameStats(localStats)
             async let achievementsTask: Void = saveAchievements(localAchievements)
             async let progressTask: Void = savePlayerProgress(localProgress)
-            
+
             _ = try await (statsTask, achievementsTask, progressTask)
             lastSyncDate = Date()
         } catch {
@@ -136,9 +136,10 @@ struct HighScoreData: Codable, Identifiable {
     let kills: Int
     let combo: Int
     let accuracy: Double
+    let gameMode: String
     let date: Date
-    
-    init(playerName: String, score: Int, wave: Int, level: Int, kills: Int, combo: Int, accuracy: Double, date: Date = Date(), id: UUID = UUID()) {
+
+    init(playerName: String, score: Int, wave: Int, level: Int, kills: Int, combo: Int, accuracy: Double, gameMode: String = GameMode.arcade.rawValue, date: Date = Date(), id: UUID = UUID()) {
         self.id = id
         self.playerName = playerName
         self.score = score
@@ -147,9 +148,10 @@ struct HighScoreData: Codable, Identifiable {
         self.kills = kills
         self.combo = combo
         self.accuracy = accuracy
+        self.gameMode = gameMode
         self.date = date
     }
-    
+
     // CloudKit record initializer removed - using JSON encoding instead
 }
 
@@ -168,9 +170,9 @@ struct GameStatsData: Codable {
     var bestAccuracy: Double
     var totalPowerUpsCollected: Int
     var achievementsUnlocked: Int
-    
+
     // CloudKit record initializer removed - using JSON encoding instead
-    
+
     init() {
         self.totalGamesPlayed = 0
         self.totalPlayTime = 0
@@ -196,7 +198,7 @@ struct AchievementData: Codable {
     var unlocked: Bool
     var unlockedDate: Date?
     let reward: Int
-    
+
     // Memberwise initializer
     init(id: String, name: String, description: String, unlocked: Bool, unlockedDate: Date?, reward: Int) {
         self.id = id
@@ -215,13 +217,44 @@ struct PlayerProgressData: Codable {
     var unlockedShips: [String]
     var unlockedCharacters: [String]
     var storeUpgrades: [String: Bool]
-    
+
     // CloudKit record initializer removed - using JSON encoding instead
-    
+
     init() {
         self.coins = 0
         self.unlockedShips = []
         self.unlockedCharacters = []
         self.storeUpgrades = [:]
     }
+}
+
+struct GhostRunData: Codable, Identifiable {
+    let id: UUID
+    let playerName: String
+    let gameMode: String
+    let score: Int
+    let wave: Int
+    let bossesDefeated: Int
+    let timeSurvived: TimeInterval
+    let shipId: String
+    let characterId: String
+    let date: Date
+}
+
+struct SharedEventProgressData: Codable {
+    let eventId: String
+    let eventName: String
+    var playerContribution: Int
+    var communityGoal: Int
+    var lastUpdated: Date
+}
+
+struct PlayerProfileData: Codable {
+    let playerName: String
+    let selectedShip: String
+    let selectedCharacter: String
+    let selectedGameMode: String
+    let stars: Int
+    let storeUpgrades: [String: Bool]
+    let updatedAt: Date
 }

@@ -15,7 +15,7 @@ struct GameOverView: View {
     @State private var coinsEarned: Int = 0
     @State private var achievementsUnlocked: [String] = []
     @State private var ranking: String = ""
-    
+
     var body: some View {
         ZStack {
             Group {
@@ -34,7 +34,7 @@ struct GameOverView: View {
                 }
             }
             .ignoresSafeArea()
-            
+
             ScrollView {
                 VStack(spacing: 18) {
                     // Header with animation
@@ -45,7 +45,7 @@ struct GameOverView: View {
                             .shadow(color: .black.opacity(0.7), radius: 5)
                             .scaleEffect(isNewRecord ? 1.2 : 1.0)
                             .animation(.spring(response: 0.5, dampingFraction: 0.6).repeatForever(autoreverses: true), value: isNewRecord)
-                        
+
                         Text("Game Over")
                             .font(.system(size: 40, weight: .bold))
                             .foregroundColor(colorScheme == .dark ? Color.white : Color.black)
@@ -54,7 +54,7 @@ struct GameOverView: View {
                             .minimumScaleFactor(0.75)
                     }
                     .padding(.top, 84)
-                        
+
                         if isNewRecord {
                             HStack {
                                 Image(systemName: "star.fill")
@@ -73,14 +73,14 @@ struct GameOverView: View {
                             )
                             .cornerRadius(12)
                         }
-                        
+
                         if !ranking.isEmpty {
                             Text(ranking)
                                 .font(.headline)
                                 .foregroundColor(.cyan)
                                 .shadow(color: .black.opacity(0.5), radius: 2)
                         }
-                    
+
                     // Stars Earned Card
                     if coinsEarned > 0 {
                         HStack {
@@ -111,7 +111,7 @@ struct GameOverView: View {
                         .cornerRadius(16)
                         .padding(.horizontal, 20)
                     }
-                    
+
                     // Performance Breakdown
                     VStack(alignment: .leading, spacing: 15) {
                         Text("Performance Breakdown")
@@ -119,7 +119,7 @@ struct GameOverView: View {
                             .foregroundColor(.white)
                             .shadow(color: .black.opacity(0.8), radius: 3, x: 0, y: 1)
                             .padding(.horizontal)
-                        
+
                         VStack(spacing: 12) {
                             GameOverStatRow(label: "Final Score", value: "\(gameState.score)", icon: "star.fill", color: .yellow)
                             GameOverStatRow(label: "Personal Best", value: "\(personalBest)", icon: "trophy.fill", color: .orange)
@@ -143,7 +143,7 @@ struct GameOverView: View {
                         )
                         .padding(.horizontal, 20)
                     }
-                    
+
                     // Achievements Unlocked
                     if !achievementsUnlocked.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
@@ -152,7 +152,7 @@ struct GameOverView: View {
                                 .foregroundColor(.white)
                                 .shadow(color: .black.opacity(0.8), radius: 3, x: 0, y: 1)
                                 .padding(.horizontal)
-                            
+
                             ForEach(achievementsUnlocked, id: \.self) { achievement in
                                 HStack {
                                     Image(systemName: "star.fill")
@@ -169,7 +169,7 @@ struct GameOverView: View {
                             .padding(.horizontal, 20)
                         }
                     }
-                    
+
                     // Action Buttons
                     VStack(spacing: 12) {
                         Button(action: {
@@ -195,7 +195,7 @@ struct GameOverView: View {
                             .cornerRadius(12)
                         }
                         .padding(.horizontal, 20)
-                        
+
                         HStack(spacing: 15) {
                             Button(action: {
                                 gameState.currentScreen = .scores
@@ -212,7 +212,7 @@ struct GameOverView: View {
                                 .background(Color.blue.opacity(0.6))
                                 .cornerRadius(12)
                             }
-                            
+
                             Button(action: {
                                 shareScore()
                             }) {
@@ -230,7 +230,7 @@ struct GameOverView: View {
                             }
                         }
                         .padding(.horizontal, 20)
-                        
+
                         Button(action: {
                             gameState.resetGame()
                             gameState.currentScreen = .mainMenu
@@ -258,13 +258,15 @@ struct GameOverView: View {
             calculateCoinsEarned()
             checkAchievements()
             calculateRanking()
-            
+
             // Track daily challenge - game completed
             trackDailyChallengeGameComplete()
-            
+
             // Save high score
             gameState.saveHighScoreToCloud()
-            
+            gameState.saveGhostRun()
+            gameState.updateSharedEventProgress()
+
             // Update stats
             let sessionData = GameSessionData(
                 score: gameState.score,
@@ -281,36 +283,36 @@ struct GameOverView: View {
             gameState.statsManager.updateStats(gameData: sessionData)
         }
     }
-    
+
     private func loadPersonalBest() {
         Task {
             let scores = (try? await gameState.cloudKitService.fetchHighScores(limit: 100)) ?? []
             let best = scores.map { $0.score }.max() ?? 0
-            
+
             await MainActor.run {
                 personalBest = best
                 isNewRecord = gameState.score > best
             }
         }
     }
-    
+
     private func calculateCoinsEarned() {
         // Calculate stars based on score, wave, clears
         let baseCoins = gameState.score / 100
         let waveBonus = gameState.wave * 10
         let killBonus = gameState.enemiesKilled * 2
         let comboBonus = gameState.combo * 5
-        
+
         coinsEarned = baseCoins + waveBonus + killBonus + comboBonus
-        
+
         // Update game state
         gameState.coins += coinsEarned
         UserDefaults.standard.set(gameState.coins, forKey: "walletCoins")
     }
-    
+
     private func checkAchievements() {
         var unlocked: [String] = []
-        
+
         if gameState.score >= 10000 {
             unlocked.append("Score Master (10,000 points)")
         }
@@ -326,52 +328,52 @@ struct GameOverView: View {
         if gameState.enemiesKilled >= 100 {
             unlocked.append("Enemy Destroyer (100 clears)")
         }
-        
+
         achievementsUnlocked = unlocked
     }
-    
+
     private func calculateRanking() {
         Task {
             let scores = (try? await gameState.cloudKitService.fetchHighScores(limit: 100)) ?? []
             let sortedScores = scores.sorted { $0.score > $1.score }
-            
+
             if let index = sortedScores.firstIndex(where: { $0.score == gameState.score }) {
                 let rank = index + 1
                 let total = sortedScores.count
                 let percentile = Int((Double(total - rank) / Double(total)) * 100)
-                
+
                 await MainActor.run {
                     ranking = "Rank #\(rank) of \(total) • Top \(percentile)%"
                 }
             }
         }
     }
-    
+
     private func shareScore() {
         let text = "I scored \(gameState.score) points in Kaden & Adelynn Space Adventures! 🚀\nWave: \(gameState.wave) • Clears: \(gameState.enemiesKilled) • Combo: \(gameState.combo)x"
-        
+
         let activityVC = UIActivityViewController(
             activityItems: [text],
             applicationActivities: nil
         )
-        
+
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let rootViewController = windowScene.windows.first?.rootViewController {
             rootViewController.present(activityVC, animated: true)
         }
     }
-    
+
     // MARK: - Daily Challenge Tracking
     private func trackDailyChallengeGameComplete() {
         let today = Calendar.current.startOfDay(for: Date())
         let lastPlayDate = UserDefaults.standard.object(forKey: "lastPlayDate") as? Date ?? today
-        
+
         // Reset if new day
         if !Calendar.current.isDate(lastPlayDate, inSameDayAs: today) {
             UserDefaults.standard.set(0, forKey: "gamesToday")
             UserDefaults.standard.set(today, forKey: "lastPlayDate")
         }
-        
+
         // Increment games played today
         var gamesToday = UserDefaults.standard.integer(forKey: "gamesToday")
         gamesToday += 1
@@ -386,18 +388,18 @@ struct GameOverStatRow: View {
     let value: String
     let icon: String
     let color: Color
-    
+
     var body: some View {
         HStack {
             Image(systemName: icon)
                 .foregroundColor(color)
                 .frame(width: 24)
-            
+
             Text(label)
                 .foregroundColor(.white.opacity(0.8))
-            
+
             Spacer()
-            
+
             Text(value)
                 .foregroundColor(.white)
                 .fontWeight(.bold)

@@ -11,19 +11,19 @@ import Combine
 
 class GameCenterService: NSObject, ObservableObject {
     static let shared = GameCenterService()
-    
+
     @Published var isAuthenticated: Bool = false
     @Published var playerName: String = ""
     @Published var playerID: String = ""
     @Published var error: Error?
-    
+
     private let localPlayer = GKLocalPlayer.local
-    
+
     override init() {
         super.init()
         authenticateLocalPlayer()
     }
-    
+
     func authenticateLocalPlayer() {
         localPlayer.authenticateHandler = { [weak self] viewController, error in
             DispatchQueue.main.async {
@@ -46,7 +46,7 @@ class GameCenterService: NSObject, ObservableObject {
             }
         }
     }
-    
+
     func signIn(completion: @escaping (Bool, Error?) -> Void) {
         if localPlayer.isAuthenticated {
             isAuthenticated = true
@@ -68,10 +68,26 @@ class GameCenterService: NSObject, ObservableObject {
             }
         }
     }
-    
+
     func getPlayerCredentials() -> (playerID: String, displayName: String)? {
         guard localPlayer.isAuthenticated else { return nil }
         return (localPlayer.gamePlayerID, localPlayer.displayName)
     }
-}
 
+    func submitScore(_ score: Int, mode: GameMode) async {
+        guard localPlayer.isAuthenticated else { return }
+        let leaderboardIDs = [
+            "kaden_adelynn_global_score",
+            "kaden_adelynn_\(mode.leaderboardKey)"
+        ]
+
+        for leaderboardID in leaderboardIDs {
+            try? await GKLeaderboard.submitScore(
+                score,
+                context: 0,
+                player: localPlayer,
+                leaderboardIDs: [leaderboardID]
+            )
+        }
+    }
+}

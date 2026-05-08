@@ -8,7 +8,7 @@ struct ContentView: View {
             // Default background to prevent white screen
             Color.black
                 .ignoresSafeArea()
-            
+
             GeometryReader { geometry in
                 Group {
                     switch gameState.currentScreen {
@@ -46,6 +46,8 @@ struct ContentView: View {
                         CustomizationView()
                     case .credits:
                         CreditsView()
+                    case .modeSelect:
+                        GameModeSelectView()
                     }
                 }
                 .frame(width: geometry.size.width, height: geometry.size.height)
@@ -58,17 +60,17 @@ struct ContentView: View {
             checkAuthenticationState()
         }
     }
-    
+
     private func checkAuthenticationState() {
         // Check if user has signed in before
         let hasSignedInBefore = UserDefaults.standard.bool(forKey: "hasSignedInBefore")
-        
+
         // Check current authentication state
         let gameCenterAuth = GameCenterService.shared.isAuthenticated
         let appleSignInService = AppleSignInService()
         let appleSignInAuth = appleSignInService.isSignedIn
         let firebaseAuth = FirebaseAuthService.shared.isAuthenticated
-        
+
         // If user has signed in before or is currently authenticated, go to main menu
         if hasSignedInBefore || gameCenterAuth || appleSignInAuth || firebaseAuth {
             gameState.currentScreen = .mainMenu
