@@ -389,8 +389,115 @@ class ShipGraphics {
         sprite.zPosition = 1
         
         ship.addChild(sprite)
+        addBossAnimatedParts(to: ship, size: finalSize, variantSeed: abs(imageName.hashValue))
 
         return ship
+    }
+
+    private static func addBossAnimatedParts(to ship: SKNode, size: CGSize, variantSeed: Int) {
+        let accentPalette: [(UIColor, UIColor)] = [
+            (UIColor(red: 1.0, green: 0.20, blue: 0.22, alpha: 1.0), UIColor(red: 1.0, green: 0.75, blue: 0.16, alpha: 1.0)),
+            (UIColor(red: 0.25, green: 0.95, blue: 1.0, alpha: 1.0), UIColor(red: 0.9, green: 0.25, blue: 1.0, alpha: 1.0)),
+            (UIColor(red: 0.55, green: 1.0, blue: 0.35, alpha: 1.0), UIColor(red: 1.0, green: 0.35, blue: 0.15, alpha: 1.0)),
+            (UIColor(red: 1.0, green: 0.38, blue: 0.85, alpha: 1.0), UIColor(red: 0.35, green: 0.75, blue: 1.0, alpha: 1.0))
+        ]
+        let (coreColor, engineColor) = accentPalette[variantSeed % accentPalette.count]
+        let width = max(size.width, 72)
+        let height = max(size.height, 72)
+
+        let core = SKShapeNode(circleOfRadius: min(width, height) * 0.11)
+        core.name = "boss_core"
+        core.fillColor = coreColor.withAlphaComponent(0.78)
+        core.strokeColor = .white.withAlphaComponent(0.9)
+        core.lineWidth = 2
+        core.glowWidth = 8
+        core.zPosition = 4
+        ship.addChild(core)
+
+        core.run(SKAction.repeatForever(SKAction.sequence([
+            SKAction.group([
+                SKAction.scale(to: 1.28, duration: 0.42),
+                SKAction.fadeAlpha(to: 0.72, duration: 0.42)
+            ]),
+            SKAction.group([
+                SKAction.scale(to: 0.92, duration: 0.42),
+                SKAction.fadeAlpha(to: 1.0, duration: 0.42)
+            ])
+        ])), withKey: "bossCorePulse")
+
+        for side in [-1.0, 1.0] as [CGFloat] {
+            let sideNode = SKNode()
+            sideNode.name = side < 0 ? "boss_left_parts" : "boss_right_parts"
+            sideNode.position = CGPoint(x: side * width * 0.31, y: -height * 0.02)
+            sideNode.zPosition = 3
+
+            let cannon = SKShapeNode(rectOf: CGSize(width: width * 0.12, height: height * 0.34), cornerRadius: 4)
+            cannon.fillColor = UIColor(white: 0.08, alpha: 0.86)
+            cannon.strokeColor = coreColor
+            cannon.lineWidth = 2
+            cannon.glowWidth = 2
+            sideNode.addChild(cannon)
+
+            let fin = SKShapeNode()
+            let path = CGMutablePath()
+            path.move(to: CGPoint(x: side * width * 0.02, y: height * 0.19))
+            path.addLine(to: CGPoint(x: side * width * 0.20, y: 0))
+            path.addLine(to: CGPoint(x: side * width * 0.02, y: -height * 0.19))
+            path.closeSubpath()
+            fin.path = path
+            fin.fillColor = coreColor.withAlphaComponent(0.48)
+            fin.strokeColor = .white.withAlphaComponent(0.75)
+            fin.lineWidth = 1.4
+            fin.zPosition = -1
+            sideNode.addChild(fin)
+
+            ship.addChild(sideNode)
+
+            let sway = SKAction.sequence([
+                SKAction.group([
+                    SKAction.moveBy(x: side * width * 0.035, y: 0, duration: 0.58),
+                    SKAction.rotate(byAngle: side * 0.06, duration: 0.58)
+                ]),
+                SKAction.group([
+                    SKAction.moveBy(x: -side * width * 0.035, y: 0, duration: 0.58),
+                    SKAction.rotate(byAngle: -side * 0.06, duration: 0.58)
+                ])
+            ])
+            sideNode.run(SKAction.repeatForever(sway), withKey: "bossSideSway")
+        }
+
+        for index in 0..<3 {
+            let offset = CGFloat(index - 1) * width * 0.14
+            let engine = SKShapeNode(circleOfRadius: width * 0.045)
+            engine.name = "boss_engine_flame"
+            engine.position = CGPoint(x: offset, y: -height * 0.39)
+            engine.fillColor = engineColor.withAlphaComponent(0.86)
+            engine.strokeColor = .white.withAlphaComponent(0.7)
+            engine.lineWidth = 1.2
+            engine.glowWidth = 10
+            engine.zPosition = 0
+            ship.addChild(engine)
+
+            let flame = SKAction.sequence([
+                SKAction.group([
+                    SKAction.scaleX(to: 0.82, y: 1.65, duration: 0.13),
+                    SKAction.fadeAlpha(to: 0.58, duration: 0.13)
+                ]),
+                SKAction.group([
+                    SKAction.scaleX(to: 1.18, y: 0.9, duration: 0.13),
+                    SKAction.fadeAlpha(to: 1.0, duration: 0.13)
+                ])
+            ])
+            engine.run(SKAction.repeatForever(flame), withKey: "bossEngineFlicker")
+        }
+
+        let armorPulse = SKAction.sequence([
+            SKAction.colorize(with: coreColor, colorBlendFactor: 0.18, duration: 0.7),
+            SKAction.colorize(withColorBlendFactor: 0.0, duration: 0.7)
+        ])
+        for case let sprite as SKSpriteNode in ship.children {
+            sprite.run(SKAction.repeatForever(armorPulse), withKey: "bossArmorPulse")
+        }
     }
     
     // MARK: - Boss Ship Helper Methods
