@@ -8,6 +8,14 @@
 import SpriteKit
 import SwiftUI
 
+enum PlayerManeuverCommand {
+    case dash
+    case barrelRoll
+    case strafeLeft
+    case strafeRight
+    case boost
+}
+
 class GameScene: SKScene {
     var gameState: GameStateManager
     var gameLogic: GameLogic
@@ -18,6 +26,7 @@ class GameScene: SKScene {
     var bulletNodes: [SKNode] = []
     var collectibleNodes: [SKNode] = []
     var powerUpNodes: [SKNode] = []
+    var bossNode: SKNode?
     
     // Input
     var isTouching = false
@@ -266,6 +275,42 @@ class GameScene: SKScene {
             }
         } else {
             lastControllerShootTime = 0
+        }
+    }
+    
+    func performManeuver(_ command: PlayerManeuverCommand) {
+        let bounds = CGRect(origin: .zero, size: size)
+        switch command {
+        case .dash:
+            let direction = CGPoint(x: 0, y: 1)
+            if ShipManeuvers.startDash(player: &gameLogic.player, direction: direction, currentTime: currentTime) {
+                createDashEffect(at: gameLogic.player.position, direction: direction)
+                audioManager.playMissileSound(in: self)
+            }
+        case .barrelRoll:
+            if ShipManeuvers.startBarrelRoll(player: &gameLogic.player, currentTime: currentTime) {
+                createBarrelRollEffect(at: gameLogic.player.position)
+                audioManager.playPowerUpSound(in: self)
+            }
+        case .strafeLeft:
+            if ShipManeuvers.startQuickStrafe(player: &gameLogic.player, direction: -1, currentTime: currentTime) {
+                createStrafeEffect(at: gameLogic.player.position, direction: -1)
+                audioManager.playLaserSound(in: self)
+            }
+        case .strafeRight:
+            if ShipManeuvers.startQuickStrafe(player: &gameLogic.player, direction: 1, currentTime: currentTime) {
+                createStrafeEffect(at: gameLogic.player.position, direction: 1)
+                audioManager.playLaserSound(in: self)
+            }
+        case .boost:
+            ShipManeuvers.startBoostCharge(player: &gameLogic.player, currentTime: currentTime)
+            gameLogic.player.boostChargeLevel = max(gameLogic.player.boostChargeLevel, 0.85)
+            let direction = CGPoint(x: 0, y: 1)
+            if ShipManeuvers.releaseBoostCharge(player: &gameLogic.player, direction: direction, currentTime: currentTime, bounds: bounds) {
+                createBoostReleaseEffect(at: gameLogic.player.position, direction: direction)
+                audioManager.playMissileSound(in: self)
+            }
+            removeBoostChargeVisual()
         }
     }
     
@@ -537,6 +582,7 @@ class GameScene: SKScene {
         updateAsteroids()
         updateCollectibles()
         updatePowerUps()
+        updateBoss()
         
         // Auto-save every 30 seconds (if enabled)
         if gameState.isAutoSaveEnabled {
@@ -671,6 +717,31 @@ class GameScene: SKScene {
             addChild(enemyShip)
             enemyNodes.append(enemyShip)
         }
+    }
+    
+    func updateBoss() {
+        guard let boss = gameLogic.boss else {
+            bossNode?.removeFromParent()
+            bossNode = nil
+            return
+        }
+        
+        if bossNode == nil {
+            let node = ShipGraphics.createBossShip(size: boss.size)
+            node.name = "boss"
+            node.zPosition = 8
+            
+            let entrance = SKAction.sequence([
+                SKAction.scale(to: 1.18, duration: 0.25),
+                SKAction.scale(to: 1.0, duration: 0.18)
+            ])
+            node.run(entrance)
+            addChild(node)
+            bossNode = node
+        }
+        
+        bossNode?.position = boss.position
+        bossNode?.setScale(1.0)
     }
     
     func getPlayerBulletVisuals(weaponType: WeaponType) -> (UIColor, UIColor, String) {
@@ -1424,6 +1495,112 @@ class GameScene: SKScene {
         if VisualEffects.areVisualEffectsEnabled {
             VisualEffects.screenShake(intensity: 15, duration: 0.3, in: self)
         }
+    }
+    
+    func onBossIncoming(wave: Int) {
+        audioManager.playSound("boss", in: self)
+        HapticManager.shared.waveComplete()
+        
+        let overlay = SKNode()
+        overlay.zPosition = 2200
+        
+        let border = SKShapeNode(rect: CGRect(
+            origin: CGPoint(x: -size.width / 2 - 8, y: -size.height / 2 - 8),
+            size: CGSize(width: size.width + 16, height: size.height + 16)
+        ))
+        border.fillColor = .clear
+        border.strokeColor = .red
+        border.lineWidth = 10
+        border.alpha = 0.7
+        overlay.addChild(border)
+        
+        let warning = SKLabelNode(text: "BOSS INCOMING")
+        warning.fontName = "Arial-BoldMT"
+        warning.fontSize = 36
+        warning.fontColor = .red
+        warning.position = CGPoint(x: 0, y: 28)
+        warning.zPosition = 2201
+        overlay.addChild(warning)
+        
+        let subtitle = SKLabelNode(text: "WAVE \(wave)")
+        subtitle.fontName = "Arial-BoldMT"
+        subtitle.fontSize = 22
+        subtitle.fontColor = .white
+        subtitle.position = CGPoint(x: 0, y: -14)
+        subtitle.zPosition = 2201
+        overlay.addChild(subtitle)
+        
+        let sequence = SKAction.sequence([
+            SKAction.group([
+                SKAction.fadeAlpha(to: 1.0, duration: 0.2),
+                SKAction.scale(to: 1.08, duration: 0.2)
+            ]),
+            SKAction.wait(forDuration: 0.9),
+            SKAction.group([
+                SKAction.fadeOut(withDuration: 0.35),
+                SKAction.scale(to: 0.92, duration: 0.35)
+            ]),
+            SKAction.removeFromParent()
+        ])
+        
+        overlay.run(sequence)
+        border.run(SKAction.sequence([
+            SKAction.fadeAlpha(to: 0.25, duration: 0.35),
+            SKAction.fadeAlpha(to: 0.75, duration: 0.35),
+            SKAction.fadeOut(withDuration: 0.45)
+        ]))
+        addChild(overlay)
+    }
+    
+    func onBossDefeated(at position: CGPoint) {
+        audioManager.playExplosionSound(in: self)
+        HapticManager.shared.powerUpCollected()
+        
+        let burst = SKNode()
+        burst.position = position
+        burst.zPosition = 2100
+        
+        for i in 0..<24 {
+            let particle = SKShapeNode(circleOfRadius: i % 3 == 0 ? 5 : 3)
+            particle.fillColor = i % 2 == 0 ? .yellow : .cyan
+            particle.strokeColor = .white
+            let angle = CGFloat(i) * (.pi * 2 / 24)
+            particle.position = CGPoint(x: cos(angle) * 8, y: sin(angle) * 8)
+            burst.addChild(particle)
+            
+            particle.run(SKAction.sequence([
+                SKAction.group([
+                    SKAction.move(by: CGVector(dx: cos(angle) * 95, dy: sin(angle) * 95), duration: 0.7),
+                    SKAction.fadeOut(withDuration: 0.7),
+                    SKAction.scale(to: 0, duration: 0.7)
+                ]),
+                SKAction.removeFromParent()
+            ]))
+        }
+        
+        let label = SKLabelNode(text: "BOSS DEFEATED +1000")
+        label.fontName = "Arial-BoldMT"
+        label.fontSize = 24
+        label.fontColor = .yellow
+        label.position = CGPoint(x: position.x, y: position.y + 70)
+        label.zPosition = 2200
+        addChild(label)
+        label.run(SKAction.sequence([
+            SKAction.group([
+                SKAction.moveBy(x: 0, y: 60, duration: 1.1),
+                SKAction.fadeOut(withDuration: 1.1)
+            ]),
+            SKAction.removeFromParent()
+        ]))
+        
+        addChild(burst)
+        burst.run(SKAction.sequence([
+            SKAction.wait(forDuration: 0.8),
+            SKAction.removeFromParent()
+        ]))
+        
+        bossNode?.removeFromParent()
+        bossNode = nil
     }
     
     func getPowerUpVisuals(type: PowerUp.PowerUpType) -> (UIColor, String) {

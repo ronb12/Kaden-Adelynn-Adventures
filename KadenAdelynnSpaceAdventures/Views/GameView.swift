@@ -61,12 +61,16 @@ struct GameView: View {
                     Spacer()
                     
                     // Bottom Controls
-                    bottomControls(geometry: geometry)
-                    
-                    // Controller Status Indicator
-                    if controllerManager.isControllerConnected && controllerManager.isEnabled {
-                        controllerStatusIndicator(geometry: geometry)
+                    if !gameState.isPaused {
+                        bottomControls(geometry: geometry)
                     }
+                    
+                }
+                .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
+                
+                // Controller Status Indicator
+                if !gameState.isPaused && controllerManager.isControllerConnected && controllerManager.isEnabled {
+                    controllerStatusIndicator(geometry: geometry)
                 }
                 
                 // Achievement notification
@@ -497,7 +501,11 @@ struct GameView: View {
     // MARK: - Bottom Controls
     @ViewBuilder
     private func bottomControls(geometry: GeometryProxy) -> some View {
-        HStack {
+        HStack(alignment: .bottom, spacing: 10) {
+            maneuverControls
+                .padding(.leading, 16)
+                .padding(.bottom, geometry.safeAreaInsets.bottom > 0 ? 8 : 16)
+            
             Spacer()
             
             // Pause Button with modern design
@@ -529,6 +537,48 @@ struct GameView: View {
             .accessibilityHint("Double tap to \(gameState.isPaused ? "resume" : "pause") the game")
             .accessibilityAddTraits(.isButton)
         }
+    }
+    
+    private var maneuverControls: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Maneuvers")
+                .font(.system(size: 9, weight: .bold, design: .monospaced))
+                .foregroundColor(.white.opacity(0.75))
+                .padding(.leading, 4)
+            
+            HStack(spacing: 7) {
+                ManeuverButton(icon: "arrow.up.forward", label: "Dash") {
+                    scene?.performManeuver(.dash)
+                }
+                ManeuverButton(icon: "arrow.2.circlepath", label: "Roll") {
+                    scene?.performManeuver(.barrelRoll)
+                }
+                ManeuverButton(icon: "arrow.left", label: "Left") {
+                    scene?.performManeuver(.strafeLeft)
+                }
+                ManeuverButton(icon: "arrow.right", label: "Right") {
+                    scene?.performManeuver(.strafeRight)
+                }
+                ManeuverButton(icon: "bolt.fill", label: "Boost") {
+                    scene?.performManeuver(.boost)
+                }
+            }
+            
+            Text("Gestures work too: swipe, double tap, two fingers")
+                .font(.system(size: 8, weight: .semibold))
+                .foregroundColor(.white.opacity(0.65))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+        .padding(8)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color.black.opacity(0.38))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color.cyan.opacity(0.32), lineWidth: 1)
+                )
+        )
     }
     
     // MARK: - Redesigned Pause Overlay
@@ -680,7 +730,7 @@ struct GameView: View {
                 Spacer()
             }
             .padding(.leading, 20)
-            .padding(.bottom, geometry.safeAreaInsets.bottom > 0 ? 10 : 20)
+            .padding(.bottom, geometry.safeAreaInsets.bottom > 0 ? 106 : 116)
         }
     }
     
@@ -863,6 +913,47 @@ struct StatCard: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Maneuver Button
+struct ManeuverButton: View {
+    let icon: String
+    let label: String
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 2) {
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .bold))
+                    .frame(width: 18, height: 18)
+                
+                Text(label)
+                    .font(.system(size: 8, weight: .bold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+            }
+            .foregroundColor(.white)
+            .frame(width: 39, height: 42)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.cyan.opacity(0.72), Color.blue.opacity(0.62)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.white.opacity(0.24), lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
+        .accessibilityHint("Performs the \(label.lowercased()) maneuver")
     }
 }
 

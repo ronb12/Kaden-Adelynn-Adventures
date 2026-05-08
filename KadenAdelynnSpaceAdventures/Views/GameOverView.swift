@@ -125,6 +125,7 @@ struct GameOverView: View {
                             GameOverStatRow(label: "Personal Best", value: "\(personalBest)", icon: "trophy.fill", color: .orange)
                             GameOverStatRow(label: "Wave Reached", value: "\(gameState.wave)", icon: "waveform", color: .cyan)
                             GameOverStatRow(label: "Enemies Cleared", value: "\(gameState.enemiesKilled)", icon: "target", color: .red)
+                            GameOverStatRow(label: "Bosses Defeated", value: "\(gameState.bossesDefeated)", icon: "crown.fill", color: .purple)
                             GameOverStatRow(label: "Best Combo", value: "\(gameState.combo)x", icon: "bolt.fill", color: .yellow)
                             GameOverStatRow(label: "Clear Streak", value: "\(gameState.killStreak)", icon: "flame.fill", color: .orange)
                             GameOverStatRow(label: "Accuracy", value: String(format: "%.1f%%", gameState.accuracy), icon: "scope", color: gameState.accuracy >= 75 ? .green : gameState.accuracy >= 50 ? .yellow : .red)
@@ -275,7 +276,7 @@ struct GameOverView: View {
                 shotsHit: gameState.shotsHit,
                 playTime: max(0, Int(gameState.timeSurvived)),
                 powerUpsCollected: 0,
-                bossesDefeated: 0
+                bossesDefeated: gameState.bossesDefeated
             )
             gameState.statsManager.updateStats(gameData: sessionData)
         }

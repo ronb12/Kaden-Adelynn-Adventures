@@ -80,6 +80,7 @@ class GameStateManager: ObservableObject {
     
     // Game statistics
     @Published var enemiesKilled: Int = 0
+    @Published var bossesDefeated: Int = 0
     @Published var shotsFired: Int = 0
     @Published var shotsHit: Int = 0
     @Published var combo: Int = 0
@@ -259,6 +260,7 @@ class GameStateManager: ObservableObject {
         lives = 25
         health = 100
         enemiesKilled = 0
+        bossesDefeated = 0
         shotsFired = 0
         shotsHit = 0
         combo = 0

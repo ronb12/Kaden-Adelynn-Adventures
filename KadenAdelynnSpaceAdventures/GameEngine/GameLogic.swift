@@ -29,6 +29,7 @@ class GameLogic {
     var gameStartTime: TimeInterval = 0
     var lastKillTime: TimeInterval = 0
     var hasStarted: Bool = false
+    var spawnedBossWaves: Set<Int> = []
     
     weak var gameScene: GameScene?
     
@@ -86,6 +87,8 @@ class GameLogic {
         collectibles.removeAll()
         powerUps.removeAll()
         asteroids.removeAll()
+        boss = nil
+        spawnedBossWaves.removeAll()
         
         // Mark as not started yet - will be initialized on first update with actual scene time
         hasStarted = false
@@ -256,6 +259,14 @@ class GameLogic {
             if gameState.score < maxSafeScore {
                 gameState.score = min(gameState.score + waveBonus, maxSafeScore)
             }
+            
+            if shouldSpawnBoss(for: cappedWave) {
+                spawnBoss(bounds: bounds, wave: cappedWave)
+            }
+        }
+        
+        if shouldSpawnBoss(for: gameState.wave) {
+            spawnBoss(bounds: bounds, wave: gameState.wave)
         }
         
         // Clamp player position to screen
@@ -280,7 +291,7 @@ class GameLogic {
         
         // Prevent too many enemies from spawning (memory protection)
         let maxEnemies = 50  // Limit total enemies to prevent memory issues
-        if currentTime - lastEnemySpawn > enemySpawnRate && enemies.count < maxEnemies {
+        if boss == nil && currentTime - lastEnemySpawn > enemySpawnRate && enemies.count < maxEnemies {
             let spawnCount = min(enemiesPerSpawn, maxEnemies - enemies.count)  // Don't exceed max
             for _ in 0..<spawnCount {
                 spawnEnemy(bounds: bounds, wave: gameState.wave)
@@ -312,84 +323,86 @@ class GameLogic {
             }
         }
         
+        updateBoss(bounds: bounds, timeScale: timeScale)
+        
         // Update enemies (move down and shoot)
         // Apply freeze effect if active
         let freezeActive = gameState.activePowerUps["freeze"] != nil
         let effectiveTimeScale = freezeActive ? timeScale * 0.3 : timeScale // Slow enemies to 30% speed when frozen
         
-        // Safety check: ensure we don't iterate over invalid indices
-        guard enemies.count > 0 else { return }
-        
-        for i in (0..<enemies.count).reversed() {
-            // Safety check: ensure index is valid
-            guard i < enemies.count else { continue }
-            var enemy = enemies[i]  // Create mutable copy
-            enemy.wave = gameState.wave  // Track wave for aggression scaling
-            enemy.update(bounds: bounds, timeScale: effectiveTimeScale, wave: gameState.wave)
-            
-            // Enemy shooting (ALL enemies shoot) - affected by difficulty and wave
-            let diffMultiplier = Double(gameState.difficultyMultiplier)
-            let waveShootBonus = Double(gameState.wave) * 0.05  // Faster shooting with waves
-            enemy.shootTimer += 0.016 * Double(timeScale)
-            
-            // Different shoot rates based on enemy type, difficulty, and wave
-            // Grey (shooter) and yellow/orange (tank) enemies shoot rapid fire
-            let baseShootInterval: TimeInterval = {
-                switch enemy.enemyType {
-                case .basic: return 2.5
-                case .fast: return 2.0
-                case .tank: return 0.4  // Rapid fire for tank (yellow/orange)
-                case .shooter: return 0.3  // Rapid fire for shooter (grey)
+        if !enemies.isEmpty {
+            for i in (0..<enemies.count).reversed() {
+                // Safety check: ensure index is valid
+                guard i < enemies.count else { continue }
+                var enemy = enemies[i]  // Create mutable copy
+                enemy.wave = gameState.wave  // Track wave for aggression scaling
+                enemy.update(bounds: bounds, timeScale: effectiveTimeScale, wave: gameState.wave)
+                
+                // Enemy shooting (ALL enemies shoot) - affected by difficulty and wave
+                let diffMultiplier = Double(gameState.difficultyMultiplier)
+                let waveShootBonus = Double(gameState.wave) * 0.05  // Faster shooting with waves
+                enemy.shootTimer += 0.016 * Double(timeScale)
+                
+                // Different shoot rates based on enemy type, difficulty, and wave
+                // Grey (shooter) and yellow/orange (tank) enemies shoot rapid fire
+                let baseShootInterval: TimeInterval = {
+                    switch enemy.enemyType {
+                    case .basic: return 2.5
+                    case .fast: return 2.0
+                    case .tank: return 0.4  // Rapid fire for tank (yellow/orange)
+                    case .shooter: return 0.3  // Rapid fire for shooter (grey)
+                    }
+                }()
+                
+                // Harder difficulty = faster shooting, also scales with waves
+                // Make enemies more aggressive as waves increase (shoot faster, move faster)
+                let waveAggressionMultiplier = 1.0 + Double(gameState.wave - 1) * 0.15  // 15% faster per wave
+                // Prevent division by zero and ensure shootInterval is always positive
+                let safeDiffMultiplier = max(0.1, diffMultiplier)  // Prevent division by zero
+                let safeWaveAggression = max(0.1, waveAggressionMultiplier)  // Prevent division by zero
+                let calculatedInterval = (baseShootInterval / safeDiffMultiplier - waveShootBonus) / safeWaveAggression
+                let shootInterval = max(0.1, calculatedInterval)  // Ensure minimum interval
+                
+                if enemy.shootTimer >= shootInterval {
+                    // Prevent too many bullets from spawning (memory protection)
+                    let maxBullets = 200  // Limit total bullets to prevent memory issues
+                    if bullets.count < maxBullets {
+                        // Bullet speed increases with difficulty and wave (more aggressive)
+                        let bulletSpeed = 5.0 * diffMultiplier + Double(gameState.wave) * 0.5  // Increased from 0.3 to 0.5
+                        let baseDamage = Float(enemy.enemyType == .tank ? 15 : 10)
+                        let bulletDamage = Int(baseDamage * gameState.difficultyMultiplier * Float(1.0 + Double(gameState.wave - 1) * 0.1))  // Damage increases with waves
+                        
+                        let bullet = Bullet(
+                            position: enemy.position,
+                            velocity: CGPoint(x: 0, y: -CGFloat(bulletSpeed)),
+                            size: CGSize(width: 4, height: 8),
+                            owner: .enemy,
+                            damage: bulletDamage
+                        )
+                        bullets.append(bullet)
+                    }
+                    enemy.shootTimer = 0
                 }
-            }()
-            
-            // Harder difficulty = faster shooting, also scales with waves
-            // Make enemies more aggressive as waves increase (shoot faster, move faster)
-            let waveAggressionMultiplier = 1.0 + Double(gameState.wave - 1) * 0.15  // 15% faster per wave
-            // Prevent division by zero and ensure shootInterval is always positive
-            let safeDiffMultiplier = max(0.1, diffMultiplier)  // Prevent division by zero
-            let safeWaveAggression = max(0.1, waveAggressionMultiplier)  // Prevent division by zero
-            let calculatedInterval = (baseShootInterval / safeDiffMultiplier - waveShootBonus) / safeWaveAggression
-            let shootInterval = max(0.1, calculatedInterval)  // Ensure minimum interval
-            
-            if enemy.shootTimer >= shootInterval {
-                // Prevent too many bullets from spawning (memory protection)
-                let maxBullets = 200  // Limit total bullets to prevent memory issues
-                if bullets.count < maxBullets {
-                    // Bullet speed increases with difficulty and wave (more aggressive)
-                    let bulletSpeed = 5.0 * diffMultiplier + Double(gameState.wave) * 0.5  // Increased from 0.3 to 0.5
-                    let baseDamage = Float(enemy.enemyType == .tank ? 15 : 10)
-                    let bulletDamage = Int(baseDamage * gameState.difficultyMultiplier * Float(1.0 + Double(gameState.wave - 1) * 0.1))  // Damage increases with waves
-                    
-                    let bullet = Bullet(
-                        position: enemy.position,
-                        velocity: CGPoint(x: 0, y: -CGFloat(bulletSpeed)),
-                        size: CGSize(width: 4, height: 8),
-                        owner: .enemy,
-                        damage: bulletDamage
-                    )
-                    bullets.append(bullet)
+                
+                // Put updated enemy back in array
+                enemies[i] = enemy
+                
+                // Remove if off bottom of screen
+                if enemies[i].position.y < -halfHeight - 50 {
+                    enemies.remove(at: i)
                 }
-                enemy.shootTimer = 0
-            }
-            
-            // Put updated enemy back in array
-            enemies[i] = enemy
-            
-            // Remove if off bottom of screen
-            if enemies[i].position.y < -halfHeight - 50 {
-                enemies.remove(at: i)
             }
         }
         
         // Update bullets - safety check
-        guard bullets.count > 0 else { return }
-        for i in (0..<bullets.count).reversed() {
-            guard i < bullets.count else { continue }
-            bullets[i].update(timeScale: timeScale)
-            
-            if bullets[i].isOffScreen(bounds: bounds) {
-                bullets.remove(at: i)
+        if !bullets.isEmpty {
+            for i in (0..<bullets.count).reversed() {
+                guard i < bullets.count else { continue }
+                bullets[i].update(timeScale: timeScale)
+                
+                if bullets[i].isOffScreen(bounds: bounds) {
+                    bullets.remove(at: i)
+                }
             }
         }
         
@@ -512,6 +525,59 @@ class GameLogic {
         }
         
         enemies.append(enemy)
+    }
+    
+    func shouldSpawnBoss(for wave: Int) -> Bool {
+        wave >= 5 && wave % 5 == 0 && boss == nil && !spawnedBossWaves.contains(wave)
+    }
+    
+    func spawnBoss(bounds: CGRect, wave: Int) {
+        let halfHeight = bounds.height / 2
+        let position = CGPoint(x: 0, y: halfHeight - 130)
+        boss = Boss(position: position, wave: wave, difficultyMultiplier: gameState.difficultyMultiplier)
+        spawnedBossWaves.insert(wave)
+        enemies.removeAll()
+        gameScene?.onBossIncoming(wave: wave)
+        NotificationCenter.default.post(
+            name: NSNotification.Name("BossHealthUpdated"),
+            object: nil,
+            userInfo: ["health": boss?.health ?? 0, "maxHealth": boss?.maxHealth ?? 100]
+        )
+    }
+    
+    func updateBoss(bounds: CGRect, timeScale: CGFloat) {
+        guard var currentBoss = boss else { return }
+        
+        currentBoss.update(bounds: bounds, timeScale: timeScale)
+        
+        if currentBoss.shouldShoot() && bullets.count < 200 {
+            let diffMultiplier = Double(gameState.difficultyMultiplier)
+            let bulletSpeed = CGFloat(4.5 + Double(gameState.wave) * 0.25 + diffMultiplier)
+            let damage = Int(14.0 * gameState.difficultyMultiplier)
+            let aimedVector = CGPoint(
+                x: player.position.x - currentBoss.position.x,
+                y: player.position.y - currentBoss.position.y
+            ).normalized()
+            
+            let pattern: [CGFloat] = [-0.32, -0.16, 0, 0.16, 0.32]
+            for angleOffset in pattern {
+                let baseAngle = atan2(aimedVector.y, aimedVector.x)
+                let angle = baseAngle + angleOffset
+                bullets.append(
+                    Bullet(
+                        position: currentBoss.position,
+                        velocity: CGPoint(x: cos(angle) * bulletSpeed, y: sin(angle) * bulletSpeed),
+                        size: CGSize(width: 7, height: 14),
+                        owner: .enemy,
+                        damage: damage
+                    )
+                )
+            }
+            
+            currentBoss.resetShootTimer()
+        }
+        
+        boss = currentBoss
     }
     
     func spawnPowerUp(bounds: CGRect) {
@@ -719,62 +785,54 @@ class GameLogic {
     
     func checkCollisions(bounds: CGRect) {
         // Player bullets vs enemies - safety checks
-        guard bullets.count > 0 && enemies.count > 0 else { return }
-        for i in (0..<bullets.count).reversed() {
-            guard i < bullets.count else { continue }
-            guard bullets[i].owner == .player else { continue }
-            
-            for j in (0..<enemies.count).reversed() {
-                guard j < enemies.count else { continue }
-                if enemies[j].collidesWith(bullets[i]) {
-                    enemies[j].takeDamage(bullets[i].damage)
+        if !bullets.isEmpty && !enemies.isEmpty {
+            for i in (0..<bullets.count).reversed() {
+                guard i < bullets.count else { continue }
+                guard bullets[i].owner == .player else { continue }
+                let bulletDamage = bullets[i].damage
+                
+                for j in (0..<enemies.count).reversed() {
+                    guard j < enemies.count else { continue }
+                    guard enemies[j].collidesWith(bullets[i]) else { continue }
+                    
+                    let enemyPosition = enemies[j].position
+                    var finalDamage = bulletDamage
+                    if gameState.activePowerUps["damage_boost"] != nil {
+                        finalDamage = Int(Float(finalDamage) * 1.5)
+                    }
+                    enemies[j].takeDamage(finalDamage)
                     bullets.remove(at: i)
                     
                     if enemies[j].isDead {
-                        // Apply damage boost from skull token
-                        var finalDamage = bullets[i].damage
-                        if gameState.activePowerUps["damage_boost"] != nil {
-                            finalDamage = Int(Float(finalDamage) * 1.5) // 50% damage boost
-                        }
-                        
-                        // Enemy cleared - COMBO SYSTEM
                         let currentTimeSeconds = Date().timeIntervalSince1970
                         lastKillTime = currentTimeSeconds
                         gameState.combo += 1
                         gameState.killStreak += 1
-                        
-                        // Update score multiplier based on combo
                         updateScoreMultiplier()
                         
-                        // Calculate score with multiplier, streak bonus, and difficulty bonus
                         var baseScore = enemies[j].points
-                        
-                        // Apply XP core boost
                         if gameState.activePowerUps["xp_boost"] != nil {
-                            baseScore = Int(Float(baseScore) * 1.25) // 25% XP boost
+                            baseScore = Int(Float(baseScore) * 1.25)
                         }
                         
                         let multiplierScore = Float(baseScore) * gameState.scoreMultiplier
-                        let streakBonus = gameState.killStreak > 5 ? Float(baseScore) * 0.5 : 0  // 50% bonus for 5+ streak
-                        let waveBonus = Float(baseScore) * Float(gameState.wave) * 0.1  // 10% per wave
-                        let difficultyBonus = Float(baseScore) * (gameState.difficultyMultiplier - 1.0) * 0.5  // Bonus for harder difficulties
-                        
+                        let streakBonus = gameState.killStreak > 5 ? Float(baseScore) * 0.5 : 0
+                        let waveBonus = Float(baseScore) * Float(gameState.wave) * 0.1
+                        let difficultyBonus = Float(baseScore) * (gameState.difficultyMultiplier - 1.0) * 0.5
                         let totalScore = Int(multiplierScore + streakBonus + waveBonus + difficultyBonus)
-                        // Prevent score overflow - cap at Int.max / 2 for safety
+                        
                         let maxSafeScore = Int.max / 2
                         if gameState.score < maxSafeScore {
                             gameState.score = min(gameState.score + totalScore, maxSafeScore)
                         }
                         gameState.enemiesKilled += 1
                         
-                        gameScene?.onEnemyKilled(enemies[j], at: enemies[j].position, score: totalScore)
+                        gameScene?.onEnemyKilled(enemies[j], at: enemyPosition, score: totalScore)
                         
-                        // Spawn coin - higher chance with combo
-                        let coinChance = min(80, 50 + gameState.combo * 2)  // Up to 80% chance
+                        let coinChance = min(80, 50 + gameState.combo * 2)
                         if Int.random(in: 0...100) < coinChance {
-                            spawnCoin(at: enemies[j].position)
+                            spawnCoin(at: enemyPosition)
                         }
-                        
                         enemies.remove(at: j)
                     }
                     break
@@ -870,12 +928,48 @@ class GameLogic {
                             gameState.score = min(gameState.score + 1000, maxSafeScore)
                         }
                         AchievementManager.shared.checkBossKill()
+                        gameState.bossesDefeated += 1
                         boss = nil
-                        gameScene?.onEnemyKilled(Enemy(position: currentBoss.position, type: .tank), at: currentBoss.position)
+                        NotificationCenter.default.post(
+                            name: NSNotification.Name("BossHealthUpdated"),
+                            object: nil,
+                            userInfo: ["health": 0, "maxHealth": currentBoss.maxHealth]
+                        )
+                        gameScene?.onBossDefeated(at: currentBoss.position)
                     } else {
                         boss = currentBoss
+                        NotificationCenter.default.post(
+                            name: NSNotification.Name("BossHealthUpdated"),
+                            object: nil,
+                            userInfo: ["health": currentBoss.health, "maxHealth": currentBoss.maxHealth]
+                        )
                     }
                     break
+                }
+            }
+        }
+        
+        // Boss body vs player
+        if let currentBoss = boss, !player.invulnerable {
+            let bossRect = CGRect(
+                x: currentBoss.position.x - currentBoss.size.width / 2,
+                y: currentBoss.position.y - currentBoss.size.height / 2,
+                width: currentBoss.size.width,
+                height: currentBoss.size.height
+            )
+            
+            if player.collidesWith(bossRect) {
+                player.health -= 25
+                player.invulnerable = true
+                player.invulnerableTimer = 2.0
+                gameScene?.onPlayerHit()
+                gameState.combo = 0
+                gameState.killStreak = 0
+                updateScoreMultiplier()
+                
+                if player.health <= 0 {
+                    player.health = player.maxHealth
+                    gameState.lives -= 1
                 }
             }
         }
@@ -1082,4 +1176,3 @@ class GameLogic {
         }
     }
 }
-

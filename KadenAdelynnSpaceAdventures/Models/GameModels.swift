@@ -357,12 +357,15 @@ struct Boss {
     var velocity: CGPoint
     var shootTimer: TimeInterval
     
-    init(position: CGPoint) {
+    init(position: CGPoint, wave: Int = 1, difficultyMultiplier: Float = 1.0) {
         self.position = position
-        self.size = CGSize(width: 100, height: 100)  // Increased from 80x80
-        self.health = 100
-        self.maxHealth = 100
-        self.velocity = CGPoint(x: 2, y: 0)
+        let waveBonus = min(max(wave, 1), 40)
+        let bossSize = min(150, 100 + waveBonus)
+        let bossHealth = Int(Float(140 + waveBonus * 35) * max(difficultyMultiplier, 0.8))
+        self.size = CGSize(width: bossSize, height: bossSize)
+        self.health = bossHealth
+        self.maxHealth = bossHealth
+        self.velocity = CGPoint(x: 2 + CGFloat(waveBonus) * 0.04, y: 0)
         self.shootTimer = 0
     }
     
