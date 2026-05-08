@@ -1,20 +1,77 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="18122" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="dark"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="18093"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
     <scenes>
         <scene sceneID="EHf-IW-A2E">
             <objects>
                 <viewController id="01J-lp-oVM" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="Ze5-6b-2t3">
-                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Kaden &amp; Adelynn Space Adventures" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="1" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="YES" id="n2d-2h-3gk">
-                                <rect key="frame" x="20" y="400" width="374" height="96"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="28"/>
-                                <color key="textColor" red="0.2" green="0.2" blue="0.7" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="bkg-glow-cyan">
+                                <rect key="frame" x="-120" y="94" width="310" height="310"/>
+                                <color key="backgroundColor" red="0.0" green="0.7803921569" blue="1" alpha="0.18000000000000002" colorSpace="custom" customColorSpace="sRGB"/>
+                            </view>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="bkg-glow-pink">
+                                <rect key="frame" x="205" y="433" width="280" height="280"/>
+                                <color key="backgroundColor" red="1" green="0.2470588235" blue="0.7529411765" alpha="0.16000000000000003" colorSpace="custom" customColorSpace="sRGB"/>
+                            </view>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="AppIconImage" translatesAutoresizingMaskIntoConstraints="NO" id="app-icon">
+                                <rect key="frame" x="136.5" y="268" width="120" height="120"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="120" id="icon-width"/>
+                                    <constraint firstAttribute="height" constant="120" id="icon-height"/>
+                                </constraints>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                        <real key="value" value="26"/>
+                                    </userDefinedRuntimeAttribute>
+                                    <userDefinedRuntimeAttribute type="boolean" keyPath="clipsToBounds" value="YES"/>
+                                </userDefinedRuntimeAttributes>
+                            </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Kaden &amp; Adelynn" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="1" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="YES" translatesAutoresizingMaskIntoConstraints="NO" id="title-label">
+                                <rect key="frame" x="28" y="416" width="337" height="45"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="38"/>
+                                <color key="textColor" red="0.8392156863" green="0.968627451" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="SPACE ADVENTURES" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="1" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="YES" translatesAutoresizingMaskIntoConstraints="NO" id="subtitle-label">
+                                <rect key="frame" x="48" y="469" width="297" height="27"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="22"/>
+                                <color key="textColor" red="1" green="0.7294117647" blue="0.9803921569" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Loading mission..." textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="1" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="YES" translatesAutoresizingMaskIntoConstraints="NO" id="loading-label">
+                                <rect key="frame" x="116" y="607" width="161" height="22"/>
+                                <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="18"/>
+                                <color key="textColor" white="1" alpha="0.72" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </label>
                         </subviews>
-                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <color key="backgroundColor" red="0.01568627451" green="0.01960784314" blue="0.07058823529" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="app-icon" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="icon-center-x"/>
+                            <constraint firstItem="app-icon" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" constant="-70" id="icon-center-y"/>
+                            <constraint firstItem="title-label" firstAttribute="top" secondItem="app-icon" secondAttribute="bottom" constant="28" id="title-top"/>
+                            <constraint firstItem="title-label" firstAttribute="leading" secondItem="Ze5-6b-2t3" secondAttribute="leading" constant="28" id="title-leading"/>
+                            <constraint firstAttribute="trailing" secondItem="title-label" secondAttribute="trailing" constant="28" id="title-trailing"/>
+                            <constraint firstItem="subtitle-label" firstAttribute="top" secondItem="title-label" secondAttribute="bottom" constant="8" id="subtitle-top"/>
+                            <constraint firstItem="subtitle-label" firstAttribute="leading" secondItem="Ze5-6b-2t3" secondAttribute="leading" constant="48" id="subtitle-leading"/>
+                            <constraint firstAttribute="trailing" secondItem="subtitle-label" secondAttribute="trailing" constant="48" id="subtitle-trailing"/>
+                            <constraint firstItem="loading-label" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="loading-center-x"/>
+                            <constraint firstItem="loading-label" firstAttribute="top" secondItem="subtitle-label" secondAttribute="bottom" constant="110" id="loading-top"/>
+                            <constraint firstItem="bkg-glow-cyan" firstAttribute="width" constant="310" id="cyan-width"/>
+                            <constraint firstItem="bkg-glow-cyan" firstAttribute="height" constant="310" id="cyan-height"/>
+                            <constraint firstItem="bkg-glow-cyan" firstAttribute="leading" secondItem="Ze5-6b-2t3" secondAttribute="leading" constant="-120" id="cyan-leading"/>
+                            <constraint firstItem="bkg-glow-cyan" firstAttribute="top" secondItem="Ze5-6b-2t3" secondAttribute="top" constant="94" id="cyan-top"/>
+                            <constraint firstItem="bkg-glow-pink" firstAttribute="width" constant="280" id="pink-width"/>
+                            <constraint firstItem="bkg-glow-pink" firstAttribute="height" constant="280" id="pink-height"/>
+                            <constraint firstAttribute="trailing" secondItem="bkg-glow-pink" secondAttribute="trailing" constant="-92" id="pink-trailing"/>
+                            <constraint firstAttribute="bottom" secondItem="bkg-glow-pink" secondAttribute="bottom" constant="139" id="pink-bottom"/>
+                        </constraints>
                     </view>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-9a-nXf" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -22,4 +79,7 @@
             <point key="canvasLocation" x="53" y="375"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="AppIconImage" width="1024" height="1024"/>
+    </resources>
 </document>
