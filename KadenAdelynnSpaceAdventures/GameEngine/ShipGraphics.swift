@@ -557,14 +557,12 @@ class ShipGraphics {
     
     static func createBossShip(size: CGSize, variant: Int? = nil) -> SKNode {
         let ship = SKNode()
-        
-        // Select random boss ship design from available assets (1-10)
-        let bossShips = ["boss_ship_1", "boss_ship_2", "boss_ship_3", "boss_ship_4", "boss_ship_5", "boss_ship_6", "boss_ship_7", "boss_ship_8", "boss_ship_9", "boss_ship_10"]
-        let imageName = variant.map { bossShips[abs($0) % bossShips.count] } ?? (bossShips.randomElement() ?? "boss_ship_1")
-        
-        // Try to load the boss ship image from assets
+
+        let variantIndex = abs(variant ?? Int.random(in: 0..<10))
+        let imageName = bossSpaceshipImageName(for: variantIndex)
+        let palette = bossPalette(for: variantIndex)
+
         guard let image = UIImage(named: imageName) else {
-            // Fallback: create a simple colored shape if image not found
             let fallback = SKShapeNode(rect: CGRect(origin: CGPoint(x: -size.width/2, y: -size.height/2), size: size))
             fallback.fillColor = UIColor(red: 0.8, green: 0.0, blue: 0.2, alpha: 1.0) // dark red
             fallback.strokeColor = UIColor(red: 1.0, green: 0.0, blue: 0.5, alpha: 1.0) // magenta
@@ -572,43 +570,107 @@ class ShipGraphics {
             ship.addChild(fallback)
             return ship
         }
-        
-        let trimmedImage = image.removingCardBackgroundAndTrimming() ?? image
 
-        // Create sprite node with the boss ship image
-        let texture = SKTexture(image: trimmedImage)
+        let texture = SKTexture(image: image)
+        let finalSize = fittedSize(for: image.size, target: size)
         let sprite = SKSpriteNode(texture: texture)
-
-        // Scale to fit the requested size while maintaining aspect ratio
-        let imageAspect = trimmedImage.size.width / trimmedImage.size.height
-        let targetAspect = size.width / size.height
-
-        var finalSize = size
-        if imageAspect > targetAspect {
-            // Image is wider - fit to width
-            finalSize = CGSize(width: size.width, height: size.width / imageAspect)
-        } else {
-            // Image is taller - fit to height
-            finalSize = CGSize(width: size.height * imageAspect, height: size.height)
-        }
-        
         sprite.size = finalSize
-        sprite.zPosition = 1
-        
+        sprite.zRotation = .pi
+        sprite.color = palette.hull
+        sprite.colorBlendFactor = 0.55
+        sprite.zPosition = 3
+
+        let underGlow = SKShapeNode(ellipseOf: CGSize(width: finalSize.width * 1.05, height: finalSize.height * 0.9))
+        underGlow.fillColor = palette.accent.withAlphaComponent(0.12)
+        underGlow.strokeColor = palette.accent.withAlphaComponent(0.42)
+        underGlow.lineWidth = 2
+        underGlow.glowWidth = 8
+        underGlow.zPosition = 0
+        ship.addChild(underGlow)
+
+        addBossWingModules(to: ship, texture: texture, size: finalSize, palette: palette, variantSeed: variantIndex)
         ship.addChild(sprite)
-        addBossAnimatedParts(to: ship, size: finalSize, variantSeed: abs(imageName.hashValue))
+        addBossCommandArmor(to: ship, size: finalSize, palette: palette, variantSeed: variantIndex)
+        addBossAnimatedParts(to: ship, size: finalSize, variantSeed: variantIndex)
 
         return ship
     }
 
-    private static func addBossAnimatedParts(to ship: SKNode, size: CGSize, variantSeed: Int) {
-        let accentPalette: [(UIColor, UIColor)] = [
-            (UIColor(red: 1.0, green: 0.20, blue: 0.22, alpha: 1.0), UIColor(red: 1.0, green: 0.75, blue: 0.16, alpha: 1.0)),
-            (UIColor(red: 0.25, green: 0.95, blue: 1.0, alpha: 1.0), UIColor(red: 0.9, green: 0.25, blue: 1.0, alpha: 1.0)),
-            (UIColor(red: 0.55, green: 1.0, blue: 0.35, alpha: 1.0), UIColor(red: 1.0, green: 0.35, blue: 0.15, alpha: 1.0)),
-            (UIColor(red: 1.0, green: 0.38, blue: 0.85, alpha: 1.0), UIColor(red: 0.35, green: 0.75, blue: 1.0, alpha: 1.0))
+    private static func bossSpaceshipImageName(for variant: Int) -> String {
+        let bossBases = ["Spaceship_5", "Spaceship_13", "Spaceship_10", "Spaceship_11", "Spaceship_7", "Spaceship_4", "Spaceship_6", "Spaceship_12", "Spaceship_8", "Spaceship_3"]
+        return bossBases[variant % bossBases.count]
+    }
+
+    private static func bossPalette(for variant: Int) -> (hull: UIColor, armor: UIColor, accent: UIColor, engine: UIColor) {
+        let palettes = [
+            (UIColor(red: 0.36, green: 0.05, blue: 0.08, alpha: 1), UIColor(red: 0.12, green: 0.02, blue: 0.04, alpha: 1), UIColor(red: 1.0, green: 0.18, blue: 0.18, alpha: 1), UIColor(red: 1.0, green: 0.58, blue: 0.18, alpha: 1)),
+            (UIColor(red: 0.12, green: 0.12, blue: 0.36, alpha: 1), UIColor(red: 0.04, green: 0.04, blue: 0.18, alpha: 1), UIColor(red: 0.25, green: 0.78, blue: 1.0, alpha: 1), UIColor(red: 0.85, green: 0.30, blue: 1.0, alpha: 1)),
+            (UIColor(red: 0.22, green: 0.08, blue: 0.32, alpha: 1), UIColor(red: 0.08, green: 0.03, blue: 0.14, alpha: 1), UIColor(red: 1.0, green: 0.28, blue: 0.72, alpha: 1), UIColor(red: 0.45, green: 0.82, blue: 1.0, alpha: 1)),
+            (UIColor(red: 0.16, green: 0.28, blue: 0.20, alpha: 1), UIColor(red: 0.05, green: 0.13, blue: 0.08, alpha: 1), UIColor(red: 0.55, green: 1.0, blue: 0.36, alpha: 1), UIColor(red: 1.0, green: 0.42, blue: 0.18, alpha: 1))
         ]
-        let (coreColor, engineColor) = accentPalette[variantSeed % accentPalette.count]
+        return palettes[variant % palettes.count]
+    }
+
+    private static func addBossWingModules(
+        to ship: SKNode,
+        texture: SKTexture,
+        size: CGSize,
+        palette: (hull: UIColor, armor: UIColor, accent: UIColor, engine: UIColor),
+        variantSeed: Int
+    ) {
+        for side in [-1.0, 1.0] as [CGFloat] {
+            let module = SKSpriteNode(texture: texture)
+            module.size = CGSize(width: size.width * 0.48, height: size.height * 0.62)
+            module.position = CGPoint(x: side * size.width * 0.33, y: -size.height * 0.03)
+            module.zRotation = .pi + side * 0.22
+            module.color = palette.armor
+            module.colorBlendFactor = 0.72
+            module.alpha = 0.88
+            module.zPosition = 1
+            ship.addChild(module)
+
+            let sway = SKAction.sequence([
+                SKAction.rotate(byAngle: side * 0.04, duration: 0.62),
+                SKAction.rotate(byAngle: -side * 0.04, duration: 0.62)
+            ])
+            module.run(SKAction.repeatForever(sway), withKey: "bossWingModuleSway")
+        }
+    }
+
+    private static func addBossCommandArmor(
+        to ship: SKNode,
+        size: CGSize,
+        palette: (hull: UIColor, armor: UIColor, accent: UIColor, engine: UIColor),
+        variantSeed: Int
+    ) {
+        for y in [-size.height * 0.16, size.height * 0.13] {
+            let plate = SKShapeNode(rectOf: CGSize(width: size.width * 0.56, height: size.height * 0.09), cornerRadius: 3)
+            plate.position = CGPoint(x: 0, y: y)
+            plate.fillColor = palette.armor.withAlphaComponent(0.76)
+            plate.strokeColor = palette.accent.withAlphaComponent(0.55)
+            plate.lineWidth = 1.1
+            plate.glowWidth = 1.6
+            plate.zPosition = 5
+            ship.addChild(plate)
+        }
+
+        for side in [-1.0, 1.0] as [CGFloat] {
+            let rail = SKShapeNode(rectOf: CGSize(width: size.width * 0.055, height: size.height * 0.54), cornerRadius: 2)
+            rail.position = CGPoint(x: side * size.width * 0.21, y: -size.height * 0.02)
+            rail.zRotation = side * 0.24
+            rail.fillColor = palette.accent.withAlphaComponent(0.24)
+            rail.strokeColor = palette.accent.withAlphaComponent(0.72)
+            rail.lineWidth = 0.8
+            rail.glowWidth = 2
+            rail.zPosition = 6
+            ship.addChild(rail)
+        }
+    }
+
+    private static func addBossAnimatedParts(to ship: SKNode, size: CGSize, variantSeed: Int) {
+        let palette = bossPalette(for: variantSeed)
+        let coreColor = palette.accent
+        let engineColor = palette.engine
         let width = max(size.width, 72)
         let height = max(size.height, 72)
 
