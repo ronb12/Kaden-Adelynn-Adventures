@@ -267,7 +267,7 @@ const UPGRADES_LIST = [
     key: 'berserker',
     icon: '🔥',
     title: 'Berserker Mode',
-    description: 'Damage increases by 10% for each enemy killed (stacks)',
+    description: 'Damage increases by 10% for each enemy cleared (stacks)',
     cost: 5000,
     emoji: '🔥',
     tier: 'ultimate',

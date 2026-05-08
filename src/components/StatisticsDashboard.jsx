@@ -84,7 +84,7 @@ function StatisticsDashboard({ onClose }) {
                   <div className="stat-value">{stats.totalScore.toLocaleString()}</div>
                 </div>
                 <div className="stat-card">
-                  <div className="stat-label">Total Kills</div>
+                  <div className="stat-label">Total Clears</div>
                   <div className="stat-value">{stats.totalKills.toLocaleString()}</div>
                 </div>
                 <div className="stat-card">
@@ -132,7 +132,7 @@ function StatisticsDashboard({ onClose }) {
                     <div className="weapon-name">{weapon.toUpperCase()}</div>
                     <div className="weapon-details">
                       <span>Used: {data.count} times</span>
-                      <span>Kills: {data.kills}</span>
+                      <span>Clears: {data.kills}</span>
                       <span>Accuracy: {data.accuracy || 0}%</span>
                     </div>
                   </div>
@@ -161,7 +161,7 @@ function StatisticsDashboard({ onClose }) {
                   <div className="stat-value">{stats.highestCombo}</div>
                 </div>
                 <div className="stat-card highlight">
-                  <div className="stat-label">Most Kills</div>
+                  <div className="stat-label">Most Clears</div>
                   <div className="stat-value">{stats.highestKills}</div>
                 </div>
               </div>
@@ -176,7 +176,7 @@ function StatisticsDashboard({ onClose }) {
                   <div className="stat-value">{stats.averageWave}</div>
                 </div>
                 <div className="stat-card">
-                  <div className="stat-label">Average Kills</div>
+                  <div className="stat-label">Average Clears</div>
                   <div className="stat-value">{stats.averageKills}</div>
                 </div>
                 <div className="stat-card">
@@ -187,7 +187,7 @@ function StatisticsDashboard({ onClose }) {
               <h3>Boss Performance</h3>
               <div className="stat-grid">
                 <div className="stat-card">
-                  <div className="stat-label">Fastest Boss Kill</div>
+                  <div className="stat-label">Fastest Boss Clear</div>
                   <div className="stat-value">{stats.fastestBossKill > 0 ? `${stats.fastestBossKill}s` : 'N/A'}</div>
                 </div>
                 <div className="stat-card">

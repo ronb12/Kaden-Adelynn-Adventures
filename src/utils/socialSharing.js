@@ -1,7 +1,7 @@
 // Social sharing and screenshot capture
 
 export function shareScore(score, wave, kills, combo) {
-  const text = `I just scored ${score.toLocaleString()} points in Kaden & Adelynn Space Adventures! 🚀\n\nWave: ${wave}\nKills: ${kills}\nCombo: ${combo}\n\n#SpaceAdventures`
+  const text = `I just scored ${score.toLocaleString()} points in Kaden & Adelynn Space Adventures! 🚀\n\nWave: ${wave}\nClears: ${kills}\nCombo: ${combo}\n\n#SpaceAdventures`
   
   if (navigator.share) {
     navigator.share({

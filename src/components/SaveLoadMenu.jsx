@@ -66,7 +66,7 @@ function SaveLoadMenu({ onClose, onLoadGame }) {
                         <span className="stat-value">{slotInfo.wave}</span>
                       </div>
                       <div className="slot-stat">
-                        <span className="stat-label">Kills:</span>
+                        <span className="stat-label">Clears:</span>
                         <span className="stat-value">{slotInfo.kills}</span>
                       </div>
                       <div className="slot-stat">

@@ -124,9 +124,9 @@ struct GameOverView: View {
                             GameOverStatRow(label: "Final Score", value: "\(gameState.score)", icon: "star.fill", color: .yellow)
                             GameOverStatRow(label: "Personal Best", value: "\(personalBest)", icon: "trophy.fill", color: .orange)
                             GameOverStatRow(label: "Wave Reached", value: "\(gameState.wave)", icon: "waveform", color: .cyan)
-                            GameOverStatRow(label: "Enemies Killed", value: "\(gameState.enemiesKilled)", icon: "target", color: .red)
+                            GameOverStatRow(label: "Enemies Cleared", value: "\(gameState.enemiesKilled)", icon: "target", color: .red)
                             GameOverStatRow(label: "Best Combo", value: "\(gameState.combo)x", icon: "bolt.fill", color: .yellow)
-                            GameOverStatRow(label: "Kill Streak", value: "\(gameState.killStreak)", icon: "flame.fill", color: .orange)
+                            GameOverStatRow(label: "Clear Streak", value: "\(gameState.killStreak)", icon: "flame.fill", color: .orange)
                             GameOverStatRow(label: "Accuracy", value: String(format: "%.1f%%", gameState.accuracy), icon: "scope", color: gameState.accuracy >= 75 ? .green : gameState.accuracy >= 50 ? .yellow : .red)
                             GameOverStatRow(label: "Shots Fired", value: "\(gameState.shotsFired)", icon: "arrow.up.circle.fill", color: .blue)
                             GameOverStatRow(label: "Shots Hit", value: "\(gameState.shotsHit)", icon: "checkmark.circle.fill", color: .green)
@@ -294,7 +294,7 @@ struct GameOverView: View {
     }
     
     private func calculateCoinsEarned() {
-        // Calculate stars based on score, wave, kills
+        // Calculate stars based on score, wave, clears
         let baseCoins = gameState.score / 100
         let waveBonus = gameState.wave * 10
         let killBonus = gameState.enemiesKilled * 2
@@ -323,7 +323,7 @@ struct GameOverView: View {
             unlocked.append("Sharpshooter (90% accuracy)")
         }
         if gameState.enemiesKilled >= 100 {
-            unlocked.append("Enemy Destroyer (100 kills)")
+            unlocked.append("Enemy Destroyer (100 clears)")
         }
         
         achievementsUnlocked = unlocked
@@ -347,7 +347,7 @@ struct GameOverView: View {
     }
     
     private func shareScore() {
-        let text = "I scored \(gameState.score) points in Kaden & Adelynn Space Adventures! 🚀\nWave: \(gameState.wave) • Kills: \(gameState.enemiesKilled) • Combo: \(gameState.combo)x"
+        let text = "I scored \(gameState.score) points in Kaden & Adelynn Space Adventures! 🚀\nWave: \(gameState.wave) • Clears: \(gameState.enemiesKilled) • Combo: \(gameState.combo)x"
         
         let activityVC = UIActivityViewController(
             activityItems: [text],

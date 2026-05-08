@@ -288,7 +288,7 @@ class GameLogic {
             lastEnemySpawn = currentTime
         }
         
-        // Combo decay system - lose combo if no kills for 3 seconds
+        // Combo decay system - lose combo if no clears for 3 seconds
         let currentTimeSeconds = Date().timeIntervalSince1970
         if currentTimeSeconds - lastKillTime > 3.0 && gameState.combo > 0 {
             gameState.combo = max(0, gameState.combo - 1)
@@ -737,7 +737,7 @@ class GameLogic {
                             finalDamage = Int(Float(finalDamage) * 1.5) // 50% damage boost
                         }
                         
-                        // Enemy killed - COMBO SYSTEM
+                        // Enemy cleared - COMBO SYSTEM
                         let currentTimeSeconds = Date().timeIntervalSince1970
                         lastKillTime = currentTimeSeconds
                         gameState.combo += 1

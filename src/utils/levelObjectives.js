@@ -42,7 +42,7 @@ function buildLevelObjectives() {
     switch (t) {
       case LevelObjectiveType.KILL_ENEMIES:
         target = Math.min(85, 3 + typeIdx)
-        description = `Kill ${target} enemies this level`
+        description = `Clear ${target} enemies this level`
         break
       case LevelObjectiveType.COLLECT_STARS:
         target = Math.min(200, 5 + typeIdx * 2)
@@ -66,7 +66,7 @@ function buildLevelObjectives() {
         break
       default:
         target = 5 + (typeIdx % 10)
-        description = `Kill ${target} enemies this level`
+        description = `Clear ${target} enemies this level`
     }
     list.push({ type: t, target, description })
   }

@@ -951,8 +951,8 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
       stat(colW * 2 + PAD, row1 + lSz, 'LEVEL', `${state.wave}/100`, '#cc88ff', lSz, vSz, maxW, 'rgba(180,80,255,0.5)')
       ctx.globalAlpha = 1
 
-      // KILLS
-      stat(PAD, row2 + lSz, 'KILLS', currentKills.toLocaleString(), '#44ddff', lSz, vSz, maxW)
+      // CLEARS
+      stat(PAD, row2 + lSz, 'CLEARS', currentKills.toLocaleString(), '#44ddff', lSz, vSz, maxW)
 
       // COMBO (centered)
       const comboStr = currentCombo > 0 ? `${currentCombo}x` : '--'
@@ -1013,8 +1013,8 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
       // WEAPON
       stat(c3, row1 + lSz, 'WEAPON', clip(wpnLabel, maxW), wpnColor, lSz, vSz)
 
-      // KILLS
-      stat(c0, row2 + lSz, 'KILLS', currentKills.toLocaleString(), '#44ddff', lSz, vSz, maxW, 'rgba(40,200,255,0.4)')
+      // CLEARS
+      stat(c0, row2 + lSz, 'CLEARS', currentKills.toLocaleString(), '#44ddff', lSz, vSz, maxW, 'rgba(40,200,255,0.4)')
 
       // COMBO
       const comboStr = currentCombo > 0
@@ -1121,12 +1121,12 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
     const canvas = canvasRef.current
     if (!canvas) return
 
-    const kills = state.currentKills || 0
+    const clears = state.currentKills || 0
     const alreadySpawnedBossThisWave = (state.lastBossWave != null && state.lastBossWave >= state.wave)
-    // Boss every 3 waves starting at wave 3 (first at 100 kills): 3, 6, 9, 12…
+    // Boss every 3 waves starting at wave 3 (first at 100 clears): 3, 6, 9, 12…
     const onBossWave = state.wave >= 3 && state.wave % 3 === 0
-    // Fallback: guarantee first boss by 60 kills if none spawned yet (wave can lag)
-    const firstBossFallback = kills >= 60 && !state.boss && (state.lastBossWave == null || state.lastBossWave === 0)
+    // Fallback: guarantee first boss by 60 clears if none spawned yet (wave can lag)
+    const firstBossFallback = clears >= 60 && !state.boss && (state.lastBossWave == null || state.lastBossWave === 0)
     const shouldSpawnBoss = !state.boss && !alreadySpawnedBossThisWave && (onBossWave || firstBossFallback)
 
     if (shouldSpawnBoss) {
@@ -1728,7 +1728,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
       return effect.life > 0
     })
     
-    // Reset combo if no kills - shorter window for higher combos (more challenging)
+    // Reset combo if no clears - shorter window for higher combos (more challenging)
     const currentCombo = comboRef.current
     if (currentCombo > 0) {
       if (!state.lastComboKill) state.lastComboKill = Date.now()
@@ -2538,7 +2538,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
             const isMilestone = newCombo % 5 === 0 || newCombo === 10 || newCombo === 20 || newCombo === 30
             const isSuperMilestone = newCombo === 10 || newCombo === 20 || newCombo === 30 || newCombo === 50
             
-            // Show combo popup for milestones or every 3 kills after combo 10
+            // Show combo popup for milestones or every 3 clears after combo 10
             if (isMilestone || (newCombo > 10 && newCombo % 3 === 0) || newCombo <= 5) {
               state.comboEffects.push({
                 x: enemy.x + 15,
@@ -2566,7 +2566,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
             let dmg = Math.max(1, Math.round(state.damageMul || 1))
             dmg = Math.round(dmg * upgradeEffects.damageMultiplier)
             
-            // Berserker mode - damage increases with kills
+            // Berserker mode - damage increases with clears
             if (upgradeEffects.berserker) {
               const killBonus = Math.min(2.0, 1.0 + (state.currentKills || 0) * 0.01) // Up to 2x damage
               dmg = Math.round(dmg * killBonus)
@@ -2811,10 +2811,10 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
         state.enemies.splice(index, 1)
       })
 
-    // Level progression: advance every 50 kills, cap at 100 levels
+    // Level progression: advance every 50 clears, cap at 100 levels
     if (!state.lastWaveMilestone) state.lastWaveMilestone = 0
-    const kills = state.currentKills || 0
-    const waveMilestone = Math.floor(kills / 50)
+    const clears = state.currentKills || 0
+    const waveMilestone = Math.floor(clears / 50)
     if (waveMilestone > state.lastWaveMilestone) {
       state.lastWaveMilestone = waveMilestone
       const newLevel = Math.min(100, waveMilestone + 1)
@@ -2825,7 +2825,7 @@ function Game({ selectedCharacter, selectedShip, difficulty, onGameOver, onRetur
         setLevel(newLevel)
         state.showWaveAnnouncement = true
         state.waveStartTime = Date.now()
-        state.levelStartKills = kills
+        state.levelStartKills = clears
         state.levelStartStars = state.coins || 0
         state.levelStartTime = Date.now()
         state.levelStartShotsFired = state.shotsFired || 0

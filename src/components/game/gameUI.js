@@ -112,10 +112,10 @@ export function drawUI(ctx, state, { canvasRef, score, wave, level, combo, lives
     place(comboText)
   }
 
-  // Kills and Stars
+  // Clears and Stars
   ctx.fillStyle = '#95a5a6'
   ctx.font = isMobile ? '11px Arial' : '12px Arial'
-  const killsText = `Kills: ${state.currentKills || 0}`
+  const killsText = `Clears: ${state.currentKills || 0}`
   place(killsText)
   const coinsText = `⭐ ${state.coins}`
   place(coinsText)

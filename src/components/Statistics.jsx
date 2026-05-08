@@ -74,7 +74,7 @@ function Statistics({ onClose }) {
             <div className="stat-card" style={{background: 'rgba(76, 209, 55, 0.1)', padding: '20px', borderRadius: '15px', border: '2px solid rgba(76, 209, 55, 0.3)'}}>
               <div style={{fontSize: '2.5rem', marginBottom: '10px'}}>💥</div>
               <div style={{fontSize: '2rem', fontWeight: 'bold', color: '#4cd137'}}>{stats.totalKills.toLocaleString()}</div>
-              <div style={{fontSize: '0.9rem', color: 'rgba(255,255,255,0.7)'}}>Total Kills</div>
+              <div style={{fontSize: '0.9rem', color: 'rgba(255,255,255,0.7)'}}>Total Clears</div>
             </div>
 
             <div className="stat-card" style={{background: 'rgba(255, 159, 64, 0.1)', padding: '20px', borderRadius: '15px', border: '2px solid rgba(255, 159, 64, 0.3)'}}>

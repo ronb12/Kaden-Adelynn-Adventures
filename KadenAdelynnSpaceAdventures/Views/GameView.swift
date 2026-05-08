@@ -237,7 +237,7 @@ struct GameView: View {
                     }
                     .padding(.top, 8)
                     
-                    // Bottom row: Lives, Health Bar, Kills
+                    // Bottom row: Lives, Health Bar, Clears
                     HStack(spacing: 12) {
                         // Lives - Enhanced
                         HStack(spacing: 6) {
@@ -377,7 +377,7 @@ struct GameView: View {
                                         .shadow(color: .yellow.opacity(0.6), radius: 5)
                                 )
                             } else {
-                                // Kills count (when no combo)
+                                // Clears count (when no combo)
                                 HStack(spacing: 4) {
                                     Image(systemName: "target")
                                         .font(.system(size: 14, weight: .bold))

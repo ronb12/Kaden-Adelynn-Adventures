@@ -27,7 +27,7 @@ struct ScoresView: View {
         case score = "Score"
         case wave = "Wave"
         case date = "Date"
-        case kills = "Kills"
+        case kills = "Clears"
     }
     
     var body: some View {

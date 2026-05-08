@@ -163,7 +163,7 @@ struct OverviewTab: View {
             StatisticsStatCard(label: "Total Games", value: stats.totalGamesPlayed.formatted(), icon: "gamecontroller.fill", color: .cyan)
             StatisticsStatCard(label: "Play Time", value: formatTime(stats.totalPlayTime), icon: "clock.fill", color: .yellow)
             StatisticsStatCard(label: "Total Score", value: formatNumber(stats.totalScore), icon: "star.fill", color: .orange)
-            StatisticsStatCard(label: "Total Kills", value: stats.totalKills.formatted(), icon: "target", color: .pink)
+            StatisticsStatCard(label: "Total Clears", value: stats.totalKills.formatted(), icon: "target", color: .pink)
             StatisticsStatCard(label: "Waves", value: stats.totalWavesCompleted.formatted(), icon: "waveform", color: .mint)
             StatisticsStatCard(label: "Bosses", value: stats.totalBossesDefeated.formatted(), icon: "crown.fill", color: .purple)
         }
@@ -217,7 +217,7 @@ struct WeaponsTab: View {
                 shotsHit: 12850,
                 accuracy: 84.3,
                 damageDealt: 385000,
-                kills: 1250,
+                clears: 1250,
                 usageTime: 1240,
                 bestCombo: 45
             ),
@@ -228,7 +228,7 @@ struct WeaponsTab: View {
                 shotsHit: 7840,
                 accuracy: 80.0,
                 damageDealt: 235200,
-                kills: 980,
+                clears: 980,
                 usageTime: 890,
                 bestCombo: 38
             ),
@@ -239,7 +239,7 @@ struct WeaponsTab: View {
                 shotsHit: 9520,
                 accuracy: 85.0,
                 damageDealt: 285600,
-                kills: 1120,
+                clears: 1120,
                 usageTime: 1050,
                 bestCombo: 42
             ),
@@ -250,7 +250,7 @@ struct WeaponsTab: View {
                 shotsHit: 6120,
                 accuracy: 90.0,
                 damageDealt: 244800,
-                kills: 680,
+                clears: 680,
                 usageTime: 720,
                 bestCombo: 35
             )
@@ -266,7 +266,7 @@ struct WeaponStat: Identifiable {
     let shotsHit: Int
     let accuracy: Double
     let damageDealt: Int
-    let kills: Int
+    let clears: Int
     let usageTime: Int // in seconds
     let bestCombo: Int
 }
@@ -306,7 +306,7 @@ struct WeaponStatCard: View {
                 }
                 
                 HStack(spacing: 15) {
-                    StatItem(label: "Kills", value: "\(stat.kills)")
+                    StatItem(label: "Clears", value: "\(stat.clears)")
                     StatItem(label: "Usage Time", value: formatTime(stat.usageTime))
                 }
                 
