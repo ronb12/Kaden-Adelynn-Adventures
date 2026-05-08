@@ -358,7 +358,8 @@ struct Boss {
     var maxHealth: Int
     var velocity: CGPoint
     var shootTimer: TimeInterval
-    
+    var movementTimer: TimeInterval
+
     init(position: CGPoint, wave: Int = 1, difficultyMultiplier: Float = 1.0) {
         self.position = position
         let waveBonus = min(max(wave, 1), 40)
@@ -367,19 +368,38 @@ struct Boss {
         self.size = CGSize(width: bossSize, height: bossSize)
         self.health = bossHealth
         self.maxHealth = bossHealth
-        self.velocity = CGPoint(x: 2 + CGFloat(waveBonus) * 0.04, y: 0)
+        self.velocity = CGPoint(
+            x: 2 + CGFloat(waveBonus) * 0.04,
+            y: -(1.2 + CGFloat(waveBonus) * 0.03)
+        )
         self.shootTimer = 0
+        self.movementTimer = 0
     }
-    
+
     mutating func update(bounds: CGRect, timeScale: CGFloat = 1.0) {
-        position.x += velocity.x * timeScale
-        
-        // Bounce off walls (center-origin: bounds are -halfWidth to +halfWidth)
+        movementTimer += 0.016 * Double(timeScale)
+        let drift = CGFloat(sin(movementTimer * 1.35)) * 0.55
+
+        position.x += (velocity.x + drift) * timeScale
+        position.y += velocity.y * timeScale
+
         let halfWidth = bounds.width / 2
-        if position.x <= -halfWidth + size.width/2 || position.x >= halfWidth - size.width/2 {
+        let halfHeight = bounds.height / 2
+        let minX = -halfWidth + size.width / 2
+        let maxX = halfWidth - size.width / 2
+        let minY = -halfHeight + size.height / 2 + 96
+        let maxY = halfHeight - size.height / 2 - 132
+
+        if position.x <= minX || position.x >= maxX {
+            position.x = min(max(position.x, minX), maxX)
             velocity.x *= -1
         }
-        
+
+        if position.y <= minY || position.y >= maxY {
+            position.y = min(max(position.y, minY), maxY)
+            velocity.y *= -1
+        }
+
         shootTimer += 0.016 * Double(timeScale) // Frame-rate independent
     }
     

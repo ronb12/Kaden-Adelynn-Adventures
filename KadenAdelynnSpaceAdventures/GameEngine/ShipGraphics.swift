@@ -62,11 +62,11 @@ class ShipGraphics {
         
         var finalSize = size
         if imageAspect > targetAspect {
-            // Image is wider - fit to height
-            finalSize = CGSize(width: size.height * imageAspect, height: size.height)
-        } else {
-            // Image is taller - fit to width
+            // Image is wider - fit to width
             finalSize = CGSize(width: size.width, height: size.width / imageAspect)
+        } else {
+            // Image is taller - fit to height
+            finalSize = CGSize(width: size.height * imageAspect, height: size.height)
         }
         
         sprite.size = finalSize
@@ -366,40 +366,30 @@ class ShipGraphics {
             return ship
         }
         
+        let trimmedImage = image.removingCardBackgroundAndTrimming() ?? image
+
         // Create sprite node with the boss ship image
-        let texture = SKTexture(image: image)
+        let texture = SKTexture(image: trimmedImage)
         let sprite = SKSpriteNode(texture: texture)
-        
+
         // Scale to fit the requested size while maintaining aspect ratio
-        let imageAspect = image.size.width / image.size.height
+        let imageAspect = trimmedImage.size.width / trimmedImage.size.height
         let targetAspect = size.width / size.height
-        
+
         var finalSize = size
         if imageAspect > targetAspect {
-            // Image is wider - fit to height
-            finalSize = CGSize(width: size.height * imageAspect, height: size.height)
-        } else {
-            // Image is taller - fit to width
+            // Image is wider - fit to width
             finalSize = CGSize(width: size.width, height: size.width / imageAspect)
+        } else {
+            // Image is taller - fit to height
+            finalSize = CGSize(width: size.height * imageAspect, height: size.height)
         }
         
         sprite.size = finalSize
         sprite.zPosition = 1
         
-        // Add subtle glow effect for boss presence
-        let glow = SKShapeNode(rect: CGRect(
-            x: -finalSize.width/2 - 10,
-            y: -finalSize.height/2 - 10,
-            width: finalSize.width + 20,
-            height: finalSize.height + 20
-        ), cornerRadius: 15)
-        glow.fillColor = UIColor(red: 1.0, green: 0.3, blue: 0.0, alpha: 0.2) // orange-red glow
-        glow.strokeColor = .clear
-        glow.zPosition = -1
-        
-        ship.addChild(glow)
         ship.addChild(sprite)
-        
+
         return ship
     }
     
@@ -478,7 +468,124 @@ class ShipGraphics {
         path.addLine(to: CGPoint(x: w / 2, y: h / 2 - 5)) // Top right
         path.addLine(to: CGPoint(x: 0, y: -h / 2)) // Bottom point (center bottom)
         path.closeSubpath()
-        
+
         return path
+    }
+}
+
+private extension UIImage {
+    func removingCardBackgroundAndTrimming() -> UIImage? {
+        guard let cgImage else {
+            return nil
+        }
+
+        let width = cgImage.width
+        let height = cgImage.height
+        let bytesPerPixel = 4
+        let bytesPerRow = width * bytesPerPixel
+        var pixels = [UInt8](repeating: 0, count: height * bytesPerRow)
+
+        guard let context = CGContext(
+            data: &pixels,
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bytesPerRow: bytesPerRow,
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ) else {
+            return nil
+        }
+
+        context.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
+
+        var visited = [Bool](repeating: false, count: width * height)
+        var queue: [(x: Int, y: Int)] = []
+
+        func pixelIndex(x: Int, y: Int) -> Int {
+            y * width + x
+        }
+
+        func byteOffset(x: Int, y: Int) -> Int {
+            y * bytesPerRow + x * bytesPerPixel
+        }
+
+        func isCardBackground(x: Int, y: Int) -> Bool {
+            let offset = byteOffset(x: x, y: y)
+            let red = pixels[offset]
+            let green = pixels[offset + 1]
+            let blue = pixels[offset + 2]
+            let alpha = pixels[offset + 3]
+            let isTransparent = alpha <= 12
+            let isDarkMatte = red < 32 && green < 32 && blue < 32
+            let isLightMatte = red > 232 && green > 232 && blue > 210
+            return isTransparent || isDarkMatte || isLightMatte
+        }
+
+        func enqueueIfBackground(x: Int, y: Int) {
+            guard x >= 0, x < width, y >= 0, y < height else { return }
+            let index = pixelIndex(x: x, y: y)
+            guard !visited[index], isCardBackground(x: x, y: y) else { return }
+            visited[index] = true
+            queue.append((x, y))
+        }
+
+        for x in 0..<width {
+            enqueueIfBackground(x: x, y: 0)
+            enqueueIfBackground(x: x, y: height - 1)
+        }
+
+        for y in 0..<height {
+            enqueueIfBackground(x: 0, y: y)
+            enqueueIfBackground(x: width - 1, y: y)
+        }
+
+        var cursor = 0
+        while cursor < queue.count {
+            let point = queue[cursor]
+            cursor += 1
+
+            let offset = byteOffset(x: point.x, y: point.y)
+            pixels[offset + 3] = 0
+
+            enqueueIfBackground(x: point.x - 1, y: point.y)
+            enqueueIfBackground(x: point.x + 1, y: point.y)
+            enqueueIfBackground(x: point.x, y: point.y - 1)
+            enqueueIfBackground(x: point.x, y: point.y + 1)
+        }
+
+        var minX = width
+        var minY = height
+        var maxX = 0
+        var maxY = 0
+
+        for y in 0..<height {
+            for x in 0..<width {
+                let offset = byteOffset(x: x, y: y)
+                if pixels[offset + 3] > 12 {
+                    minX = min(minX, x)
+                    minY = min(minY, y)
+                    maxX = max(maxX, x)
+                    maxY = max(maxY, y)
+                }
+            }
+        }
+
+        guard minX <= maxX, minY <= maxY else { return nil }
+
+        let inset = 2
+        let cropRect = CGRect(
+            x: max(minX - inset, 0),
+            y: max(minY - inset, 0),
+            width: min(maxX - minX + 1 + inset * 2, width - max(minX - inset, 0)),
+            height: min(maxY - minY + 1 + inset * 2, height - max(minY - inset, 0))
+        )
+
+        guard let processedImage = context.makeImage(),
+              let cropped = processedImage.cropping(to: cropRect) else {
+            return nil
+        }
+
+        return UIImage(cgImage: cropped, scale: scale, orientation: imageOrientation)
     }
 }
