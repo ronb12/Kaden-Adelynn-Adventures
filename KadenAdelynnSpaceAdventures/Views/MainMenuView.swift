@@ -210,7 +210,7 @@ struct MainMenuView: View {
 
                         EnhancedMenuButton(
                             title: "Choose Ship",
-                            icon: "airplane",
+                            icon: "asset:Spaceship_0",
                             gradient: [.cyan, .blue],
                             accessibilityHint: "Opens ship selection to choose your spacecraft",
                             action: {
@@ -947,10 +947,8 @@ struct EnhancedMenuButton: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 12) {
-                Image(systemName: icon)
-                    .font(.system(size: size.iconSize, weight: .semibold))
-                    .foregroundColor(.white)
-                    .accessibilityHidden(true) // Icon is decorative, text provides meaning
+                MenuButtonIcon(name: icon, size: size.iconSize)
+                    .accessibilityHidden(true)
 
                 Text(title)
                     .font(AccessibilityHelper.scaledFont(size: size.fontSize, weight: .bold, design: .rounded))
@@ -988,6 +986,25 @@ struct EnhancedMenuButton: View {
         .accessibilityLabel(title)
         .accessibilityHint(accessibilityHint ?? "Double tap to activate")
         .accessibilityAddTraits(.isButton)
+    }
+}
+
+struct MenuButtonIcon: View {
+    let name: String
+    let size: CGFloat
+
+    var body: some View {
+        if name.hasPrefix("asset:") {
+            Image(String(name.dropFirst("asset:".count)))
+                .resizable()
+                .scaledToFit()
+                .frame(width: size + 8, height: size + 8)
+                .shadow(color: .cyan.opacity(0.7), radius: 4)
+        } else {
+            Image(systemName: name)
+                .font(.system(size: size, weight: .semibold))
+                .foregroundColor(.white)
+        }
     }
 }
 
