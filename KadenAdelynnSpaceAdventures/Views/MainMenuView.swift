@@ -689,6 +689,27 @@ struct GameModeSelectView: View {
         GridItem(.flexible(), spacing: 12)
     ]
 
+    private func modeColors(for mode: GameMode) -> [Color] {
+        switch mode {
+        case .story:
+            return [.cyan, .blue]
+        case .arcade:
+            return [.yellow, .orange]
+        case .bossRush:
+            return [.red, .purple]
+        case .dailyChallenge:
+            return [.green, .mint]
+        case .survival:
+            return [.pink, .red]
+        case .timeAttack:
+            return [.indigo, .cyan]
+        case .coOp:
+            return [.teal, .green]
+        case .training:
+            return [.orange, .yellow]
+        }
+    }
+
     var body: some View {
         ZStack {
             AnimatedCosmicBackground()
@@ -743,6 +764,9 @@ struct GameModeSelectView: View {
 
                     LazyVGrid(columns: columns, spacing: 12) {
                         ForEach(GameMode.allCases) { mode in
+                            let colors = modeColors(for: mode)
+                            let isSelected = mode == gameState.selectedGameMode
+
                             Button {
                                 gameState.configureMode(mode)
                                 if mode == .story {
@@ -753,15 +777,38 @@ struct GameModeSelectView: View {
                             } label: {
                                 VStack(alignment: .leading, spacing: 12) {
                                     HStack {
-                                        Image(systemName: mode.icon)
-                                            .font(.system(size: 22, weight: .bold))
-                                            .foregroundColor(.white)
-                                            .frame(width: 38, height: 38)
-                                            .background(Circle().fill(mode == gameState.selectedGameMode ? Color.cyan : Color.white.opacity(0.16)))
+                                        ZStack {
+                                            Circle()
+                                                .fill(
+                                                    LinearGradient(
+                                                        colors: colors,
+                                                        startPoint: .topLeading,
+                                                        endPoint: .bottomTrailing
+                                                    )
+                                                )
+                                                .shadow(color: colors.first?.opacity(isSelected ? 0.55 : 0.25) ?? .clear, radius: isSelected ? 8 : 4)
+
+                                            Circle()
+                                                .stroke(Color.white.opacity(0.38), lineWidth: 1)
+
+                                            Image(systemName: mode.icon)
+                                                .font(.system(size: 21, weight: .black))
+                                                .foregroundColor(.white)
+                                        }
+                                        .frame(width: 42, height: 42)
 
                                         Spacer()
 
-                                        if mode == gameState.selectedGameMode {
+                                        HStack(spacing: 4) {
+                                            Circle()
+                                                .fill(colors.first ?? .cyan)
+                                                .frame(width: 7, height: 7)
+                                            Circle()
+                                                .fill(colors.last ?? .blue)
+                                                .frame(width: 7, height: 7)
+                                        }
+
+                                        if isSelected {
                                             Image(systemName: "checkmark.circle.fill")
                                                 .foregroundColor(.green)
                                         }
@@ -786,16 +833,16 @@ struct GameModeSelectView: View {
                                     RoundedRectangle(cornerRadius: 14)
                                         .fill(
                                             LinearGradient(
-                                                colors: mode == gameState.selectedGameMode
-                                                    ? [Color.cyan.opacity(0.42), Color.blue.opacity(0.3)]
-                                                    : [Color.white.opacity(0.12), Color.white.opacity(0.06)],
+                                                colors: isSelected
+                                                    ? [colors.first?.opacity(0.44) ?? Color.cyan.opacity(0.44), colors.last?.opacity(0.30) ?? Color.blue.opacity(0.30)]
+                                                    : [colors.first?.opacity(0.18) ?? Color.white.opacity(0.12), Color.white.opacity(0.06)],
                                                 startPoint: .topLeading,
                                                 endPoint: .bottomTrailing
                                             )
                                         )
                                         .overlay(
                                             RoundedRectangle(cornerRadius: 14)
-                                                .stroke(mode == gameState.selectedGameMode ? Color.cyan : Color.white.opacity(0.18), lineWidth: 1.5)
+                                                .stroke(isSelected ? (colors.first ?? .cyan) : Color.white.opacity(0.18), lineWidth: 1.5)
                                         )
                                 )
                             }
