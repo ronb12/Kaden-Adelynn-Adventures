@@ -18,6 +18,7 @@ struct MainMenuView: View {
     @State private var recentAchievements: [String] = []
     @State private var dailyChallengeProgress: Double = 0.0
     @State private var sharedEventProgress: SharedEventProgressData?
+    @State private var showMoreActions = false
 
     var body: some View {
         ZStack {
@@ -208,16 +209,6 @@ struct MainMenuView: View {
                         )
 
                         EnhancedMenuButton(
-                            title: "Open Store",
-                            icon: "cart.fill",
-                            gradient: [.purple, .pink],
-                            accessibilityHint: "Opens the store to purchase upgrades and items",
-                            action: {
-                                gameState.currentScreen = .store
-                            }
-                        )
-
-                        EnhancedMenuButton(
                             title: "Choose Ship",
                             icon: "airplane",
                             gradient: [.cyan, .blue],
@@ -236,66 +227,93 @@ struct MainMenuView: View {
                                 gameState.currentScreen = .characterSelect
                             }
                         )
-                    }
-                    .padding(.horizontal, 18)
-
-                    // Secondary Features Grid
-                    LazyVGrid(columns: [
-                        GridItem(.flexible(), spacing: 10),
-                        GridItem(.flexible(), spacing: 10)
-                    ], spacing: 10) {
-                        EnhancedMenuButton(
-                            title: "Top Scores",
-                            icon: "star.fill",
-                            gradient: [.yellow, .orange],
-                            size: .small
-                        ) {
-                            gameState.currentScreen = .scores
-                        }
-
-                        EnhancedMenuButton(
-                            title: "Statistics",
-                            icon: "chart.bar.fill",
-                            gradient: [.blue, .cyan],
-                            size: .small
-                        ) {
-                            gameState.currentScreen = .statistics
-                        }
-
-                        EnhancedMenuButton(
-                            title: "Upgrades",
-                            icon: "arrow.up.circle.fill",
-                            gradient: [.green, .mint],
-                            size: .small
-                        ) {
-                            gameState.currentScreen = .weaponUpgrades
-                        }
-
-                        EnhancedMenuButton(
-                            title: "Customize",
-                            icon: "paintbrush.fill",
-                            gradient: [.pink, .purple],
-                            size: .small
-                        ) {
-                            gameState.currentScreen = .customization
-                        }
-
-                        EnhancedMenuButton(
-                            title: "Save/Load",
-                            icon: "square.and.arrow.down.on.square.fill",
-                            gradient: [.indigo, .purple],
-                            size: .small
-                        ) {
-                            gameState.currentScreen = .saveLoad
-                        }
 
                         EnhancedMenuButton(
                             title: "Game Modes",
                             icon: "square.grid.2x2.fill",
                             gradient: [.teal, .blue],
-                            size: .small
-                        ) {
-                            gameState.currentScreen = .modeSelect
+                            accessibilityHint: "Opens game mode selection",
+                            action: {
+                                gameState.currentScreen = .modeSelect
+                            }
+                        )
+                    }
+                    .padding(.horizontal, 18)
+
+                    VStack(spacing: 10) {
+                        Button {
+                            withAnimation(.spring(response: 0.32, dampingFraction: 0.86)) {
+                                showMoreActions.toggle()
+                            }
+                        } label: {
+                            HStack(spacing: 10) {
+                                Image(systemName: "ellipsis.circle.fill")
+                                    .font(.system(size: 20, weight: .bold))
+                                Text(showMoreActions ? "Hide More" : "More")
+                                    .font(.headline)
+                                Spacer()
+                                Image(systemName: showMoreActions ? "chevron.up" : "chevron.down")
+                                    .font(.system(size: 14, weight: .bold))
+                            }
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 16)
+                            .frame(height: 48)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(.ultraThinMaterial)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color.white.opacity(0.22), lineWidth: 1)
+                                    )
+                            )
+                        }
+                        .buttonStyle(.plain)
+
+                        if showMoreActions {
+                            LazyVGrid(columns: [
+                                GridItem(.flexible(), spacing: 10),
+                                GridItem(.flexible(), spacing: 10),
+                                GridItem(.flexible(), spacing: 10),
+                                GridItem(.flexible(), spacing: 10)
+                            ], spacing: 10) {
+                                CompactMenuAction(title: "Store", icon: "cart.fill", colors: [.purple, .pink]) {
+                                    gameState.currentScreen = .store
+                                }
+
+                                CompactMenuAction(title: "Upgrades", icon: "arrow.up.circle.fill", colors: [.green, .mint]) {
+                                    gameState.currentScreen = .weaponUpgrades
+                                }
+
+                                CompactMenuAction(title: "Customize", icon: "paintbrush.fill", colors: [.pink, .purple]) {
+                                    gameState.currentScreen = .customization
+                                }
+
+                                CompactMenuAction(title: "Scores", icon: "star.fill", colors: [.yellow, .orange]) {
+                                    gameState.currentScreen = .scores
+                                }
+
+                                CompactMenuAction(title: "Stats", icon: "chart.bar.fill", colors: [.blue, .cyan]) {
+                                    gameState.currentScreen = .statistics
+                                }
+
+                                CompactMenuAction(title: "Save", icon: "square.and.arrow.down.fill", colors: [.indigo, .purple]) {
+                                    gameState.currentScreen = .saveLoad
+                                }
+
+                                CompactMenuAction(title: "Settings", icon: "gearshape.fill", colors: [.gray, .blue]) {
+                                    gameState.currentScreen = .settings
+                                }
+                            }
+                            .padding(12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .fill(Color.black.opacity(0.16))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 14)
+                                            .stroke(Color.white.opacity(0.16), lineWidth: 1)
+                                    )
+                            )
+                            .transition(.opacity.combined(with: .move(edge: .top)))
                         }
                     }
                     .padding(.horizontal, 18)
@@ -546,29 +564,6 @@ struct MainMenuView: View {
                                     .stroke(Color.white.opacity(0.2), lineWidth: 1)
                             )
                     )
-                    .padding(.horizontal, 18)
-
-                    // Settings Button
-                    Button(action: {
-                        gameState.currentScreen = .settings
-                    }) {
-                        HStack {
-                            Image(systemName: "gearshape.fill")
-                            Text("Settings")
-                        }
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(.ultraThinMaterial)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                                )
-                        )
-                    }
                     .padding(.horizontal, 18)
 
                     // Footer
@@ -993,6 +988,52 @@ struct EnhancedMenuButton: View {
         .accessibilityLabel(title)
         .accessibilityHint(accessibilityHint ?? "Double tap to activate")
         .accessibilityAddTraits(.isButton)
+    }
+}
+
+struct CompactMenuAction: View {
+    let title: String
+    let icon: String
+    let colors: [Color]
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 7) {
+                Image(systemName: icon)
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+                    .frame(width: 34, height: 34)
+                    .background(
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: colors,
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                    )
+
+                Text(title)
+                    .font(.caption.weight(.bold))
+                    .foregroundColor(.white.opacity(0.92))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.78)
+            }
+            .frame(maxWidth: .infinity, minHeight: 66)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white.opacity(0.08))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.white.opacity(0.14), lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(ScaleButtonStyle())
+        .accessibilityLabel(title)
+        .accessibilityHint("Double tap to open \(title)")
     }
 }
 
