@@ -10,6 +10,7 @@ import SwiftUI
 struct StoreView: View {
     @EnvironmentObject var gameState: GameStateManager
     @Environment(\.colorScheme) var colorScheme
+    @StateObject private var adMobManager = AdMobManager.shared
     @State private var purchasedCollectibles: Set<String> = []
     @State private var showToast = false
     @State private var toastMessage = ""
@@ -237,6 +238,8 @@ struct StoreView: View {
                             .stroke(Color.yellow.opacity(0.35), lineWidth: 1)
                     )
                     .padding(.horizontal, 20)
+
+                    rewardedAdCard
                     
                     // Upgrades Grid
                     VStack(alignment: .leading, spacing: 15) {
@@ -299,7 +302,78 @@ struct StoreView: View {
         }
         .onAppear {
             loadPurchasedUpgrades()
+            AdMobManager.shared.configureAndStart()
+            if !adMobManager.isRewardedAdReady {
+                adMobManager.loadRewardedAd()
+            }
         }
+    }
+
+    private var rewardedAdCard: some View {
+        HStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(LinearGradient(colors: [.cyan, .blue], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .frame(width: 48, height: 48)
+                Image(systemName: "play.rectangle.fill")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.white)
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Earn Free Stars")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                Text(adMobManager.isRewardedAdReady ? "Watch a short ad to earn 150 K&A stars." : "Reward ad is loading.")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.76))
+                    .lineLimit(2)
+            }
+
+            Spacer()
+
+            Button {
+                adMobManager.showRewardedAd {
+                    awardAdStars(150)
+                }
+            } label: {
+                Text(adMobManager.isRewardedAdReady ? "Watch" : "Loading")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.black)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(adMobManager.isRewardedAdReady ? Color.yellow : Color.white.opacity(0.55))
+                    .cornerRadius(10)
+            }
+            .disabled(!adMobManager.isRewardedAdReady)
+        }
+        .padding()
+        .frame(maxWidth: .infinity)
+        .background(
+            LinearGradient(
+                colors: [.cyan.opacity(0.24), .blue.opacity(0.18), .purple.opacity(0.16)],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        )
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.cyan.opacity(0.32), lineWidth: 1)
+        )
+        .padding(.horizontal, 20)
+        .onChange(of: adMobManager.lastMessage) { message in
+            guard let message else { return }
+            showToast(message: message)
+        }
+    }
+
+    private func awardAdStars(_ amount: Int) {
+        gameState.stars += amount
+        gameState.coins = gameState.stars
+        UserDefaults.standard.set(gameState.stars, forKey: "walletStars")
+        UserDefaults.standard.set(gameState.coins, forKey: "walletCoins")
+        showToast(message: "+\(amount) K&A stars earned!")
     }
     
     private func loadPurchasedUpgrades() {
