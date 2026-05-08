@@ -21,7 +21,7 @@ final class AdMobManager: NSObject, ObservableObject {
     private var rewardHandler: (() -> Void)?
     private var didStartSDK = false
 
-    private let defaultRewardedAdUnitID = "ca-app-pub-3940256099942544/1712485313"
+    private let defaultRewardedAdUnitID = "ca-app-pub-3565666509316178/2602414196"
 
     var rewardedAdUnitID: String {
         Bundle.main.object(forInfoDictionaryKey: "AdMobRewardedAdUnitID") as? String ?? defaultRewardedAdUnitID
