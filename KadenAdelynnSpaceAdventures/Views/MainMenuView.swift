@@ -186,7 +186,7 @@ struct MainMenuView: View {
                         // Quick Play Button
                         EnhancedMenuButton(
                             title: "Quick Play",
-                            icon: "asset:Spaceship_8",
+                            icon: "quickBolt",
                             gradient: [.yellow, .orange],
                             size: .large
                         ) {
@@ -199,7 +199,7 @@ struct MainMenuView: View {
 
                         EnhancedMenuButton(
                             title: "Start Game",
-                            icon: "asset:kaden_character",
+                            icon: "startPortal",
                             gradient: [.green, .blue],
                             size: .large,
                             accessibilityHint: "Opens character selection to start a new game",
@@ -220,7 +220,7 @@ struct MainMenuView: View {
 
                         EnhancedMenuButton(
                             title: "Choose Character",
-                            icon: "asset:adelynn_character",
+                            icon: "characterBadge",
                             gradient: [.orange, .red],
                             accessibilityHint: "Opens character selection to choose Kaden or Adelynn",
                             action: {
@@ -1009,14 +1009,75 @@ struct MenuButtonIcon: View {
                         )
                 )
                 .shadow(color: .cyan.opacity(0.55), radius: 4)
+        } else if name == "quickBolt" {
+            ZStack {
+                menuCircle
+
+                Image(systemName: "bolt.fill")
+                    .font(.system(size: size * 0.9, weight: .black))
+                    .foregroundStyle(
+                        LinearGradient(colors: [.white, .yellow], startPoint: .top, endPoint: .bottom)
+                    )
+                    .offset(x: -2, y: -1)
+                    .shadow(color: .orange.opacity(0.7), radius: 3)
+
+                Image(systemName: "play.fill")
+                    .font(.system(size: size * 0.36, weight: .black))
+                    .foregroundColor(.orange)
+                    .offset(x: size * 0.28, y: size * 0.26)
+                    .shadow(color: .black.opacity(0.25), radius: 1)
+            }
+            .frame(width: size + 20, height: size + 20)
+            .shadow(color: .yellow.opacity(0.55), radius: 4)
+        } else if name == "startPortal" {
+            ZStack {
+                menuCircle
+
+                Circle()
+                    .stroke(
+                        AngularGradient(colors: [.cyan, .green, .white, .cyan], center: .center),
+                        lineWidth: max(2, size * 0.12)
+                    )
+                    .frame(width: size * 1.12, height: size * 1.12)
+                    .shadow(color: .green.opacity(0.55), radius: 3)
+
+                Image(systemName: "play.fill")
+                    .font(.system(size: size * 0.58, weight: .black))
+                    .foregroundColor(.white)
+                    .offset(x: size * 0.04)
+                    .shadow(color: .black.opacity(0.35), radius: 2)
+            }
+            .frame(width: size + 20, height: size + 20)
+            .shadow(color: .green.opacity(0.5), radius: 4)
+        } else if name == "characterBadge" {
+            ZStack {
+                menuCircle
+
+                Circle()
+                    .fill(Color.cyan.opacity(0.95))
+                    .frame(width: size * 0.44, height: size * 0.44)
+                    .offset(x: -size * 0.22, y: -size * 0.18)
+
+                Circle()
+                    .fill(Color.pink.opacity(0.95))
+                    .frame(width: size * 0.44, height: size * 0.44)
+                    .offset(x: size * 0.22, y: -size * 0.18)
+
+                Capsule()
+                    .fill(Color.white.opacity(0.94))
+                    .frame(width: size * 1.05, height: size * 0.42)
+                    .offset(y: size * 0.27)
+
+                Capsule()
+                    .stroke(Color.white.opacity(0.35), lineWidth: 1)
+                    .frame(width: size * 1.05, height: size * 0.42)
+                    .offset(y: size * 0.27)
+            }
+            .frame(width: size + 20, height: size + 20)
+            .shadow(color: .pink.opacity(0.48), radius: 4)
         } else if name == "modeGrid" {
             ZStack {
-                Circle()
-                    .fill(Color.white.opacity(0.14))
-                    .overlay(
-                        Circle()
-                            .stroke(Color.white.opacity(0.22), lineWidth: 1)
-                    )
+                menuCircle
 
                 VStack(spacing: 3) {
                     HStack(spacing: 3) {
@@ -1056,6 +1117,15 @@ struct MenuButtonIcon: View {
         RoundedRectangle(cornerRadius: 2)
             .fill(color.opacity(0.92))
             .frame(width: size * 0.34, height: size * 0.34)
+    }
+
+    private var menuCircle: some View {
+        Circle()
+            .fill(Color.white.opacity(0.14))
+            .overlay(
+                Circle()
+                    .stroke(Color.white.opacity(0.22), lineWidth: 1)
+            )
     }
 }
 
