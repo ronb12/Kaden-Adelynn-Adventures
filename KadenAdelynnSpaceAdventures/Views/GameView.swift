@@ -20,6 +20,7 @@ struct GameView: View {
     @State private var bossHealth: Int = 0
     @State private var bossMaxHealth: Int = 100
     @State private var toast: ToastMessage? = nil
+    @State private var showMoveControls: Bool = false
     
     // Get current weapon from game logic
     private func getCurrentWeapon() -> WeaponType {
@@ -69,11 +70,6 @@ struct GameView: View {
                     
                 }
                 .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
-                
-                // Controller Status Indicator
-                if !gameState.isPaused && controllerManager.isControllerConnected && controllerManager.isEnabled {
-                    controllerStatusIndicator(geometry: geometry)
-                }
                 
                 // Achievement notification
                 AchievementNotificationView(achievementManager: achievementManager)
@@ -504,7 +500,7 @@ struct GameView: View {
     @ViewBuilder
     private func bottomControls(geometry: GeometryProxy) -> some View {
         HStack(alignment: .bottom, spacing: 10) {
-            maneuverControls
+            compactMoveControls
                 .padding(.leading, 16)
                 .padding(.bottom, geometry.safeAreaInsets.bottom > 0 ? 8 : 16)
             
@@ -623,46 +619,59 @@ struct GameView: View {
         .accessibilityHint(ready ? "Activates the character ultimate attack" : "Ultimate attack is charging")
     }
     
-    private var maneuverControls: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("Maneuvers")
-                .font(.system(size: 9, weight: .bold, design: .monospaced))
-                .foregroundColor(.white.opacity(0.75))
-                .padding(.leading, 4)
-            
-            HStack(spacing: 7) {
-                ManeuverButton(icon: "arrow.up.forward", label: "Dash") {
-                    scene?.performManeuver(.dash)
+    private var compactMoveControls: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if showMoveControls {
+                HStack(spacing: 8) {
+                    ManeuverButton(icon: "arrow.up.forward", label: "Dash") {
+                        scene?.performManeuver(.dash)
+                    }
+                    ManeuverButton(icon: "arrow.2.circlepath", label: "Roll") {
+                        scene?.performManeuver(.barrelRoll)
+                    }
+                    ManeuverButton(icon: "bolt.fill", label: "Boost") {
+                        scene?.performManeuver(.boost)
+                    }
                 }
-                ManeuverButton(icon: "arrow.2.circlepath", label: "Roll") {
-                    scene?.performManeuver(.barrelRoll)
-                }
-                ManeuverButton(icon: "arrow.left", label: "Left") {
-                    scene?.performManeuver(.strafeLeft)
-                }
-                ManeuverButton(icon: "arrow.right", label: "Right") {
-                    scene?.performManeuver(.strafeRight)
-                }
-                ManeuverButton(icon: "bolt.fill", label: "Boost") {
-                    scene?.performManeuver(.boost)
-                }
-            }
-            
-            Text("Gestures work too: swipe, double tap, two fingers")
-                .font(.system(size: 8, weight: .semibold))
-                .foregroundColor(.white.opacity(0.65))
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-        }
-        .padding(8)
-        .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(Color.black.opacity(0.38))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14)
-                        .stroke(Color.cyan.opacity(0.32), lineWidth: 1)
+                .padding(8)
+                .background(
+                    Capsule()
+                        .fill(Color.black.opacity(0.34))
+                        .overlay(
+                            Capsule()
+                                .stroke(Color.cyan.opacity(0.24), lineWidth: 1)
+                        )
                 )
-        )
+                .transition(.opacity.combined(with: .scale(scale: 0.92, anchor: .bottomLeading)))
+            }
+
+            Button {
+                withAnimation(.spring(response: 0.26, dampingFraction: 0.82)) {
+                    showMoveControls.toggle()
+                }
+            } label: {
+                HStack(spacing: 7) {
+                    Image(systemName: showMoveControls ? "xmark" : "sparkles")
+                        .font(.system(size: 13, weight: .bold))
+                    Text(showMoveControls ? "Hide" : "Moves")
+                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 12)
+                .frame(height: 36)
+                .background(
+                    Capsule()
+                        .fill(Color.black.opacity(0.34))
+                        .overlay(
+                            Capsule()
+                                .stroke(Color.cyan.opacity(0.32), lineWidth: 1)
+                        )
+                )
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(showMoveControls ? "Hide moves" : "Show moves")
+            .accessibilityHint("Special moves are optional. You can also use gestures during gameplay.")
+        }
     }
     
     // MARK: - Redesigned Pause Overlay
