@@ -352,6 +352,14 @@ struct PowerUp {
 
 // MARK: - Boss
 struct Boss {
+    enum AttackPattern: CaseIterable {
+        case fan
+        case spiral
+        case laserSweep
+        case mineDrop
+        case summonWing
+    }
+
     var position: CGPoint
     var size: CGSize
     var health: Int
@@ -359,6 +367,8 @@ struct Boss {
     var velocity: CGPoint
     var shootTimer: TimeInterval
     var movementTimer: TimeInterval
+    var attackPattern: AttackPattern
+    var patternStep: Int
 
     init(position: CGPoint, wave: Int = 1, difficultyMultiplier: Float = 1.0) {
         self.position = position
@@ -374,6 +384,9 @@ struct Boss {
         )
         self.shootTimer = 0
         self.movementTimer = 0
+        let patterns = AttackPattern.allCases
+        self.attackPattern = patterns[(max(wave, 1) / 5) % patterns.count]
+        self.patternStep = 0
     }
 
     mutating func update(bounds: CGRect, timeScale: CGFloat = 1.0) {
@@ -433,6 +446,7 @@ struct Boss {
     
     mutating func resetShootTimer() {
         shootTimer = 0
+        patternStep += 1
     }
 }
 

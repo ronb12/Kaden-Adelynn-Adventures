@@ -57,6 +57,8 @@ struct GameView: View {
                     if bossHealth > 0 {
                         bossHealthBar(geometry: geometry)
                     }
+
+                    gameplayObjectiveBar(geometry: geometry)
                     
                     Spacer()
                     
@@ -507,6 +509,9 @@ struct GameView: View {
                 .padding(.bottom, geometry.safeAreaInsets.bottom > 0 ? 8 : 16)
             
             Spacer()
+
+            ultimateButton
+                .padding(.bottom, geometry.safeAreaInsets.bottom > 0 ? 10 : 20)
             
             // Pause Button with modern design
             Button(action: {
@@ -537,6 +542,85 @@ struct GameView: View {
             .accessibilityHint("Double tap to \(gameState.isPaused ? "resume" : "pause") the game")
             .accessibilityAddTraits(.isButton)
         }
+    }
+
+    @ViewBuilder
+    private func gameplayObjectiveBar(geometry: GeometryProxy) -> some View {
+        let missionTarget = max(gameState.currentMissionTarget, 1)
+        let missionPercent = min(CGFloat(gameState.currentMissionProgress) / CGFloat(missionTarget), 1.0)
+        VStack(spacing: 5) {
+            HStack(spacing: 8) {
+                Image(systemName: gameState.selectedGameMode == .coOp ? "person.2.fill" : "scope")
+                    .foregroundColor(.cyan)
+                Text(gameState.currentMissionTitle)
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundColor(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+                Spacer()
+                Text("\(gameState.currentMissionProgress)/\(missionTarget)")
+                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+                    .foregroundColor(.yellow)
+            }
+
+            GeometryReader { bar in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.black.opacity(0.45))
+                    Capsule()
+                        .fill(LinearGradient(colors: [.cyan, .green], startPoint: .leading, endPoint: .trailing))
+                        .frame(width: bar.size.width * missionPercent)
+                }
+            }
+            .frame(height: 5)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.black.opacity(0.36))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.cyan.opacity(0.32), lineWidth: 1)
+                )
+        )
+        .padding(.horizontal, 18)
+        .padding(.top, 6)
+    }
+
+    private var ultimateButton: some View {
+        let ready = gameState.ultimateCharge >= 100
+        return Button(action: {
+            scene?.performManeuver(.ultimate)
+        }) {
+            VStack(spacing: 2) {
+                Image(systemName: ready ? "star.circle.fill" : "star.circle")
+                    .font(.system(size: 22, weight: .bold))
+                Text(ready ? "ULT" : "\(Int(gameState.ultimateCharge))%")
+                    .font(.system(size: 9, weight: .bold, design: .monospaced))
+                    .lineLimit(1)
+            }
+            .foregroundColor(.white)
+            .frame(width: 54, height: 54)
+            .background(
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: ready ? [.yellow, .orange] : [.purple.opacity(0.72), .blue.opacity(0.7)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        Circle()
+                            .stroke(ready ? Color.white.opacity(0.9) : Color.white.opacity(0.25), lineWidth: 2)
+                    )
+                    .shadow(color: ready ? .yellow.opacity(0.8) : .blue.opacity(0.4), radius: ready ? 10 : 5)
+            )
+        }
+        .buttonStyle(.plain)
+        .disabled(!ready)
+        .accessibilityLabel("Ultimate attack")
+        .accessibilityHint(ready ? "Activates the character ultimate attack" : "Ultimate attack is charging")
     }
     
     private var maneuverControls: some View {

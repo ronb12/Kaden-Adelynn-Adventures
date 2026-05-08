@@ -25,11 +25,43 @@ class GameLogic {
     var lastCollectibleSpawn: TimeInterval = 0
     var lastPowerUpSpawn: TimeInterval = 0
     var lastAsteroidSpawn: TimeInterval = 0
+    var lastFormationSpawn: TimeInterval = 0
+    var lastCompanionShot: TimeInterval = 0
     var lastComboDecay: TimeInterval = 0
     var gameStartTime: TimeInterval = 0
     var lastKillTime: TimeInterval = 0
     var hasStarted: Bool = false
     var spawnedBossWaves: Set<Int> = []
+    var missionKind: GameplayMission = .collectStars
+    var missionStartTime: TimeInterval = 0
+    var missionStartCoins: Int = 0
+    var missionStartBossHits: Int = 0
+    var rocketShotsForMission: Int = 0
+
+    enum GameplayMission: CaseIterable {
+        case collectStars
+        case survive
+        case hitBoss
+        case useRockets
+
+        var title: String {
+            switch self {
+            case .collectStars: return "Collect 25 stars"
+            case .survive: return "Survive 30 seconds"
+            case .hitBoss: return "Hit a boss 20 times"
+            case .useRockets: return "Fire 12 rockets"
+            }
+        }
+
+        var target: Int {
+            switch self {
+            case .collectStars: return 25
+            case .survive: return 30
+            case .hitBoss: return 20
+            case .useRockets: return 12
+            }
+        }
+    }
 
     weak var gameScene: GameScene?
 
@@ -75,6 +107,8 @@ class GameLogic {
         // Apply purchased collectible effects
         applyPurchasedCollectibles()
 
+        applyShipLoadout()
+
         // Apply weapon upgrades
         applyWeaponUpgrades()
 
@@ -95,8 +129,35 @@ class GameLogic {
         lastCollectibleSpawn = 0
         lastPowerUpSpawn = 0
         lastAsteroidSpawn = 0
+        lastFormationSpawn = 0
+        lastCompanionShot = 0
         lastComboDecay = 0
         lastKillTime = 0
+        rocketShotsForMission = 0
+        missionStartCoins = gameState.coins
+        missionStartBossHits = gameState.shotsHit
+        selectNewMission()
+    }
+
+    func applyShipLoadout() {
+        switch player.shipId.lowercased() {
+        case "adelynn", "comet":
+            player.weaponType = .spread
+        case "falcon", "vega":
+            player.weaponType = .homing
+        case "phantom", "lyra":
+            player.weaponType = .electric
+        case "meteor":
+            player.weaponType = .rocket
+        case "titan", "nebula":
+            player.weaponType = .plasma
+            player.maxHealth += 20
+            player.health = player.maxHealth
+        case "viper", "raptor", "starblade":
+            player.weaponType = .multiShot4
+        default:
+            player.weaponType = player.characterId.lowercased() == "adelynn" ? .spread : .laser
+        }
     }
 
     // Apply weapon upgrades to player stats
@@ -233,13 +294,18 @@ class GameLogic {
             lastCollectibleSpawn = currentTime
             lastPowerUpSpawn = currentTime
             lastAsteroidSpawn = currentTime
+            lastFormationSpawn = currentTime
+            lastCompanionShot = currentTime
             lastComboDecay = currentTime
             lastKillTime = currentTime
+            missionStartTime = currentTime
             hasStarted = true
         }
 
         // Update time survived (time since game actually started)
         gameState.timeSurvived = currentTime - gameStartTime
+        updateStageName()
+        updateMissionProgress(currentTime: currentTime)
         if let limit = gameState.modeTimeLimit, gameState.timeSurvived >= limit {
             gameState.currentScreen = .gameOver
             return
@@ -303,6 +369,11 @@ class GameLogic {
             lastEnemySpawn = currentTime
         }
 
+        if gameState.selectedGameMode != .bossRush && boss == nil && currentTime - lastFormationSpawn > 7.0 && enemies.count < maxEnemies - 6 {
+            spawnEnemyFormation(bounds: bounds, wave: gameState.wave)
+            lastFormationSpawn = currentTime
+        }
+
         // Combo decay system - lose combo if no clears for 3 seconds
         let currentTimeSeconds = Date().timeIntervalSince1970
         if currentTimeSeconds - lastKillTime > 3.0 && gameState.combo > 0 {
@@ -318,7 +389,8 @@ class GameLogic {
 
         // SPAWN ASTEROIDS from wave 3 onwards (matching PWA)
         if gameState.wave >= 3 && gameState.selectedGameMode != .bossRush && gameState.selectedGameMode != .training {
-            let asteroidRate: TimeInterval = 3.0 - (Double(gameState.wave) * 0.2)  // 3000ms - (wave * 200ms)
+            let stageHazardBonus = gameState.currentStageName == "Asteroid Belt" ? 0.75 : 0.0
+            let asteroidRate: TimeInterval = 3.0 - (Double(gameState.wave) * 0.2) - stageHazardBonus
             let minRate: TimeInterval = 1.0  // Minimum 1 second between asteroids
             let actualRate = max(minRate, asteroidRate)
             if currentTime - lastAsteroidSpawn > actualRate && asteroids.count < 15 {
@@ -328,6 +400,7 @@ class GameLogic {
         }
 
         updateBoss(bounds: bounds, timeScale: timeScale)
+        updateCompanion(currentTime: currentTime, timeScale: timeScale)
 
         // Update enemies (move down and shoot)
         // Apply freeze effect if active
@@ -532,6 +605,44 @@ class GameLogic {
         enemies.append(enemy)
     }
 
+    func spawnEnemyFormation(bounds: CGRect, wave: Int) {
+        let halfWidth = bounds.width / 2
+        let halfHeight = bounds.height / 2
+        let formation = wave % 4
+        let y = halfHeight + 55
+        let type: Enemy.EnemyType = wave >= 8 ? [.fast, .shooter, .tank].randomElement() ?? .shooter : [.basic, .fast, .shooter].randomElement() ?? .basic
+
+        switch formation {
+        case 0:
+            for index in 0..<5 {
+                var enemy = Enemy(position: CGPoint(x: CGFloat(index - 2) * 42, y: y + CGFloat(abs(index - 2)) * 24), type: type)
+                enemy.usesZigzag = index % 2 == 0
+                enemies.append(enemy)
+            }
+        case 1:
+            for index in 0..<6 {
+                let side: CGFloat = index % 2 == 0 ? -1 : 1
+                var enemy = Enemy(position: CGPoint(x: side * (halfWidth + 34), y: halfHeight - CGFloat(index) * 48), type: type)
+                enemy.velocity = CGPoint(x: -side * (2.3 + CGFloat(wave) * 0.05), y: -1.2)
+                enemies.append(enemy)
+            }
+        case 2:
+            for index in 0..<8 {
+                let angle = CGFloat(index) * (.pi * 2 / 8)
+                var enemy = Enemy(position: CGPoint(x: cos(angle) * 86, y: y + sin(angle) * 34), type: index % 3 == 0 ? .tank : type)
+                enemy.usesZigzag = true
+                enemy.zigzagOffset = angle
+                enemies.append(enemy)
+            }
+        default:
+            for index in 0..<6 {
+                let x = CGFloat(index - 2) * 36
+                let stagger = CGFloat(index % 2) * 34
+                enemies.append(Enemy(position: CGPoint(x: x, y: y + stagger), type: index % 2 == 0 ? .fast : .shooter))
+            }
+        }
+    }
+
     func shouldSpawnBoss(for wave: Int) -> Bool {
         wave >= 5 && wave % 5 == 0 && boss == nil && !spawnedBossWaves.contains(wave)
     }
@@ -556,33 +667,77 @@ class GameLogic {
         currentBoss.update(bounds: bounds, timeScale: timeScale)
 
         if currentBoss.shouldShoot() && bullets.count < 200 {
-            let diffMultiplier = Double(gameState.difficultyMultiplier)
-            let bulletSpeed = CGFloat(4.5 + Double(gameState.wave) * 0.25 + diffMultiplier)
-            let damage = Int(14.0 * gameState.difficultyMultiplier)
-            let aimedVector = CGPoint(
-                x: player.position.x - currentBoss.position.x,
-                y: player.position.y - currentBoss.position.y
-            ).normalized()
-
-            let pattern: [CGFloat] = [-0.32, -0.16, 0, 0.16, 0.32]
-            for angleOffset in pattern {
-                let baseAngle = atan2(aimedVector.y, aimedVector.x)
-                let angle = baseAngle + angleOffset
-                bullets.append(
-                    Bullet(
-                        position: currentBoss.position,
-                        velocity: CGPoint(x: cos(angle) * bulletSpeed, y: sin(angle) * bulletSpeed),
-                        size: CGSize(width: 7, height: 14),
-                        owner: .enemy,
-                        damage: damage
-                    )
-                )
-            }
-
+            fireBossPattern(&currentBoss)
             currentBoss.resetShootTimer()
         }
 
         boss = currentBoss
+    }
+
+    func fireBossPattern(_ currentBoss: inout Boss) {
+        let diffMultiplier = Double(gameState.difficultyMultiplier)
+        let bulletSpeed = CGFloat(4.5 + Double(gameState.wave) * 0.25 + diffMultiplier)
+        let damage = Int(14.0 * gameState.difficultyMultiplier)
+        let aimedVector = CGPoint(
+            x: player.position.x - currentBoss.position.x,
+            y: player.position.y - currentBoss.position.y
+        ).normalized()
+        let baseAngle = atan2(aimedVector.y, aimedVector.x)
+
+        func addBossBullet(angle: CGFloat, speed: CGFloat? = nil, size: CGSize = CGSize(width: 7, height: 14), offset: CGPoint = .zero) {
+            guard bullets.count < 200 else { return }
+            let shotSpeed = speed ?? bulletSpeed
+            bullets.append(
+                Bullet(
+                    position: CGPoint(x: currentBoss.position.x + offset.x, y: currentBoss.position.y + offset.y),
+                    velocity: CGPoint(x: cos(angle) * shotSpeed, y: sin(angle) * shotSpeed),
+                    size: size,
+                    owner: .enemy,
+                    damage: damage
+                )
+            )
+        }
+
+        switch currentBoss.attackPattern {
+        case .fan:
+            for angleOffset in [-0.38, -0.19, 0, 0.19, 0.38] as [CGFloat] {
+                addBossBullet(angle: baseAngle + angleOffset)
+            }
+        case .spiral:
+            for index in 0..<8 {
+                let spin = CGFloat(currentBoss.patternStep) * 0.38
+                addBossBullet(angle: spin + CGFloat(index) * (.pi * 2 / 8), speed: bulletSpeed * 0.78, size: CGSize(width: 6, height: 12))
+            }
+        case .laserSweep:
+            let sweepStart = -0.75 + CGFloat(currentBoss.patternStep % 6) * 0.3
+            for index in 0..<4 {
+                addBossBullet(angle: -.pi / 2 + sweepStart + CGFloat(index) * 0.18, speed: bulletSpeed * 1.15, size: CGSize(width: 5, height: 24))
+            }
+        case .mineDrop:
+            for offsetX in [-42, 0, 42] as [CGFloat] {
+                addBossBullet(angle: -.pi / 2, speed: 2.2, size: CGSize(width: 18, height: 18), offset: CGPoint(x: offsetX, y: -currentBoss.size.height * 0.28))
+            }
+            if currentBoss.patternStep % 2 == 0 {
+                addBossBullet(angle: baseAngle, speed: bulletSpeed)
+            }
+        case .summonWing:
+            if currentBoss.patternStep % 2 == 0 {
+                summonBossWingmen(around: currentBoss.position)
+            }
+            for angleOffset in [-0.28, 0, 0.28] as [CGFloat] {
+                addBossBullet(angle: baseAngle + angleOffset)
+            }
+        }
+    }
+
+    func summonBossWingmen(around position: CGPoint) {
+        guard enemies.count < 36 else { return }
+        for side in [-1.0, 1.0] as [CGFloat] {
+            var enemy = Enemy(position: CGPoint(x: position.x + side * 86, y: position.y - 20), type: .fast)
+            enemy.velocity = CGPoint(x: -side * 1.8, y: -2.6)
+            enemy.usesZigzag = true
+            enemies.append(enemy)
+        }
     }
 
     func spawnPowerUp(bounds: CGRect) {
@@ -618,6 +773,34 @@ class GameLogic {
 
         let powerUp = PowerUp(position: CGPoint(x: x, y: y), type: randomType)
         powerUps.append(powerUp)
+    }
+
+    func updateCompanion(currentTime: TimeInterval, timeScale: CGFloat) {
+        guard gameState.selectedGameMode == .coOp else { return }
+        guard currentTime - lastCompanionShot > 0.32 else { return }
+
+        let companionX = player.position.x + (player.characterId.lowercased() == "kaden" ? 38 : -38)
+        let origin = CGPoint(x: companionX, y: player.position.y + 12)
+        let target: CGPoint?
+        if let boss {
+            target = boss.position
+        } else {
+            target = enemies.min {
+                hypot($0.position.x - origin.x, $0.position.y - origin.y) < hypot($1.position.x - origin.x, $1.position.y - origin.y)
+            }?.position
+        }
+
+        let direction = (target.map { CGPoint(x: $0.x - origin.x, y: $0.y - origin.y) } ?? CGPoint(x: 0, y: 1)).normalized()
+        bullets.append(
+            Bullet(
+                position: origin,
+                velocity: CGPoint(x: direction.x * 10.5, y: direction.y * 10.5),
+                size: CGSize(width: 5, height: 11),
+                owner: .player,
+                damage: max(1, Int(Float(1) * player.damageMultiplier))
+            )
+        )
+        lastCompanionShot = currentTime
     }
 
     func spawnCollectible(bounds: CGRect) {
@@ -737,6 +920,9 @@ class GameLogic {
         case .missile, .rocket, .homing, .multiShot4:
             // 4 projectiles side by side. Rockets and missiles use this launcher pattern too.
             let isExplosiveLauncher = player.weaponType == .missile || player.weaponType == .rocket || player.weaponType == .homing
+            if player.weaponType == .missile || player.weaponType == .rocket {
+                rocketShotsForMission += 4
+            }
             let baseDamage = Int(Float(isExplosiveLauncher ? 2 : 1) * player.damageMultiplier)
             let bulletSpeed = (isExplosiveLauncher ? 9.0 : 10.0) * Double(player.rangeMultiplier)
             let spacing: CGFloat = (isExplosiveLauncher ? 13 : 10) * CGFloat(player.accuracyMultiplier)
@@ -803,6 +989,105 @@ class GameLogic {
         return newBullets
     }
 
+    func selectNewMission() {
+        let hasRocketLoadout = player.weaponType == .rocket || player.weaponType == .missile || player.weaponType == .homing || player.weaponType == .multiShot4
+        let baseOptions: [GameplayMission] = gameState.selectedGameMode == .bossRush ? [.hitBoss, .useRockets, .survive] : GameplayMission.allCases
+        let options = hasRocketLoadout ? baseOptions : baseOptions.filter { $0 != .useRockets }
+        missionKind = options.randomElement() ?? .collectStars
+        rocketShotsForMission = 0
+        missionStartTime = 0
+        missionStartCoins = gameState.coins
+        missionStartBossHits = gameState.shotsHit
+        gameState.currentMissionTitle = missionKind.title
+        gameState.currentMissionProgress = 0
+        gameState.currentMissionTarget = missionKind.target
+    }
+
+    func updateMissionProgress(currentTime: TimeInterval) {
+        let progress: Int
+        switch missionKind {
+        case .collectStars:
+            progress = max(0, gameState.coins - missionStartCoins)
+        case .survive:
+            progress = Int(max(0, currentTime - missionStartTime))
+        case .hitBoss:
+            progress = max(0, gameState.shotsHit - missionStartBossHits)
+        case .useRockets:
+            progress = rocketShotsForMission
+        }
+
+        gameState.currentMissionProgress = min(progress, missionKind.target)
+        gameState.currentMissionTarget = missionKind.target
+
+        if progress >= missionKind.target {
+            gameState.score = min(gameState.score + 750, Int.max / 2)
+            gameState.coins = min(gameState.coins + 15, Int.max / 2)
+            gameState.ultimateCharge = min(100, gameState.ultimateCharge + 28)
+            gameScene?.onMissionComplete(title: missionKind.title)
+            selectNewMission()
+            missionStartTime = currentTime
+        }
+    }
+
+    func updateStageName() {
+        let stage: String
+        switch (gameState.wave - 1) / 3 % 4 {
+        case 0: stage = "Starfield"
+        case 1: stage = "Asteroid Belt"
+        case 2: stage = "Nebula Clouds"
+        default: stage = "Laser Gate"
+        }
+        gameState.currentStageName = stage
+    }
+
+    func addUltimateCharge(_ amount: Double) {
+        gameState.ultimateCharge = min(100, gameState.ultimateCharge + amount)
+    }
+
+    func activateUltimate() -> Bool {
+        guard gameState.ultimateCharge >= 100 else { return false }
+        gameState.ultimateCharge = 0
+
+        let isAdelynn = player.characterId.lowercased() == "adelynn"
+        if isAdelynn {
+            for index in 0..<12 {
+                let angle = -.pi / 2 + CGFloat(index - 5) * 0.12
+                bullets.append(
+                    Bullet(
+                        position: CGPoint(x: player.position.x + CGFloat(index - 5) * 7, y: player.position.y + 18),
+                        velocity: CGPoint(x: sin(angle) * 13.0, y: cos(angle) * 13.0),
+                        size: CGSize(width: 8, height: 18),
+                        owner: .player,
+                        damage: 6
+                    )
+                )
+            }
+        } else {
+            for index in 0..<7 {
+                bullets.append(
+                    Bullet(
+                        position: CGPoint(x: player.position.x + CGFloat(index - 3) * 12, y: player.position.y + 22),
+                        velocity: CGPoint(x: CGFloat(index - 3) * 0.35, y: 16),
+                        size: CGSize(width: 9, height: 26),
+                        owner: .player,
+                        damage: 8
+                    )
+                )
+            }
+        }
+
+        for index in enemies.indices {
+            enemies[index].takeDamage(isAdelynn ? 2 : 4)
+        }
+        enemies.removeAll { $0.isDead }
+        if var currentBoss = boss {
+            currentBoss.takeDamage(isAdelynn ? 34 : 48)
+            boss = currentBoss
+        }
+        bullets.removeAll { $0.owner == .enemy }
+        return true
+    }
+
     func checkCollisions(bounds: CGRect) {
         // Player bullets vs enemies - safety checks
         if !bullets.isEmpty && !enemies.isEmpty {
@@ -846,6 +1131,7 @@ class GameLogic {
                             gameState.score = min(gameState.score + totalScore, maxSafeScore)
                         }
                         gameState.enemiesKilled += 1
+                        addUltimateCharge(enemies[j].enemyType == .tank ? 4.0 : 2.0)
 
                         gameScene?.onEnemyKilled(enemies[j], at: enemyPosition, score: totalScore)
 
@@ -913,6 +1199,7 @@ class GameLogic {
 
                 // Add star value to coins
                 gameState.coins += starValue
+                addUltimateCharge(Double(starValue) * 0.35)
 
                 // Enhanced collection effect based on star type
                 gameScene?.onStarCollected(collectibles[i], at: collectibles[i].position)
@@ -927,6 +1214,7 @@ class GameLogic {
                     currentBoss.takeDamage(bullets[i].damage)
                     bullets.remove(at: i)
                     gameState.shotsHit += 1
+                    addUltimateCharge(0.8)
                     // Prevent score overflow
                     let maxSafeScore = Int.max / 2
                     if gameState.score < maxSafeScore {
@@ -1103,6 +1391,11 @@ class GameLogic {
     }
 
     func applyPowerUp(_ powerUp: PowerUp) {
+        let hadShield = player.invulnerable
+        let hadRapidFire = gameState.activePowerUps["rapid_fire"] != nil
+        let hadStarMultiplier = gameState.activePowerUps["star_multiplier"] != nil
+        let hadStarMagnet = gameState.activePowerUps["star_magnet"] != nil
+
         switch powerUp.type {
         case .health:
             player.health = min(player.maxHealth, player.health + 25)
@@ -1114,6 +1407,9 @@ class GameLogic {
             let shieldDuration = gameState.activePowerUps["armor_boost"] != nil ? 7.5 : 5.0
             player.invulnerable = true
             player.invulnerableTimer = shieldDuration
+            if player.weaponType == .rocket || player.weaponType == .missile {
+                triggerShieldBurst()
+            }
         case .coin:
             // Each star is worth 1 - prevent overflow
             let maxSafeCoins = Int.max / 2
@@ -1124,6 +1420,10 @@ class GameLogic {
         // 25 Weapon Collectibles - each changes the weapon type
         case .weaponLaser:
             player.weaponType = .laser
+            if hadRapidFire {
+                player.weaponType = .laserBeam
+                gameScene?.onComboActivated("Rapid Beam")
+            }
         case .weaponSpread:
             player.weaponType = .spread
         case .weaponPlasma:
@@ -1144,6 +1444,9 @@ class GameLogic {
             player.weaponType = .beam
         case .weaponRocket:
             player.weaponType = .rocket
+            if hadShield {
+                triggerShieldBurst()
+            }
         case .weaponGrenade:
             player.weaponType = .grenade
         case .weaponFlamethrower:
@@ -1181,6 +1484,36 @@ class GameLogic {
         case .weaponMultiShot5:
             player.weaponType = .multiShot5
         }
+
+        if (hadStarMagnet && powerUp.type == .rapidFire) || (hadStarMultiplier && powerUp.type == .shield) {
+            gameState.scoreMultiplier = max(gameState.scoreMultiplier, 2.0)
+            gameState.combo += 5
+            gameScene?.onComboActivated("Power Combo")
+        }
+    }
+
+    func triggerShieldBurst() {
+        let radius: CGFloat = 155
+        var burstScore = 0
+        for index in enemies.indices {
+            let distance = hypot(enemies[index].position.x - player.position.x, enemies[index].position.y - player.position.y)
+            if distance < radius {
+                enemies[index].takeDamage(4)
+                burstScore += 35
+            }
+        }
+        enemies.removeAll { $0.isDead }
+        if var currentBoss = boss {
+            let distance = hypot(currentBoss.position.x - player.position.x, currentBoss.position.y - player.position.y)
+            if distance < radius + currentBoss.size.width {
+                currentBoss.takeDamage(18)
+                boss = currentBoss
+            }
+        }
+        bullets.removeAll { $0.owner == .enemy && hypot($0.position.x - player.position.x, $0.position.y - player.position.y) < radius }
+        gameState.score = min(gameState.score + burstScore, Int.max / 2)
+        addUltimateCharge(10)
+        gameScene?.onComboActivated("Shield Burst")
     }
 
     func updateScoreMultiplier() {

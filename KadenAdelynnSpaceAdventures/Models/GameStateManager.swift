@@ -169,6 +169,11 @@ class GameStateManager: ObservableObject {
     @Published var timeSurvived: TimeInterval = 0  // Time played in current session
     @Published var currentFPS: Int = 60
     @Published var activePowerUps: [String: TimeInterval] = [:]
+    @Published var ultimateCharge: Double = 0
+    @Published var currentMissionTitle: String = "Collect 25 stars"
+    @Published var currentMissionProgress: Int = 0
+    @Published var currentMissionTarget: Int = 25
+    @Published var currentStageName: String = "Starfield"
 
     // Store upgrades
     var upgradeShield: Bool {
@@ -430,6 +435,11 @@ class GameStateManager: ObservableObject {
         shotsHit = 0
         combo = 0
         killStreak = 0
+        ultimateCharge = 0
+        currentMissionTitle = "Collect 25 stars"
+        currentMissionProgress = 0
+        currentMissionTarget = 25
+        currentStageName = "Starfield"
         isPaused = false
         coins = 0  // Start with 0 coins each new game
         stars = 0  // Sync stars with coins

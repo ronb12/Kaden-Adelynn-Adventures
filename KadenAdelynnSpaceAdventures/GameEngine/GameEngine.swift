@@ -14,6 +14,7 @@ enum PlayerManeuverCommand {
     case strafeLeft
     case strafeRight
     case boost
+    case ultimate
 }
 
 class GameScene: SKScene {
@@ -27,6 +28,8 @@ class GameScene: SKScene {
     var collectibleNodes: [SKNode] = []
     var powerUpNodes: [SKNode] = []
     var bossNode: SKNode?
+    var companionNode: SKNode?
+    var lastStageName: String = ""
     
     // Input
     var isTouching = false
@@ -309,8 +312,14 @@ class GameScene: SKScene {
             if ShipManeuvers.releaseBoostCharge(player: &gameLogic.player, direction: direction, currentTime: currentTime, bounds: bounds) {
                 createBoostReleaseEffect(at: gameLogic.player.position, direction: direction)
                 audioManager.playMissileSound(in: self)
+                gameLogic.addUltimateCharge(2.0)
             }
             removeBoostChargeVisual()
+        case .ultimate:
+            if gameLogic.activateUltimate() {
+                createUltimateEffect(at: gameLogic.player.position)
+                audioManager.playPowerUpSound(in: self)
+            }
         }
     }
     
@@ -583,6 +592,8 @@ class GameScene: SKScene {
         updateCollectibles()
         updatePowerUps()
         updateBoss()
+        updateCompanion()
+        updateStageVisuals()
         
         // Auto-save every 30 seconds (if enabled)
         if gameState.isAutoSaveEnabled {
@@ -742,6 +753,66 @@ class GameScene: SKScene {
         
         bossNode?.position = boss.position
         bossNode?.setScale(1.0)
+    }
+
+    func updateCompanion() {
+        guard gameState.selectedGameMode == .coOp else {
+            companionNode?.removeFromParent()
+            companionNode = nil
+            return
+        }
+
+        if companionNode == nil {
+            let companionCharacter = gameState.selectedCharacter.lowercased() == "kaden" ? "adelynn" : "kaden"
+            let companionShip = ShipGraphics.createPlayerShip(size: CGSize(width: 30, height: 30), characterId: companionCharacter, shipId: companionCharacter)
+            companionShip.name = "companion"
+            companionShip.zPosition = 9
+            companionShip.alpha = 0.88
+            addChild(companionShip)
+            companionNode = companionShip
+        }
+
+        let side: CGFloat = gameState.selectedCharacter.lowercased() == "kaden" ? 1 : -1
+        let target = CGPoint(x: gameLogic.player.position.x + side * 42, y: gameLogic.player.position.y + 18)
+        companionNode?.run(SKAction.move(to: target, duration: 0.08))
+    }
+
+    func updateStageVisuals() {
+        guard lastStageName != gameState.currentStageName else { return }
+        lastStageName = gameState.currentStageName
+
+        switch gameState.currentStageName {
+        case "Asteroid Belt":
+            backgroundColor = UIColor(red: 0.12, green: 0.13, blue: 0.18, alpha: 1.0)
+        case "Nebula Clouds":
+            backgroundColor = UIColor(red: 0.18, green: 0.09, blue: 0.28, alpha: 1.0)
+        case "Laser Gate":
+            backgroundColor = UIColor(red: 0.08, green: 0.16, blue: 0.22, alpha: 1.0)
+        default:
+            let selectedTheme = CustomizationManager.getSelectedTheme()
+            let (bgColor, _, _) = CustomizationManager.getThemeColors(themeName: selectedTheme)
+            backgroundColor = bgColor
+        }
+
+        let label = SKLabelNode(text: gameState.currentStageName.uppercased())
+        label.fontName = "Arial-BoldMT"
+        label.fontSize = 18
+        label.fontColor = .cyan
+        label.position = CGPoint(x: 0, y: size.height / 2 - 176)
+        label.zPosition = 2300
+        addChild(label)
+        label.run(SKAction.sequence([
+            SKAction.group([
+                SKAction.fadeIn(withDuration: 0.15),
+                SKAction.scale(to: 1.08, duration: 0.15)
+            ]),
+            SKAction.wait(forDuration: 0.8),
+            SKAction.group([
+                SKAction.fadeOut(withDuration: 0.35),
+                SKAction.moveBy(x: 0, y: 22, duration: 0.35)
+            ]),
+            SKAction.removeFromParent()
+        ]))
     }
     
     func getPlayerBulletVisuals(weaponType: WeaponType) -> (UIColor, UIColor, String) {
@@ -1514,19 +1585,30 @@ class GameScene: SKScene {
         border.alpha = 0.7
         overlay.addChild(border)
         
-        let warning = SKLabelNode(text: "BOSS INCOMING")
+        let bossNames = ["Captain Nebula", "The Star Crusher", "Orbit Breaker", "Comet Baron", "Void Spark"]
+        let bossName = bossNames[(max(wave, 1) / 5) % bossNames.count]
+
+        let warning = SKLabelNode(text: bossName.uppercased())
         warning.fontName = "Arial-BoldMT"
-        warning.fontSize = 36
+        warning.fontSize = 30
         warning.fontColor = .red
-        warning.position = CGPoint(x: 0, y: 28)
+        warning.position = CGPoint(x: 0, y: 42)
         warning.zPosition = 2201
         overlay.addChild(warning)
+
+        let intro = SKLabelNode(text: "Boss incoming")
+        intro.fontName = "Arial-BoldMT"
+        intro.fontSize = 19
+        intro.fontColor = .yellow
+        intro.position = CGPoint(x: 0, y: 8)
+        intro.zPosition = 2201
+        overlay.addChild(intro)
         
         let subtitle = SKLabelNode(text: "WAVE \(wave)")
         subtitle.fontName = "Arial-BoldMT"
         subtitle.fontSize = 22
         subtitle.fontColor = .white
-        subtitle.position = CGPoint(x: 0, y: -14)
+        subtitle.position = CGPoint(x: 0, y: -28)
         subtitle.zPosition = 2201
         overlay.addChild(subtitle)
         
@@ -1601,6 +1683,95 @@ class GameScene: SKScene {
         
         bossNode?.removeFromParent()
         bossNode = nil
+    }
+
+    func onMissionComplete(title: String) {
+        let text = SKLabelNode(text: "MISSION COMPLETE")
+        text.fontName = "Arial-BoldMT"
+        text.fontSize = 24
+        text.fontColor = .green
+        text.position = CGPoint(x: 0, y: size.height / 2 - 220)
+        text.zPosition = 2400
+        addChild(text)
+
+        let reward = SKLabelNode(text: "+750 score  +15 stars")
+        reward.fontName = "Arial-BoldMT"
+        reward.fontSize = 15
+        reward.fontColor = .yellow
+        reward.position = CGPoint(x: 0, y: text.position.y - 26)
+        reward.zPosition = 2400
+        addChild(reward)
+
+        func completionAction() -> SKAction {
+            SKAction.sequence([
+                SKAction.group([
+                    SKAction.scale(to: 1.12, duration: 0.2),
+                    SKAction.fadeIn(withDuration: 0.2)
+                ]),
+                SKAction.wait(forDuration: 1.0),
+                SKAction.group([
+                    SKAction.fadeOut(withDuration: 0.35),
+                    SKAction.moveBy(x: 0, y: 28, duration: 0.35)
+                ]),
+                SKAction.removeFromParent()
+            ])
+        }
+
+        text.run(completionAction())
+        reward.run(completionAction())
+        HapticManager.shared.powerUpCollected()
+    }
+
+    func onComboActivated(_ name: String) {
+        let label = SKLabelNode(text: name.uppercased())
+        label.fontName = "Arial-BoldMT"
+        label.fontSize = 20
+        label.fontColor = .cyan
+        label.position = CGPoint(x: gameLogic.player.position.x, y: gameLogic.player.position.y + 66)
+        label.zPosition = 2300
+        addChild(label)
+        label.run(SKAction.sequence([
+            SKAction.group([
+                SKAction.scale(to: 1.25, duration: 0.18),
+                SKAction.fadeIn(withDuration: 0.18)
+            ]),
+            SKAction.wait(forDuration: 0.45),
+            SKAction.group([
+                SKAction.fadeOut(withDuration: 0.35),
+                SKAction.moveBy(x: 0, y: 42, duration: 0.35)
+            ]),
+            SKAction.removeFromParent()
+        ]))
+    }
+
+    func createUltimateEffect(at position: CGPoint) {
+        let ring = SKShapeNode(circleOfRadius: 42)
+        ring.position = position
+        ring.strokeColor = gameState.selectedCharacter.lowercased() == "adelynn" ? .magenta : .cyan
+        ring.fillColor = ring.strokeColor.withAlphaComponent(0.18)
+        ring.lineWidth = 5
+        ring.zPosition = 2300
+        addChild(ring)
+        ring.run(SKAction.sequence([
+            SKAction.group([
+                SKAction.scale(to: 6.0, duration: 0.45),
+                SKAction.fadeOut(withDuration: 0.45)
+            ]),
+            SKAction.removeFromParent()
+        ]))
+
+        let label = SKLabelNode(text: gameState.selectedCharacter.lowercased() == "adelynn" ? "RAINBOW MISSILE STORM" : "STAR CANNON")
+        label.fontName = "Arial-BoldMT"
+        label.fontSize = 22
+        label.fontColor = .white
+        label.position = CGPoint(x: 0, y: -10)
+        label.zPosition = 2400
+        addChild(label)
+        label.run(SKAction.sequence([
+            SKAction.wait(forDuration: 0.65),
+            SKAction.fadeOut(withDuration: 0.3),
+            SKAction.removeFromParent()
+        ]))
     }
     
     func getPowerUpVisuals(type: PowerUp.PowerUpType) -> (UIColor, String) {
