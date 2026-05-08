@@ -9,6 +9,10 @@ import Foundation
 import CoreGraphics
 
 class GameLogic {
+    private let maxActiveEnemies = 32
+    private let maxBossSupportEnemies = 18
+    private let maxEnemyBullets = 140
+
     var gameState: GameStateManager
 
     // Game entities
@@ -359,8 +363,10 @@ class GameLogic {
         let safeWaveThreshold = max(1, waveThreshold)
         let enemiesPerSpawn = gameState.wave > safeWaveThreshold ? min(4, gameState.wave / safeWaveThreshold) : 1
 
+        trimEnemyOverflow()
+
         // Prevent too many enemies from spawning (memory protection)
-        let maxEnemies = 50  // Limit total enemies to prevent memory issues
+        let maxEnemies = activeEnemyLimit
         if gameState.selectedGameMode != .bossRush && boss == nil && currentTime - lastEnemySpawn > enemySpawnRate && enemies.count < maxEnemies {
             let spawnCount = min(enemiesPerSpawn, maxEnemies - enemies.count)  // Don't exceed max
             for _ in 0..<spawnCount {
@@ -373,6 +379,8 @@ class GameLogic {
             spawnEnemyFormation(bounds: bounds, wave: gameState.wave)
             lastFormationSpawn = currentTime
         }
+
+        trimEnemyOverflow()
 
         // Combo decay system - lose combo if no clears for 3 seconds
         let currentTimeSeconds = Date().timeIntervalSince1970
@@ -442,8 +450,7 @@ class GameLogic {
 
                 if enemy.shootTimer >= shootInterval {
                     // Prevent too many bullets from spawning (memory protection)
-                    let maxBullets = 200  // Limit total bullets to prevent memory issues
-                    if bullets.count < maxBullets {
+                    if bullets.count < maxEnemyBullets {
                         // Bullet speed increases with difficulty and wave (more aggressive)
                         let bulletSpeed = 5.0 * diffMultiplier + Double(gameState.wave) * 0.5  // Increased from 0.3 to 0.5
                         let baseDamage = Float(enemy.enemyType == .tank ? 15 : 10)
@@ -523,6 +530,8 @@ class GameLogic {
     }
 
     func spawnEnemy(bounds: CGRect, wave: Int) {
+        guard enemies.count < activeEnemyLimit else { return }
+
         // Center-origin: spawn from top
         let halfWidth = bounds.width / 2
         let halfHeight = bounds.height / 2
@@ -606,25 +615,35 @@ class GameLogic {
     }
 
     func spawnEnemyFormation(bounds: CGRect, wave: Int) {
+        let remainingSlots = activeEnemyLimit - enemies.count
+        guard remainingSlots > 0 else { return }
+
         let halfWidth = bounds.width / 2
         let halfHeight = bounds.height / 2
         let formation = wave % 4
         let y = halfHeight + 55
         let type: Enemy.EnemyType = wave >= 8 ? [.fast, .shooter, .tank].randomElement() ?? .shooter : [.basic, .fast, .shooter].randomElement() ?? .basic
+        var spawned = 0
+
+        func appendFormationEnemy(_ enemy: Enemy) {
+            guard spawned < remainingSlots else { return }
+            enemies.append(enemy)
+            spawned += 1
+        }
 
         switch formation {
         case 0:
             for index in 0..<5 {
                 var enemy = Enemy(position: CGPoint(x: CGFloat(index - 2) * 42, y: y + CGFloat(abs(index - 2)) * 24), type: type)
                 enemy.usesZigzag = index % 2 == 0
-                enemies.append(enemy)
+                appendFormationEnemy(enemy)
             }
         case 1:
             for index in 0..<6 {
                 let side: CGFloat = index % 2 == 0 ? -1 : 1
                 var enemy = Enemy(position: CGPoint(x: side * (halfWidth + 34), y: halfHeight - CGFloat(index) * 48), type: type)
                 enemy.velocity = CGPoint(x: -side * (2.3 + CGFloat(wave) * 0.05), y: -1.2)
-                enemies.append(enemy)
+                appendFormationEnemy(enemy)
             }
         case 2:
             for index in 0..<8 {
@@ -632,13 +651,13 @@ class GameLogic {
                 var enemy = Enemy(position: CGPoint(x: cos(angle) * 86, y: y + sin(angle) * 34), type: index % 3 == 0 ? .tank : type)
                 enemy.usesZigzag = true
                 enemy.zigzagOffset = angle
-                enemies.append(enemy)
+                appendFormationEnemy(enemy)
             }
         default:
             for index in 0..<6 {
                 let x = CGFloat(index - 2) * 36
                 let stagger = CGFloat(index % 2) * 34
-                enemies.append(Enemy(position: CGPoint(x: x, y: y + stagger), type: index % 2 == 0 ? .fast : .shooter))
+                appendFormationEnemy(Enemy(position: CGPoint(x: x, y: y + stagger), type: index % 2 == 0 ? .fast : .shooter))
             }
         }
     }
@@ -731,13 +750,30 @@ class GameLogic {
     }
 
     func summonBossWingmen(around position: CGPoint) {
-        guard enemies.count < 36 else { return }
+        guard enemies.count < activeEnemyLimit else { return }
         for side in [-1.0, 1.0] as [CGFloat] {
+            guard enemies.count < activeEnemyLimit else { break }
             var enemy = Enemy(position: CGPoint(x: position.x + side * 86, y: position.y - 20), type: .fast)
             enemy.velocity = CGPoint(x: -side * 1.8, y: -2.6)
             enemy.usesZigzag = true
             enemies.append(enemy)
         }
+    }
+
+    private var activeEnemyLimit: Int {
+        if gameState.selectedGameMode == .training {
+            return 18
+        }
+        if boss != nil || gameState.selectedGameMode == .bossRush {
+            return maxBossSupportEnemies
+        }
+        return maxActiveEnemies
+    }
+
+    private func trimEnemyOverflow() {
+        let limit = activeEnemyLimit
+        guard enemies.count > limit else { return }
+        enemies.removeFirst(enemies.count - limit)
     }
 
     func spawnPowerUp(bounds: CGRect) {

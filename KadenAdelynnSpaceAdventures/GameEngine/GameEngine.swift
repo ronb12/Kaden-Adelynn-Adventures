@@ -19,6 +19,8 @@ enum PlayerManeuverCommand {
 }
 
 class GameScene: SKScene {
+    private let maxRenderedEnemies = 36
+
     var gameState: GameStateManager
     var gameLogic: GameLogic
     
@@ -730,8 +732,8 @@ class GameScene: SKScene {
         }
         enemyNodes.removeAll()
         
-        // Add current enemies
-        for enemy in gameLogic.enemies {
+        // Add current enemies. Keep a render cap as a final guard against runaway node counts.
+        for enemy in gameLogic.enemies.prefix(maxRenderedEnemies) {
             let enemyShip = ShipGraphics.createEnemyShip(size: enemy.size, type: enemy.enemyType, variant: enemy.visualVariant)
             enemyShip.position = enemy.position
             enemyShip.name = "enemy"
