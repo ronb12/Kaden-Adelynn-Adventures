@@ -68,13 +68,11 @@ class ShipManeuvers {
             player.dashDirection = CGPoint.zero
         } else {
             // Apply dash movement
-            let halfWidth = bounds.width / 2
-            let halfHeight = bounds.height / 2
             let newX = player.position.x + (player.dashDirection.x * dashSpeed)
             let newY = player.position.y + (player.dashDirection.y * dashSpeed)
             
-            player.position.x = max(-halfWidth + 50, min(halfWidth - 50, newX))
-            player.position.y = max(-halfHeight + 50, min(halfHeight - 50, newY))
+            player.position.x = max(bounds.minX + 50, min(bounds.maxX - 50, newX))
+            player.position.y = max(bounds.minY + 50, min(bounds.maxY - 50, newY))
         }
         
         // Update invincibility
@@ -109,13 +107,11 @@ class ShipManeuvers {
     static func applyMomentum(player: inout Player, bounds: CGRect, deltaTime: TimeInterval) {
         guard player.momentum > 0 && !player.isDashing else { return }
         
-        let halfWidth = bounds.width / 2
-        let halfHeight = bounds.height / 2
         let newX = player.position.x + (player.velocity.x * CGFloat(deltaTime) * player.momentum)
         let newY = player.position.y + (player.velocity.y * CGFloat(deltaTime) * player.momentum)
         
-        player.position.x = max(-halfWidth + 50, min(halfWidth - 50, newX))
-        player.position.y = max(-halfHeight + 50, min(halfHeight - 50, newY))
+        player.position.x = max(bounds.minX + 50, min(bounds.maxX - 50, newX))
+        player.position.y = max(bounds.minY + 50, min(bounds.maxY - 50, newY))
     }
     
     // MARK: - Barrel Roll
@@ -175,10 +171,9 @@ class ShipManeuvers {
             player.strafeDirection = 0.0
         } else {
             // Apply strafe movement
-            let halfWidth = bounds.width / 2
             let newX = player.position.x + (player.strafeDirection * quickStrafeSpeed)
             
-            player.position.x = max(-halfWidth + 50, min(halfWidth - 50, newX))
+            player.position.x = max(bounds.minX + 50, min(bounds.maxX - 50, newX))
         }
     }
     
@@ -202,10 +197,9 @@ class ShipManeuvers {
             player.isBackwardThrusting = false
         } else {
             // Apply backward movement (move up in center-origin coordinates)
-            let halfHeight = bounds.height / 2
             let newY = player.position.y + backwardThrustSpeed
             
-            player.position.y = max(-halfHeight + 50, min(halfHeight - 50, newY))
+            player.position.y = max(bounds.minY + 50, min(bounds.maxY - 50, newY))
         }
     }
     
@@ -234,13 +228,11 @@ class ShipManeuvers {
         let boostDistance = boostChargeSpeedMultiplier * player.speed * CGFloat(player.boostChargeLevel)
         let normalizedDirection = direction.normalized()
         
-        let halfWidth = bounds.width / 2
-        let halfHeight = bounds.height / 2
         let newX = player.position.x + (normalizedDirection.x * boostDistance)
         let newY = player.position.y + (normalizedDirection.y * boostDistance)
         
-        player.position.x = max(-halfWidth + 50, min(halfWidth - 50, newX))
-        player.position.y = max(-halfHeight + 50, min(halfHeight - 50, newY))
+        player.position.x = max(bounds.minX + 50, min(bounds.maxX - 50, newX))
+        player.position.y = max(bounds.minY + 50, min(bounds.maxY - 50, newY))
         
         // Reset charge
         player.isChargingBoost = false
@@ -271,12 +263,11 @@ class ShipManeuvers {
             player.isZigzagging = false
         } else {
             // Apply zigzag movement (side to side)
-            let halfWidth = bounds.width / 2
             let progress = CGFloat(elapsed / zigzagDuration)
             let distance = zigzagDistance * (1.0 - abs(progress - 0.5) * 2.0)  // Peak in middle
             let newX = player.position.x + (player.zigzagDirection * distance)
             
-            player.position.x = max(-halfWidth + 50, min(halfWidth - 50, newX))
+            player.position.x = max(bounds.minX + 50, min(bounds.maxX - 50, newX))
         }
     }
     
@@ -365,4 +356,3 @@ extension CGPoint {
         return sqrt(x * x + y * y)
     }
 }
-

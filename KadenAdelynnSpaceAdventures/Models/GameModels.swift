@@ -188,21 +188,21 @@ struct Enemy {
         position.x += velocity.x * timeScale
         position.y += adjustedVelocityY * timeScale
         
-        // Clamp position to screen bounds (center-origin coordinates)
-        let halfWidth = bounds.width / 2
         let margin: CGFloat = size.width / 2 + 10  // Margin from edges
+        let minX = bounds.minX + margin
+        let maxX = bounds.maxX - margin
         
         // Clamp X position to prevent going off left/right sides
-        position.x = max(-halfWidth + margin, min(halfWidth - margin, position.x))
+        position.x = max(minX, min(maxX, position.x))
         
         // If zigzagging and hit boundary, reverse velocity to bounce back
         if usesZigzag {
-            if position.x <= -halfWidth + margin || position.x >= halfWidth - margin {
+            if position.x <= minX || position.x >= maxX {
                 velocity.x *= -1
             }
         } else {
             // Bounce off walls for non-zigzag enemies
-            if position.x <= -halfWidth + margin || position.x >= halfWidth - margin {
+            if position.x <= minX || position.x >= maxX {
                 velocity.x *= -1
             }
         }
@@ -270,11 +270,8 @@ struct Bullet {
     }
     
     func isOffScreen(bounds: CGRect) -> Bool {
-        // Center-origin coordinates
-        let halfWidth = bounds.width / 2
-        let halfHeight = bounds.height / 2
-        return position.y < -halfHeight - size.height || position.y > halfHeight + size.height ||
-               position.x < -halfWidth - size.width || position.x > halfWidth + size.width
+        return position.y < bounds.minY - size.height || position.y > bounds.maxY + size.height ||
+               position.x < bounds.minX - size.width || position.x > bounds.maxX + size.width
     }
 }
 
@@ -344,9 +341,7 @@ struct PowerUp {
     }
     
     func isOffScreen(bounds: CGRect) -> Bool {
-        // Center-origin: bottom is -halfHeight
-        let halfHeight = bounds.height / 2
-        return position.y < -halfHeight - size.height
+        return position.y < bounds.minY - size.height
     }
 }
 
@@ -396,12 +391,10 @@ struct Boss {
         position.x += (velocity.x + drift) * timeScale
         position.y += velocity.y * timeScale
 
-        let halfWidth = bounds.width / 2
-        let halfHeight = bounds.height / 2
-        let minX = -halfWidth + size.width / 2
-        let maxX = halfWidth - size.width / 2
-        let minY = -halfHeight + size.height / 2 + 96
-        let maxY = halfHeight - size.height / 2 - 132
+        let minX = bounds.minX + size.width / 2
+        let maxX = bounds.maxX - size.width / 2
+        let minY = bounds.minY + size.height / 2
+        let maxY = bounds.maxY - size.height / 2
 
         if position.x <= minX || position.x >= maxX {
             position.x = min(max(position.x, minX), maxX)
@@ -493,7 +486,10 @@ struct Asteroid {
         position.y += velocity.y * timeScale
         
         // Bounce off walls
-        if position.x <= size.width/2 || position.x >= bounds.width - size.width/2 {
+        let minX = bounds.minX + size.width / 2
+        let maxX = bounds.maxX - size.width / 2
+        if position.x <= minX || position.x >= maxX {
+            position.x = min(max(position.x, minX), maxX)
             velocity.x *= -1
         }
     }
@@ -652,9 +648,7 @@ struct Coin {
     }
     
     func isOffScreen(bounds: CGRect) -> Bool {
-        // Center-origin: bottom is -halfHeight
-        let halfHeight = bounds.height / 2
-        return position.y < -halfHeight - size.height
+        return position.y < bounds.minY - size.height
     }
 }
 

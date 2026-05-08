@@ -56,6 +56,25 @@ class GameScene: SKScene {
     var lastControllerShootTime: TimeInterval = 0
     
     let audioManager = AudioManager.shared
+
+    private var gameplayBounds: CGRect {
+        let horizontalInset: CGFloat = 18
+        let bottomInset: CGFloat = 74
+        let topInset: CGFloat = 188
+        return CGRect(
+            x: -size.width / 2 + horizontalInset,
+            y: -size.height / 2 + bottomInset,
+            width: max(120, size.width - horizontalInset * 2),
+            height: max(240, size.height - topInset - bottomInset)
+        )
+    }
+
+    private func clampedPlayerPosition(_ position: CGPoint) -> CGPoint {
+        CGPoint(
+            x: max(gameplayBounds.minX + 50, min(gameplayBounds.maxX - 50, position.x)),
+            y: max(gameplayBounds.minY + 50, min(gameplayBounds.maxY - 50, position.y))
+        )
+    }
     
     init(size: CGSize, gameState: GameStateManager) {
         self.gameState = gameState
@@ -225,7 +244,7 @@ class GameScene: SKScene {
             }
         } else if gameLogic.player.isChargingBoost {
             // Release boost charge
-            if ShipManeuvers.releaseBoostCharge(player: &gameLogic.player, direction: movement.length() > 0.1 ? movement : CGPoint(x: 0, y: 1), currentTime: currentTime, bounds: CGRect(origin: .zero, size: size)) {
+            if ShipManeuvers.releaseBoostCharge(player: &gameLogic.player, direction: movement.length() > 0.1 ? movement : CGPoint(x: 0, y: 1), currentTime: currentTime, bounds: gameplayBounds) {
                 createBoostReleaseEffect(at: gameLogic.player.position, direction: movement.length() > 0.1 ? movement : CGPoint(x: 0, y: 1))
                 audioManager.playSound("missile", in: self)
             }
@@ -247,17 +266,13 @@ class GameScene: SKScene {
             
             // Apply movement with sensitivity (pixels per frame)
             let sensitivity: CGFloat = 10.0
-            let halfWidth = size.width / 2
-            let halfHeight = size.height / 2
-            
             // Calculate new position in center-origin coordinates (unless dashing or other maneuver active)
             if !gameLogic.player.isDashing && !gameLogic.player.isQuickStrafing && !gameLogic.player.isBackwardThrusting {
                 let newX = gameLogic.player.position.x + (movement.x * sensitivity)
                 let newY = gameLogic.player.position.y + (movement.y * sensitivity)
                 
-                // Clamp to screen bounds (center-origin)
-                gameLogic.player.position.x = max(-halfWidth + 50, min(halfWidth - 50, newX))
-                gameLogic.player.position.y = max(-halfHeight + 50, min(halfHeight - 50, newY))
+                gameLogic.player.position.x = max(gameplayBounds.minX + 50, min(gameplayBounds.maxX - 50, newX))
+                gameLogic.player.position.y = max(gameplayBounds.minY + 50, min(gameplayBounds.maxY - 50, newY))
                 
                 // Update visual (SpriteKit uses center-origin by default)
                 if let player = playerNode {
@@ -289,7 +304,7 @@ class GameScene: SKScene {
     }
     
     func performManeuver(_ command: PlayerManeuverCommand) {
-        let bounds = CGRect(origin: .zero, size: size)
+        let bounds = gameplayBounds
         switch command {
         case .dash:
             let direction = CGPoint(x: 0, y: 1)
@@ -335,7 +350,8 @@ class GameScene: SKScene {
         guard !controllerManager.isControllerConnected || !controllerManager.isEnabled else { return }
         
         guard let touch = touches.first else { return }
-        let touchPos = touch.location(in: self)
+        let rawTouchPos = touch.location(in: self)
+        let touchPos = clampedPlayerPosition(rawTouchPos)
         isTouching = true
         touchShootTimer = currentTime
         
@@ -414,7 +430,8 @@ class GameScene: SKScene {
         guard !controllerManager.isControllerConnected || !controllerManager.isEnabled else { return }
         
         guard let touch = touches.first else { return }
-        let touchPos = touch.location(in: self)
+        let rawTouchPos = touch.location(in: self)
+        let touchPos = clampedPlayerPosition(rawTouchPos)
         
         // Check for swipe gestures
         let swipeDistance = sqrt(
@@ -497,7 +514,7 @@ class GameScene: SKScene {
                 y: touchPos.y - gameLogic.player.position.y
             )
             
-            if ShipManeuvers.releaseBoostCharge(player: &gameLogic.player, direction: releaseDirection, currentTime: currentTime, bounds: CGRect(origin: .zero, size: size)) {
+            if ShipManeuvers.releaseBoostCharge(player: &gameLogic.player, direction: releaseDirection, currentTime: currentTime, bounds: gameplayBounds) {
                 createBoostReleaseEffect(at: gameLogic.player.position, direction: releaseDirection)
                 audioManager.playSound("missile", in: self)
             }
@@ -534,7 +551,7 @@ class GameScene: SKScene {
         }
         
         let timeScale = min(deltaTime / 0.016, 2.0)
-        let gameBounds = CGRect(origin: .zero, size: size)
+        let gameBounds = gameplayBounds
         
         // Handle controller input
         handleControllerInput(currentTime: currentTime)

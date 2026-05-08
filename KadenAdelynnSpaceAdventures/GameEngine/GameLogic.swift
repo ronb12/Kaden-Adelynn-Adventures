@@ -288,8 +288,10 @@ class GameLogic {
     }
 
     func update(bounds: CGRect, currentTime: TimeInterval, timeScale: CGFloat = 1.0) {
-        let halfWidth = bounds.width / 2
-        let halfHeight = bounds.height / 2
+        let minPlayerX = bounds.minX + 50
+        let maxPlayerX = bounds.maxX - 50
+        let minPlayerY = bounds.minY + 50
+        let maxPlayerY = bounds.maxY - 50
 
         // Initialize game start time on first update to ensure proper timing
         if !hasStarted {
@@ -344,8 +346,8 @@ class GameLogic {
         }
 
         // Clamp player position to screen
-        player.position.x = max(-halfWidth + 50, min(halfWidth - 50, player.position.x))
-        player.position.y = max(-halfHeight + 50, min(halfHeight - 50, player.position.y))
+        player.position.x = max(minPlayerX, min(maxPlayerX, player.position.x))
+        player.position.y = max(minPlayerY, min(maxPlayerY, player.position.y))
 
         // PROGRESSIVE ENEMY SPAWNING - Gets harder with waves and difficulty
         // Daily challenge makes enemies spawn 20% faster
@@ -472,7 +474,7 @@ class GameLogic {
                 enemies[i] = enemy
 
                 // Remove if off bottom of screen
-                if enemies[i].position.y < -halfHeight - 50 {
+                if enemies[i].position.y < bounds.minY - 50 {
                     enemies.remove(at: i)
                 }
             }
@@ -495,7 +497,7 @@ class GameLogic {
             asteroids[i].update(bounds: bounds, timeScale: timeScale)
 
             // Remove if off bottom of screen (center-origin: bottom is -halfHeight)
-            if asteroids[i].position.y < -halfHeight - 50 {
+            if asteroids[i].position.y < bounds.minY - 50 {
                 asteroids.remove(at: i)
             }
         }
@@ -533,10 +535,8 @@ class GameLogic {
         guard enemies.count < activeEnemyLimit else { return }
 
         // Center-origin: spawn from top
-        let halfWidth = bounds.width / 2
-        let halfHeight = bounds.height / 2
-        let x = CGFloat.random(in: -halfWidth + 50...(halfWidth - 50))
-        let y = halfHeight + 50  // Spawn from top
+        let x = CGFloat.random(in: bounds.minX + 50...bounds.maxX - 50)
+        let y = bounds.maxY + 50  // Spawn from top
 
         // Progressive enemy difficulty - harder enemies appear more often in later waves
         // Difficulty affects enemy type distribution
@@ -618,10 +618,8 @@ class GameLogic {
         let remainingSlots = activeEnemyLimit - enemies.count
         guard remainingSlots > 0 else { return }
 
-        let halfWidth = bounds.width / 2
-        let halfHeight = bounds.height / 2
         let formation = wave % 4
-        let y = halfHeight + 55
+        let y = bounds.maxY + 55
         let type: Enemy.EnemyType = wave >= 8 ? [.fast, .shooter, .tank].randomElement() ?? .shooter : [.basic, .fast, .shooter].randomElement() ?? .basic
         var spawned = 0
 
@@ -641,7 +639,8 @@ class GameLogic {
         case 1:
             for index in 0..<6 {
                 let side: CGFloat = index % 2 == 0 ? -1 : 1
-                var enemy = Enemy(position: CGPoint(x: side * (halfWidth + 34), y: halfHeight - CGFloat(index) * 48), type: type)
+                let x = side < 0 ? bounds.minX - 34 : bounds.maxX + 34
+                var enemy = Enemy(position: CGPoint(x: x, y: bounds.maxY - CGFloat(index) * 48), type: type)
                 enemy.velocity = CGPoint(x: -side * (2.3 + CGFloat(wave) * 0.05), y: -1.2)
                 appendFormationEnemy(enemy)
             }
@@ -667,8 +666,7 @@ class GameLogic {
     }
 
     func spawnBoss(bounds: CGRect, wave: Int) {
-        let halfHeight = bounds.height / 2
-        let position = CGPoint(x: 0, y: halfHeight - 130)
+        let position = CGPoint(x: 0, y: bounds.maxY - 70)
         boss = Boss(position: position, wave: wave, difficultyMultiplier: gameState.difficultyMultiplier)
         spawnedBossWaves.insert(wave)
         enemies.removeAll()
@@ -778,10 +776,8 @@ class GameLogic {
 
     func spawnPowerUp(bounds: CGRect) {
         // Center-origin: spawn from top
-        let halfWidth = bounds.width / 2
-        let halfHeight = bounds.height / 2
-        let x = CGFloat.random(in: -halfWidth + 50...(halfWidth - 50))
-        let y = halfHeight + 50  // Spawn from top
+        let x = CGFloat.random(in: bounds.minX + 50...bounds.maxX - 50)
+        let y = bounds.maxY + 50  // Spawn from top
 
         // All 25 weapon collectibles + health/shield/rapidFire
         let weaponCollectibles: [PowerUp.PowerUpType] = [
@@ -841,10 +837,8 @@ class GameLogic {
 
     func spawnCollectible(bounds: CGRect) {
         // Center-origin: spawn from top
-        let halfWidth = bounds.width / 2
-        let halfHeight = bounds.height / 2
-        let x = CGFloat.random(in: -halfWidth + 50...(halfWidth - 50))
-        let y = halfHeight + 50  // Spawn from top
+        let x = CGFloat.random(in: bounds.minX + 50...bounds.maxX - 50)
+        let y = bounds.maxY + 50  // Spawn from top
 
         // Spawn random star type (rarity increases with wave)
         let coin = Coin(position: CGPoint(x: x, y: y))
@@ -891,10 +885,8 @@ class GameLogic {
 
     func spawnAsteroid(bounds: CGRect) {
         // Center-origin coordinates: spawn from top
-        let halfWidth = bounds.width / 2
-        let halfHeight = bounds.height / 2
-        let x = CGFloat.random(in: -halfWidth + 50...(halfWidth - 50))
-        let y = halfHeight + 50  // Spawn from top
+        let x = CGFloat.random(in: bounds.minX + 50...bounds.maxX - 50)
+        let y = bounds.maxY + 50  // Spawn from top
 
         // Random size: 50% small, 35% medium, 15% large
         let roll = Double.random(in: 0...1)
