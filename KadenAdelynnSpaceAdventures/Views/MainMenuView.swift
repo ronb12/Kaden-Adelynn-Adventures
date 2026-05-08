@@ -186,7 +186,7 @@ struct MainMenuView: View {
                         // Quick Play Button
                         EnhancedMenuButton(
                             title: "Quick Play",
-                            icon: "bolt.fill",
+                            icon: "asset:Spaceship_8",
                             gradient: [.yellow, .orange],
                             size: .large
                         ) {
@@ -199,7 +199,7 @@ struct MainMenuView: View {
 
                         EnhancedMenuButton(
                             title: "Start Game",
-                            icon: "play.fill",
+                            icon: "asset:kaden_character",
                             gradient: [.green, .blue],
                             size: .large,
                             accessibilityHint: "Opens character selection to start a new game",
@@ -220,7 +220,7 @@ struct MainMenuView: View {
 
                         EnhancedMenuButton(
                             title: "Choose Character",
-                            icon: "person.fill",
+                            icon: "asset:adelynn_character",
                             gradient: [.orange, .red],
                             accessibilityHint: "Opens character selection to choose Kaden or Adelynn",
                             action: {
@@ -230,7 +230,7 @@ struct MainMenuView: View {
 
                         EnhancedMenuButton(
                             title: "Game Modes",
-                            icon: "square.grid.2x2.fill",
+                            icon: "asset:Spaceship_5",
                             gradient: [.teal, .blue],
                             accessibilityHint: "Opens game mode selection",
                             action: {
@@ -998,12 +998,30 @@ struct MenuButtonIcon: View {
             Image(String(name.dropFirst("asset:".count)))
                 .resizable()
                 .scaledToFit()
-                .frame(width: size + 8, height: size + 8)
-                .shadow(color: .cyan.opacity(0.7), radius: 4)
+                .frame(width: size + 14, height: size + 14)
+                .padding(3)
+                .background(
+                    Circle()
+                        .fill(Color.white.opacity(0.16))
+                        .overlay(
+                            Circle()
+                                .stroke(Color.white.opacity(0.25), lineWidth: 1)
+                        )
+                )
+                .shadow(color: .cyan.opacity(0.55), radius: 4)
         } else {
             Image(systemName: name)
                 .font(.system(size: size, weight: .semibold))
                 .foregroundColor(.white)
+                .frame(width: size + 20, height: size + 20)
+                .background(
+                    Circle()
+                        .fill(Color.white.opacity(0.14))
+                        .overlay(
+                            Circle()
+                                .stroke(Color.white.opacity(0.22), lineWidth: 1)
+                        )
+                )
         }
     }
 }
