@@ -405,6 +405,10 @@ class ShipGraphics {
         let width = max(size.width, 72)
         let height = max(size.height, 72)
 
+        addBossShieldField(to: ship, width: width, height: height, color: coreColor)
+        addBossTechRails(to: ship, width: width, height: height, color: coreColor)
+        addBossScanningLights(to: ship, width: width, height: height, color: engineColor)
+
         let core = SKShapeNode(circleOfRadius: min(width, height) * 0.11)
         core.name = "boss_core"
         core.fillColor = coreColor.withAlphaComponent(0.78)
@@ -438,6 +442,15 @@ class ShipGraphics {
             cannon.glowWidth = 2
             sideNode.addChild(cannon)
 
+            let chargePort = SKShapeNode(circleOfRadius: width * 0.04)
+            chargePort.position = CGPoint(x: 0, y: height * 0.13)
+            chargePort.fillColor = engineColor.withAlphaComponent(0.88)
+            chargePort.strokeColor = .white.withAlphaComponent(0.82)
+            chargePort.lineWidth = 1.2
+            chargePort.glowWidth = 7
+            chargePort.zPosition = 2
+            sideNode.addChild(chargePort)
+
             let fin = SKShapeNode()
             let path = CGMutablePath()
             path.move(to: CGPoint(x: side * width * 0.02, y: height * 0.19))
@@ -464,6 +477,11 @@ class ShipGraphics {
                 ])
             ])
             sideNode.run(SKAction.repeatForever(sway), withKey: "bossSideSway")
+            chargePort.run(SKAction.repeatForever(SKAction.sequence([
+                SKAction.scale(to: 1.35, duration: 0.22),
+                SKAction.scale(to: 0.86, duration: 0.22),
+                SKAction.wait(forDuration: 0.3)
+            ])), withKey: "bossChargePort")
         }
 
         for index in 0..<3 {
@@ -497,6 +515,118 @@ class ShipGraphics {
         ])
         for case let sprite as SKSpriteNode in ship.children {
             sprite.run(SKAction.repeatForever(armorPulse), withKey: "bossArmorPulse")
+        }
+    }
+
+    private static func addBossShieldField(to ship: SKNode, width: CGFloat, height: CGFloat, color: UIColor) {
+        let shield = SKShapeNode(ellipseOf: CGSize(width: width * 1.12, height: height * 0.82))
+        shield.name = "boss_shield_field"
+        shield.fillColor = .clear
+        shield.strokeColor = color.withAlphaComponent(0.42)
+        shield.lineWidth = 1.4
+        shield.glowWidth = 9
+        shield.zPosition = -2
+        ship.addChild(shield)
+
+        let inner = SKShapeNode(ellipseOf: CGSize(width: width * 0.86, height: height * 0.58))
+        inner.fillColor = .clear
+        inner.strokeColor = .white.withAlphaComponent(0.22)
+        inner.lineWidth = 0.9
+        inner.glowWidth = 4
+        inner.zPosition = -1
+        ship.addChild(inner)
+
+        let pulse = SKAction.sequence([
+            SKAction.group([
+                SKAction.scale(to: 1.06, duration: 0.75),
+                SKAction.fadeAlpha(to: 0.45, duration: 0.75)
+            ]),
+            SKAction.group([
+                SKAction.scale(to: 0.98, duration: 0.75),
+                SKAction.fadeAlpha(to: 0.9, duration: 0.75)
+            ])
+        ])
+        shield.run(SKAction.repeatForever(pulse), withKey: "bossShieldPulse")
+        inner.run(SKAction.repeatForever(SKAction.rotate(byAngle: -.pi * 2, duration: 4.8)), withKey: "bossShieldRotate")
+    }
+
+    private static func addBossTechRails(to ship: SKNode, width: CGFloat, height: CGFloat, color: UIColor) {
+        for side in [-1.0, 1.0] as [CGFloat] {
+            let railPath = CGMutablePath()
+            railPath.move(to: CGPoint(x: side * width * 0.10, y: height * 0.24))
+            railPath.addLine(to: CGPoint(x: side * width * 0.28, y: height * 0.10))
+            railPath.addLine(to: CGPoint(x: side * width * 0.25, y: -height * 0.20))
+
+            let rail = SKShapeNode(path: railPath)
+            rail.name = side < 0 ? "boss_left_energy_rail" : "boss_right_energy_rail"
+            rail.strokeColor = color.withAlphaComponent(0.86)
+            rail.lineWidth = 2.2
+            rail.glowWidth = 5
+            rail.lineCap = .round
+            rail.lineJoin = .round
+            rail.zPosition = 5
+            ship.addChild(rail)
+
+            let nodeCount = 4
+            for index in 0..<nodeCount {
+                let y = height * (0.18 - CGFloat(index) * 0.12)
+                let x = side * width * (0.14 + CGFloat(index % 2) * 0.11)
+                let node = SKShapeNode(rectOf: CGSize(width: width * 0.055, height: height * 0.035), cornerRadius: 3)
+                node.position = CGPoint(x: x, y: y)
+                node.fillColor = UIColor.black.withAlphaComponent(0.65)
+                node.strokeColor = color
+                node.lineWidth = 1
+                node.glowWidth = 3
+                node.zPosition = 6
+                ship.addChild(node)
+
+                node.run(SKAction.repeatForever(SKAction.sequence([
+                    SKAction.fadeAlpha(to: 0.38, duration: 0.28 + Double(index) * 0.05),
+                    SKAction.fadeAlpha(to: 1.0, duration: 0.28)
+                ])), withKey: "bossRailBlink")
+            }
+        }
+    }
+
+    private static func addBossScanningLights(to ship: SKNode, width: CGFloat, height: CGFloat, color: UIColor) {
+        let scan = SKShapeNode(rectOf: CGSize(width: width * 0.78, height: 3), cornerRadius: 1.5)
+        scan.name = "boss_scanline"
+        scan.fillColor = color.withAlphaComponent(0.72)
+        scan.strokeColor = .clear
+        scan.glowWidth = 8
+        scan.zPosition = 7
+        scan.position = CGPoint(x: 0, y: height * 0.24)
+        ship.addChild(scan)
+
+        scan.run(SKAction.repeatForever(SKAction.sequence([
+            SKAction.group([
+                SKAction.moveTo(y: -height * 0.26, duration: 1.15),
+                SKAction.fadeAlpha(to: 0.25, duration: 1.15)
+            ]),
+            SKAction.moveTo(y: height * 0.24, duration: 0.01),
+            SKAction.fadeAlpha(to: 0.82, duration: 0.12),
+            SKAction.wait(forDuration: 0.55)
+        ])), withKey: "bossScanline")
+
+        for index in 0..<6 {
+            let pip = SKShapeNode(circleOfRadius: 2.1)
+            let side: CGFloat = index % 2 == 0 ? -1 : 1
+            pip.position = CGPoint(
+                x: side * width * CGFloat.random(in: 0.16...0.43),
+                y: height * CGFloat.random(in: -0.18...0.26)
+            )
+            pip.fillColor = .white.withAlphaComponent(0.92)
+            pip.strokeColor = color
+            pip.lineWidth = 0.8
+            pip.glowWidth = 4
+            pip.zPosition = 8
+            ship.addChild(pip)
+
+            pip.run(SKAction.repeatForever(SKAction.sequence([
+                SKAction.fadeAlpha(to: 0.18, duration: 0.2 + Double(index) * 0.04),
+                SKAction.fadeAlpha(to: 1.0, duration: 0.22),
+                SKAction.wait(forDuration: 0.75)
+            ])), withKey: "bossTargetPip")
         }
     }
     
