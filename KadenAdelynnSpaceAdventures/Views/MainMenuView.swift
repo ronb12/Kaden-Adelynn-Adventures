@@ -230,7 +230,7 @@ struct MainMenuView: View {
 
                         EnhancedMenuButton(
                             title: "Game Modes",
-                            icon: "asset:Spaceship_5",
+                            icon: "modeGrid",
                             gradient: [.teal, .blue],
                             accessibilityHint: "Opens game mode selection",
                             action: {
@@ -1009,6 +1009,33 @@ struct MenuButtonIcon: View {
                         )
                 )
                 .shadow(color: .cyan.opacity(0.55), radius: 4)
+        } else if name == "modeGrid" {
+            ZStack {
+                Circle()
+                    .fill(Color.white.opacity(0.14))
+                    .overlay(
+                        Circle()
+                            .stroke(Color.white.opacity(0.22), lineWidth: 1)
+                    )
+
+                VStack(spacing: 3) {
+                    HStack(spacing: 3) {
+                        modeTile(color: .cyan)
+                        modeTile(color: .green)
+                    }
+                    HStack(spacing: 3) {
+                        modeTile(color: .yellow)
+                        modeTile(color: .pink)
+                    }
+                }
+
+                Image(systemName: "play.fill")
+                    .font(.system(size: size * 0.42, weight: .black))
+                    .foregroundColor(.white)
+                    .shadow(color: .black.opacity(0.4), radius: 2)
+            }
+            .frame(width: size + 20, height: size + 20)
+            .shadow(color: .cyan.opacity(0.55), radius: 4)
         } else {
             Image(systemName: name)
                 .font(.system(size: size, weight: .semibold))
@@ -1023,6 +1050,12 @@ struct MenuButtonIcon: View {
                         )
                 )
         }
+    }
+
+    private func modeTile(color: Color) -> some View {
+        RoundedRectangle(cornerRadius: 2)
+            .fill(color.opacity(0.92))
+            .frame(width: size * 0.34, height: size * 0.34)
     }
 }
 
