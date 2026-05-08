@@ -729,17 +729,19 @@ class GameLogic {
                 newBullets.append(bullet)
             }
             
-        case .multiShot4:
-            // 4 bullets side by side - apply upgrades
-            let baseDamage = Int(Float(1) * player.damageMultiplier)
-            let bulletSpeed = 10.0 * Double(player.rangeMultiplier)
-            let spacing: CGFloat = 10 * CGFloat(player.accuracyMultiplier)
+        case .missile, .rocket, .homing, .multiShot4:
+            // 4 projectiles side by side. Rockets and missiles use this launcher pattern too.
+            let isExplosiveLauncher = player.weaponType == .missile || player.weaponType == .rocket || player.weaponType == .homing
+            let baseDamage = Int(Float(isExplosiveLauncher ? 2 : 1) * player.damageMultiplier)
+            let bulletSpeed = (isExplosiveLauncher ? 9.0 : 10.0) * Double(player.rangeMultiplier)
+            let spacing: CGFloat = (isExplosiveLauncher ? 13 : 10) * CGFloat(player.accuracyMultiplier)
+            let projectileSize = isExplosiveLauncher ? CGSize(width: 7, height: 16) : CGSize(width: 5, height: 10)
             for i in 0..<4 {
                 let offsetX = (CGFloat(i) - 1.5) * spacing
                 let bullet = Bullet(
                     position: CGPoint(x: position.x + offsetX, y: position.y),
                     velocity: CGPoint(x: 0, y: CGFloat(bulletSpeed)),
-                    size: CGSize(width: 5, height: 10),
+                    size: projectileSize,
                     owner: .player,
                     damage: baseDamage
                 )
