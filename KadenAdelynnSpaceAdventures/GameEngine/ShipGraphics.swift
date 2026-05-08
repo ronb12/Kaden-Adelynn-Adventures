@@ -130,6 +130,44 @@ class ShipGraphics {
         let ship = SKNode()
         let palette = enemyPalette(for: type, variant: variant)
 
+        if let image = UIImage(named: enemySpaceshipImageName(for: type, variant: variant)) {
+            let texture = SKTexture(image: image)
+            let sprite = SKSpriteNode(texture: texture)
+            sprite.size = fittedSize(for: image.size, target: size)
+            sprite.zRotation = .pi
+            sprite.color = palette.body
+            sprite.colorBlendFactor = enemySpriteTintStrength(for: type)
+            sprite.zPosition = 2
+
+            let glow = SKShapeNode(ellipseOf: CGSize(width: sprite.size.width * 0.82, height: sprite.size.height * 0.92))
+            glow.fillColor = palette.stroke.withAlphaComponent(0.13)
+            glow.strokeColor = palette.stroke.withAlphaComponent(0.48)
+            glow.lineWidth = max(0.8, size.width * 0.022)
+            glow.glowWidth = type == .tank ? 4 : 2.5
+            glow.zPosition = 0
+            ship.addChild(glow)
+
+            ship.addChild(sprite)
+            addEnemyHullMarkings(to: ship, size: sprite.size, type: type, palette: palette)
+
+            switch type {
+            case .basic:
+                addEnemyEngineTrails(to: ship, size: sprite.size, color: palette.accent)
+            case .fast:
+                addEnemySpeedFins(to: ship, size: sprite.size, color: palette.stroke)
+                addEnemyEngineTrails(to: ship, size: sprite.size, color: palette.accent)
+            case .tank:
+                addEnemyArmorPlates(to: ship, size: sprite.size, palette: palette)
+                addEnemyArmorBolts(to: ship, size: sprite.size, color: palette.accent)
+            case .shooter:
+                addEnemyCannons(to: ship, size: sprite.size, color: palette.accent)
+                addEnemyTargetingArray(to: ship, size: sprite.size, color: palette.stroke)
+            }
+
+            ship.setScale(enemyScale(for: type, variant: variant))
+            return ship
+        }
+
         let body = SKShapeNode(path: enemyBodyPath(size: size, type: type, variant: variant))
         body.fillColor = palette.body
         body.strokeColor = palette.stroke.withAlphaComponent(0.9)
@@ -194,6 +232,70 @@ class ShipGraphics {
         
         ship.setScale(enemyScale(for: type, variant: variant))
         return ship
+    }
+
+    private static func enemySpaceshipImageName(for type: Enemy.EnemyType, variant: Int) -> String {
+        let index = abs(variant)
+        switch type {
+        case .basic:
+            return ["Spaceship_2", "Spaceship_3", "Spaceship_10"][index % 3]
+        case .fast:
+            return ["Spaceship_8", "Spaceship_9", "Spaceship_12"][index % 3]
+        case .tank:
+            return ["Spaceship_5", "Spaceship_13", "Spaceship_7"][index % 3]
+        case .shooter:
+            return ["Spaceship_4", "Spaceship_6", "Spaceship_11"][index % 3]
+        }
+    }
+
+    private static func fittedSize(for imageSize: CGSize, target: CGSize) -> CGSize {
+        guard imageSize.width > 0, imageSize.height > 0 else { return target }
+        let imageAspect = imageSize.width / imageSize.height
+        let targetAspect = target.width / target.height
+        if imageAspect > targetAspect {
+            return CGSize(width: target.width, height: target.width / imageAspect)
+        }
+        return CGSize(width: target.height * imageAspect, height: target.height)
+    }
+
+    private static func enemySpriteTintStrength(for type: Enemy.EnemyType) -> CGFloat {
+        switch type {
+        case .basic: return 0.58
+        case .fast: return 0.50
+        case .tank: return 0.62
+        case .shooter: return 0.54
+        }
+    }
+
+    private static func addEnemyHullMarkings(
+        to ship: SKNode,
+        size: CGSize,
+        type: Enemy.EnemyType,
+        palette: (body: UIColor, wing: UIColor, accent: UIColor, stroke: UIColor)
+    ) {
+        let core = SKShapeNode(circleOfRadius: max(2.5, size.width * 0.055))
+        core.position = CGPoint(x: 0, y: -size.height * 0.08)
+        core.fillColor = palette.accent.withAlphaComponent(0.82)
+        core.strokeColor = UIColor.black.withAlphaComponent(0.55)
+        core.lineWidth = 0.8
+        core.glowWidth = 2
+        core.zPosition = 5
+        ship.addChild(core)
+
+        let slashCount = type == .tank ? 3 : 2
+        for index in 0..<slashCount {
+            let slash = SKShapeNode(rectOf: CGSize(width: max(1.5, size.width * 0.035), height: size.height * 0.28), cornerRadius: 0.5)
+            slash.position = CGPoint(
+                x: CGFloat(index - slashCount / 2) * size.width * 0.12,
+                y: size.height * 0.04
+            )
+            slash.zRotation = CGFloat(index % 2 == 0 ? 0.34 : -0.34)
+            slash.fillColor = palette.accent.withAlphaComponent(0.34)
+            slash.strokeColor = palette.stroke.withAlphaComponent(0.48)
+            slash.lineWidth = 0.5
+            slash.zPosition = 5
+            ship.addChild(slash)
+        }
     }
 
     private static func enemyPalette(for type: Enemy.EnemyType, variant: Int) -> (body: UIColor, wing: UIColor, accent: UIColor, stroke: UIColor) {
