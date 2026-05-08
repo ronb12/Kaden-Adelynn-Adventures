@@ -22,25 +22,32 @@ class VisualEffects {
     }
     
     static func screenShake(intensity: CGFloat, duration: TimeInterval, in scene: SKScene) {
-        // Skip screen shake if visual effects are disabled (accessibility)
+        // Keep the camera and world layer fixed so gameplay bounds never appear to move.
+        // Use an anchored border impact instead of translating the scene camera.
         guard areVisualEffectsEnabled else { return }
-        
-        let camera = scene.camera ?? SKCameraNode()
-        if scene.camera == nil {
-            scene.addChild(camera)
-            scene.camera = camera
-        }
-        
-        let originalPosition = camera.position
-        let shake = SKAction.sequence([
-            SKAction.moveBy(x: -intensity, y: intensity, duration: 0.05),
-            SKAction.moveBy(x: intensity * 2, y: -intensity * 2, duration: 0.05),
-            SKAction.moveBy(x: -intensity * 2, y: intensity * 2, duration: 0.05),
-            SKAction.moveBy(x: intensity, y: -intensity, duration: 0.05),
-            SKAction.move(to: originalPosition, duration: 0.05)
-        ])
-        
-        camera.run(shake)
+
+        let borderWidth = max(5, min(12, intensity * 0.65))
+        let border = SKShapeNode(rect: scene.frame.insetBy(dx: -borderWidth / 2, dy: -borderWidth / 2))
+        border.fillColor = .clear
+        border.strokeColor = UIColor.white.withAlphaComponent(0.9)
+        border.lineWidth = borderWidth
+        border.glowWidth = borderWidth * 0.65
+        border.alpha = 0
+        border.zPosition = 1_000
+        scene.addChild(border)
+
+        let pulseDuration = max(0.12, min(duration, 0.28))
+        border.run(SKAction.sequence([
+            SKAction.group([
+                SKAction.fadeAlpha(to: 0.65, duration: pulseDuration * 0.25),
+                SKAction.scale(to: 1.012, duration: pulseDuration * 0.25)
+            ]),
+            SKAction.group([
+                SKAction.fadeOut(withDuration: pulseDuration * 0.75),
+                SKAction.scale(to: 1.0, duration: pulseDuration * 0.75)
+            ]),
+            SKAction.removeFromParent()
+        ]))
     }
     
     static func flashScreen(color: UIColor, duration: TimeInterval, in scene: SKScene) {
@@ -123,4 +130,3 @@ class VisualEffects {
         return label
     }
 }
-

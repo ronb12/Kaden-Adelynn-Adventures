@@ -2210,13 +2210,7 @@ class GameScene: SKScene {
             SKAction.removeFromParent()
         ]))
         
-        // Screen shake
-        camera?.run(SKAction.sequence([
-            SKAction.moveBy(x: 5, y: 5, duration: 0.05),
-            SKAction.moveBy(x: -5, y: -5, duration: 0.05),
-            SKAction.moveBy(x: -5, y: 5, duration: 0.05),
-            SKAction.moveBy(x: 5, y: -5, duration: 0.05)
-        ]))
+        VisualEffects.screenShake(intensity: 6, duration: 0.16, in: self)
     }
     
     func createBarrelRollEffect(at position: CGPoint) {
