@@ -81,6 +81,19 @@ struct GameOverView: View {
                                 .shadow(color: .black.opacity(0.5), radius: 2)
                         }
 
+                        if let battleResult = multiplayerResultText {
+                            Label(battleResult.text, systemImage: battleResult.icon)
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundColor(battleResult.color)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 9)
+                                .background(
+                                    Capsule()
+                                        .fill(Color.black.opacity(0.32))
+                                        .overlay(Capsule().stroke(battleResult.color.opacity(0.45), lineWidth: 1))
+                                )
+                        }
+
                     // Stars Earned Card
                     if coinsEarned > 0 {
                         HStack {
@@ -361,6 +374,16 @@ struct GameOverView: View {
            let rootViewController = windowScene.windows.first?.rootViewController {
             rootViewController.present(activityVC, animated: true)
         }
+    }
+
+    private var multiplayerResultText: (text: String, icon: String, color: Color)? {
+        guard gameState.selectedGameMode.usesGhostTarget,
+              let target = gameState.activeGhostTarget else { return nil }
+
+        if gameState.score >= target.score {
+            return ("You beat \(target.playerName)'s \(target.score)", "trophy.fill", .yellow)
+        }
+        return ("\(target.playerName) stayed ahead by \(target.score - gameState.score)", "hare.fill", .cyan)
     }
 
     // MARK: - Daily Challenge Tracking

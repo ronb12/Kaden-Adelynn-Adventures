@@ -204,7 +204,7 @@ class AudioManager: ObservableObject {
     func updateGameplayMusic(for mode: GameMode, stageName: String, bossActive: Bool, in scene: SKScene) {
         guard isMusicEnabled else { return }
 
-        if bossActive || mode == .bossRush {
+        if bossActive || mode.usesBossRushRules {
             playMusic(key: "boss", candidates: ["boss", "boss_music", "boss_battle", "gameplay"], scene: scene)
             return
         }

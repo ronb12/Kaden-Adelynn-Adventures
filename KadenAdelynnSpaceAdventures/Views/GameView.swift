@@ -544,9 +544,10 @@ struct GameView: View {
     private func gameplayObjectiveBar(geometry: GeometryProxy) -> some View {
         let missionTarget = max(gameState.currentMissionTarget, 1)
         let missionPercent = min(CGFloat(gameState.currentMissionProgress) / CGFloat(missionTarget), 1.0)
+        let modeStatus = gameState.ghostRaceStatusText() ?? gameState.sharedEventStatusText()
         VStack(spacing: 5) {
             HStack(spacing: 8) {
-                Image(systemName: gameState.selectedGameMode == .coOp ? "person.2.fill" : "scope")
+                Image(systemName: gameState.selectedGameMode.usesCompanion ? "person.2.fill" : gameState.selectedGameMode.icon)
                     .foregroundColor(.cyan)
                 Text(gameState.currentMissionTitle)
                     .font(.system(size: 11, weight: .bold))
@@ -557,6 +558,20 @@ struct GameView: View {
                 Text("\(gameState.currentMissionProgress)/\(missionTarget)")
                     .font(.system(size: 11, weight: .bold, design: .monospaced))
                     .foregroundColor(.yellow)
+            }
+
+            if let modeStatus {
+                HStack(spacing: 6) {
+                    Image(systemName: gameState.selectedGameMode.usesGhostTarget ? "hare.fill" : "globe.americas.fill")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.yellow)
+                    Text(modeStatus)
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.82))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
+                    Spacer()
+                }
             }
 
             GeometryReader { bar in

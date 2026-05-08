@@ -694,12 +694,20 @@ struct GameModeSelectView: View {
             return [.red, .purple]
         case .dailyChallenge:
             return [.green, .mint]
+        case .ghostRace:
+            return [.cyan, .indigo]
+        case .globalEvent:
+            return [.blue, .green]
+        case .friendBattle:
+            return [.pink, .purple]
         case .survival:
             return [.pink, .red]
         case .timeAttack:
             return [.indigo, .cyan]
         case .coOp:
             return [.teal, .green]
+        case .coOpBossRush:
+            return [.mint, .purple]
         case .training:
             return [.orange, .yellow]
         }

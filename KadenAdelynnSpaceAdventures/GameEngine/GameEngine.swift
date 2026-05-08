@@ -32,6 +32,7 @@ class GameScene: SKScene {
     var powerUpNodes: [SKNode] = []
     var bossNode: SKNode?
     var companionNode: SKNode?
+    var ghostNode: SKNode?
     var lastStageName: String = ""
     
     // Input
@@ -623,6 +624,7 @@ class GameScene: SKScene {
         updatePowerUps()
         updateBoss()
         updateCompanion()
+        updateGhostRival()
         updateStageVisuals()
         
         // Auto-save every 30 seconds (if enabled)
@@ -786,7 +788,7 @@ class GameScene: SKScene {
     }
 
     func updateCompanion() {
-        guard gameState.selectedGameMode == .coOp else {
+        guard gameState.selectedGameMode.usesCompanion else {
             companionNode?.removeFromParent()
             companionNode = nil
             return
@@ -805,6 +807,44 @@ class GameScene: SKScene {
         let side: CGFloat = gameState.selectedCharacter.lowercased() == "kaden" ? 1 : -1
         let target = CGPoint(x: gameLogic.player.position.x + side * 42, y: gameLogic.player.position.y + 18)
         companionNode?.run(SKAction.move(to: target, duration: 0.08))
+    }
+
+    func updateGhostRival() {
+        guard gameState.selectedGameMode.usesGhostTarget,
+              let target = gameState.activeGhostTarget else {
+            ghostNode?.removeFromParent()
+            ghostNode = nil
+            return
+        }
+
+        if ghostNode == nil {
+            let ghostShip = ShipGraphics.createPlayerShip(size: CGSize(width: 32, height: 32), characterId: target.characterId, shipId: target.shipId)
+            ghostShip.name = "ghostRival"
+            ghostShip.zPosition = 8
+            ghostShip.alpha = 0.42
+            addChild(ghostShip)
+            ghostNode = ghostShip
+
+            let label = SKLabelNode(text: "GHOST")
+            label.fontName = "AvenirNext-Bold"
+            label.fontSize = 8
+            label.fontColor = .cyan
+            label.position = CGPoint(x: 0, y: -24)
+            label.name = "ghostLabel"
+            ghostShip.addChild(label)
+        }
+
+        let total = max(target.timeSurvived, 1)
+        let progress = min(max(gameState.timeSurvived / total, 0), 1)
+        let waveLift = CGFloat(min(target.wave, 12)) * 4
+        let scoreDrift = CGFloat(min(max(target.score - gameState.score, -6000), 6000)) / 6000.0
+        let x = gameLogic.player.position.x + scoreDrift * 72
+        let y = gameplayBounds.minY + 92 + CGFloat(progress) * min(280, gameplayBounds.height * 0.58) + waveLift
+        let targetPosition = CGPoint(
+            x: max(gameplayBounds.minX + 44, min(gameplayBounds.maxX - 44, x)),
+            y: max(gameplayBounds.minY + 64, min(gameplayBounds.maxY - 64, y))
+        )
+        ghostNode?.run(SKAction.move(to: targetPosition, duration: 0.12))
     }
 
     func updateStageVisuals() {

@@ -99,7 +99,7 @@ class GameLogic {
 
         gameState.score = 0
         gameState.wave = 1
-        if gameState.selectedGameMode == .bossRush {
+        if gameState.selectedGameMode.usesBossRushRules {
             gameState.wave = 5
         }
         gameState.lives = livesMultiplier
@@ -319,7 +319,7 @@ class GameLogic {
 
         // Progressive wave system - speed depends on difficulty
         let waveInterval = gameState.waveProgressionSpeed
-        let newWave = gameState.selectedGameMode == .bossRush ? gameState.wave : Int(gameState.timeSurvived / waveInterval) + 1
+        let newWave = gameState.selectedGameMode.usesBossRushRules ? gameState.wave : Int(gameState.timeSurvived / waveInterval) + 1
         // Cap wave at 999 to prevent integer overflow issues
         let cappedWave = min(newWave, 999)
         if cappedWave > gameState.wave {
@@ -338,7 +338,7 @@ class GameLogic {
             }
         }
 
-        if gameState.selectedGameMode == .bossRush && boss == nil {
+        if gameState.selectedGameMode.usesBossRushRules && boss == nil {
             spawnBoss(bounds: bounds, wave: max(5, gameState.wave))
             lastEnemySpawn = currentTime
         } else if shouldSpawnBoss(for: gameState.wave) {
@@ -369,7 +369,7 @@ class GameLogic {
 
         // Prevent too many enemies from spawning (memory protection)
         let maxEnemies = activeEnemyLimit
-        if gameState.selectedGameMode != .bossRush && boss == nil && currentTime - lastEnemySpawn > enemySpawnRate && enemies.count < maxEnemies {
+        if !gameState.selectedGameMode.usesBossRushRules && boss == nil && currentTime - lastEnemySpawn > enemySpawnRate && enemies.count < maxEnemies {
             let spawnCount = min(enemiesPerSpawn, maxEnemies - enemies.count)  // Don't exceed max
             for _ in 0..<spawnCount {
                 spawnEnemy(bounds: bounds, wave: gameState.wave)
@@ -377,7 +377,7 @@ class GameLogic {
             lastEnemySpawn = currentTime
         }
 
-        if gameState.selectedGameMode != .bossRush && boss == nil && currentTime - lastFormationSpawn > 7.0 && enemies.count < maxEnemies - 6 {
+        if !gameState.selectedGameMode.usesBossRushRules && boss == nil && currentTime - lastFormationSpawn > 7.0 && enemies.count < maxEnemies - 6 {
             spawnEnemyFormation(bounds: bounds, wave: gameState.wave)
             lastFormationSpawn = currentTime
         }
@@ -398,7 +398,7 @@ class GameLogic {
         }
 
         // SPAWN ASTEROIDS from wave 3 onwards (matching PWA)
-        if gameState.wave >= 3 && gameState.selectedGameMode != .bossRush && gameState.selectedGameMode != .training {
+        if gameState.wave >= 3 && !gameState.selectedGameMode.usesBossRushRules && gameState.selectedGameMode != .training {
             let stageHazardBonus = gameState.currentStageName == "Asteroid Belt" ? 0.75 : 0.0
             let asteroidRate: TimeInterval = 3.0 - (Double(gameState.wave) * 0.2) - stageHazardBonus
             let minRate: TimeInterval = 1.0  // Minimum 1 second between asteroids
@@ -827,7 +827,7 @@ class GameLogic {
         if gameState.selectedGameMode == .training {
             return 18
         }
-        if boss != nil || gameState.selectedGameMode == .bossRush {
+        if boss != nil || gameState.selectedGameMode.usesBossRushRules {
             return maxBossSupportEnemies
         }
         return maxActiveEnemies
@@ -873,7 +873,7 @@ class GameLogic {
     }
 
     func updateCompanion(currentTime: TimeInterval, timeScale: CGFloat) {
-        guard gameState.selectedGameMode == .coOp else { return }
+        guard gameState.selectedGameMode.usesCompanion else { return }
         guard currentTime - lastCompanionShot > 0.32 else { return }
 
         let companionX = player.position.x + (player.characterId.lowercased() == "kaden" ? 38 : -38)
@@ -1066,7 +1066,7 @@ class GameLogic {
             newBullets.append(bullet)
         }
 
-        if gameState.selectedGameMode == .coOp {
+        if gameState.selectedGameMode.usesCompanion {
             let partnerOffset = player.position.x <= position.x ? 26.0 : -26.0
             let partnerBullet = Bullet(
                 position: CGPoint(x: position.x + partnerOffset, y: position.y + 2),
@@ -1084,7 +1084,7 @@ class GameLogic {
 
     func selectNewMission() {
         let hasRocketLoadout = player.weaponType == .rocket || player.weaponType == .missile || player.weaponType == .homing || player.weaponType == .multiShot4
-        let baseOptions: [GameplayMission] = gameState.selectedGameMode == .bossRush ? [.hitBoss, .useRockets, .survive] : GameplayMission.allCases
+        let baseOptions: [GameplayMission] = gameState.selectedGameMode.usesBossRushRules ? [.hitBoss, .useRockets, .survive] : GameplayMission.allCases
         let options = hasRocketLoadout ? baseOptions : baseOptions.filter { $0 != .useRockets }
         missionKind = options.randomElement() ?? .collectStars
         rocketShotsForMission = 0
@@ -1330,7 +1330,7 @@ class GameLogic {
                         }
                         AchievementManager.shared.checkBossKill()
                         gameState.bossesDefeated += 1
-                        if gameState.selectedGameMode == .bossRush {
+                        if gameState.selectedGameMode.usesBossRushRules {
                             gameState.wave = min(gameState.wave + 5, 999)
                         }
                         boss = nil

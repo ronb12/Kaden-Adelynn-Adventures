@@ -34,9 +34,13 @@ enum GameMode: String, Codable, CaseIterable, Identifiable {
     case arcade
     case bossRush
     case dailyChallenge
+    case ghostRace
+    case globalEvent
+    case friendBattle
     case survival
     case timeAttack
     case coOp
+    case coOpBossRush
     case training
 
     var id: String { rawValue }
@@ -47,9 +51,13 @@ enum GameMode: String, Codable, CaseIterable, Identifiable {
         case .arcade: return "Arcade"
         case .bossRush: return "Boss Rush"
         case .dailyChallenge: return "Daily Challenge"
+        case .ghostRace: return "Ghost Race"
+        case .globalEvent: return "Global Event"
+        case .friendBattle: return "Friend Battle"
         case .survival: return "Survival"
         case .timeAttack: return "Time Attack"
         case .coOp: return "Co-op"
+        case .coOpBossRush: return "Co-op Boss Rush"
         case .training: return "Training"
         }
     }
@@ -60,9 +68,13 @@ enum GameMode: String, Codable, CaseIterable, Identifiable {
         case .arcade: return "Endless waves and fast global scoring."
         case .bossRush: return "Boss ships back-to-back."
         case .dailyChallenge: return "Same daily rules for everyone."
+        case .ghostRace: return "Race a saved run without live lag."
+        case .globalEvent: return "Help everyone defeat boss ships."
+        case .friendBattle: return "Beat a friend's best run."
         case .survival: return "Limited lives, rising pressure."
         case .timeAttack: return "Score big before time runs out."
         case .coOp: return "AI partner fights beside you."
+        case .coOpBossRush: return "Kaden and Adelynn fight bosses together."
         case .training: return "Practice ships, weapons, and maneuvers."
         }
     }
@@ -73,14 +85,30 @@ enum GameMode: String, Codable, CaseIterable, Identifiable {
         case .arcade: return "bolt.fill"
         case .bossRush: return "crown.fill"
         case .dailyChallenge: return "calendar"
+        case .ghostRace: return "hare.fill"
+        case .globalEvent: return "globe.americas.fill"
+        case .friendBattle: return "person.2.badge.gearshape.fill"
         case .survival: return "heart.fill"
         case .timeAttack: return "timer"
         case .coOp: return "person.2.fill"
+        case .coOpBossRush: return "person.2.fill"
         case .training: return "target"
         }
     }
 
     var leaderboardKey: String { "mode_\(rawValue)" }
+
+    var usesBossRushRules: Bool {
+        self == .bossRush || self == .coOpBossRush || self == .globalEvent
+    }
+
+    var usesCompanion: Bool {
+        self == .coOp || self == .coOpBossRush
+    }
+
+    var usesGhostTarget: Bool {
+        self == .ghostRace || self == .friendBattle
+    }
 }
 
 class GameStateManager: ObservableObject {
@@ -93,6 +121,8 @@ class GameStateManager: ObservableObject {
     @Published var selectedCharacter: String = "kaden"
     @Published var selectedShip: String = "kaden"
     @Published var selectedGameMode: GameMode = .arcade
+    @Published var activeGhostTarget: GhostRunData?
+    @Published var activeSharedEvent: SharedEventProgressData?
     @Published var playerName: String = "Player"
     @Published var difficulty: String = "medium"  // "easy", "medium", "hard"
 
@@ -117,7 +147,7 @@ class GameStateManager: ObservableObject {
     }
 
     var waveProgressionSpeed: TimeInterval {
-        if selectedGameMode == .bossRush { return 12.0 }
+        if selectedGameMode.usesBossRushRules { return 12.0 }
         if selectedGameMode == .survival { return 22.0 }
         if selectedGameMode == .timeAttack { return 18.0 }
         switch difficulty.lowercased() {
@@ -140,7 +170,8 @@ class GameStateManager: ObservableObject {
         case .training: return 99
         case .timeAttack: return 1
         case .survival: return difficulty.lowercased() == "hard" ? 3 : 5
-        case .bossRush: return difficulty.lowercased() == "hard" ? 8 : 12
+        case .bossRush, .coOpBossRush, .globalEvent: return difficulty.lowercased() == "hard" ? 8 : 12
+        case .ghostRace, .friendBattle: return difficulty.lowercased() == "hard" ? 12 : 18
         default:
             switch difficulty.lowercased() {
             case "easy": return 35
@@ -241,6 +272,8 @@ class GameStateManager: ObservableObject {
         if coins == 0 && stars > 0 {
             coins = stars
         }
+        activeGhostTarget = selectedGameMode.usesGhostTarget ? bestGhostTarget(for: selectedGameMode) : nil
+        activeSharedEvent = selectedGameMode == .globalEvent || selectedGameMode == .coOpBossRush ? loadSharedEventProgress() : nil
         setupCloudKitSync()
     }
 
@@ -386,6 +419,59 @@ class GameStateManager: ObservableObject {
         return runs
     }
 
+    func bestGhostTarget(for mode: GameMode? = nil) -> GhostRunData? {
+        let sourceMode = mode ?? selectedGameMode
+        let targetMode: GameMode = sourceMode == .friendBattle ? .bossRush : .arcade
+        if let run = loadGhostRuns(for: targetMode).first {
+            return run
+        }
+
+        let fallbackName = sourceMode == .friendBattle ? "Adelynn's Boss Rush" : "Kaden's Ghost"
+        return GhostRunData(
+            id: UUID(uuidString: sourceMode == .friendBattle ? "00000000-0000-0000-0000-0000000000F1" : "00000000-0000-0000-0000-0000000000A1") ?? UUID(),
+            playerName: fallbackName,
+            gameMode: targetMode.rawValue,
+            score: sourceMode == .friendBattle ? 42000 : 18000,
+            wave: sourceMode == .friendBattle ? 15 : 6,
+            bossesDefeated: sourceMode == .friendBattle ? 3 : 1,
+            timeSurvived: sourceMode == .friendBattle ? 210 : 150,
+            shipId: sourceMode == .friendBattle ? "adelynn" : "kaden",
+            characterId: sourceMode == .friendBattle ? "adelynn" : "kaden",
+            date: Date()
+        )
+    }
+
+    func ghostRaceStatusText() -> String? {
+        guard selectedGameMode.usesGhostTarget, let target = activeGhostTarget else { return nil }
+        let scoreGap = score - target.score
+        if scoreGap >= 0 {
+            return "Ahead of \(target.playerName) by \(scoreGap)"
+        }
+        return "Chasing \(target.playerName): \(-scoreGap) behind"
+    }
+
+    func sharedEventStatusText() -> String? {
+        guard selectedGameMode == .globalEvent || selectedGameMode == .coOpBossRush else { return nil }
+        let event = activeSharedEvent ?? loadSharedEventProgress()
+        let total = event.playerContribution
+        return "\(event.eventName): \(total)/\(event.communityGoal)"
+    }
+
+    func loadSharedEventProgress() -> SharedEventProgressData {
+        let key = "sharedEvent_bossRushWeekend"
+        if let data = UserDefaults.standard.data(forKey: key),
+           let decoded = try? JSONDecoder().decode(SharedEventProgressData.self, from: data) {
+            return decoded
+        }
+        return SharedEventProgressData(
+            eventId: "bossRushWeekend",
+            eventName: "Defeat 1,000 Boss Ships",
+            playerContribution: 0,
+            communityGoal: 1000,
+            lastUpdated: Date()
+        )
+    }
+
     func updateSharedEventProgress() {
         let defeatedThisRun = bossesDefeated
         let key = "sharedEvent_bossRushWeekend"
@@ -447,6 +533,12 @@ class GameStateManager: ObservableObject {
 
     func configureMode(_ mode: GameMode) {
         selectedGameMode = mode
+        if mode == .dailyChallenge {
+            selectedCharacter = "kaden"
+            selectedShip = "kaden"
+        }
+        activeGhostTarget = mode.usesGhostTarget ? bestGhostTarget(for: mode) : nil
+        activeSharedEvent = mode == .globalEvent || mode == .coOpBossRush ? loadSharedEventProgress() : nil
         UserDefaults.standard.set(mode.rawValue, forKey: "selectedGameMode")
         syncPlayerProfileToFirebase()
     }
