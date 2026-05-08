@@ -710,7 +710,7 @@ class GameScene: SKScene {
         
         // Add current enemies
         for enemy in gameLogic.enemies {
-            let enemyShip = ShipGraphics.createEnemyShip(size: enemy.size, type: enemy.enemyType)
+            let enemyShip = ShipGraphics.createEnemyShip(size: enemy.size, type: enemy.enemyType, variant: enemy.visualVariant)
             enemyShip.position = enemy.position
             enemyShip.name = "enemy"
             enemyShip.zPosition = 5

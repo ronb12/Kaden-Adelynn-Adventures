@@ -126,6 +126,7 @@ struct Enemy {
     var shootTimer: TimeInterval = 0  // For shooter enemies
     var zigzagOffset: CGFloat = 0  // Track zigzag position
     var usesZigzag: Bool = false    // Whether this enemy uses zigzag movement
+    var visualVariant: Int
     
     enum EnemyType {
         case basic
@@ -137,6 +138,7 @@ struct Enemy {
     init(position: CGPoint, type: EnemyType = .basic) {
         self.position = position
         self.enemyType = type
+        self.visualVariant = Int.random(in: 0...2)
         
         switch type {
         case .basic:
