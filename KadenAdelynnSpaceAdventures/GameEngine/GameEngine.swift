@@ -1066,112 +1066,9 @@ class GameScene: SKScene {
         }
         collectibleNodes.removeAll()
         
-        // Add current collectibles with ENHANCED VISIBILITY - Different star types
+        // Add current collectibles with polished asset art and rarity glows.
         for collectible in gameLogic.collectibles {
-            let starNode = SKNode()
-            starNode.position = collectible.position
-            starNode.name = "collectible"
-            starNode.zPosition = 5
-            
-            let starType = collectible.starType
-            let starColor = starType.color
-            let glowColor = starType.glowColor
-            let starSize = collectible.size.width / 2
-            let sparkleCount = starType == .diamond ? 12 : starType == .platinum ? 10 : 8
-            
-            // OUTER GLOW - Size and intensity based on star type
-            let outerGlowRadius = starSize * 1.2
-            let outerGlow = SKShapeNode(circleOfRadius: outerGlowRadius)
-            outerGlow.fillColor = glowColor.withAlphaComponent(0.6)
-            outerGlow.strokeColor = .clear
-            outerGlow.zPosition = -3
-            starNode.addChild(outerGlow)
-            
-            // MIDDLE GLOW - Color based on star type
-            let middleGlow = SKShapeNode(circleOfRadius: starSize * 0.9)
-            middleGlow.fillColor = glowColor.withAlphaComponent(0.5)
-            middleGlow.strokeColor = .clear
-            middleGlow.zPosition = -2
-            starNode.addChild(middleGlow)
-            
-            // INNER GLOW
-            let innerGlow = SKShapeNode(circleOfRadius: starSize * 0.7)
-            innerGlow.fillColor = starColor.withAlphaComponent(0.4)
-            innerGlow.strokeColor = .clear
-            innerGlow.zPosition = -1
-            starNode.addChild(innerGlow)
-            
-            // MAIN STAR - Color and size based on type
-            let starShape = SKShapeNode(circleOfRadius: starSize)
-            starShape.fillColor = starColor
-            starShape.strokeColor = glowColor
-            starShape.lineWidth = starType == .diamond ? 5 : starType == .platinum ? 4 : 3
-            starShape.zPosition = 0
-            starNode.addChild(starShape)
-            
-            // INNER HIGHLIGHT for sparkle effect
-            let highlightSize = starSize * 0.3
-            let innerHighlight = SKShapeNode(circleOfRadius: highlightSize)
-            innerHighlight.fillColor = .white.withAlphaComponent(0.9)
-            innerHighlight.strokeColor = .clear
-            innerHighlight.position = CGPoint(x: -starSize * 0.2, y: starSize * 0.2)
-            innerHighlight.zPosition = 1
-            starNode.addChild(innerHighlight)
-            
-            // SPARKLE PARTICLES - More particles for rarer stars
-            let sparkleRadius = starSize * 0.7
-            for i in 0..<sparkleCount {
-                let sparkle = SKShapeNode(rectOf: CGSize(width: 3, height: 3))
-                sparkle.fillColor = .white
-                sparkle.strokeColor = starColor
-                sparkle.lineWidth = 1
-                let angle = CGFloat(i) * (.pi * 2 / CGFloat(sparkleCount))
-                sparkle.position = CGPoint(x: cos(angle) * sparkleRadius, y: sin(angle) * sparkleRadius)
-                sparkle.zPosition = 1
-                starNode.addChild(sparkle)
-            }
-            
-            // Add "K&A" text on top of star
-            let kaLabel = SKLabelNode(text: "K&A")
-            kaLabel.fontName = "Arial-BoldMT"
-            kaLabel.fontSize = starType == .diamond ? 10 : starType == .platinum ? 9 : starType == .gold ? 8 : 7
-            kaLabel.fontColor = .black
-            kaLabel.position = CGPoint(x: 0, y: -2)  // Slightly below center for better visibility
-            kaLabel.zPosition = 3
-            starNode.addChild(kaLabel)
-            
-            // Value label for rare stars
-            if starType == .platinum || starType == .diamond {
-                let valueLabel = SKLabelNode(text: "\(starType.value)")
-                valueLabel.fontSize = 10
-                valueLabel.fontColor = .white
-                valueLabel.position = CGPoint(x: 0, y: -starSize - 8)
-                valueLabel.zPosition = 3
-                starNode.addChild(valueLabel)
-            }
-            
-            // PULSING ANIMATION - Faster pulse for rarer stars
-            let pulseScale: CGFloat = starType == .diamond ? 1.5 : starType == .platinum ? 1.4 : 1.3
-            let pulseDuration: TimeInterval = starType == .diamond ? 0.3 : starType == .platinum ? 0.32 : 0.35
-            let pulse = SKAction.sequence([
-                SKAction.scale(to: pulseScale, duration: pulseDuration),
-                SKAction.scale(to: 1.0, duration: pulseDuration)
-            ])
-            starNode.run(SKAction.repeatForever(pulse))
-            
-            // ROTATION ANIMATION - Faster rotation for rarer stars
-            let rotationDuration: TimeInterval = starType == .diamond ? 1.2 : starType == .platinum ? 1.4 : 1.6
-            let rotate = SKAction.rotate(byAngle: .pi * 2, duration: rotationDuration)
-            starNode.run(SKAction.repeatForever(rotate))
-            
-            // TWINKLE EFFECT - Additional animation for rare stars
-            if starType == .diamond || starType == .platinum {
-                let twinkle = SKAction.sequence([
-                    SKAction.fadeAlpha(to: 0.7, duration: 0.4),
-                    SKAction.fadeAlpha(to: 1.0, duration: 0.4)
-                ])
-                innerHighlight.run(SKAction.repeatForever(twinkle))
-            }
+            let starNode = createCollectibleNode(for: collectible, time: currentTime)
             
             addChild(starNode)
             collectibleNodes.append(starNode)
@@ -1181,6 +1078,139 @@ class GameScene: SKScene {
         if previousCount > collectibleNodes.count && collectibleNodes.count < gameLogic.collectibles.count {
             audioManager.playPowerUpSound(in: self)
         }
+    }
+
+    private func createCollectibleNode(for collectible: Coin, time: TimeInterval) -> SKNode {
+        let starType = collectible.starType
+        let node = SKNode()
+        node.position = collectible.position
+        node.name = "collectible"
+        node.zPosition = 5
+
+        let radius = collectible.size.width / 2
+        let glowColor = starType.glowColor
+        let shimmer = 0.92 + 0.1 * CGFloat(sin(time * collectiblePulseSpeed(for: starType)))
+
+        let aura = SKShapeNode(circleOfRadius: radius * collectibleAuraScale(for: starType))
+        aura.fillColor = glowColor.withAlphaComponent(collectibleAuraAlpha(for: starType))
+        aura.strokeColor = .clear
+        aura.glowWidth = starType == .diamond ? 16 : starType == .platinum ? 13 : 9
+        aura.zPosition = -3
+        aura.setScale(shimmer)
+        node.addChild(aura)
+
+        let ring = SKShapeNode(circleOfRadius: radius * 0.95)
+        ring.fillColor = .clear
+        ring.strokeColor = glowColor.withAlphaComponent(0.9)
+        ring.lineWidth = starType == .diamond ? 2.5 : 1.6
+        ring.glowWidth = 3
+        ring.zPosition = -1
+        node.addChild(ring)
+
+        if let image = UIImage(named: collectibleAssetName(for: starType)) {
+            let sprite = SKSpriteNode(texture: SKTexture(image: image))
+            sprite.size = CGSize(width: collectible.size.width * 1.72, height: collectible.size.height * 1.72)
+            sprite.zPosition = 0
+            sprite.setScale(shimmer)
+            node.addChild(sprite)
+        } else {
+            let fallback = SKShapeNode(circleOfRadius: radius)
+            fallback.fillColor = starType.color
+            fallback.strokeColor = glowColor
+            fallback.lineWidth = 2
+            fallback.zPosition = 0
+            node.addChild(fallback)
+        }
+
+        addCollectibleSparkles(to: node, starType: starType, radius: radius, time: time)
+        addCollectibleValueBadge(to: node, starType: starType, radius: radius)
+
+        node.zRotation = CGFloat(sin(time * 1.7 + Double(collectible.value))) * 0.08
+        return node
+    }
+
+    private func collectibleAssetName(for starType: StarType) -> String {
+        switch starType {
+        case .bronze:
+            return "collectible_18"
+        case .silver:
+            return "collectible_19"
+        case .gold:
+            return "collectible_8"
+        case .platinum:
+            return "collectible_3"
+        case .diamond:
+            return "collectible_21"
+        }
+    }
+
+    private func collectiblePulseSpeed(for starType: StarType) -> Double {
+        switch starType {
+        case .bronze: return 4.0
+        case .silver: return 4.6
+        case .gold: return 5.2
+        case .platinum: return 6.0
+        case .diamond: return 7.0
+        }
+    }
+
+    private func collectibleAuraScale(for starType: StarType) -> CGFloat {
+        switch starType {
+        case .bronze: return 1.25
+        case .silver: return 1.32
+        case .gold: return 1.42
+        case .platinum: return 1.55
+        case .diamond: return 1.75
+        }
+    }
+
+    private func collectibleAuraAlpha(for starType: StarType) -> CGFloat {
+        switch starType {
+        case .bronze: return 0.24
+        case .silver: return 0.28
+        case .gold: return 0.34
+        case .platinum: return 0.42
+        case .diamond: return 0.52
+        }
+    }
+
+    private func addCollectibleSparkles(to node: SKNode, starType: StarType, radius: CGFloat, time: TimeInterval) {
+        let sparkleCount = starType == .diamond ? 8 : starType == .platinum ? 6 : starType == .gold ? 4 : 3
+        for index in 0..<sparkleCount {
+            let angle = CGFloat(index) * (.pi * 2 / CGFloat(sparkleCount)) + CGFloat(time * 1.8)
+            let distance = radius * (starType == .diamond ? 1.35 : 1.12)
+            let sparkle = SKShapeNode(circleOfRadius: starType == .diamond ? 2.2 : 1.6)
+            sparkle.fillColor = .white
+            sparkle.strokeColor = starType.glowColor
+            sparkle.lineWidth = 0.8
+            sparkle.position = CGPoint(x: cos(angle) * distance, y: sin(angle) * distance)
+            sparkle.alpha = 0.55 + 0.35 * CGFloat(sin(time * 5 + Double(index)))
+            sparkle.zPosition = 2
+            node.addChild(sparkle)
+        }
+    }
+
+    private func addCollectibleValueBadge(to node: SKNode, starType: StarType, radius: CGFloat) {
+        guard starType.value > 1 else { return }
+
+        let badge = SKShapeNode(circleOfRadius: radius * 0.34)
+        badge.position = CGPoint(x: radius * 0.68, y: -radius * 0.62)
+        badge.fillColor = UIColor.black.withAlphaComponent(0.72)
+        badge.strokeColor = starType.glowColor
+        badge.lineWidth = 1.5
+        badge.glowWidth = 2
+        badge.zPosition = 4
+        node.addChild(badge)
+
+        let label = SKLabelNode(text: "x\(starType.value)")
+        label.fontName = "Arial-BoldMT"
+        label.fontSize = max(8, radius * 0.34)
+        label.fontColor = .white
+        label.verticalAlignmentMode = .center
+        label.horizontalAlignmentMode = .center
+        label.zPosition = 5
+        label.position = badge.position
+        node.addChild(label)
     }
     
     func onEnemyKilled(_ enemy: Enemy, at position: CGPoint, score: Int? = nil) {
