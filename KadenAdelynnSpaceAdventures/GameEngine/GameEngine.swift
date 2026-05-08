@@ -7,6 +7,7 @@
 
 import SpriteKit
 import SwiftUI
+import UIKit
 
 enum PlayerManeuverCommand {
     case dash
@@ -1480,22 +1481,29 @@ class GameScene: SKScene {
             glow.zPosition = -1
             powerUpNode.addChild(glow)
             
-            // Main shape
-            let shape = SKShapeNode(rectOf: CGSize(width: 25, height: 25), cornerRadius: 5)
-            shape.fillColor = color
-            shape.strokeColor = .white
-            shape.lineWidth = 2
-            shape.zPosition = 0
-            powerUpNode.addChild(shape)
-            
-            // Icon/letter
-            let label = SKLabelNode(text: icon)
-            label.fontName = "Arial-BoldMT"
-            label.fontSize = 14
-            label.fontColor = .white
-            label.verticalAlignmentMode = .center
-            label.zPosition = 1
-            powerUpNode.addChild(label)
+            if let assetName = getPowerUpAssetName(type: powerUp.type),
+               let image = UIImage(named: assetName) {
+                let texture = SKTexture(image: image)
+                let sprite = SKSpriteNode(texture: texture)
+                sprite.size = CGSize(width: 32, height: 32)
+                sprite.zPosition = 0
+                powerUpNode.addChild(sprite)
+            } else {
+                let shape = SKShapeNode(rectOf: CGSize(width: 25, height: 25), cornerRadius: 5)
+                shape.fillColor = color
+                shape.strokeColor = .white
+                shape.lineWidth = 2
+                shape.zPosition = 0
+                powerUpNode.addChild(shape)
+
+                let label = SKLabelNode(text: icon)
+                label.fontName = "Arial-BoldMT"
+                label.fontSize = icon.count > 2 ? 10 : 14
+                label.fontColor = .white
+                label.verticalAlignmentMode = .center
+                label.zPosition = 1
+                powerUpNode.addChild(label)
+            }
             
             // Pulsing animation
             let pulse = SKAction.sequence([
@@ -1787,23 +1795,23 @@ class GameScene: SKScene {
     func getPowerUpVisuals(type: PowerUp.PowerUpType) -> (UIColor, String) {
         switch type {
         case .health:
-            return (UIColor(red: 1.0, green: 0.2, blue: 0.2, alpha: 1.0), "❤")
+            return (UIColor(red: 1.0, green: 0.2, blue: 0.2, alpha: 1.0), "+")
         case .rapidFire:
-            return (UIColor(red: 0.2, green: 1.0, blue: 0.2, alpha: 1.0), "⚡")
+            return (UIColor(red: 0.2, green: 1.0, blue: 0.2, alpha: 1.0), "RF")
         case .shield:
-            return (UIColor(red: 0.5, green: 0.2, blue: 1.0, alpha: 1.0), "🛡")
+            return (UIColor(red: 0.5, green: 0.2, blue: 1.0, alpha: 1.0), "SH")
         case .coin:
-            return (UIColor(red: 1.0, green: 0.84, blue: 0.0, alpha: 1.0), "⭐")
+            return (UIColor(red: 1.0, green: 0.84, blue: 0.0, alpha: 1.0), "$")
         
         // Multi-shot weapon collectibles
         case .weaponMultiShot2:
-            return (UIColor(red: 1.0, green: 0.8, blue: 0.0, alpha: 1.0), "⚡⚡")
+            return (UIColor(red: 1.0, green: 0.8, blue: 0.0, alpha: 1.0), "x2")
         case .weaponMultiShot3:
-            return (UIColor(red: 1.0, green: 0.7, blue: 0.0, alpha: 1.0), "⚡⚡⚡")
+            return (UIColor(red: 1.0, green: 0.7, blue: 0.0, alpha: 1.0), "x3")
         case .weaponMultiShot4:
-            return (UIColor(red: 1.0, green: 0.6, blue: 0.0, alpha: 1.0), "⚡⚡⚡⚡")
+            return (UIColor(red: 1.0, green: 0.6, blue: 0.0, alpha: 1.0), "x4")
         case .weaponMultiShot5:
-            return (UIColor(red: 1.0, green: 0.5, blue: 0.0, alpha: 1.0), "⚡⚡⚡⚡⚡")
+            return (UIColor(red: 1.0, green: 0.5, blue: 0.0, alpha: 1.0), "x5")
         
         // 25 Weapon Collectibles
         case .weaponLaser:
@@ -1817,11 +1825,11 @@ class GameScene: SKScene {
         case .weaponFireball:
             return (UIColor(red: 1.0, green: 0.3, blue: 0.0, alpha: 1.0), "F")
         case .weaponLightning:
-            return (UIColor(red: 0.0, green: 1.0, blue: 1.0, alpha: 1.0), "⚡")
+            return (UIColor(red: 0.0, green: 1.0, blue: 1.0, alpha: 1.0), "LT")
         case .weaponIce:
             return (UIColor(red: 0.5, green: 0.9, blue: 1.0, alpha: 1.0), "I")
         case .weaponPoison:
-            return (UIColor(red: 0.2, green: 0.8, blue: 0.2, alpha: 1.0), "☠")
+            return (UIColor(red: 0.2, green: 0.8, blue: 0.2, alpha: 1.0), "T")
         case .weaponShockwave:
             return (UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 1.0), "W")
         case .weaponBeam:
@@ -1831,11 +1839,11 @@ class GameScene: SKScene {
         case .weaponGrenade:
             return (UIColor(red: 0.8, green: 0.4, blue: 0.0, alpha: 1.0), "G")
         case .weaponFlamethrower:
-            return (UIColor(red: 1.0, green: 0.6, blue: 0.0, alpha: 1.0), "🔥")
+            return (UIColor(red: 1.0, green: 0.6, blue: 0.0, alpha: 1.0), "FL")
         case .weaponElectric:
             return (UIColor(red: 1.0, green: 1.0, blue: 0.2, alpha: 1.0), "E")
         case .weaponFreeze:
-            return (UIColor(red: 0.3, green: 0.8, blue: 1.0, alpha: 1.0), "❄")
+            return (UIColor(red: 0.3, green: 0.8, blue: 1.0, alpha: 1.0), "FR")
         case .weaponAcid:
             return (UIColor(red: 0.1, green: 0.6, blue: 0.1, alpha: 1.0), "A")
         case .weaponVortex:
@@ -1847,15 +1855,78 @@ class GameScene: SKScene {
         case .weaponHoming:
             return (UIColor(red: 0.2, green: 0.6, blue: 1.0, alpha: 1.0), "H")
         case .weaponExplosive:
-            return (UIColor(red: 1.0, green: 0.2, blue: 0.2, alpha: 1.0), "💥")
+            return (UIColor(red: 1.0, green: 0.2, blue: 0.2, alpha: 1.0), "EX")
         case .weaponPiercing:
-            return (UIColor(red: 0.95, green: 0.95, blue: 0.95, alpha: 1.0), "→")
+            return (UIColor(red: 0.95, green: 0.95, blue: 0.95, alpha: 1.0), ">")
         case .weaponChain:
             return (UIColor(red: 1.0, green: 0.9, blue: 0.0, alpha: 1.0), "C")
         case .weaponMeteor:
-            return (UIColor(red: 1.0, green: 0.4, blue: 0.1, alpha: 1.0), "☄")
+            return (UIColor(red: 1.0, green: 0.4, blue: 0.1, alpha: 1.0), "MT")
         case .weaponLaserBeam:
-            return (UIColor(red: 0.0, green: 1.0, blue: 1.0, alpha: 1.0), "➤")
+            return (UIColor(red: 0.0, green: 1.0, blue: 1.0, alpha: 1.0), "LB")
+        }
+    }
+
+    func getPowerUpAssetName(type: PowerUp.PowerUpType) -> String? {
+        switch type {
+        case .health:
+            return "PowerUp_Health"
+        case .rapidFire:
+            return "PowerUp_RapidFire"
+        case .shield:
+            return "PowerUp_Shield"
+        case .coin:
+            return "PowerUp_Coin"
+        case .weaponLaser:
+            return "PowerUp_Laser"
+        case .weaponSpread:
+            return "PowerUp_Spread"
+        case .weaponPlasma:
+            return "PowerUp_Plasma"
+        case .weaponMissile:
+            return "PowerUp_Missile"
+        case .weaponFireball:
+            return "PowerUp_Fireball"
+        case .weaponLightning:
+            return "PowerUp_Lightning"
+        case .weaponIce:
+            return "PowerUp_Ice"
+        case .weaponPoison:
+            return "PowerUp_Poison"
+        case .weaponShockwave:
+            return "PowerUp_Shockwave"
+        case .weaponBeam, .weaponLaserBeam:
+            return "PowerUp_Beam"
+        case .weaponRocket:
+            return "PowerUp_Rocket"
+        case .weaponGrenade:
+            return "PowerUp_Grenade"
+        case .weaponFlamethrower:
+            return "PowerUp_Flamethrower"
+        case .weaponElectric:
+            return "PowerUp_Electric"
+        case .weaponFreeze:
+            return "PowerUp_Freeze"
+        case .weaponAcid:
+            return "PowerUp_Acid"
+        case .weaponVortex:
+            return "PowerUp_Vortex"
+        case .weaponPulse:
+            return "PowerUp_Pulse"
+        case .weaponScatter:
+            return "PowerUp_Scatter"
+        case .weaponHoming:
+            return "PowerUp_Homing"
+        case .weaponExplosive:
+            return "PowerUp_Explosive"
+        case .weaponPiercing:
+            return "PowerUp_Piercing"
+        case .weaponChain:
+            return "PowerUp_Chain"
+        case .weaponMeteor:
+            return "PowerUp_Meteor"
+        case .weaponMultiShot2, .weaponMultiShot3, .weaponMultiShot4, .weaponMultiShot5:
+            return "PowerUp_MultiShot"
         }
     }
     
