@@ -52,7 +52,7 @@ final class AdMobManager: NSObject, ObservableObject {
         isRewardedAdReady = false
         lastMessage = nil
 
-        RewardedAd.load(with: rewardedAdUnitID, request: Request()) { [weak self] ad, error in
+        RewardedAd.load(with: rewardedAdUnitID, request: makeKidSafeRequest()) { [weak self] ad, error in
             DispatchQueue.main.async {
                 guard let self else { return }
                 self.isLoadingRewardedAd = false
@@ -92,6 +92,24 @@ final class AdMobManager: NSObject, ObservableObject {
                 self?.rewardHandler = nil
             }
         }
+    }
+
+    private func makeKidSafeRequest() -> Request {
+        let request = Request()
+        request.keywords = [
+            "family friendly",
+            "kids",
+            "space game"
+        ]
+
+        let extras = Extras()
+        extras.additionalParameters = [
+            "npa": "1",
+            "max_ad_content_rating": "G"
+        ]
+        request.register(extras)
+
+        return request
     }
 }
 
