@@ -2101,8 +2101,8 @@ class GameScene: SKScene {
         ]))
         
         // Create afterimage effect
-        if let player = playerNode {
-            let afterimage = player.copy() as! SKNode
+        if let player = playerNode,
+           let afterimage = player.copy() as? SKNode {
             afterimage.alpha = 0.5
             afterimage.zPosition = player.zPosition - 1
             addChild(afterimage)

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0A1B2C3D4E5F60718293A4B5 /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0A1B2C3D4E5F60718293A4B6 /* AppIntents.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		0A1B2C3D4E5F60718293A4B7 /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0A1B2C3D4E5F60718293A4B6 /* AppIntents.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		0B629D46EEBDEEA337A57C5F /* ScoresView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 368E6687528DE2D1520EAD14 /* ScoresView.swift */; };
 		32FC15B8F8D6126A0C7E337F /* PrivacyPolicyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138DF663A1072FBBAEA52A91 /* PrivacyPolicyView.swift */; };
 		46BB3C2DDF940E9CFD7ED34F /* GameModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75A0E342017744F97A6C4895 /* GameModels.swift */; };
@@ -156,6 +157,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0A1B2C3D4E5F60718293A4B7 /* AppIntents.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -663,7 +665,6 @@
 		};
 		7BA1C64565C01E33190F2BF5 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = BADC94AD8194FC51BB09259E /* Pods-KadenAdelynnSpaceAdventuresUITests.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 20;
@@ -690,7 +691,6 @@
 		};
 		C320FBD88FF9BD988A51A7AB /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 058FE837EB5537609C8E7606 /* Pods-KadenAdelynnSpaceAdventuresUITests.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 20;
