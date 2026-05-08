@@ -38,91 +38,107 @@ struct WeaponUpgradesView: View {
             }
             .ignoresSafeArea()
             
-            VStack {
+            VStack(spacing: 14) {
                 // Header
-                HStack {
-                    Text("⚔️ Weapon Upgrades")
-                        .font(.largeTitle)
-                        .foregroundColor(colorScheme == .dark ? Color.white : Color.white)
-                        .shadow(color: (colorScheme == .dark ? Color.black : Color.black).opacity(0.5), radius: 2, x: 0, y: 1)
+                HStack(spacing: 8) {
+                    Image(systemName: "arrow.up.circle.fill")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundStyle(.green, .white)
+                        .accessibilityHidden(true)
+
+                    Text("Weapon Upgrades")
+                        .font(.system(size: 25, weight: .bold))
+                        .foregroundColor(.white)
+                        .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                        .layoutPriority(1)
                     
                     Spacer()
                     
-                    Text("⭐ \(coins)")
-                        .font(.headline)
-                        .foregroundColor(.yellow)
-                    
-                    Button("✕") {
-                        gameState.currentScreen = .mainMenu
+                    HStack(spacing: 4) {
+                        Image(systemName: "star.fill")
+                            .foregroundColor(.yellow)
+                        Text("\(coins)")
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
                     }
-                    .font(.title)
-                    .foregroundColor(colorScheme == .dark ? Color.white : Color.white)
-                    .shadow(color: (colorScheme == .dark ? Color.black : Color.black).opacity(0.8), radius: 3, x: 0, y: 2)
+                    .font(.headline)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(Color.black.opacity(0.25))
+                    .cornerRadius(12)
+                    
+                    Button {
+                        gameState.currentScreen = .mainMenu
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                    .frame(width: 36, height: 36)
+                    .background(Color.white.opacity(0.12))
+                    .clipShape(Circle())
+                    .shadow(color: .black.opacity(0.5), radius: 3, x: 0, y: 2)
                 }
                 .padding(.top, 60) // Safe area padding
                 .padding(.horizontal)
-                .padding(.bottom, 10)
                 
                 // Weapon selector with images
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 15) {
-                        ForEach(["laser", "pulse", "plasma", "rocket"], id: \.self) { weapon in
-                            Button(action: {
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                    selectedWeapon = weapon
-                                }
-                            }) {
-                                VStack(spacing: 8) {
-                                    // Weapon Image
-                                    ZStack {
-                                        Circle()
-                                            .fill(
-                                                selectedWeapon == weapon ?
-                                                    LinearGradient(colors: [.blue, .cyan], startPoint: .topLeading, endPoint: .bottomTrailing) :
-                                                    LinearGradient(colors: [.white.opacity(0.2), .white.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                                            )
-                                            .frame(width: 70, height: 70)
-                                        
-                                        // Try to load weapon image from collectibles
-                                        let weaponImageName = getWeaponImageName(weapon)
-                                        if let weaponImage = UIImage(named: weaponImageName) {
-                                            Image(uiImage: weaponImage)
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fit)
-                                                .frame(width: 50, height: 50)
-                                                .shadow(color: selectedWeapon == weapon ? .cyan.opacity(0.6) : .black.opacity(0.3), radius: 5)
-                                        } else {
-                                            // Fallback to weapon icon based on type
-                                            Image(systemName: getWeaponIcon(weapon))
-                                                .font(.system(size: 30))
-                                                .foregroundColor(selectedWeapon == weapon ? .white : .white.opacity(0.8))
-                                                .shadow(color: selectedWeapon == weapon ? .cyan.opacity(0.6) : .black.opacity(0.3), radius: 5)
-                                        }
-                                    }
-                                    .shadow(color: selectedWeapon == weapon ? .blue.opacity(0.6) : .black.opacity(0.3), radius: selectedWeapon == weapon ? 10 : 5)
-                                    
-                                    // Weapon Name
-                                    Text(weapon == "pulse" ? "Pulse" : weapon == "rocket" ? "Rocket" : weapon.capitalized)
-                                        .font(.caption)
-                                        .fontWeight(selectedWeapon == weapon ? .bold : .regular)
-                                        .foregroundColor(.white)
-                                }
-                                .padding(.vertical, 8)
-                                .padding(.horizontal, 12)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(selectedWeapon == weapon ? Color.blue.opacity(0.3) : Color.white.opacity(0.1))
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(selectedWeapon == weapon ? Color.cyan : Color.white.opacity(0.2), lineWidth: selectedWeapon == weapon ? 2 : 1)
-                                )
-                                .scaleEffect(selectedWeapon == weapon ? 1.05 : 1.0)
+                HStack(spacing: 10) {
+                    ForEach(["laser", "pulse", "plasma", "rocket"], id: \.self) { weapon in
+                        Button(action: {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                selectedWeapon = weapon
                             }
+                        }) {
+                            VStack(spacing: 6) {
+                                ZStack {
+                                    Circle()
+                                        .fill(
+                                            selectedWeapon == weapon ?
+                                                LinearGradient(colors: [.blue, .cyan], startPoint: .topLeading, endPoint: .bottomTrailing) :
+                                                LinearGradient(colors: [.white.opacity(0.2), .white.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                                        )
+                                        .frame(width: 52, height: 52)
+
+                                    let weaponImageName = getWeaponImageName(weapon)
+                                    if let weaponImage = UIImage(named: weaponImageName) {
+                                        Image(uiImage: weaponImage)
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fit)
+                                            .frame(width: 38, height: 38)
+                                            .shadow(color: selectedWeapon == weapon ? .cyan.opacity(0.6) : .black.opacity(0.3), radius: 5)
+                                    } else {
+                                        Image(systemName: getWeaponIcon(weapon))
+                                            .font(.system(size: 24))
+                                            .foregroundColor(selectedWeapon == weapon ? .white : .white.opacity(0.8))
+                                            .shadow(color: selectedWeapon == weapon ? .cyan.opacity(0.6) : .black.opacity(0.3), radius: 5)
+                                    }
+                                }
+                                .shadow(color: selectedWeapon == weapon ? .blue.opacity(0.6) : .black.opacity(0.3), radius: selectedWeapon == weapon ? 10 : 5)
+
+                                Text(weapon == "pulse" ? "Pulse" : weapon == "rocket" ? "Rocket" : weapon.capitalized)
+                                    .font(.caption2.weight(selectedWeapon == weapon ? .bold : .regular))
+                                    .foregroundColor(.white)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.75)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(selectedWeapon == weapon ? Color.blue.opacity(0.3) : Color.white.opacity(0.1))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(selectedWeapon == weapon ? Color.cyan : Color.white.opacity(0.2), lineWidth: selectedWeapon == weapon ? 2 : 1)
+                            )
+                            .scaleEffect(selectedWeapon == weapon ? 1.03 : 1.0)
                         }
                     }
-                    .padding(.horizontal)
                 }
+                .padding(.horizontal)
                 
                 // Upgrades list - Grid layout
                 ScrollView {
@@ -416,14 +432,14 @@ struct UpgradeCard: View {
             
             // Cost and Upgrade Button
             VStack(spacing: 8) {
-                HStack {
+                HStack(spacing: 4) {
                     Text("\(upgrade.cost)")
                         .font(.subheadline)
                         .fontWeight(.bold)
                         .foregroundColor(.black)
                     
-                    Text("⭐")
-                        .font(.caption)
+                    Image(systemName: "star.fill")
+                        .font(.caption2.weight(.bold))
                         .foregroundColor(.yellow)
                 }
                 
@@ -485,4 +501,3 @@ struct UpgradeCard: View {
         }
     }
 }
-

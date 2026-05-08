@@ -33,10 +33,19 @@ struct StoryView: View {
                         
                         Spacer()
                         
-                        Text("🌌 Space Adventures")
-                            .font(.system(size: 42, weight: .bold))
-                            .foregroundColor(.black)
-                            .shadow(color: .black.opacity(0.8), radius: 4, x: 0, y: 2)
+                        HStack(spacing: 8) {
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 30, weight: .bold))
+                                .foregroundColor(.cyan)
+                                .accessibilityHidden(true)
+
+                            Text("Space Adventures")
+                                .font(.system(size: 36, weight: .bold))
+                                .foregroundColor(.black)
+                                .lineLimit(2)
+                                .minimumScaleFactor(0.85)
+                        }
+                        .shadow(color: .black.opacity(0.8), radius: 4, x: 0, y: 2)
                         
                         Spacer()
                         
@@ -108,9 +117,8 @@ struct StoryView: View {
                     Button(action: {
                         gameState.currentScreen = .playing
                     }) {
-                        Text("🚀 Start Adventure")
-                            .font(.title2)
-                            .fontWeight(.bold)
+                        Label("Start Adventure", systemImage: "paperplane.fill")
+                            .font(.title2.weight(.bold))
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()

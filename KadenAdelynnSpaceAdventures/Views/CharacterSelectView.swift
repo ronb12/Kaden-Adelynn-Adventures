@@ -528,12 +528,17 @@ private struct EnhancedCharacterCard: View {
     }
     
     var bestStat: String {
-        let stats = [
-            ("Speed", character.speedValue),
-            ("Health", Double(character.healthValue)),
-            ("Damage", character.damageValue * 10)
+        let scores = [
+            ("Speed", character.speedValue / 10.0),
+            ("Health", Double(character.healthValue) / 150.0),
+            ("Damage", character.damageValue / 1.4)
         ]
-        return stats.max(by: { $0.1 < $1.1 })?.0 ?? "Balanced"
+        let sorted = scores.sorted { $0.1 > $1.1 }
+        guard let top = sorted.first else { return "Balanced" }
+        if sorted.count > 1, top.1 - sorted[1].1 < 0.08 {
+            return "Balanced"
+        }
+        return top.0
     }
     
     var body: some View {
@@ -634,9 +639,15 @@ private struct EnhancedCharacterCard: View {
                 
                 // Playstyle
                 Text(character.playstyle)
-                    .font(.caption2)
-                    .foregroundColor(.purple)
-                    .italic()
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundColor(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.black.opacity(0.28))
+                    .cornerRadius(5)
                 
                 // Visual Stat Bars
                 VStack(spacing: 4) {
@@ -647,43 +658,16 @@ private struct EnhancedCharacterCard: View {
                 .padding(.horizontal, 4)
                 
                 // Actual Values
-                VStack(spacing: 2) {
-                    HStack {
-                        Text("Speed:")
-                            .font(.caption2)
-                            .foregroundColor(.black.opacity(0.6))
-                        Text("\(String(format: "%.1f", character.speedValue))")
-                            .font(.caption2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.black)
-                        Spacer()
-                        Text("HP:")
-                            .font(.caption2)
-                            .foregroundColor(.black.opacity(0.6))
-                        Text("\(character.healthValue)")
-                            .font(.caption2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.black)
-                    }
-                    HStack {
-                        Text("Dmg:")
-                            .font(.caption2)
-                            .foregroundColor(.black.opacity(0.6))
-                        Text("\(String(format: "%.2f", character.damageValue))x")
-                            .font(.caption2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.black)
-                        Spacer()
-                        Text("Weapon:")
-                            .font(.caption2)
-                            .foregroundColor(.black.opacity(0.6))
-                        Text(character.weapon)
-                            .font(.caption2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.black)
-                    }
+                LazyVGrid(columns: [
+                    GridItem(.flexible(), spacing: 6),
+                    GridItem(.flexible(), spacing: 6)
+                ], spacing: 5) {
+                    CharacterDetailPill(label: "Speed", value: String(format: "%.1f", character.speedValue))
+                    CharacterDetailPill(label: "HP", value: "\(character.healthValue)")
+                    CharacterDetailPill(label: "Damage", value: "\(String(format: "%.2f", character.damageValue))x")
+                    CharacterDetailPill(label: "Weapon", value: character.weapon)
                 }
-                .padding(.horizontal, 4)
+                .padding(.horizontal, 2)
                 
                 // Unlock requirement
                 if !isOwned, let requirement = character.unlockRequirement {
@@ -838,6 +822,31 @@ private struct EnhancedCharacterCard: View {
 }
 
 // MARK: - Stat Bar (reused from ShipSelectView)
+private struct CharacterDetailPill: View {
+    let label: String
+    let value: String
+
+    var body: some View {
+        VStack(spacing: 1) {
+            Text(label)
+                .font(.system(size: 8, weight: .semibold))
+                .foregroundColor(.black.opacity(0.6))
+                .lineLimit(1)
+
+            Text(value)
+                .font(.system(size: 9, weight: .bold))
+                .foregroundColor(.black)
+                .lineLimit(1)
+                .minimumScaleFactor(0.55)
+                .allowsTightening(true)
+        }
+        .frame(maxWidth: .infinity, minHeight: 24)
+        .padding(.horizontal, 3)
+        .background(Color.white.opacity(0.18))
+        .cornerRadius(5)
+    }
+}
+
 private struct StatBar: View {
     let label: String
     let value: Double
@@ -894,25 +903,31 @@ private struct AnimatedCharacterSprite: View {
     let characterId: String
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 24.0)) { timeline in
+        TimelineView(.animation(minimumInterval: 1.0 / 12.0)) { timeline in
             let phase = animationPhase(for: timeline.date)
+            let sway = sin(phase * .pi * 2.0)
             ZStack {
                 Image("\(characterId)_character")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
+                    .rotationEffect(.degrees(sway * 1.5))
+                    .offset(y: sway * -2)
 
                 Image("\(characterId)_character_pose_1")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .opacity(poseOpacity(phase, center: 0.30))
+                    .offset(x: -1, y: sway * -2)
 
                 Image("\(characterId)_character_pose_2")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .opacity(poseOpacity(phase, center: 0.75))
+                    .offset(x: 1, y: sway * -2)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .clipped()
+            .drawingGroup()
         }
     }
 
@@ -923,7 +938,7 @@ private struct AnimatedCharacterSprite: View {
 
     private func poseOpacity(_ phase: Double, center: Double) -> Double {
         let distance = min(abs(phase - center), 1.0 - abs(phase - center))
-        return max(0, 1.0 - distance / 0.18) * 0.85
+        return max(0, 1.0 - distance / 0.28) * 0.32
     }
 }
 

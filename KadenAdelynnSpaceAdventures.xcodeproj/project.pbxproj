@@ -570,7 +570,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = KadenAdelynnSpaceAdventures/KadenAdelynnSpaceAdventures.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 20;
 				DEVELOPMENT_TEAM = 4SQJ3AH62S;
 				INFOPLIST_FILE = KadenAdelynnSpaceAdventures/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Kaden & Adelynn Space Adventures";
@@ -580,7 +580,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1;
+				MARKETING_VERSION = 1.0;
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-Wno-quoted-include-in-framework-header",
@@ -662,7 +662,7 @@
 			baseConfigurationReference = BADC94AD8194FC51BB09259E /* Pods-KadenAdelynnSpaceAdventuresUITests.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 20;
 				DEVELOPMENT_TEAM = 4SQJ3AH62S;
 				INFOPLIST_FILE = KadenAdelynnSpaceAdventuresUITests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -671,7 +671,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "Kaden---Adelynn-Space-AdventuresUITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -689,7 +689,7 @@
 			baseConfigurationReference = 058FE837EB5537609C8E7606 /* Pods-KadenAdelynnSpaceAdventuresUITests.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 20;
 				DEVELOPMENT_TEAM = 4SQJ3AH62S;
 				INFOPLIST_FILE = KadenAdelynnSpaceAdventuresUITests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -698,7 +698,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "Kaden---Adelynn-Space-AdventuresUITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -773,7 +773,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = KadenAdelynnSpaceAdventures/KadenAdelynnSpaceAdventures.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 20;
 				DEVELOPMENT_TEAM = 4SQJ3AH62S;
 				INFOPLIST_FILE = KadenAdelynnSpaceAdventures/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Kaden & Adelynn Space Adventures";
@@ -783,7 +783,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1;
+				MARKETING_VERSION = 1.0;
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-Wno-quoted-include-in-framework-header",
